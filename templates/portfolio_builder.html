@@ -337,6 +337,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 #p6 .contact-item:hover{color:#00fff7;}
 #p6 .contact-item i{color:#00fff7;font-size:.8rem;}
 #p6 footer{padding:20px 48px;font-size:.65rem;color:rgba(200,214,235,.2);border-top:1px solid rgba(0,255,247,.06);letter-spacing:.08em;}
+/* Certificates */
+#p1 .cert-tag{font-size:.65rem;color:#39ff14;border:1px solid #1f1f1f;padding:3px 10px;background:#0d0d0d;display:inline-block;margin:3px;}
+#p2 .cert-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;font-size:.82rem;}
+#p2 .cert-row .cn{font-weight:700;} #p2 .cert-row .ci{color:#999;font-size:.74rem;}
+#p3 .cert-pill{padding:8px 18px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);border-radius:8px;font-size:.78rem;font-weight:600;color:#a78bfa;display:inline-block;margin:4px;}
+#p4 .cert-item{background:#fff;border:1px solid #ecdec8;border-radius:8px;padding:12px 14px;margin-bottom:8px;}
+#p4 .cert-item .cn{font-size:.82rem;font-weight:700;color:#1a0f00;} #p4 .cert-item .ci{font-size:.72rem;color:#c2440b;margin-top:2px;}
+#p5 .cert-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:.78rem;}
+#p5 .cert-item .cn{font-weight:700;} #p5 .cert-item .ci{color:#aaa;}
+#p6 .cert-tag{font-size:.72rem;padding:5px 13px;border:1px solid rgba(0,255,247,.2);color:#00fff7;background:rgba(0,255,247,.05);display:inline-block;margin:3px;}
 </style>
 </head>
 <body>
@@ -423,6 +433,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
           <div class="chk"><i class="fas fa-check"></i> Projects ({{ projects|length }})</div>
           <div class="chk"><i class="fas fa-check"></i> Education &amp; Experience</div>
           <div class="chk"><i class="fas fa-check"></i> GitHub · LinkedIn · Email</div>
+          <div class="chk"><i class="fas fa-check"></i> Certificates ({{ user.certificates|length if user.certificates else 0 }})</div>
         </div>
       </div>
 
@@ -473,6 +484,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     </div>
   </div>
   {% endif %}
+  {% if user.certificates %}
+<div class="section" id="certs">
+  <div class="sec-label">CERTIFICATIONS</div>
+  <div class="skills-grid">{% for c in user.certificates %}<span class="cert-tag">{{ c.name }} — {{ c.issuer }}</span>{% endfor %}</div>
+</div>
+{% endif %}
   {% if projects %}
   <div class="section" id="projects">
     <div class="sec-label">SELECTED PROJECTS</div>
@@ -535,6 +552,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="skills-wrap">{% for s in user.known_skills %}{% if s.strip() %}<span class="skill-pill">{{ s.strip() }}</span>{% endif %}{% endfor %}</div>
   </div>
   {% endif %}
+  {% if user.certificates %}
+<div class="section" id="certs">
+  <div class="sec-head"><div class="sec-title">Certifications</div><div class="sec-num">— /</div></div>
+  {% for c in user.certificates %}<div class="cert-row"><span class="cn">{{ c.name }}</span><span>{{ c.issuer }}</span><span class="ci">{{ c.issue_date or '' }}</span></div>{% endfor %}
+</div>
+{% endif %}
   {% if projects %}
   <div class="section" id="projects">
     <div class="sec-head"><div class="sec-title">Selected Projects</div><div class="sec-num">02 /</div></div>
@@ -596,6 +619,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="skills-grid">{% for s in user.known_skills %}{% if s.strip() %}<span class="skill">{{ s.strip() }}</span>{% endif %}{% endfor %}</div>
   </div>
   {% endif %}
+  {% if user.certificates %}
+<div class="section" id="certs">
+  <div class="sec-title">Certifications</div>
+  {% for c in user.certificates %}<span class="cert-pill">🏅 {{ c.name }} <span style="opacity:.6;font-weight:400;">— {{ c.issuer }}</span></span>{% endfor %}
+</div>
+{% endif %}
   {% if projects %}
   <div class="section" id="projects">
     <div class="sec-title">Projects</div>
@@ -655,6 +684,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="skills-wrap">{% for s in user.known_skills %}{% if s.strip() %}<span class="skill">{{ s.strip() }}</span>{% endif %}{% endfor %}</div>
   </div>
   {% endif %}
+  {% if user.certificates %}
+<div class="section" id="certs">
+  <div class="sec-header"><div class="sec-title">Certifications</div><div class="sec-line"></div></div>
+  {% for c in user.certificates %}<div class="cert-item"><div class="cn">{{ c.name }}</div><div class="ci">{{ c.issuer }}{% if c.issue_date %} · {{ c.issue_date }}{% endif %}</div></div>{% endfor %}
+</div>
+{% endif %}
   {% if projects %}
   <div class="section" id="projects">
     <div class="sec-header"><div class="sec-title">Selected Work</div><div class="sec-line"></div></div>
@@ -723,8 +758,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="sec-body">
       <div class="skills-grid">{% for s in user.known_skills %}{% if s.strip() %}<span class="skill">{{ s.strip() }}</span>{% endif %}{% endfor %}</div>
     </div>
+    {% if user.certificates %}
+<div class="section" id="certs">
+  <div class="sec-sidebar"><div class="sec-label">Certs</div></div>
+  <div class="sec-body">
+    {% for c in user.certificates %}<div class="cert-item"><span class="cn">{{ c.name }} — {{ c.issuer }}</span><span class="ci">{{ c.issue_date or '' }}</span></div>{% endfor %}
   </div>
+</div>
+{% endif %}
+  </div>
+  
   {% endif %}
+
   {% if projects %}
   <div class="section" id="projects">
     <div class="sec-sidebar"><div class="sec-label">Projects</div></div>
@@ -791,6 +836,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="skills-grid">{% for s in user.known_skills %}{% if s.strip() %}<span class="skill">{{ s.strip() }}</span>{% endif %}{% endfor %}</div>
   </div>
   {% endif %}
+  {% if user.certificates %}
+<div class="section" id="certs">
+  <div class="sec-title">CERTIFICATIONS</div>
+  <div class="skills-grid">{% for c in user.certificates %}<span class="cert-tag">{{ c.name }} · {{ c.issuer }}</span>{% endfor %}</div>
+</div>
+{% endif %}
   {% if projects %}
   <div class="section" id="projects">
     <div class="sec-title">PROJECTS</div>

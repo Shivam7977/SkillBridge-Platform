@@ -651,6 +651,10 @@ body {
     print-color-adjust: exact !important;
   }
 }
+/* Certificates — shared */
+.cert-pdf-item{display:flex;align-items:flex-start;gap:6px;margin-bottom:6px;font-size:.78rem;}
+.cert-pdf-item .cn{font-weight:700;} .cert-pdf-item .ci{opacity:.65;margin-left:4px;}
+.cert-pdf-chip{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:600;margin:2px;}
 </style>
 </head>
 <body>
@@ -684,6 +688,7 @@ body {
   <div class="body">
     <div class="L">
       {% if user.known_skills %}<div class="sec"><div class="st">Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="pill">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+      {% if user.certificates %}<div class="sec"><div class="st">Certificates</div>{% for c in user.certificates %}<div class="cert-pdf-item"><i class="fas fa-certificate" style="color:#6d28d9;font-size:.65rem;margin-top:2px;"></i><span><span class="cn">{{c.name}}</span><span class="ci">— {{c.issuer}}</span></span></div>{% endfor %}</div>{% endif %}
       {% if user.learning_skills %}<div class="sec"><div class="st">Learning</div>{% for s in user.learning_skills %}{% if s.strip() %}<span class="pill pill-b">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       <div class="sec"><div class="st">Education</div>
         <div style="font-size:.86rem;font-weight:700;color:#1e1b4b;">{{user.education_degree or 'Degree'}}</div>
@@ -724,6 +729,7 @@ body {
   </div>
   {% if user.about_me %}<div class="sec"><div class="st">Profile</div><p style="font-size:.86rem;line-height:1.75;color:#374151;">{{user.about_me}}</p></div>{% endif %}
   {% if user.known_skills %}<div class="sec"><div class="st">Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="sk">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+  {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dotted #e2e8f0;font-size:.8rem;"><span style="font-weight:700;">{{c.name}}</span><span style="color:#64748b;">{{c.issuer}}</span></div>{% endfor %}</div>{% endif %}
   {% if projects %}<div class="sec"><div class="st">Projects</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div>{% if p.skills_needed %}<div class="tags">{% for sk in p.skills_needed %}<span>{{sk}}</span>{% if not loop.last %} &middot; {% endif %}{% endfor %}</div>{% endif %}</div>{% endfor %}</div>{% endif %}
   <div class="sec"><div class="st">Education</div><div style="font-size:.9rem;"><strong>{{user.education_degree or 'Degree'}}</strong><span style="color:var(--muted)"> — {{user.education_college or 'Institution'}}</span></div></div>
   <div class="vsep"></div>
@@ -754,6 +760,7 @@ body {
         <div>{% if user.learning_skills %}<div style="font-size:.72rem;font-weight:700;color:#059669;margin-bottom:5px;">Learning</div>{% for s in user.learning_skills %}{% if s.strip() %}<span class="chip" style="background:#d1fae5;">{{s.strip()}}</span>{% endif %}{% endfor %}{% endif %}</div>
       </div>
     </div>{% endif %}
+    {% if user.certificates %}<div class="sec"><div class="st">Certificates</div>{% for c in user.certificates %}<span class="cert-pdf-chip" style="background:#f5f3ff;border:1px solid #c4b5fd;color:#5b21b6;">🏅 {{c.name}}</span>{% endfor %}</div>{% endif %}
     {% if projects %}<div class="sec"><div class="st">Projects</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
     <div class="sec"><div class="st">Education</div><div class="pj"><div class="pt">{{user.education_degree or 'Degree / Certification'}}</div><div class="pd">{{user.education_college or 'Institution'}}</div></div></div>
     <div class="vsep"></div>
@@ -786,6 +793,7 @@ body {
         <div style="font-weight:700;font-size:.86rem;">{{user.education_degree or 'Degree'}}</div>
         <div style="font-size:.76rem;color:rgba(255,255,255,.5);margin-top:2px;">{{user.education_college or 'Institution'}}</div>
       </div>
+      {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<div style="border-left:2px solid #e11d48;padding:4px 9px;margin-bottom:6px;"><div style="font-size:.76rem;font-weight:700;">{{c.name}}</div><div style="font-size:.68rem;color:#e11d48;">{{c.issuer}}</div></div>{% endfor %}</div>{% endif %}
     <div class="vsep"></div>
     </div>
   </div>
@@ -824,6 +832,7 @@ body {
       <div class="sec"><div class="st">Education</div>
         <div style="font-size:.82rem;color:#cbd5e1;"><strong>{{user.education_degree or 'Degree'}}</strong><br><span style="color:#64748b;">{{user.education_college or 'Institution'}}</span></div>
       </div>
+      {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="cert-pdf-chip" style="background:#0c1a2e;border:1px solid #818cf8;color:#818cf8;">{{c.name}}</span>{% endfor %}</div>{% endif %}
     <div class="vsep"></div>
     </div>
   </div>
@@ -856,6 +865,7 @@ body {
         <div style="font-size:.8rem;color:#f0f6fc;font-weight:700;">{{user.education_degree or 'Degree'}}</div>
         <div style="font-size:.73rem;color:#8b949e;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
       </div>
+      {% if user.certificates %}<div class="sec"><div class="st">certs[]</div>{% for c in user.certificates %}<span class="chip" style="border-color:#818cf8;color:#818cf8;">{{c.name}}</span>{% endfor %}</div>{% endif %}
       {% if user.career_goal %}<div class="sec"><div class="st">goal</div><p class="about" style="font-size:.75rem;">{{user.career_goal}}</p></div>{% endif %}
     <div class="vsep"></div>
     </div>
@@ -890,6 +900,7 @@ body {
       <div>
         {% if user.known_skills %}<div class="sec"><div class="st">Core Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="pill">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
         <div class="sec"><div class="st">Education</div><div class="pj"><div class="pt">{{user.education_degree or 'Degree'}}</div><div class="pd">{{user.education_college or 'Institution'}}</div></div></div>
+        {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="pill" style="background:#f5f3ff;border-color:#c4b5fd;color:#5b21b6;">{{c.name}}</span>{% endfor %}</div>{% endif %}
         {% if user.career_goal %}<div class="sec"><div class="st">Vision</div><p style="font-size:.81rem;color:#57534e;line-height:1.7;">{{user.career_goal}}</p></div>{% endif %}
       </div>
     <div class="vsep"></div>
@@ -918,6 +929,7 @@ body {
       {% if user.known_skills %}<div class="sec"><div class="st">Design Tools</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.learning_skills %}<div class="sec"><div class="st">Exploring</div>{% for s in user.learning_skills %}{% if s.strip() %}<span class="chip chip-l">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       <div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+      {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip" style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;">{{c.name}}</span>{% endfor %}</div>{% endif %}
     <div class="vsep"></div>
     </div>
     <div class="R">
@@ -956,6 +968,7 @@ body {
       <div>
         {% if user.known_skills %}<div class="sec"><div class="st">Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="pill">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
         <div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+        {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="pill" style="background:#f5f3ff;border-color:#c4b5fd;color:#5b21b6;">{{c.name}}</span>{% endfor %}</div>{% endif %}
         {% if user.career_goal %}<div class="sec"><div class="st">Goal</div><p style="font-size:.8rem;color:#44403c;line-height:1.65;">{{user.career_goal}}</p></div>{% endif %}
       </div>
     <div class="vsep"></div>
@@ -982,6 +995,7 @@ body {
       {% if user.known_skills %}<div class="sec"><div class="st">Competencies</div>{% for s in user.known_skills %}{% if s.strip() %}<div class="sk-item">{{s.strip()}}</div>{% endif %}{% endfor %}</div>{% endif %}
       <div class="sec"><div class="st">Education</div><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div>
       {% if user.experience_years %}<div class="sec"><div class="st">Experience</div><div style="font-family:'DM Sans',sans-serif;font-size:.82rem;color:#374151;">{{user.experience_years}} Years</div></div>{% endif %}
+      {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<div class="cert-pdf-item"><span>🏅</span><span><span class="cn">{{c.name}}</span><span class="ci" style="color:#c8a951;">— {{c.issuer}}</span></span></div>{% endfor %}</div>{% endif %}
     <div class="vsep"></div>
     </div>
     <div class="R">
@@ -1013,6 +1027,7 @@ body {
       {% if user.known_skills %}<div class="sec"><div class="st">Clinical Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       <div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
       {% if user.availability %}<div class="sec"><div class="st">Availability</div><p style="font-size:.8rem;color:#0f766e;">{{user.availability}}</p></div>{% endif %}
+      {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip" style="background:#ede9fe;color:#5b21b6;">{{c.name}}</span>{% endfor %}</div>{% endif %}
     <div class="vsep"></div>
     </div>
     <div class="R">
@@ -1050,6 +1065,7 @@ body {
         <div style="font-weight:700;font-size:.8rem;color:#dde1e7;">{{user.education_degree or 'Degree'}}</div>
         <div style="font-size:.72rem;color:rgba(255,255,255,.42);margin-top:2px;">{{user.education_college or 'Institution'}}</div>
       </div>
+      {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip" style="border-color:#818cf8;color:#818cf8;">{{c.name}}</span>{% endfor %}</div>{% endif %}
       {% if user.career_goal %}<div class="sec"><div class="st">Objective</div><p class="about">{{user.career_goal}}</p></div>{% endif %}
     <div class="vsep"></div>
     </div>
@@ -1077,6 +1093,7 @@ body {
         <div style="font-size:.78rem;color:#0284c7;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
       </div>
       {% if user.experience_years %}<div class="sec"><div class="st">Experience</div><p style="font-size:.82rem;color:#374151;">{{user.experience_years}} Years</p></div>{% endif %}
+      {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip" style="background:#f5f3ff;border-color:#c4b5fd;color:#5b21b6;">{{c.name}}</span>{% endfor %}</div>{% endif %}
     <div class="vsep"></div>
     </div>
     <div class="R">
@@ -1114,6 +1131,7 @@ body {
         <div style="font-weight:700;font-size:.93rem;">{{user.education_degree or 'Degree'}}</div>
         <div style="font-size:.84rem;color:#666;font-style:italic;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
       </div>
+      {% if user.certificates %}<div class="sec"><div class="st">Credentials</div>{% for c in user.certificates %}<div style="font-family:'DM Sans',sans-serif;border-bottom:1px dotted #ccc;padding-bottom:5px;margin-bottom:5px;"><div style="font-size:.84rem;font-weight:700;color:#0a0a0a;">{{c.name}}</div><div style="font-size:.76rem;color:#777;font-style:italic;">{{c.issuer}}</div></div>{% endfor %}</div>{% endif %}
     <div class="vsep"></div>
     </div>
   </div>
@@ -1148,6 +1166,7 @@ body {
         <div style="font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;color:#1c1c1e;">{{user.education_degree or 'Degree'}}</div>
         <div style="font-family:'DM Sans',sans-serif;font-size:.8rem;color:#9ca3af;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
       </div>
+      {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<div class="cert-pdf-item" style="font-family:'DM Sans',sans-serif;"><span style="width:6px;height:6px;border-radius:50%;background:#f0abfc;flex-shrink:0;margin-top:4px;display:inline-block;"></span><span><span class="cn">{{c.name}}</span><span class="ci">— {{c.issuer}}</span></span></div>{% endfor %}</div>{% endif %}
     <div class="vsep"></div>
     </div>
   </div>
@@ -1179,6 +1198,7 @@ body {
     <div class="R">
       {% if user.known_skills %}<div class="sec"><div class="st">Subject Areas</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       <div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+      {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip" style="background:#f5f3ff;border-color:#c4b5fd;color:#5b21b6;">{{c.name}}</span>{% endfor %}</div>{% endif %}
       {% if user.experience_years %}<div class="sec"><div class="st">Teaching Exp</div><p style="font-size:.82rem;color:#374151;">{{user.experience_years}} Years</p></div>{% endif %}
     <div class="vsep"></div>
     </div>
@@ -1214,6 +1234,7 @@ body {
         {% if user.known_skills %}<div class="sec"><div class="st">Sales Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
         <div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
         {% if user.career_goal %}<div class="sec"><div class="st">Goal</div><p style="font-size:.8rem;color:#374151;line-height:1.65;">{{user.career_goal}}</p></div>{% endif %}
+        {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip" style="background:#f5f3ff;border-color:#c4b5fd;color:#5b21b6;">{{c.name}}</span>{% endfor %}</div>{% endif %}
       </div>
     <div class="vsep"></div>
     </div>
@@ -1244,6 +1265,7 @@ body {
       <div class="sec"><div class="st">Education</div><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div>
       {% if user.experience_years %}<div class="sec"><div class="st">Building Since</div><p style="font-family:'DM Sans',sans-serif;font-size:.82rem;color:rgba(255,255,255,.45);">{{user.experience_years}} Years</p></div>{% endif %}
       {% if user.career_goal %}<div class="sec"><div class="st">Mission</div><p style="font-family:'DM Sans',sans-serif;font-size:.78rem;color:rgba(255,255,255,.42);line-height:1.7;">{{user.career_goal}}</p></div>{% endif %}
+      {% if user.certificates %}<div class="sec"><div class="st">Credentials</div>{% for c in user.certificates %}<span class="chip" style="border-color:#818cf8;color:#818cf8;">{{c.name}}</span>{% endfor %}</div>{% endif %}
     <div class="vsep"></div>
     </div>
     <div class="R">
