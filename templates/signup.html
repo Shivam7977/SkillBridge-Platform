@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Join SkillBridge</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg-main:#f6f7fb;
+  --bg-card:#ffffff;
+  --primary:#7c3aed;
+  --accent:#ec4899;
+  --text-main:#111827;
+  --text-muted:#6b7280;
+  --border:#e5e7eb;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:Inter,system-ui;
+  min-height:100vh;
+  background:linear-gradient(180deg,#f6f7fb,#f1effa);
+  display:flex;
+}
+
+/* ---------- LAYOUT ---------- */
+.wrapper{
+  width:100%;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+}
+
+/* ---------- LEFT BRAND PANEL ---------- */
+.brand{
+  position:relative;
+  padding:80px;
+  background:
+    radial-gradient(600px 300px at 20% 10%,rgba(255,255,255,.25),transparent),
+    linear-gradient(135deg,var(--primary),var(--accent));
+  color:white;
+  overflow:hidden;
+}
+.brand h1{
+  font-size:3.5rem;
+  font-weight:900;
+  line-height:1;
+}
+.brand p{
+  margin-top:20px;
+  font-size:1.1rem;
+  opacity:.9;
+  max-width:420px;
+}
+.badges{
+  margin-top:40px;
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+}
+.badge{
+  background:rgba(255,255,255,.18);
+  padding:10px 16px;
+  border-radius:999px;
+  font-size:.85rem;
+  backdrop-filter:blur(10px);
+}
+.glow{
+  position:absolute;
+  width:300px;
+  height:300px;
+  background:rgba(255,255,255,.25);
+  filter:blur(120px);
+  border-radius:50%;
+  bottom:-100px;
+  right:-100px;
+}
+
+/* ---------- FORM SIDE ---------- */
+.form-side{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:40px;
+}
+.form-container{
+  width:100%;
+  max-width:420px;
+  background:var(--bg-card);
+  border-radius:24px;
+  padding:40px;
+  box-shadow:0 40px 80px rgba(124,58,237,.25);
+  animation:slideIn .6s ease;
+}
+@keyframes slideIn{
+  from{opacity:0;transform:translateX(40px)}
+  to{opacity:1;transform:none}
+}
+.logo{
+  font-size:1.8rem;
+  font-weight:900;
+  color:var(--primary);
+  text-align:center;
+  margin-bottom:10px;
+}
+h2{
+  text-align:center;
+  font-size:1.6rem;
+}
+.subtitle{
+  text-align:center;
+  color:var(--text-muted);
+  margin-bottom:30px;
+}
+
+/* ---------- INPUTS ---------- */
+.input-group{
+  margin-bottom:18px;
+}
+.input-group label{
+  font-size:.85rem;
+  font-weight:600;
+}
+.input-wrapper{
+  position:relative;
+}
+input{
+  width:100%;
+  padding:14px 14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:#f9fafb;
+}
+input:focus{
+  outline:none;
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(124,58,237,.15);
+}
+.toggle{
+  position:absolute;
+  right:12px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:.75rem;
+  cursor:pointer;
+  color:var(--text-muted);
+}
+
+/* ---------- BUTTON ---------- */
+button{
+  width:100%;
+  margin-top:20px;
+  padding:15px;
+  border:none;
+  border-radius:14px;
+  font-weight:700;
+  background:linear-gradient(90deg,var(--primary),var(--accent));
+  color:white;
+  cursor:pointer;
+  transition:.3s ease;
+}
+button:hover{
+  transform:translateY(-3px);
+  box-shadow:0 20px 40px rgba(124,58,237,.35);
+}
+
+.switch{
+  text-align:center;
+  margin-top:18px;
+  font-size:.9rem;
+}
+.switch a{
+  color:var(--primary);
+  font-weight:600;
+  text-decoration:none;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media(max-width:900px){
+  .wrapper{grid-template-columns:1fr}
+  .brand{display:none}
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+  <!-- LEFT SIDE -->
+  <div class="brand">
+    <h1>Build proof,<br>not promises.</h1>
+    <p>
+      SkillBridge helps you turn learning into real projects
+      and verifiable portfolios.
+    </p>
+    <div class="badges">
+      <div class="badge">AI Roadmaps</div>
+      <div class="badge">Real Projects</div>
+      <div class="badge">Proof of Work</div>
+    </div>
+    <div class="glow"></div>
+  </div>
+
+  <!-- RIGHT SIDE -->
+  <div class="form-side">
+    <div class="form-container">
+      <div class="logo">SkillBridge</div>
+      <h2>Create account</h2>
+      <p class="subtitle">Start your journey in minutes</p>
+
+      <form id="signupForm" action="{{ url_for('signup') }}" method="POST">
+
+        <div class="input-group">
+          <label>Full Name</label>
+          <input type="text" name="name" required>
+        </div>
+
+        <div class="input-group">
+          <label>Email</label>
+          <input type="email" name="email" required>
+        </div>
+
+        <div class="input-group">
+          <label>Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="password" name="password" required>
+            <span class="toggle" onclick="toggle('password')">SHOW</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Confirm Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="confirm_password" name="confirm_password" required>
+            <span class="toggle" onclick="toggle('confirm_password')">SHOW</span>
+          </div>
+        </div>
+
+        <button type="submit">Create Account</button>
+
+        <p class="switch">
+          Already have an account?
+          <a href="{{ url_for('login') }}">Login</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggle(id){
+  const el=document.getElementById(id);
+  el.type=el.type==="password"?"text":"password";
+}
+
+/* existing validation untouched */
+document.getElementById('signupForm').addEventListener('submit', function(event) {
+  event.preventDefault(); 
+
+  const password = document.getElementById('password').value;
+  const confirmPassword = document.getElementById('confirm_password').value;
+
+  if (password !== confirmPassword) {
+    alert('Passwords do not match.');
+    return;
+  }
+
+  const passwordPattern =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+  if (!passwordPattern.test(password)) {
+    alert('Password must contain uppercase, lowercase, number & symbol.');
+    return;
+  }
+  this.submit();
+});
+</script>
+
+</body>
+</html>

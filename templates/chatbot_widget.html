@@ -1,0 +1,344 @@
+<!-- SKILLBRIDGE AI ASSISTANT — Floating Chatbot Widget -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+
+#sb-root {
+  --p:      #7c3aed;
+  --a:      #ec4899;
+  --bg:     #0f0a1e;
+  --surf:   #1a1030;
+  --surf2:  #241540;
+  --border: rgba(124,58,237,.22);
+  --text:   #e2e8f0;
+  --muted:  rgba(226,232,240,.45);
+  --radius: 18px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* BUBBLE */
+#sb-bubble {
+  position: fixed;
+  bottom: 26px; right: 26px;
+  z-index: 9999;
+  width: 62px; height: 62px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+  border: 3px solid rgba(255,255,255,.18);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 32px rgba(124,58,237,.6), 0 2px 8px rgba(0,0,0,.4);
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s;
+  animation: sbpulse 3s ease-in-out infinite;
+}
+@keyframes sbpulse {
+  0%,100% { box-shadow: 0 8px 32px rgba(124,58,237,.6), 0 0 0 0 rgba(124,58,237,.4); }
+  50%      { box-shadow: 0 8px 32px rgba(124,58,237,.6), 0 0 0 10px rgba(124,58,237,.0); }
+}
+#sb-bubble:hover { transform: scale(1.1) translateY(-3px); animation: none; box-shadow: 0 14px 44px rgba(124,58,237,.75); }
+#sb-bubble.open  { animation: none; transform: scale(.95); }
+#sb-ico-chat  { display: block; }
+#sb-ico-close { display: none; }
+#sb-bubble.open #sb-ico-chat  { display: none;  }
+#sb-bubble.open #sb-ico-close { display: block; }
+
+#sb-badge {
+  position: absolute; top: -4px; right: -4px;
+  width: 20px; height: 20px;
+  background: linear-gradient(135deg, #f43f5e, #ec4899);
+  border-radius: 50%; font-size: .68rem; font-weight: 800;
+  color: #fff; display: none; align-items: center; justify-content: center;
+  border: 2px solid #fff; box-shadow: 0 2px 8px rgba(244,63,94,.5);
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* WINDOW */
+#sb-window {
+  position: fixed;
+  bottom: 104px; right: 26px;
+  z-index: 9997;
+  width: 385px; height: 570px;
+  background: #0f0a1e !important;
+  border: 1px solid rgba(124,58,237,.22);
+  border-radius: var(--radius);
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 40px 100px rgba(0,0,0,.7), 0 0 0 1px rgba(124,58,237,.12), inset 0 1px 0 rgba(255,255,255,.06);
+  transform: scale(.88) translateY(24px);
+  opacity: 0; pointer-events: none;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .22s ease;
+  transform-origin: bottom right;
+  color: #e2e8f0 !important;
+  font-family: 'DM Sans', sans-serif !important;
+}
+#sb-window.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
+
+/* Header */
+#sb-header {
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(124,58,237,.5), rgba(236,72,153,.3)) !important;
+  border-bottom: 1px solid rgba(124,58,237,.22);
+  display: flex; align-items: center; gap: 11px; flex-shrink: 0;
+  backdrop-filter: none;
+}
+#sb-av {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--p), var(--a));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0; position: relative;
+  box-shadow: 0 4px 14px rgba(124,58,237,.4);
+}
+#sb-av::after {
+  content: ''; position: absolute; bottom: -2px; right: -2px;
+  width: 11px; height: 11px; background: #10b981;
+  border-radius: 50%; border: 2px solid var(--bg);
+  box-shadow: 0 0 6px rgba(16,185,129,.6);
+}
+#sb-hinfo { flex: 1; }
+#sb-hname  { font-size: .87rem; font-weight: 700; color: var(--text); line-height: 1.2; }
+#sb-hstatus { font-size: .68rem; color: #34d399; font-weight: 600; letter-spacing: .02em; }
+#sb-clear {
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+  color: var(--muted); border-radius: 8px; padding: 5px 11px;
+  font-size: .68rem; font-weight: 600; cursor: pointer; transition: .18s;
+  font-family: 'DM Sans', sans-serif;
+}
+#sb-clear:hover { background: rgba(255,255,255,.15); color: var(--text); }
+
+/* Messages */
+#sb-msgs {
+  flex: 1; overflow-y: auto; padding: 14px 12px;
+  display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth;
+  background: #0f0a1e !important;
+}
+#sb-msgs::-webkit-scrollbar { width: 3px; }
+#sb-msgs::-webkit-scrollbar-thumb { background: rgba(124,58,237,.25); border-radius: 2px; }
+
+.sbm { display: flex; gap: 8px; align-items: flex-end; animation: sbmin .2s ease; }
+@keyframes sbmin { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: none; } }
+.sbm.user { flex-direction: row-reverse; }
+
+.sbm-ico {
+  width: 30px; height: 30px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.sbm.bot  .sbm-ico { background: linear-gradient(135deg, var(--p), var(--a)); box-shadow: 0 3px 10px rgba(124,58,237,.35); }
+.sbm.user .sbm-ico { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.1); font-size: 12px; }
+
+.sbm-txt {
+  max-width: 76%; padding: 9px 13px; border-radius: 13px;
+  font-size: .81rem; line-height: 1.65; color: #e2e8f0 !important;
+}
+.sbm.bot  .sbm-txt { background: #1a1030 !important; border: 1px solid rgba(124,58,237,.22); border-bottom-left-radius: 3px; color: #e2e8f0 !important; }
+.sbm.user .sbm-txt { background: linear-gradient(135deg, #7c3aed, #ec4899) !important; color: #ffffff !important; border-bottom-right-radius: 3px; box-shadow: 0 4px 14px rgba(124,58,237,.3); -webkit-text-fill-color: #ffffff !important; }
+
+/* Typing */
+#sb-typing { display: none; align-items: flex-end; gap: 8px; padding: 0 12px 4px; }
+#sb-typing.show { display: flex; }
+.sb-dots { background: #1a1030 !important; border: 1px solid rgba(124,58,237,.22); border-radius: 13px; border-bottom-left-radius: 3px; padding: 10px 14px; display: flex; gap: 4px; align-items: center; }
+.sb-dots span { width: 6px; height: 6px; background: rgba(226,232,240,.45); border-radius: 50%; animation: sbb .85s ease infinite; }
+.sb-dots span:nth-child(2) { animation-delay: .14s; }
+.sb-dots span:nth-child(3) { animation-delay: .28s; }
+@keyframes sbb { 0%,80%,100% { transform: translateY(0); opacity: .35; } 40% { transform: translateY(-5px); opacity: 1; } }
+
+/* Quick replies */
+#sb-quick { padding: 6px 12px 4px; display: flex; flex-wrap: wrap; gap: 5px; border-top: 1px solid rgba(255,255,255,.04); flex-shrink: 0; background: #0f0a1e !important; }
+.sb-q {
+  padding: 5px 11px; background: rgba(124,58,237,.12); border: 1px solid rgba(124,58,237,.28);
+  border-radius: 100px; font-size: .71rem; font-weight: 600; color: #a78bfa !important;
+  cursor: pointer; transition: .15s; font-family: 'DM Sans', sans-serif; white-space: nowrap;
+}
+.sb-q:hover { background: rgba(124,58,237,.28); color: #fff !important; transform: translateY(-1px); }
+
+/* Input */
+#sb-input-row {
+  padding: 10px 12px; border-top: 1px solid rgba(124,58,237,.22);
+  display: flex; gap: 8px; align-items: flex-end;
+  background: #0f0a1e !important; flex-shrink: 0;
+}
+#sb-inp {
+  flex: 1; background: #241540 !important; border: 1px solid rgba(124,58,237,.2);
+  border-radius: 11px; padding: 9px 13px; color: #e2e8f0 !important;
+  font-family: 'DM Sans', sans-serif; font-size: .81rem; resize: none;
+  max-height: 96px; min-height: 38px; line-height: 1.5; outline: none;
+  transition: border-color .2s, background .2s;
+}
+#sb-inp::placeholder { color: rgba(226,232,240,.45) !important; }
+#sb-inp:focus { border-color: rgba(124,58,237,.55); background: rgba(124,58,237,.07) !important; }
+#sb-send {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--p), var(--a)); border: none;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: .2s; opacity: .45;
+  box-shadow: 0 3px 12px rgba(124,58,237,.3);
+}
+#sb-send:not(:disabled) { opacity: 1; }
+#sb-send:not(:disabled):hover { transform: scale(1.08) translateY(-1px); box-shadow: 0 6px 18px rgba(124,58,237,.5); }
+#sb-send:disabled { cursor: not-allowed; }
+</style>
+
+<div id="sb-root">
+  <button id="sb-bubble" onclick="sbToggle()" aria-label="Open SkillBridge AI">
+    <span id="sb-badge"></span>
+    <svg id="sb-ico-chat" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+    <svg id="sb-ico-close" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
+
+  <div id="sb-window">
+    <div id="sb-header">
+      <div id="sb-av">🤖</div>
+      <div id="sb-hinfo">
+        <div id="sb-hname">SkillBridge AI</div>
+        <div id="sb-hstatus">● Online — Your career guide</div>
+      </div>
+      <button id="sb-clear" onclick="sbClear()">Clear</button>
+    </div>
+
+    <div id="sb-msgs"></div>
+
+    <div id="sb-typing">
+      <div class="sbm-ico" style="background:linear-gradient(135deg,#7c3aed,#ec4899);border-radius:9px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🤖</div>
+      <div class="sb-dots"><span></span><span></span><span></span></div>
+    </div>
+
+    <div id="sb-quick">
+      <button class="sb-q" onclick="sbQ(this)">What can you do?</button>
+      <button class="sb-q" onclick="sbQ(this)">My skill gaps</button>
+      <button class="sb-q" onclick="sbQ(this)">Career advice</button>
+      <button class="sb-q" onclick="sbQ(this)">Next steps for me</button>
+    </div>
+
+    <div id="sb-input-row">
+      <textarea id="sb-inp" placeholder="Ask me anything…" rows="1"
+        onkeydown="sbKey(event)" oninput="sbResize(this)"></textarea>
+      <button id="sb-send" onclick="sbSend()" disabled>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="white"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  let hist=[], open=false, busy=false, greeted=false;
+
+  const SB_USER = {
+    name:   "{{ current_user.name if current_user.is_authenticated else 'there' }}",
+    skills: {{ (user.get('known_skills', []) if user is defined else [])|tojson }},
+    goal:   "{{ user.get('career_goal','') if user is defined else '' }}",
+  };
+  const SB_PROJS = {{ (projects|map(attribute='title')|list|tojson) if projects is defined else '[]' }};
+
+  const win   = document.getElementById('sb-window');
+  const bub   = document.getElementById('sb-bubble');
+  const msgs  = document.getElementById('sb-msgs');
+  const inp   = document.getElementById('sb-inp');
+  const snd   = document.getElementById('sb-send');
+  const typ   = document.getElementById('sb-typing');
+  const badge = document.getElementById('sb-badge');
+
+  // ── Toggle ──────────────────────────────────────────────────────
+  window.sbToggle = function(){
+    open = !open;
+    win.classList.toggle('open', open);
+    bub.classList.toggle('open', open);
+    badge.style.display = 'none';
+    if(open && !greeted){ greeted=true; sbLoadHistory(); }
+    if(open) setTimeout(()=>inp.focus(), 300);
+  };
+
+  // ── Load history from MongoDB ───────────────────────────────────
+  async function sbLoadHistory(){
+    try {
+      const r = await fetch('/api/chatbot/history');
+      const d = await r.json();
+      if(d.messages && d.messages.length > 0){
+        d.messages.forEach(m => {
+          addMsg(m.role === 'user' ? 'user' : 'bot', m.content);
+          // Rebuild hist for Gemini context window
+          hist.push({
+            role:  m.role === 'user' ? 'user' : 'model',
+            parts: [{text: m.content}]
+          });
+        });
+        if(hist.length > 20) hist = hist.slice(-20);
+      } else {
+        sbGreet();
+      }
+    } catch(e) { sbGreet(); }
+  }
+
+  // ── Greeting ────────────────────────────────────────────────────
+  function sbGreet(){
+    const fn = SB_USER.name.split(' ')[0];
+    let g = `Hey **${fn}**! 👋 I'm your SkillBridge AI.\n\n`;
+    if(SB_USER.skills.length && SB_PROJS.length)
+      g += `I can see you have **${SB_USER.skills.length} skills** and **${SB_PROJS.length} project${SB_PROJS.length>1?'s':''}**. Ask me anything about your career, roadmaps, or SkillBridge features.\n\nWhat's on your mind?`;
+    else
+      g += `I'm here to help with career advice, skill gaps, roadmaps, and everything SkillBridge offers.\n\nWhat would you like to explore?`;
+    addMsg('bot', g);
+  }
+
+  window.sbQ = function(el){ inp.value=el.textContent; sbSend(); };
+
+  // ── Send message ────────────────────────────────────────────────
+  window.sbSend = async function(){
+    const txt = inp.value.trim();
+    if(!txt || busy) return;
+    addMsg('user', txt);
+    inp.value=''; sbResize(inp); snd.disabled=true; busy=true;
+    msgs.appendChild(typ); typ.classList.add('show'); scroll();
+    try {
+      const r = await fetch('/api/chatbot',{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({message: txt})
+      });
+      const d = await r.json();
+      typ.classList.remove('show');
+      addMsg('bot', d.reply || "Sorry, couldn't get a response. Try again!");
+    } catch(e){
+      typ.classList.remove('show');
+      addMsg('bot',"Connection error. Please try again.");
+    }
+    busy=false; snd.disabled=false; inp.focus();
+  };
+
+  // ── Clear chat (wipes MongoDB too) ──────────────────────────────
+  window.sbClear = async function(){
+    msgs.innerHTML='';
+    try { await fetch('/api/chatbot/clear', {method:'POST'}); } catch(e){}
+    sbGreet();
+  };
+
+  function addMsg(role, text){
+    const w=document.createElement('div'); w.className=`sbm ${role}`;
+    const i=document.createElement('div'); i.className='sbm-ico'; i.textContent=role==='bot'?'🤖':'👤';
+    const b=document.createElement('div'); b.className='sbm-txt'; b.innerHTML=fmt(text);
+    w.appendChild(i); w.appendChild(b);
+    if(typ.parentNode===msgs) msgs.insertBefore(w,typ); else msgs.appendChild(w);
+    scroll();
+  }
+
+  function fmt(t){
+    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g,'<em>$1</em>')
+      .replace(/`(.+?)`/g,'<code style="background:rgba(255,255,255,.1);padding:1px 5px;border-radius:4px;font-size:.77rem;">$1</code>')
+      .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+  }
+
+  function scroll(){ setTimeout(()=>msgs.scrollTop=msgs.scrollHeight, 50); }
+
+  window.sbResize = function(el){
+    el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,96)+'px';
+    snd.disabled=!el.value.trim();
+  };
+
+  window.sbKey = function(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sbSend(); } };
+
+  setTimeout(()=>{ if(!open){ badge.style.display='flex'; badge.textContent='1'; } }, 7000);
+})();
+</script>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Portfolio | Alex Carter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <style>
+        :root { --bg: #F8F9FA; --text: #212529; --primary: #0052CC; --secondary: #495057; --light-gray: #FFFFFF; --border: #DEE2E6; }
+        [contenteditable="true"]:hover { outline: 2px dashed var(--primary); }
+        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: var(--text); line-height: 1.6; }
+        header { position: fixed; width: 100%; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); z-index: 100; border-bottom: 1px solid var(--border); }
+        .nav { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; }
+        .nav-links a { color: var(--secondary); text-decoration: none; margin-left: 25px; font-weight: 700; }
+        .btn { background-color: var(--primary); color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: 700; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 120px 20px; }
+        .section { padding: 80px 0; border-bottom: 1px solid var(--border); }
+        h1, h2, h3 { font-weight: 800; color: var(--text); }
+        h1 { font-size: 3.5rem; } h2 { font-size: 2.5rem; text-align: center; margin-bottom: 60px; }
+        .hero { display: flex; align-items: center; gap: 50px; min-height: 80vh; }
+        .hero-text { flex: 1; } .hero-image { flex-basis: 300px; }
+        .hero-image img { width: 300px; height: 300px; border-radius: 50%; object-fit: cover; }
+        .metrics-grid, .philosophy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+        .metric-card { background-color: var(--light-gray); text-align: center; padding: 30px; border-radius: 8px; border: 1px solid var(--border); }
+        .metric-number { font-size: 3rem; font-weight: 800; color: var(--primary); }
+        .philosophy-card { background-color: var(--light-gray); padding: 30px; border-radius: 8px; border: 1px solid var(--border); }
+        .testimonial { background-color: var(--primary); color: white; padding: 50px; border-radius: 8px; text-align: center; }
+        .client-logo img { height: 40px; filter: grayscale(1) brightness(1.5); margin-top: 20px; }
+        footer { background-color: var(--text); color: var(--light-gray); text-align: center; padding: 40px 20px; }
+        .social-links a { color: white; text-decoration: none; margin: 0 15px; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="nav">
+            <div contenteditable="true"><strong>Alex Carter</strong> | Sales Executive</div>
+            <div class="nav-links">
+                <a href="#metrics">Results</a>
+                <a href="#philosophy">Philosophy</a>
+                <a href="#testimonials">Testimonials</a>
+                <a href="#contact" class="btn">Contact</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero container">
+            <div class="hero-text">
+                <h3 contenteditable="true" style="color: var(--primary);">Enterprise Sales Leader</h3>
+                <h1 contenteditable="true">Exceeding Targets & Driving Revenue Growth</h1>
+                <p contenteditable="true" style="color: var(--secondary);">A strategic and results-oriented sales professional with 10+ years of experience in building high-value partnerships and leading teams to consistently surpass multimillion-dollar quotas in the SaaS and FinTech sectors.</p>
+            </div>
+            <div class="hero-image">
+                <img src="https://images.unsplash.com/photo-1557862921-37829c790f19?w=800" alt="Alex Carter">
+            </div>
+        </section>
+
+        <section id="metrics" class="section">
+            <div class="container">
+                <h2 contenteditable="true">Career Highlights & KPIs</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card"><div class="metric-number" data-target="142">0%</div><p contenteditable="true">Average Quota Attainment</p></div>
+                    <div class="metric-card"><div class="metric-number" data-target="4.2">0M</div><p contenteditable="true">Annual Contract Value Closed</p></div>
+                    <div class="metric-card"><div class="metric-number" data-target="35">0%</div><p contenteditable="true">YoY Revenue Growth</p></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="philosophy" class="section">
+            <div class="container">
+                <h2 contenteditable="true">My Sales Philosophy</h2>
+                <div class="philosophy-grid">
+                    <div class="philosophy-card"><h3 contenteditable="true">Value-First</h3><p contenteditable="true">I focus on delivering measurable business value, ensuring that my clients' success is the primary driver of every deal.</p></div>
+                    <div class="philosophy-card"><h3 contenteditable="true">Partnership</h3><p contenteditable="true">I build long-term, strategic partnerships based on trust and a deep understanding of my clients' operational needs.</p></div>
+                    <div class="philosophy-card"><h3 contenteditable="true">Integrity</h3><p contenteditable="true">Every negotiation and interaction is guided by transparency and strong ethical principles, fostering lasting relationships.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="testimonials" class="section">
+            <div class="container">
+                <h2 contenteditable="true" style="color:var(--primary);">Success Stories</h2>
+                <div class="testimonial">
+                    <p contenteditable="true" style="font-size: 1.5rem; font-style: italic;">"Alex has been more than a salesperson; he's been a strategic partner. His insights have directly contributed to our 40% growth in operational efficiency."</p>
+                    <p contenteditable="true" style="font-weight: 700; margin-top: 20px;">- Jane Doe, VP of Operations, Innovate Corp</p>
+                    <div class="client-logo"><img src="https://via.placeholder.com/150x40/FFFFFF/000000?text=InnovateCorp" alt="Innovate Corp"></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="contact" class="section">
+             <div class="container" style="text-align: center;">
+                <h2 contenteditable="true">Let's Drive Growth Together</h2>
+                <p contenteditable="true" style="color: var(--secondary); max-width: 600px; margin: 0 auto 30px auto;">I'm always looking for the next challenge and opportunity to create value. Let's connect.</p>
+                <a href="#" class="btn" contenteditable="true">alex.carter@email.com</a>
+             </div>
+        </section>
+    </main>
+    
+    <footer id="footer">
+        <div class="social-links" contenteditable="true">
+            <a href="#">LinkedIn</a> &nbsp;&nbsp;&nbsp; <a href="#">Twitter</a>
+        </div>
+        <p contenteditable="true">© 2025 Alex Carter. All Rights Reserved.</p>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    gsap.registerPlugin(ScrollTrigger);
+    // Animate all sections
+    const sections = gsap.utils.toArray('section, footer');
+    sections.forEach(section => {
+        gsap.from(section.querySelectorAll("*"), {
+            opacity: 0, y: 30, stagger: 0.1, duration: 0.8,
+            scrollTrigger: { trigger: section, start: 'top 80%', toggleActions: 'play none none none' }
+        });
+    });
+    // Animate counters
+    gsap.utils.toArray('.metric-number').forEach(metric => {
+        gsap.from(metric, {
+            textContent: 0, duration: 2, ease: "power1.inOut", snap: { textContent: 1 },
+            modifiers: { textContent: v => (metric.innerHTML.includes('M') ? v.toFixed(1) + 'M' : v.toFixed(0) + '%') },
+            scrollTrigger: { trigger: metric, start: "top 80%" }
+        });
+    });
+});
+</script>
+</body>
+</html>

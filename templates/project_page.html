@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project.title }} - SkillBridge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Light Theme Variables */
+        :root {
+            --color-background: #f8f9fa;
+            --color-surface: #ffffff;
+            --color-sidebar-bg: #ffffff;
+            --color-sidebar-border: #dee2e6;
+            --color-primary: #8B5CF6;
+            --color-secondary: #EC4899;
+            --color-text-primary: #1F2937;
+            --color-text-secondary: #6B7280;
+            --color-input-bg: #F9FAFB;
+            --color-input-border: #D1D5DB;
+            --border-radius-lg: 12px;
+            --border-radius-md: 8px;
+            --box-shadow-card: 0 6px 20px rgba(0, 0, 0, 0.06);
+            --box-shadow-widget: 0 4px 15px rgba(0, 0, 0, 0.05);
+            --box-shadow-button: 0 6px 20px rgba(139, 92, 246, 0.3);
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--color-background); color: var(--color-text-primary); margin: 0; line-height: 1.6; }
+        .dashboard-container { display: flex; }
+        /* Sidebar */
+        .sidebar { width: 250px; background: var(--color-sidebar-bg); border-right: 1px solid var(--color-sidebar-border); height: 100vh; padding: 2rem 1.5rem; position: fixed; box-sizing: border-box; z-index: 10; }
+        .sidebar .logo { font-size: 1.9em; font-weight: 800; margin-bottom: 3rem; color: var(--color-primary); text-decoration: none; letter-spacing: -1px; display: block; }
+        .sidebar nav { height: calc(100% - 5rem); }
+        .sidebar nav ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; height: 100%; }
+        .sidebar nav li a { display: block; color: var(--color-text-secondary); text-decoration: none; padding: 0.9rem 1rem; margin-bottom: .5rem; border-radius: var(--border-radius-md); font-weight: 500; transition: all .2s ease-in-out; }
+        .sidebar nav li a:hover { background-color: #f1f3f5; color: var(--color-text-primary); transform: translateX(4px); }
+        .sidebar nav li a.active { background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); color: #fff; font-weight: 600; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2); transform: translateX(0); }
+        .sidebar .logout-link { margin-top: auto; }
+        .sidebar .logout-link a { color: #dc3545; }
+        .sidebar .logout-link a:hover { background-color: rgba(220, 53, 69, 0.1); color: #b02a37; }
+        /* Main Content */
+        .main-content { margin-left: 250px; padding: 2.5rem 3.5rem; width: calc(100% - 250px); box-sizing: border-box; }
+        .main-content.no-sidebar { margin-left: 0; padding: 2.5rem 4rem; width: 100%; }
+        h1 { font-size: 2.5em; font-weight: 700; color: var(--color-text-primary); }
+        h2 { font-size: 1.5em; color: var(--color-primary); margin-top: 2rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-sidebar-border); }
+        p { color: var(--color-text-secondary); line-height: 1.6; }
+        .cta-button { background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); color: #fff; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all .2s; font-size: 0.9em; text-decoration: none; display: inline-block; white-space: nowrap; box-shadow: var(--box-shadow-button); }
+        .cta-button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(109, 40, 217, .25); }
+        .skill-tag { display: inline-block; background-color: rgba(139, 92, 246, 0.1); color: var(--color-primary); border: 1px solid rgba(139, 92, 246, 0.2); padding: 4px 10px; border-radius: 15px; font-size: .8em; font-weight: 500; margin-right: .5rem; margin-bottom: .5rem; }
+        /* Flash Messages */
+        .flash-messages { position: fixed; top: 20px; right: 20px; z-index: 1001; display: flex; flex-direction: column; gap: 10px; width: calc(100% - 40px); max-width: 380px; }
+        .flash-banner { padding: 1rem 1.5rem; border-radius: var(--border-radius-md); color: #fff; font-weight: 500; box-shadow: 0 5px 20px rgba(0,0,0,0.15); opacity: 0; transform: translateY(-20px) scale(0.95); animation: popDown .4s 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; border-left: 5px solid; }
+        @keyframes popDown { to { opacity: 1; transform: translateY(0) scale(1); } }
+        .flash-success { background-color: #28a745; border-left-color: #1e7e34; }
+        .flash-error   { background-color: #dc3545; border-left-color: #b02a37; }
+        .flash-info    { background-color: #17a2b8; border-left-color: #117a8b; }
+        .flash-warning { background-color: #ffc107; color: #333; border-left-color: #d39e00; }
+
+        /* Styles for this page */
+        .project-detail-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2.5rem;
+            background: var(--color-surface);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--box-shadow-card);
+            border: 1px solid var(--color-sidebar-border);
+        }
+        .project-header {
+            border-bottom: 1px solid var(--color-sidebar-border);
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .project-header h1 { margin: 0; }
+        .project-author {
+            font-size: 1.1em;
+            color: var(--color-text-secondary);
+            margin-top: 0.5rem;
+        }
+        .project-description {
+            font-size: 1.1em;
+            line-height: 1.7;
+            color: var(--color-text-primary);
+            white-space: pre-wrap; /* Respect newlines in description */
+            margin-bottom: 1.5rem;
+        }
+        .skills-section { margin-bottom: 1.5rem; }
+
+        /* History List Styles */
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 1.5rem;
+        }
+        .history-item {
+            background: var(--color-input-bg); /* Light gray background */
+            border: 1px solid var(--color-sidebar-border);
+            border-radius: var(--border-radius-md);
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            transition: box-shadow 0.2s ease-out;
+        }
+        .history-item:hover {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .history-item-info { flex-grow: 1; }
+        .history-item-info p {
+            margin: 0 0 0.25rem 0;
+            color: var(--color-text-primary);
+            font-weight: 500;
+            font-size: 1.05em;
+        }
+        .history-item-info span {
+            font-size: 0.9em;
+            color: var(--color-text-secondary);
+        }
+        .history-item .cta-button {
+             padding: 8px 16px;
+             font-size: 0.9em;
+             box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
+        }
+        .no-history {
+            color: var(--color-text-secondary);
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: var(--color-input-bg);
+            border: 1px dashed var(--color-input-border);
+            border-radius: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        {% if current_user.is_authenticated %}
+        <aside class="sidebar">
+            <div class="logo">SkillBridge</div>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('main_page') }}">Dashboard</a></li>
+                    {% if is_owner %}
+                        <li><a href="{{ url_for('projects') }}">Community Projects</a></li>
+                        <li><a href="{{ url_for('my_projects') }}" class="active">My Projects</a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('projects') }}" class="active">Community Projects</a></li>
+                        <li><a href="{{ url_for('my_projects') }}">My Projects</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('profile') }}">My Profile</a></li>
+                    <li><a href="{{ url_for('roadmap_generator') }}">Roadmap Generator</a></li>
+                    <li><a href="{{ url_for('my_roadmaps') }}">My Saved Roadmaps</a></li>
+                    <li><a href="{{ url_for('portfolio_builder') }}">Portfolio Builder</a></li>
+                    <li class="logout-link"><a href="{{ url_for('logout') }}">Logout</a></li>
+                </ul>
+            </nav>
+        </aside>
+        {% endif %}
+
+        <main class="main-content {% if not current_user.is_authenticated %}no-sidebar{% endif %}">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                  <div class="flash-messages">
+                    {% for category, message in messages %}
+                      <div class="flash-banner flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+            {% endwith %}
+
+            <div class="project-detail-container">
+                <div class="project-header">
+                    <div>
+                        <h1>{{ project.title }}</h1>
+                        <p class="project-author">by {{ creator_name }}</p>
+                    </div>
+                    {% if is_owner %}
+                    <a href="{{ url_for('upload_version', project_id=project._id) }}" class="cta-button">
+                        Upload New Version
+                    </a>
+                    {% endif %}
+                </div>
+
+                <div class="project-body">
+                    <h2>Project Description</h2>
+                    <p class="project-description">
+                        {{ project.description }}
+                    </p>
+
+                    <div class="skills-section">
+                        <h2>Skills Needed</h2>
+                        <div class="skills-tags">
+                             {% if project.skills_needed %}
+                                {% for skill in project.skills_needed %}
+                                    <span class="skill-tag">{{ skill }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span style="color: var(--color-text-secondary); font-size: 0.9em;">None specified</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <h2>Project History</h2>
+                    <ul class="history-list">
+                        {% for commit in commits %}
+                        <li class="history-item">
+                            <div class="history-item-info">
+                                <p>{{ commit.message }}</p>
+                                <span>Uploaded by {{ commit.user_name or 'Unknown' }} on {{ commit.timestamp.strftime('%B %d, %Y at %I:%M %p UTC') }}</span>
+                            </div>
+                            <a href="{{ url_for('download_project', filename=commit.filename) }}" class="cta-button">
+                                Download (.zip)
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="no-history">
+                            No versions have been uploaded for this project yet.
+                            {% if is_owner %}
+                                Click "Upload New Version" to add the first file.
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

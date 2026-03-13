@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roadmap Generator - SkillBridge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Light Theme Variables matching mainpage.html */
+        :root {
+            --color-background: #f8f9fa;
+            --color-surface: #ffffff;
+            --color-sidebar-bg: #ffffff;
+            --color-sidebar-border: #dee2e6;
+            --color-primary: #8B5CF6;
+            --color-secondary: #EC4899;
+            --color-text-primary: #1F2937;
+            --color-text-secondary: #6B7280;
+            --color-input-bg: #F9FAFB;
+            --color-input-border: #D1D5DB;
+            --color-input-focus-border: var(--color-primary);
+            --color-input-focus-shadow: rgba(139, 92, 246, 0.15);
+            --color-success: #10B981; /* Green for resource links */
+            --border-radius-lg: 12px;
+            --border-radius-md: 8px;
+            --box-shadow-card: 0 6px 20px rgba(0, 0, 0, 0.06);
+            --box-shadow-widget: 0 4px 15px rgba(0, 0, 0, 0.05);
+            --box-shadow-button: 0 6px 20px rgba(139, 92, 246, 0.3);
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--color-background); color: var(--color-text-primary); margin: 0; line-height: 1.6; }
+        .dashboard-container { display: flex; }
+        /* Sidebar styles same as mainpage.html */
+        .sidebar { width: 250px; background: var(--color-sidebar-bg); border-right: 1px solid var(--color-sidebar-border); height: 100vh; padding: 2rem 1.5rem; position: fixed; box-sizing: border-box; z-index: 10; }
+        .sidebar .logo { font-size: 1.9em; font-weight: 800; margin-bottom: 3rem; background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; letter-spacing: -1px; display: block; }
+        .sidebar nav { height: calc(100% - 5rem); }
+        .sidebar nav ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; height: 100%; }
+        .sidebar nav li a { display: block; color: var(--color-text-secondary); text-decoration: none; padding: 0.9rem 1rem; margin-bottom: .5rem; border-radius: var(--border-radius-md); font-weight: 500; transition: all .2s ease-in-out; }
+        .sidebar nav li a:hover { background-color: #f1f3f5; color: var(--color-text-primary); transform: translateX(4px); }
+        .sidebar nav li a.active { background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); color: #fff; font-weight: 600; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2); transform: translateX(0); }
+        .sidebar .logout-link { margin-top: auto; }
+        .sidebar .logout-link a { color: #dc3545; }
+        .sidebar .logout-link a:hover { background-color: rgba(220, 53, 69, 0.1); color: #b02a37; }
+        /* Main content */
+        .main-content { margin-left: 250px; padding: 2.5rem 3.5rem; width: calc(100% - 250px); box-sizing: border-box; }
+        .main-content h1 { font-size: 2.2em; font-weight: 700; margin-bottom: 0.5rem; color: var(--color-text-primary); }
+        .main-content > p.subtitle { color: var(--color-text-secondary); margin-bottom: 2.5rem; font-size: 1.1em; margin-top: 0; }
+        /* Form styling */
+        .generator-form { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+        .generator-form input[type="text"] {
+            flex-grow: 1; /* Take remaining space */
+            padding: 14px 16px;
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--color-input-border);
+            background: var(--color-input-bg);
+            color: var(--color-text-primary);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1em;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .generator-form input[type="text"]:focus { border-color: var(--color-input-focus-border); box-shadow: 0 0 0 3px var(--color-input-focus-shadow); outline: none; }
+        .cta-button { background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); color: #fff; padding: 14px 28px; border: none; border-radius: var(--border-radius-md); font-weight: 600; cursor: pointer; transition: transform .2s, box-shadow .3s; font-size: 1em; text-decoration: none; display: inline-block; box-shadow: var(--box-shadow-button); white-space: nowrap; }
+        .cta-button:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4); }
+        a.view-saved-link { color: var(--color-primary); text-decoration: none; font-weight: 500; display: inline-block; margin-bottom: 2.5rem; position: relative; }
+        a.view-saved-link::after { content: ''; position: absolute; width: 0; height: 2px; display: block; margin-top: 2px; right: 0; background: var(--color-primary); transition: width .3s ease; }
+        a.view-saved-link:hover::after { width: 100%; left: 0; background: var(--color-secondary); }
+
+        /* Roadmap Display Container */
+        .roadmap-container {
+            margin-top: 2.5rem;
+            background: var(--color-surface);
+            border: 1px solid var(--color-sidebar-border);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem 2.5rem;
+            box-shadow: var(--box-shadow-card);
+        }
+        .roadmap-header h2 { margin-top: 0; font-size: 1.8em; color: var(--color-text-primary); }
+        .roadmap-header p { color: var(--color-text-secondary); font-style: normal; font-size: 1em; }
+        .roadmap-header p strong { color: var(--color-text-primary); font-weight: 600; }
+        form.save-roadmap-form { margin-top: 1.5rem; margin-bottom: 2rem; text-align: right;}
+        .save-button { width: auto; font-size: 0.95em; padding: 10px 20px; } /* Smaller save button */
+
+        /* Stage Styling */
+        .stage { border-top: 1px solid var(--color-sidebar-border); padding-top: 1.5rem; margin-top: 1.5rem; }
+        .stage:first-of-type { border-top: none; margin-top: 0; padding-top: 0; } /* Remove top border for first stage */
+        .stage h3 { color: var(--color-primary); font-size: 1.5em; margin-bottom: 0.5rem; }
+        .stage-meta { font-size: 0.9em; color: var(--color-text-secondary); margin-bottom: 1rem; }
+        .stage-meta strong { color: var(--color-text-primary); font-weight: 600; }
+        .stage > p { color: var(--color-text-secondary); /* Description color */ }
+
+        /* Module Styling */
+        .module { background-color: var(--color-input-bg); /* Light background for module */ border-radius: var(--border-radius-md); padding: 1.5rem; margin-top: 1rem; border: 1px solid #e9ecef; /* Slightly darker border */ }
+        .module h4 { margin-top: 0; font-size: 1.2em; color: var(--color-text-primary); }
+        .module-meta { font-size: 0.8em; color: var(--color-text-secondary); margin-top: -0.75rem; margin-bottom: 1rem; }
+        .module ul { padding-left: 20px; margin: 0.5rem 0; color: var(--color-text-secondary); }
+        .module li { margin-bottom: 0.5rem; }
+        .resource-link { color: var(--color-success); /* Use green for links */ text-decoration: none; font-weight: 600; }
+        .resource-link:hover { text-decoration: underline; color: #0f9a6f; } /* Darker green hover */
+
+        /* Project Idea & Capstone */
+        .project-idea { border: 1px dashed var(--color-primary); border-radius: var(--border-radius-md); padding: 1.5rem; margin-top: 1.5rem; background-color: rgba(139, 92, 246, 0.05); /* Very subtle purple bg */ }
+        .project-idea h4 { margin-top: 0; color: var(--color-primary); }
+        .project-idea p, .project-idea ul { color: var(--color-text-secondary); }
+        .project-idea ul { padding-left: 20px; }
+        .capstone-project { background: linear-gradient(90deg, var(--color-primary), #a55eea); color: white; border-radius: var(--border-radius-lg); padding: 1.5rem 2rem; margin-top: 2rem; text-align: center; box-shadow: 0 8px 20px rgba(139, 92, 246, 0.25); }
+        .capstone-project h3 { margin-top: 0; font-size: 1.8em; }
+        .capstone-project p, .capstone-project ul { color: rgba(255,255,255,0.9); }
+        .capstone-project ul { padding-left: 20px; text-align: left; display: inline-block; }
+
+        /* Next Steps */
+        .next-steps { text-align: center; margin-top: 2.5rem; border-top: 1px solid var(--color-sidebar-border); padding-top: 2rem; }
+        .next-steps h3 { color: var(--color-primary); font-size: 1.5em; margin-bottom: 1rem; }
+        .next-steps ul { list-style: none; padding: 0; color: var(--color-text-secondary); }
+        .next-steps li { margin-bottom: 0.5rem; }
+
+        /* Flash Messages */
+        .flash-messages { position: fixed; top: 20px; right: 20px; z-index: 1001; display: flex; flex-direction: column; gap: 10px; width: calc(100% - 40px); max-width: 380px; }
+        .flash-banner { padding: 1rem 1.5rem; border-radius: var(--border-radius-md); color: #fff; font-weight: 500; box-shadow: 0 5px 20px rgba(0,0,0,0.15); opacity: 0; transform: translateY(-20px) scale(0.95); animation: popDown .4s 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; border-left: 5px solid; }
+        @keyframes popDown { to { opacity: 1; transform: translateY(0) scale(1); } }
+        .flash-success { background-color: #28a745; border-left-color: #1e7e34; }
+        .flash-error   { background-color: #dc3545; border-left-color: #b02a37; }
+        .flash-warning { background-color: #ffc107; color: #333; border-left-color: #d39e00; }
+        .flash-info    { background-color: #17a2b8; border-left-color: #117a8b; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="logo">SkillBridge</div>
+            <nav>
+                 <ul>
+                    <li><a href="{{ url_for('main_page') }}">Dashboard</a></li>
+                    <li><a href="{{ url_for('projects') }}">Community Projects</a></li>
+                    <li><a href="{{ url_for('my_projects') }}">My Projects</a></li>
+                    <li><a href="{{ url_for('profile') }}">My Profile</a></li>
+                    <li><a href="{{ url_for('roadmap_generator') }}" class="active">Roadmap Generator</a></li>
+                    <li><a href="{{ url_for('my_roadmaps') }}">My Saved Roadmaps</a></li>
+                    <li><a href="{{ url_for('portfolio_builder') }}">Portfolio Builder</a></li>
+                    <li class="logout-link"><a href="{{ url_for('logout') }}">Logout</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+             {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="flash-messages">
+                  {% for category, message in messages %}
+                    <div class="flash-banner flash-{{ category }}">{{ message }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <h1>Roadmap Generator</h1>
+            <p class="subtitle">Enter a role, skill, or topic to generate an AI-powered, project-based learning plan.</p>
+
+            <form action="{{ url_for('roadmap_generator') }}" method="POST" class="generator-form">
+                <input type="text" name="goal" value="{{ goal or '' }}" placeholder="e.g., 'Become a Full Stack Developer' or 'Master React'" required>
+                <button type="submit" class="cta-button">Generate</button>
+            </form>
+
+            <a href="{{ url_for('my_roadmaps') }}" class="view-saved-link">View my saved roadmaps</a>
+
+            {% if roadmap_data %}
+            <div class="roadmap-container">
+                <div class="roadmap-header">
+                    <h2>{{ roadmap_data.get('title', 'Generated Roadmap') }}</h2>
+                     {% if roadmap_data.get('description') %}
+                     <p>{{ roadmap_data.description }}</p>
+                     {% endif %}
+                    <p>
+                        {% if roadmap_data.get('assessed_complexity') %}<strong>Complexity:</strong> {{ roadmap_data.assessed_complexity }}{% endif %}
+                        {% if roadmap_data.get('assessed_complexity') and roadmap_data.get('estimated_stages') %} | {% endif %}
+                        {% if roadmap_data.get('estimated_stages') %}<strong>Stages:</strong> {{ roadmap_data.estimated_stages }}{% endif %}
+                    </p>
+                </div>
+
+                <form action="{{ url_for('save_roadmap') }}" method="POST" class="save-roadmap-form">
+                    {# Pass goal back for saving #}
+                    <input type="hidden" name="goal" value="{{ goal }}">
+                    {# Pass full roadmap data as JSON string #}
+                    <input type="hidden" name="roadmap_content" value='{{ roadmap_data | tojson | escape }}'> {# Use escape for safety #}
+                    <button type="submit" class="cta-button save-button">Save to My Roadmaps</button>
+                </form>
+
+                {# Iterate through stages if they exist and are a list #}
+                {% set stages = roadmap_data.get('stages', []) %}
+                {% if stages is iterable and stages is not string %}
+                    {% for stage in stages %}
+                    <div class="stage">
+                        <h3>{{ loop.index }}. {{ stage.get('name', 'Unnamed Stage') }}</h3>
+                        <div class="stage-meta">
+                            {% if stage.get('estimated_time_to_complete') %}<strong>Est. Time:</strong> {{ stage.estimated_time_to_complete }}{% endif %}
+                            {% if stage.get('tools_and_software') %} | <strong>Tools:</strong> {{ stage.tools_and_software | join(', ') }}{% endif %}
+                        </div>
+                        {% if stage.get('description') %}<p>{{ stage.description }}</p>{% endif %}
+
+                        {% set learning_modules = stage.get('learning_modules', []) %}
+                        {% if learning_modules is iterable and learning_modules is not string %}
+                            {% for module in learning_modules %}
+                            <div class="module">
+                                <h4>{{ module.get('name', 'Unnamed Module') }}</h4>
+                                <div class="module-meta">
+                                    {% if module.get('difficulty_level') %}<strong>Difficulty:</strong> {{ module.difficulty_level }}{% endif %}
+                                    {% if module.get('estimated_time_to_complete') %} | <strong>Est. Time:</strong> {{ module.estimated_time_to_complete }}{% endif %}
+                                </div>
+
+                                {% set concepts = module.get('concepts', []) %}
+                                {% if concepts is iterable and concepts is not string and concepts %}
+                                <strong>Learning Objectives:</strong>
+                                <ul>
+                                {% for concept in concepts %}
+                                    <li>{{ concept }}</li>
+                                {% endfor %}
+                                </ul>
+                                {% endif %} {# end concepts check #}
+
+                                {% set resources = module.get('resources', []) %}
+                                {% if resources is iterable and resources is not string and resources %}
+                                <strong>Resources:</strong>
+                                <ul>
+                                {% for resource in resources %}
+                                    <li>
+                                        {{ resource.get('type', 'Resource') }}:
+                                        <a href="{{ resource.get('url', '#') }}" target="_blank" class="resource-link">
+                                            {{ resource.get('title', 'Link') }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                                </ul>
+                                {% endif %} {# end resources check #}
+                            </div> {# end module #}
+                            {% endfor %} {# end module loop #}
+                        {% endif %} {# end learning_modules check #}
+
+                        {% set project_idea = stage.get('project_idea') %}
+                        {% if project_idea is mapping %} {# Check if project_idea is a dictionary-like object #}
+                        <div class="project-idea">
+                            <h4>💡 Project Idea: {{ project_idea.get('title', 'Unnamed Project') }}</h4>
+                             {% if project_idea.get('description') %}<p>{{ project_idea.description }}</p>{% endif %}
+                            {% set core_features = project_idea.get('core_features', []) %}
+                            {% if core_features is iterable and core_features is not string and core_features %}
+                            <strong>Core Features to Build:</strong>
+                            <ul>
+                            {% for feature in core_features %}
+                                <li>{{ feature }}</li>
+                            {% endfor %}
+                            </ul>
+                            {% endif %} {# end core_features check #}
+                        </div>
+                        {% endif %} {# end project_idea check #}
+                    </div> {# end stage #}
+                    {% endfor %} {# end stage loop #}
+                {% else %}
+                    <p style="color: var(--color-text-secondary); margin-top: 1rem;">The generated roadmap data appears to be missing or invalid.</p>
+                {% endif %} {# end stages check #}
+
+
+                {% set capstone = roadmap_data.get('capstone_project') %}
+                {% if capstone is mapping %}
+                <div class="capstone-project">
+                    <h3>🎓 Final Capstone Project: {{ capstone.get('title', 'Unnamed Capstone') }}</h3>
+                     {% if capstone.get('description') %}<p>{{ capstone.description }}</p>{% endif %}
+                     {% set capstone_features = capstone.get('core_features', []) %}
+                     {% if capstone_features is iterable and capstone_features is not string and capstone_features %}
+                    <strong>Core Features to Build:</strong>
+                    <ul>
+                    {% for feature in capstone_features %}
+                        <li>{{ feature }}</li>
+                    {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                {% endif %} {# end capstone check #}
+
+                {% set next_steps = roadmap_data.get('next_steps', []) %}
+                {% if next_steps is iterable and next_steps is not string and next_steps %}
+                <div class="next-steps">
+                    <h3>🚀 Where to Go From Here</h3>
+                    <ul>
+                    {% for step in next_steps %}
+                        <li>{{ step }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                {% endif %} {# end next_steps check #}
+            </div> {# end roadmap-container #}
+            {% endif %} {# end if roadmap_data #}
+        </main>
+    </div>
+{% include 'chatbot_widget.html' %}    
+</body>
+</html>

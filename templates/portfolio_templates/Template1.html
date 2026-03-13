@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Name | Software Engineer Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0c0c1d; --bg-medium: #11112b; --text-primary: #f8fafc;
+            --text-secondary: #a0a0c4; --accent: #00f5c3; --accent-dark: #00c49f;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+        /* Visual indicator for editable text */
+        [contenteditable="true"]:hover {
+            outline: 2px dashed var(--accent);
+            cursor: text;
+        }
+        html { scroll-behavior: smooth; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-primary); overflow-x: hidden; }
+        body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 20% 20%, rgba(100, 100, 224, 0.2), transparent 40%), radial-gradient(circle at 80% 70%, rgba(0, 245, 195, 0.15), transparent 40%); animation: moveGradient 20s linear infinite; z-index: -1; }
+        @keyframes moveGradient { 0% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }
+        .pin-container { height: 100vh; width: 100vw; overflow: hidden; }
+        .section { position: absolute; top: 0; left: 0; width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; padding: 40px; box-sizing: border-box; opacity: 0; }
+        .container { max-width: 1100px; width: 100%; margin: 0 auto; }
+        h1, h2 { font-family: 'Poppins', sans-serif; margin: 0; }
+        h1 { font-size: clamp(3rem, 7vw, 5.5rem); letter-spacing: -2px; }
+        h2 { font-size: clamp(2rem, 5vw, 3rem); color: var(--text-primary); margin-bottom: 40px; }
+        p { color: var(--text-secondary); line-height: 1.7; font-size: 1.1rem; }
+        .content-item { transform: translateY(30px); opacity: 0; }
+        .side-nav { position: fixed; right: 25px; top: 50%; transform: translateY(-50%); z-index: 100; display: flex; flex-direction: column; gap: 15px; }
+        .nav-dot { width: 12px; height: 12px; background-color: rgba(255, 255, 255, 0.3); border-radius: 50%; cursor: pointer; transition: background-color 0.3s, transform 0.3s; }
+        .nav-dot.active { background-color: var(--accent); transform: scale(1.4); }
+        .hero-layout { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 40px; }
+        .hero-title { font-family: 'Poppins'; font-weight: 800; color: var(--accent); font-size: 1.2rem; margin-bottom: 15px; }
+        .btn { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; }
+        .btn-primary { background: var(--accent); color: var(--bg-dark); }
+        .btn-secondary { border: 2px solid var(--border-color); color: var(--text-primary); }
+        .about-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 60px; align-items: center; }
+        .about-image { width: 100%; max-width: 350px; border-radius: 50%; aspect-ratio: 1 / 1; object-fit: cover; border: 5px solid var(--border-color); }
+        .timeline { border-left: 2px solid var(--border-color); padding-left: 30px; }
+        .timeline-item { position: relative; margin-bottom: 50px; }
+        .timeline-item::before { content: ''; position: absolute; left: -39px; top: 5px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); border: 3px solid var(--bg-dark); }
+        .timeline-date { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 5px; }
+        .timeline-title { font-family: 'Poppins'; font-weight: 700; font-size: 1.4rem; }
+        .timeline-company { font-weight: 500; color: var(--accent); margin-bottom: 10px; }
+        .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; }
+        .project-card { background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)); border: 1px solid var(--border-color); border-radius: 15px; padding: 30px; backdrop-filter: blur(10px); }
+        .project-card h3 { font-family: 'Poppins'; font-size: 1.5rem; color: var(--accent); margin: 0 0 10px; }
+        .contact-content { text-align: center; }
+    </style>
+</head>
+<body>
+
+<nav class="side-nav" id="side-nav"></nav>
+
+<div class="pin-container">
+    <section id="hero" class="section">
+        <div class="container hero-layout">
+            <div class="hero-text">
+                <p class="hero-title content-item" contenteditable="true">Senior Software Engineer</p>
+                <h1 class="content-item" contenteditable="true">Your Name Here</h1>
+                <p class="content-item" contenteditable="true">I build high-performance, scalable software solutions that solve real-world problems.</p>
+                <div class="hero-cta content-item">
+                    <a href="#projects" class="btn btn-primary">View My Work</a>
+                    <a href="#" class="btn btn-secondary" target="_blank">Download CV</a>
+                </div>
+            </div>
+            <div class="hero-visual"></div>
+        </div>
+    </section>
+
+    <section id="about" class="section">
+        <div class="container about-layout">
+            <div class="about-image-container content-item">
+                <img src="https://via.placeholder.com/350" alt="Your Name" class="about-image">
+            </div>
+            <div class="about-text">
+                <h2 class="content-item" contenteditable="true">About Me</h2>
+                <div contenteditable="true">
+                    <p class="content-item">With over 8 years in the tech industry, I've honed my skills in full-stack development and cloud infrastructure.</p>
+                    <p class="content-item">I'm driven by curiosity and a desire to leverage technology for impactful outcomes.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="experience" class="section">
+        <div class="container">
+            <h2 class="content-item" contenteditable="true">Career Journey</h2>
+            <div class="timeline">
+                <div class="timeline-item content-item">
+                    <div class="timeline-date" contenteditable="true">2022 - Present</div>
+                    <h3 class="timeline-title" contenteditable="true">Senior Cloud Engineer</h3>
+                    <div class="timeline-company" contenteditable="true">Tech Solutions Inc.</div>
+                    <p class="timeline-description" contenteditable="true">Architected and managed scalable, secure cloud infrastructure on AWS for enterprise-level applications.</p>
+                </div>
+                <div class="timeline-item content-item">
+                    <div class="timeline-date" contenteditable="true">2019 - 2022</div>
+                    <h3 class="timeline-title" contenteditable="true">Full-Stack Developer</h3>
+                    <div class="timeline-company" contenteditable="true">Innovate Co.</div>
+                    <p class="timeline-description" contenteditable="true">Developed and maintained key features for a SaaS platform using React and Node.js.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="projects" class="section">
+        <div class="container">
+            <h2 class="content-item" contenteditable="true">Featured Projects</h2>
+            <div class="projects-grid">
+                <div class="project-card content-item">
+                    <h3 contenteditable="true">Project Nova - AI Platform</h3>
+                    <p contenteditable="true">A full-stack AI content platform built with Next.js, Python, and AWS Lambda.</p>
+                </div>
+                <div class="project-card content-item">
+                    <h3 contenteditable="true">Project Atlas - Analytics Dashboard</h3>
+                    <p contenteditable="true">An enterprise-grade analytics dashboard for visualizing complex datasets.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="section">
+        <div class="container contact-content">
+            <h2 class="content-item" contenteditable="true">Let's Connect</h2>
+            <p class="content-item" contenteditable="true">Have a project in mind or just want to say hello? My inbox is always open.</p>
+            <a href="mailto:your.email@example.com" class="btn btn-primary content-item">Email Me</a>
+        </div>
+    </section>
+</div>
+
+<script>
+// ===================================================================
+// CORRECTED ANIMATION SCRIPT
+// ===================================================================
+function initAnimations() {
+    gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+    
+    const sections = gsap.utils.toArray(".section");
+    const navContainer = document.getElementById('side-nav');
+    const totalSections = sections.length;
+
+    sections.forEach((section, i) => {
+        const dot = document.createElement('div');
+        dot.classList.add('nav-dot');
+        dot.dataset.index = i;
+        navContainer.appendChild(dot);
+    });
+    const navDots = gsap.utils.toArray(".nav-dot");
+
+    const masterTimeline = gsap.timeline({
+        scrollTrigger: {
+            trigger: ".pin-container",
+            pin: true,
+            scrub: 1,
+            end: () => `+=${(totalSections - 1) * 100}%`,
+            onUpdate: self => {
+                const scrollIndex = Math.round(self.progress * (totalSections - 1));
+                
+                navDots.forEach(dot => dot.classList.remove('active'));
+                navDots[scrollIndex]?.classList.add('active');
+
+                // ✅ FIX: This ensures the currently visible section is always on top and clickable.
+                sections.forEach((section, index) => {
+                    if (index === scrollIndex) {
+                        section.style.zIndex = '5';
+                        section.style.pointerEvents = 'auto';
+                    } else {
+                        section.style.zIndex = '1';
+                        section.style.pointerEvents = 'none';
+                    }
+                });
+            }
+        }
+    });
+
+    // MODIFIED: Ensure the first section is interactive on page load.
+    gsap.set(sections[0], { opacity: 1, zIndex: 5, pointerEvents: 'auto' });
+    gsap.fromTo(sections[0].querySelectorAll('.content-item'), 
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, stagger: 0.1, duration: 0.8, delay: 0.5 }
+    );
+
+    sections.forEach((section, index) => {
+        if (index === 0) return;
+
+        // MODIFIED: Ensure other sections are not interactive initially.
+        gsap.set(section, { zIndex: 1, pointerEvents: 'none' });
+
+        const previousSection = sections[index - 1];
+        const contentItems = section.querySelectorAll('.content-item');
+        
+        masterTimeline
+            .fromTo(contentItems, 
+                { opacity: 0, y: 30 },
+                { opacity: 1, y: 0, stagger: 0.1 },
+                index - 0.5
+            )
+            .to(previousSection, { opacity: 0, duration: 0.5 }, index - 0.5)
+            .to(section, { opacity: 1, duration: 0.5 }, index - 0.5);
+    });
+
+    navDots.forEach(dot => {
+        dot.addEventListener('click', e => {
+            const index = parseInt(e.target.dataset.index);
+            const scrollPos = (ScrollTrigger.maxScroll(window) / (totalSections - 1)) * index;
+            gsap.to(window, { scrollTo: scrollPos, duration: 1, ease: "power2.inOut" });
+        });
+    });
+
+    const viewWorkBtn = document.querySelector('.hero-cta a[href="#projects"]');
+    viewWorkBtn.addEventListener('click', e => {
+        e.preventDefault();
+        const projectsSectionIndex = sections.findIndex(sec => sec.id === 'projects');
+        const scrollPos = (ScrollTrigger.maxScroll(window) / (totalSections - 1)) * projectsSectionIndex;
+        gsap.to(window, { scrollTo: scrollPos, duration: 1.5, ease: "power2.inOut"});
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initAnimations();
+});
+</script>
+
+</body>
+</html>

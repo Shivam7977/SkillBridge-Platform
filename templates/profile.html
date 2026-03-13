@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile Architecture | SkillBridge</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --bg: #f5f6fb;
+  --surface: #ffffff;
+  --primary: #8B5CF6;
+  --secondary: #EC4899;
+  --text-main: #0f172a;
+  --text-dim: #64748b;
+  --border: #e5e7eb;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: var(--text-main); line-height: 1.5; }
+.dashboard-container { display: flex; }
+
+/* SIDEBAR */
+.sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 2.5rem 1.5rem; position: fixed; height: 100vh; z-index: 100; overflow-y: auto; }
+.sidebar .logo { font-size: 1.8rem; font-weight: 800; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 3rem; display: block; text-decoration: none; }
+.sidebar a { display: flex; align-items: center; gap: 12px; padding: .8rem 1rem; border-radius: 12px; color: var(--text-dim); text-decoration: none; margin-bottom: .5rem; font-size: 0.9rem; font-weight: 600; transition: 0.2s; }
+.sidebar a:hover { background: #f1f5f9; color: var(--primary); }
+.sidebar a.active { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; }
+
+/* MAIN */
+.main-content { margin-left: 260px; padding: 4rem; width: calc(100% - 260px); }
+.profile-grid { display: grid; grid-template-columns: 380px 1fr; gap: 3rem; align-items: start; }
+
+/* PREVIEW CARD */
+.preview-card { background: var(--surface); border-radius: 24px; padding: 2.5rem; position: sticky; top: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.05); text-align: center; border: 1px solid var(--border); max-height: 95vh; overflow-y: auto; }
+.profile-pic { width: 110px; height: 110px; border-radius: 25px; object-fit: cover; border: 4px solid #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+.preview-card h2 { font-size: 1.4rem; font-weight: 800; color: var(--text-main); }
+.preview-title { color: var(--primary); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 10px; display: block; }
+.social-preview-row { display: flex; justify-content: center; gap: 12px; margin: 1rem 0; }
+.social-icon-link { text-decoration: none; transition: 0.3s; cursor: default; }
+.social-icon-link.active-link { cursor: pointer; }
+.social-icon { font-size: 1.25rem; color: #cbd5e1; transition: 0.3s; }
+.social-icon-link.active-link .social-icon { color: var(--primary); transform: scale(1.1); }
+.preview-data-list { text-align: left; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
+.data-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.8rem; }
+.data-item label { color: var(--text-dim); font-weight: 600; text-transform: uppercase; font-size: 0.65rem; }
+.data-item span { color: var(--text-main); font-weight: 700; }
+.preview-skills { text-align: left; margin-top: 1.5rem; }
+.preview-skills label { font-size: 0.65rem; color: var(--text-dim); font-weight: 800; text-transform: uppercase; display: block; margin-bottom: 8px; }
+.tag-box { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; }
+.tag { background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; color: var(--text-main); }
+.tag.learning { background: rgba(236,72,153,0.1); color: var(--secondary); }
+.tag.cert-tag { background: rgba(139,92,246,0.1); color: var(--primary); }
+.tag.github-lang { background: rgba(15,23,42,0.07); color: var(--text-main); }
+.view-my-profile-btn { display: block; width: 100%; margin-top: 1rem; padding: 12px; border-radius: 12px; background: #f8fafc; border: 1.5px solid var(--border); color: var(--text-main); text-decoration: none; font-weight: 700; font-size: 0.85rem; transition: 0.3s; text-align: center; }
+.view-my-profile-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+/* GitHub mini preview in sidebar */
+.preview-github-mini { margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; text-align: left; }
+.gh-mini-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.gh-mini-avatar { width: 36px; height: 36px; border-radius: 9px; object-fit: cover; }
+.gh-mini-name { font-weight: 800; font-size: 0.82rem; }
+.gh-mini-handle { font-size: 0.68rem; color: var(--text-dim); }
+.gh-mini-stats { display: flex; gap: 14px; }
+.gh-mini-stat .n { font-weight: 800; font-size: 0.85rem; color: var(--primary); }
+.gh-mini-stat .l { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; font-weight: 600; }
+
+/* FORM CARD */
+.form-card { background: var(--surface); border-radius: 24px; padding: 3.5rem; border: 1px solid var(--border); }
+.form-section { margin-bottom: 3.5rem; }
+.section-title { font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin-bottom: 2rem; display: flex; align-items: center; gap: 15px; }
+.section-title span.bar { width: 35px; height: 4px; background: var(--primary); border-radius: 10px; flex-shrink: 0; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.full { grid-column: span 2; }
+label { font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; display: block; color: var(--text-main); }
+input, textarea, select { width: 100%; background: #f8fafc; border: 1.5px solid var(--border); border-radius: 12px; padding: 14px; font-family: inherit; font-size: 0.9rem; outline: none; transition: 0.2s; color: var(--text-main); }
+input:focus, textarea:focus, select:focus { border-color: var(--primary); background: #fff; }
+.update-btn { width: 100%; padding: 18px; border-radius: 14px; border: none; font-weight: 800; cursor: pointer; background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; transition: 0.3s; font-size: 1rem; font-family: inherit; }
+.update-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(139,92,246,0.3); }
+
+/* ── CERTIFICATES ── */
+.cert-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 1.5rem; min-height: 10px; }
+.cert-card { background: #f8fafc; border: 1.5px solid var(--border); border-radius: 16px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: 0.2s; }
+.cert-card:hover { border-color: var(--primary); box-shadow: 0 4px 14px rgba(139,92,246,0.1); }
+.cert-info { flex: 1; min-width: 0; }
+.cert-name { font-weight: 800; font-size: 0.9rem; color: var(--text-main); display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.cert-issuer { font-size: 0.75rem; color: var(--primary); font-weight: 700; margin-top: 3px; }
+.cert-meta { font-size: 0.7rem; color: var(--text-dim); margin-top: 4px; }
+.cert-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.cert-btn { width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; transition: 0.2s; color: var(--text-dim); }
+.cert-btn.edit:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.cert-btn.del:hover { background: #ef4444; color: #fff; border-color: #ef4444; }
+.cert-badge { font-size: 0.62rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+.cert-badge.verified { background: rgba(16,185,129,0.1); color: #10b981; }
+.add-cert-btn { width: 100%; padding: 14px; border-radius: 14px; border: 2px dashed var(--border); background: transparent; cursor: pointer; font-weight: 700; font-size: 0.85rem; color: var(--text-dim); transition: 0.2s; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.add-cert-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(139,92,246,0.04); }
+.no-certs-msg { text-align: center; padding: 2rem; color: var(--text-dim); font-size: 0.85rem; }
+.no-certs-msg i { font-size: 2rem; opacity: 0.3; display: block; margin-bottom: 10px; }
+
+/* Certificate Modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9998; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+.modal-overlay.open { display: flex; }
+.modal-box { background: #fff; border-radius: 24px; padding: 2.5rem; width: 100%; max-width: 540px; box-shadow: 0 40px 80px rgba(0,0,0,0.2); animation: modalIn 0.25s ease; margin: 1rem; }
+@keyframes modalIn { from { transform: scale(0.92) translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+.modal-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; color: var(--text-main); }
+.modal-title i { color: var(--primary); }
+.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+.modal-grid .full { grid-column: span 2; }
+.modal-actions { display: flex; gap: 12px; }
+.modal-save { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; font-family: inherit; font-size: 0.9rem; }
+.modal-save:hover { opacity: 0.9; }
+.modal-cancel { padding: 14px 20px; border-radius: 12px; border: 1.5px solid var(--border); background: #fff; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.9rem; color: var(--text-dim); }
+.modal-cancel:hover { background: #f1f5f9; }
+
+/* ── GITHUB SECTION ── */
+.github-connect-box { border: 2px dashed var(--border); border-radius: 18px; padding: 2.5rem 2rem; text-align: center; transition: 0.2s; }
+.github-connect-box:hover { border-color: var(--primary); }
+.github-connect-box .gh-icon { font-size: 2.8rem; color: var(--text-dim); margin-bottom: 1rem; }
+.github-connect-box h3 { font-size: 1.05rem; font-weight: 800; margin-bottom: 8px; }
+.github-connect-box p { font-size: 0.82rem; color: var(--text-dim); margin-bottom: 1.5rem; line-height: 1.6; }
+.gh-input-row { display: flex; gap: 10px; max-width: 420px; margin: 0 auto; }
+.gh-fetch-btn { padding: 0 22px; border-radius: 12px; border: none; background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; font-weight: 800; cursor: pointer; font-family: inherit; white-space: nowrap; transition: 0.2s; font-size: 0.9rem; }
+.gh-fetch-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(139,92,246,0.35); }
+.gh-fetch-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* GitHub Preview */
+.github-preview-card { display: none; border: 1.5px solid var(--border); border-radius: 18px; overflow: hidden; margin-top: 1.5rem; }
+.github-preview-card.show { display: block; }
+.gh-prev-header { background: linear-gradient(135deg, #0f172a, #1e293b); padding: 1.5rem 2rem; display: flex; align-items: center; gap: 16px; }
+.gh-prev-avatar { width: 64px; height: 64px; border-radius: 16px; border: 3px solid rgba(255,255,255,0.2); }
+.gh-prev-name { color: #fff; font-weight: 800; font-size: 1.1rem; }
+.gh-prev-username { color: rgba(255,255,255,0.55); font-size: 0.8rem; margin-top: 2px; }
+.gh-prev-bio { color: rgba(255,255,255,0.75); font-size: 0.8rem; margin-top: 6px; }
+.gh-prev-stats { display: flex; gap: 24px; padding: 1rem 2rem; border-bottom: 1px solid var(--border); background: #f8fafc; }
+.gh-prev-stat .n { font-weight: 800; font-size: 1rem; color: var(--primary); }
+.gh-prev-stat .l { font-size: 0.62rem; color: var(--text-dim); font-weight: 600; text-transform: uppercase; }
+.gh-prev-repos { padding: 1.5rem 2rem; }
+.gh-prev-repos h4 { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); margin-bottom: 1rem; letter-spacing: 0.05em; }
+.repo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.repo-card { background: #f8fafc; border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px; transition: 0.2s; }
+.repo-card:hover { border-color: var(--primary); }
+.repo-card a { font-weight: 800; font-size: 0.82rem; color: var(--primary); text-decoration: none; display: block; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.repo-card a:hover { text-decoration: underline; }
+.repo-desc { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.2em; }
+.repo-meta { display: flex; gap: 10px; font-size: 0.68rem; color: var(--text-dim); font-weight: 600; flex-wrap: wrap; }
+.repo-meta span { display: flex; align-items: center; gap: 3px; }
+.gh-prev-langs { padding: 0 2rem 1.5rem; }
+.gh-prev-langs h4 { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; letter-spacing: 0.05em; }
+.lang-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.lang-tag { background: #f1f5f9; border: 1.5px solid var(--border); padding: 4px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; color: var(--text-main); }
+.gh-sync-actions { padding: 1.5rem 2rem; border-top: 1px solid var(--border); display: flex; gap: 14px; align-items: center; flex-wrap: wrap; background: #f8fafc; }
+.gh-sync-btn { padding: 12px 24px; border-radius: 12px; border: none; background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; font-weight: 800; cursor: pointer; font-family: inherit; transition: 0.2s; font-size: 0.9rem; }
+.gh-sync-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(139,92,246,0.3); }
+.gh-merge-label { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 700; color: var(--text-dim); cursor: pointer; user-select: none; }
+.gh-merge-label input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); }
+
+/* GitHub Connected */
+.github-connected-box { border: 1.5px solid #10b981; border-radius: 18px; overflow: hidden; }
+.gh-conn-header { background: linear-gradient(135deg, #0f172a, #1e293b); padding: 1.2rem 1.5rem; display: flex; align-items: center; gap: 14px; }
+.gh-conn-avatar { width: 48px; height: 48px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2); }
+.gh-conn-info { flex: 1; }
+.gh-conn-name { color: #fff; font-weight: 800; font-size: 0.95rem; }
+.gh-conn-username { color: rgba(255,255,255,0.55); font-size: 0.72rem; margin-top: 2px; }
+.gh-conn-badge { background: rgba(16,185,129,0.25); color: #10b981; border: 1px solid rgba(16,185,129,0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.65rem; font-weight: 800; white-space: nowrap; }
+.gh-conn-body { padding: 1.2rem 1.5rem; }
+.gh-conn-stats { display: flex; gap: 20px; margin-bottom: 1rem; }
+.gh-conn-stat .n { font-weight: 800; font-size: 0.95rem; color: var(--primary); }
+.gh-conn-stat .l { font-size: 0.62rem; color: var(--text-dim); font-weight: 600; text-transform: uppercase; }
+.gh-conn-langs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1rem; }
+.gh-conn-actions { display: flex; gap: 10px; }
+.gh-resync-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.82rem; transition: 0.2s; }
+.gh-resync-btn:hover { opacity: 0.9; }
+.gh-disconnect-btn { padding: 10px 16px; border-radius: 10px; border: 1.5px solid #fecaca; background: #fff; color: #ef4444; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.82rem; transition: 0.2s; }
+.gh-disconnect-btn:hover { background: #fef2f2; }
+.gh-synced-at { font-size: 0.68rem; color: var(--text-dim); margin-top: 10px; }
+
+/* Toast */
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px); background: #0f172a; color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; z-index: 99999; transition: 0.35s cubic-bezier(.34,1.56,.64,1); opacity: 0; pointer-events: none; white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast.success { background: linear-gradient(90deg, #059669, #10b981); }
+.toast.error   { background: linear-gradient(90deg, #dc2626, #ef4444); }
+
+@media (max-width: 1100px) { .profile-grid { grid-template-columns: 1fr; } .main-content { margin-left: 0; padding: 2rem; } .sidebar { display: none; } .repo-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
+    <a href="{{ url_for('main_page') }}"><i class="fas fa-th-large"></i> Dashboard</a>
+    <a href="{{ url_for('profile') }}" class="active"><i class="fas fa-user-circle"></i> My Profile</a>
+    <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
+  </aside>
+
+  <main class="main-content">
+    <div class="profile-grid">
+
+      <!-- ══════════════ LEFT — PREVIEW CARD ══════════════ -->
+      <div class="preview-card">
+        <img class="profile-pic" src="{{ user.profile_pic_url or url_for('static', filename='profile_pics/default.jpg') }}">
+        <h2 id="p-name">{{ user.name or "Your Name" }}</h2>
+        <span class="preview-title" id="p-title">{{ user.title or "Professional Title" }}</span>
+
+        <div class="social-preview-row">
+          <a id="link-linkedin" target="_blank" class="social-icon-link"><i class="fab fa-linkedin social-icon" id="ic-linkedin"></i></a>
+          <a id="link-github"   target="_blank" class="social-icon-link"><i class="fab fa-github   social-icon" id="ic-github"></i></a>
+          <a id="link-instagram" target="_blank" class="social-icon-link"><i class="fab fa-instagram social-icon" id="ic-instagram"></i></a>
+          <a id="link-facebook"  target="_blank" class="social-icon-link"><i class="fab fa-facebook  social-icon" id="ic-facebook"></i></a>
+        </div>
+
+        <div class="preview-data-list">
+          <div class="data-item"><label>Status</label><span id="p-status">{{ user.current_status or "Not Set" }}</span></div>
+          <div class="data-item"><label>Experience</label><span id="p-exp">{{ user.experience_years or "0" }} Years</span></div>
+          <div class="data-item"><label>Location</label><span id="p-loc">{{ user.location or "Remote" }}</span></div>
+        </div>
+
+        <div class="preview-skills">
+          <label>Mastered Stack</label>
+          <div class="tag-box" id="p-known"></div>
+
+          <label>Learning Goals</label>
+          <div class="tag-box" id="p-learning"></div>
+
+          <!-- Certs preview -->
+          <div id="preview-certs-wrap" style="display:none">
+            <label>Certificates</label>
+            <div class="tag-box" id="p-certs"></div>
+          </div>
+
+          <!-- GitHub langs preview -->
+          {% if user.github_username %}
+          <label>GitHub Languages</label>
+          <div class="tag-box">
+            {% for lang in user.github_langs %}<span class="tag github-lang">{{ lang }}</span>{% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- GitHub mini stats if connected -->
+        {% if user.github_username %}
+        <div class="preview-github-mini">
+          <div class="gh-mini-header">
+            <img class="gh-mini-avatar" src="{{ user.github_avatar }}" onerror="this.src=''">
+            <div>
+              <div class="gh-mini-name">{{ user.github_username }}</div>
+              <div class="gh-mini-handle"><i class="fab fa-github"></i> Connected</div>
+            </div>
+          </div>
+          <div class="gh-mini-stats">
+            <div class="gh-mini-stat"><div class="n">{{ user.github_public_repos }}</div><div class="l">Repos</div></div>
+            <div class="gh-mini-stat"><div class="n">{{ user.github_followers }}</div><div class="l">Followers</div></div>
+            <div class="gh-mini-stat"><div class="n">{{ user.github_langs|length }}</div><div class="l">Langs</div></div>
+          </div>
+        </div>
+        {% endif %}
+
+        <a href="{{ url_for('view_user_profile', user_id=current_user.id) }}" class="view-my-profile-btn">
+          <i class="fas fa-eye" style="margin-right:8px"></i> View My Public Profile
+        </a>
+      </div>
+
+      <!-- ══════════════ RIGHT — FORM CARD ══════════════ -->
+      <div class="form-card">
+        <form action="{{ url_for('profile') }}" method="POST" enctype="multipart/form-data">
+
+          <!-- Core Identity -->
+          <div class="form-section">
+            <div class="section-title"><span class="bar"></span> Core Identity</div>
+            <div class="form-grid">
+              <div><label>Full Name</label><input type="text" name="name" id="in-name" value="{{ user.name }}" onkeyup="sync()"></div>
+              <div><label>Job Title</label><input type="text" name="title" id="in-title" value="{{ user.title }}" onkeyup="sync()"></div>
+              <div class="full"><label>Bio</label><textarea name="about_me" id="in-bio" rows="2" onkeyup="sync()">{{ user.about_me }}</textarea></div>
+              <div><label>Location</label><input type="text" name="location" id="in-loc" value="{{ user.location }}" onkeyup="sync()"></div>
+              <div><label>Profile Image</label><input type="file" name="profile_pic"></div>
+            </div>
+          </div>
+
+          <!-- Mastery & Learning -->
+          <div class="form-section">
+            <div class="section-title"><span class="bar"></span> Mastery & Learning</div>
+            <div class="form-grid">
+              <div class="full"><label>Skills You Know (comma separated)</label><textarea name="known_skills" id="in-known" rows="2" placeholder="Python, Flask, CSS..." onkeyup="sync()">{{ user.known_skills_str }}</textarea></div>
+              <div class="full"><label>Skills You Want to Know (comma separated)</label><textarea name="learning_skills" id="in-learning" rows="2" placeholder="AI, Docker, React..." onkeyup="sync()">{{ user.learning_skills_str }}</textarea></div>
+            </div>
+          </div>
+
+          <!-- Career Parameters -->
+          <div class="form-section">
+            <div class="section-title"><span class="bar"></span> Career Parameters</div>
+            <div class="form-grid">
+              <div><label>Exp (Years)</label><input type="number" name="experience_years" id="in-exp" value="{{ user.experience_years }}" onkeyup="sync()"></div>
+              <div><label>University</label><input type="text" name="education_college" id="in-college" value="{{ user.education_college }}" onkeyup="sync()"></div>
+              <div class="full"><label>Current Status</label>
+                <select name="current_status" id="in-status" onchange="sync()">
+                  <option value="Student"  {% if user.current_status == 'Student'  %}selected{% endif %}>Student</option>
+                  <option value="Working"  {% if user.current_status == 'Working'  %}selected{% endif %}>Working Professional</option>
+                  <option value="Fresher"  {% if user.current_status == 'Fresher'  %}selected{% endif %}>Fresher</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Social Links -->
+          <div class="form-section">
+            <div class="section-title"><span class="bar"></span> Social Links</div>
+            <div class="form-grid">
+              <div><label>LinkedIn URL</label><input type="url" name="linkedin_url" id="in-linkedin" value="{{ user.linkedin_url }}" onkeyup="sync()"></div>
+              <div><label>GitHub URL</label><input type="url" name="github_url" id="in-github" value="{{ user.github_url }}" onkeyup="sync()"></div>
+              <div><label>Instagram URL</label><input type="url" name="instagram_url" id="in-instagram" value="{{ user.instagram_url }}" onkeyup="sync()"></div>
+              <div><label>Facebook URL</label><input type="url" name="facebook_url" id="in-facebook" value="{{ user.facebook_url }}" onkeyup="sync()"></div>
+            </div>
+          </div>
+
+          <button type="submit" class="update-btn">Commit Architecture &amp; Update</button>
+        </form>
+
+        <!-- ══ CERTIFICATES (outside form — uses API) ══ -->
+        <div class="form-section" style="margin-top:3.5rem">
+          <div class="section-title"><span class="bar"></span> <i class="fas fa-certificate" style="color:var(--primary)"></i>&nbsp; Certificates &amp; Credentials</div>
+
+          <div class="cert-list" id="cert-list">
+            {% if user.certificates %}
+              {% for cert in user.certificates %}
+              <div class="cert-card" data-id="{{ cert._id }}">
+                <div class="cert-info">
+                  <div class="cert-name">
+                    <span>{{ cert.name }}</span>
+                    {% if cert.cert_url %}<a href="{{ cert.cert_url }}" target="_blank" style="color:var(--primary);font-size:0.72rem"><i class="fas fa-external-link-alt"></i></a><span class="cert-badge verified">Verified</span>{% endif %}
+                  </div>
+                  <div class="cert-issuer"><i class="fas fa-building" style="margin-right:5px;opacity:0.6"></i>{{ cert.issuer }}</div>
+                  <div class="cert-meta">
+                    {% if cert.issue_date %}Issued: {{ cert.issue_date }}{% endif %}
+                    {% if cert.expiry_date %}&nbsp;·&nbsp;Expires: {{ cert.expiry_date }}{% endif %}
+                    {% if cert.credential_id %}&nbsp;·&nbsp;ID: {{ cert.credential_id }}{% endif %}
+                  </div>
+                </div>
+                <div class="cert-actions">
+                  <button class="cert-btn edit" title="Edit" onclick="openEditCert(
+                    '{{ cert._id }}',
+                    {{ cert.name | tojson }},
+                    {{ cert.issuer | tojson }},
+                    {{ (cert.issue_date or '') | tojson }},
+                    {{ (cert.expiry_date or '') | tojson }},
+                    {{ (cert.credential_id or '') | tojson }},
+                    {{ (cert.cert_url or '') | tojson }}
+                  )"><i class="fas fa-pen"></i></button>
+                  <button class="cert-btn del" title="Delete" onclick="deleteCert('{{ cert._id }}', this)"><i class="fas fa-trash"></i></button>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="no-certs-msg" id="no-certs"><i class="fas fa-certificate"></i>No certificates yet. Add your first one!</div>
+            {% endif %}
+          </div>
+
+          <button class="add-cert-btn" onclick="openAddCert()"><i class="fas fa-plus-circle"></i> Add Certificate</button>
+        </div>
+
+        <!-- ══ GITHUB INTEGRATION ══ -->
+        <div class="form-section" style="margin-top:0;margin-bottom:0">
+          <div class="section-title"><span class="bar"></span> <i class="fab fa-github"></i>&nbsp; GitHub Integration</div>
+
+          {% if user.github_username %}
+          <!-- Connected state -->
+          <div class="github-connected-box">
+            <div class="gh-conn-header">
+              <img class="gh-conn-avatar" src="{{ user.github_avatar }}" onerror="this.style.display='none'">
+              <div class="gh-conn-info">
+                <div class="gh-conn-name">{{ user.github_username }}</div>
+                <div class="gh-conn-username">github.com/{{ user.github_username }}</div>
+              </div>
+              <span class="gh-conn-badge">✓ Connected</span>
+            </div>
+            <div class="gh-conn-body">
+              <div class="gh-conn-stats">
+                <div class="gh-conn-stat"><div class="n">{{ user.github_public_repos }}</div><div class="l">Repos</div></div>
+                <div class="gh-conn-stat"><div class="n">{{ user.github_followers }}</div><div class="l">Followers</div></div>
+                <div class="gh-conn-stat"><div class="n">{{ user.github_langs|length }}</div><div class="l">Languages</div></div>
+              </div>
+              <div class="gh-conn-langs">
+                {% for lang in user.github_langs %}<span class="lang-tag">{{ lang }}</span>{% endfor %}
+              </div>
+              <div class="gh-conn-actions">
+                <button class="gh-resync-btn" onclick="reSyncGithub('{{ user.github_username }}')"><i class="fas fa-sync-alt"></i> Re-sync GitHub</button>
+                <button class="gh-disconnect-btn" onclick="disconnectGithub()"><i class="fas fa-unlink"></i> Disconnect</button>
+              </div>
+              <div class="gh-synced-at">Last synced: {{ user.github_synced_at[:10] if user.github_synced_at else 'Never' }}</div>
+            </div>
+          </div>
+
+          {% else %}
+          <!-- Not connected -->
+          <div class="github-connect-box">
+            <div class="gh-icon"><i class="fab fa-github"></i></div>
+            <h3>Connect Your GitHub</h3>
+            <p>Fetch your repos, top languages, and stats automatically.<br>They'll appear in your resume and portfolio too.</p>
+            <div class="gh-input-row">
+              <input type="text" id="gh-username-input" placeholder="Your GitHub username" onkeydown="if(event.key==='Enter') fetchGithub()">
+              <button class="gh-fetch-btn" id="gh-fetch-btn" onclick="fetchGithub()"><i class="fas fa-search"></i> Fetch</button>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Preview card shown after fetch -->
+          <div class="github-preview-card" id="gh-preview-card">
+            <div class="gh-prev-header">
+              <img class="gh-prev-avatar" id="gh-prev-avatar" src="">
+              <div>
+                <div class="gh-prev-name"     id="gh-prev-name"></div>
+                <div class="gh-prev-username" id="gh-prev-username"></div>
+                <div class="gh-prev-bio"      id="gh-prev-bio"></div>
+              </div>
+            </div>
+            <div class="gh-prev-stats">
+              <div class="gh-prev-stat"><div class="n" id="gh-prev-repos"></div><div class="l">Repos</div></div>
+              <div class="gh-prev-stat"><div class="n" id="gh-prev-followers"></div><div class="l">Followers</div></div>
+              <div class="gh-prev-stat"><div class="n" id="gh-prev-following"></div><div class="l">Following</div></div>
+            </div>
+            <div class="gh-prev-repos">
+              <h4>Top Repositories</h4>
+              <div class="repo-grid" id="gh-repo-grid"></div>
+            </div>
+            <div class="gh-prev-langs">
+              <h4>Languages Used</h4>
+              <div class="lang-tags" id="gh-lang-tags"></div>
+            </div>
+            <div class="gh-sync-actions">
+              <button class="gh-sync-btn" onclick="syncGithub()"><i class="fas fa-cloud-download-alt"></i> Save to My Profile</button>
+              <label class="gh-merge-label">
+                <input type="checkbox" id="gh-merge-skills" checked>
+                Also add languages to my skills
+              </label>
+            </div>
+          </div>
+
+        </div><!-- end github section -->
+      </div><!-- end form-card -->
+    </div><!-- end profile-grid -->
+  </main>
+</div>
+
+<!-- ══ CERTIFICATE MODAL ══ -->
+<div class="modal-overlay" id="cert-modal">
+  <div class="modal-box">
+    <div class="modal-title"><i class="fas fa-certificate"></i> <span id="modal-title-text">Add Certificate</span></div>
+    <input type="hidden" id="cert-edit-id">
+    <div class="modal-grid">
+      <div class="full"><label>Certificate Name *</label><input type="text" id="cert-name" placeholder="e.g. AWS Solutions Architect"></div>
+      <div class="full"><label>Issuing Organization *</label><input type="text" id="cert-issuer" placeholder="e.g. Amazon Web Services"></div>
+      <div><label>Issue Date</label><input type="month" id="cert-issue-date"></div>
+      <div><label>Expiry Date <span style="font-weight:400;color:var(--text-dim)">(optional)</span></label><input type="month" id="cert-expiry-date"></div>
+      <div><label>Credential ID</label><input type="text" id="cert-credential-id" placeholder="e.g. ABC123XYZ"></div>
+      <div><label>Verification URL</label><input type="url" id="cert-url" placeholder="https://..."></div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeCertModal()">Cancel</button>
+      <button class="modal-save"   onclick="saveCert()"><i class="fas fa-save"></i> Save Certificate</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+{% include 'chatbot_widget.html' %}
+
+<script>
+// ── SYNC PREVIEW ─────────────────────────────────────
+function sync() {
+  document.getElementById('p-name').innerText   = document.getElementById('in-name').value   || 'Your Name';
+  document.getElementById('p-title').innerText  = document.getElementById('in-title').value  || 'Professional Title';
+  document.getElementById('p-status').innerText = document.getElementById('in-status').value;
+  document.getElementById('p-exp').innerText    = (document.getElementById('in-exp').value || '0') + ' Years';
+  document.getElementById('p-loc').innerText    = document.getElementById('in-loc').value    || 'Remote';
+
+  ['linkedin','github','instagram','facebook'].forEach(s => {
+    const val  = document.getElementById('in-' + s).value.trim();
+    const icon = document.getElementById('ic-' + s);
+    const link = document.getElementById('link-' + s);
+    if (val) { link.href = val; link.classList.add('active-link'); icon.classList.add('active'); }
+    else     { link.href = 'javascript:void(0)'; link.classList.remove('active-link'); icon.classList.remove('active'); }
+  });
+
+  updateTags('p-known',    document.getElementById('in-known').value,    false);
+  updateTags('p-learning', document.getElementById('in-learning').value, true);
+}
+
+function updateTags(id, value, pink) {
+  const c = document.getElementById(id);
+  c.innerHTML = '';
+  value.split(',').filter(i => i.trim()).forEach(item => {
+    const s = document.createElement('span');
+    s.className = pink ? 'tag learning' : 'tag';
+    s.textContent = item.trim();
+    c.appendChild(s);
+  });
+}
+
+window.onload = () => { sync(); updateCertPreview(); };
+
+// ── TOAST ─────────────────────────────────────────────
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.className = 'toast', 3200);
+}
+
+// ── CERTIFICATE MODAL ──────────────────────────────────
+function openAddCert() {
+  document.getElementById('cert-edit-id').value = '';
+  document.getElementById('modal-title-text').textContent = 'Add Certificate';
+  ['cert-name','cert-issuer','cert-issue-date','cert-expiry-date','cert-credential-id','cert-url']
+    .forEach(id => document.getElementById(id).value = '');
+  document.getElementById('cert-modal').classList.add('open');
+  setTimeout(() => document.getElementById('cert-name').focus(), 100);
+}
+
+function openEditCert(id, name, issuer, issueDate, expiryDate, credId, url) {
+  document.getElementById('cert-edit-id').value        = id;
+  document.getElementById('modal-title-text').textContent = 'Edit Certificate';
+  document.getElementById('cert-name').value           = name;
+  document.getElementById('cert-issuer').value         = issuer;
+  document.getElementById('cert-issue-date').value     = issueDate;
+  document.getElementById('cert-expiry-date').value    = expiryDate;
+  document.getElementById('cert-credential-id').value  = credId;
+  document.getElementById('cert-url').value            = url;
+  document.getElementById('cert-modal').classList.add('open');
+}
+
+function closeCertModal() {
+  document.getElementById('cert-modal').classList.remove('open');
+}
+document.getElementById('cert-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeCertModal(); });
+
+async function saveCert() {
+  const editId  = document.getElementById('cert-edit-id').value;
+  const name    = document.getElementById('cert-name').value.trim();
+  const issuer  = document.getElementById('cert-issuer').value.trim();
+  if (!name || !issuer) { showToast('Name and issuer are required', 'error'); return; }
+
+  const payload = {
+    name, issuer,
+    issue_date:    document.getElementById('cert-issue-date').value,
+    expiry_date:   document.getElementById('cert-expiry-date').value,
+    credential_id: document.getElementById('cert-credential-id').value.trim(),
+    cert_url:      document.getElementById('cert-url').value.trim(),
+  };
+
+  const isEdit = !!editId;
+  const r = await fetch(isEdit ? `/certificates/edit/${editId}` : '/certificates/add', {
+    method: isEdit ? 'PUT' : 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  });
+  const d = await r.json();
+
+  if (!d.success) { showToast(d.error || 'Something went wrong', 'error'); return; }
+
+  closeCertModal();
+  showToast(isEdit ? '✓ Certificate updated!' : '✓ Certificate added!');
+
+  if (isEdit) {
+    const card = document.querySelector(`.cert-card[data-id="${editId}"]`);
+    if (card) {
+      card.querySelector('.cert-name span').textContent = name;
+      card.querySelector('.cert-issuer').innerHTML = `<i class="fas fa-building" style="margin-right:5px;opacity:0.6"></i>${issuer}`;
+      let meta = '';
+      if (payload.issue_date)    meta += `Issued: ${payload.issue_date}`;
+      if (payload.expiry_date)   meta += ` · Expires: ${payload.expiry_date}`;
+      if (payload.credential_id) meta += ` · ID: ${payload.credential_id}`;
+      card.querySelector('.cert-meta').textContent = meta;
+    }
+  } else {
+    const cert = d.certificate;
+    const noEl = document.getElementById('no-certs');
+    if (noEl) noEl.remove();
+    const card = document.createElement('div');
+    card.className = 'cert-card';
+    card.dataset.id = cert._id;
+    card.innerHTML = `
+      <div class="cert-info">
+        <div class="cert-name">
+          <span>${cert.name}</span>
+          ${cert.cert_url ? `<a href="${cert.cert_url}" target="_blank" style="color:var(--primary);font-size:0.72rem"><i class="fas fa-external-link-alt"></i></a><span class="cert-badge verified">Verified</span>` : ''}
+        </div>
+        <div class="cert-issuer"><i class="fas fa-building" style="margin-right:5px;opacity:0.6"></i>${cert.issuer}</div>
+        <div class="cert-meta">${cert.issue_date ? 'Issued: '+cert.issue_date : ''}${cert.expiry_date ? ' · Expires: '+cert.expiry_date : ''}${cert.credential_id ? ' · ID: '+cert.credential_id : ''}</div>
+      </div>
+      <div class="cert-actions">
+        <button class="cert-btn edit" title="Edit" onclick="openEditCert('${cert._id}',${JSON.stringify(cert.name)},${JSON.stringify(cert.issuer)},${JSON.stringify(cert.issue_date||'')},${JSON.stringify(cert.expiry_date||'')},${JSON.stringify(cert.credential_id||'')},${JSON.stringify(cert.cert_url||'')})"><i class="fas fa-pen"></i></button>
+        <button class="cert-btn del"  title="Delete" onclick="deleteCert('${cert._id}', this)"><i class="fas fa-trash"></i></button>
+      </div>`;
+    document.getElementById('cert-list').appendChild(card);
+  }
+  updateCertPreview();
+}
+
+async function deleteCert(certId, btn) {
+  if (!confirm('Delete this certificate?')) return;
+  const r = await fetch(`/certificates/delete/${certId}`, { method: 'DELETE' });
+  const d = await r.json();
+  if (d.success) {
+    btn.closest('.cert-card').remove();
+    showToast('Certificate deleted');
+    updateCertPreview();
+    if (!document.querySelector('.cert-card'))
+      document.getElementById('cert-list').innerHTML = `<div class="no-certs-msg" id="no-certs"><i class="fas fa-certificate"></i>No certificates yet. Add your first one!</div>`;
+  } else { showToast('Delete failed', 'error'); }
+}
+
+function updateCertPreview() {
+  const cards = document.querySelectorAll('.cert-card');
+  const wrap  = document.getElementById('preview-certs-wrap');
+  const box   = document.getElementById('p-certs');
+  if (!wrap) return;
+  if (!cards.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  box.innerHTML = '';
+  cards.forEach(c => {
+    const name = c.querySelector('.cert-name span')?.textContent.trim();
+    if (name) {
+      const s = document.createElement('span');
+      s.className = 'tag cert-tag'; s.textContent = name;
+      box.appendChild(s);
+    }
+  });
+}
+
+// ── GITHUB ─────────────────────────────────────────────
+let ghData = null;
+
+async function fetchGithub() {
+  const input = document.getElementById('gh-username-input');
+  const username = input?.value.trim();
+  if (!username) { showToast('Enter a GitHub username', 'error'); return; }
+
+  const btn = document.getElementById('gh-fetch-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
+
+  try {
+    const r = await fetch('/api/github/fetch', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ username })
+    });
+    const d = await r.json();
+    if (!d.success) { showToast(d.error || 'GitHub fetch failed', 'error'); return; }
+    ghData = d.data;
+    renderGithubPreview(ghData);
+    document.getElementById('gh-preview-card').classList.add('show');
+    showToast(`Found @${ghData.username} — review and save below!`);
+  } catch(e) {
+    showToast('Network error, try again', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-search"></i> Fetch';
+  }
+}
+
+function renderGithubPreview(d) {
+  document.getElementById('gh-prev-avatar').src            = d.avatar;
+  document.getElementById('gh-prev-name').textContent      = d.name || d.username;
+  document.getElementById('gh-prev-username').textContent  = '@' + d.username;
+  document.getElementById('gh-prev-bio').textContent       = d.bio || '';
+  document.getElementById('gh-prev-repos').textContent     = d.public_repos;
+  document.getElementById('gh-prev-followers').textContent = d.followers;
+  document.getElementById('gh-prev-following').textContent = d.following;
+
+  document.getElementById('gh-repo-grid').innerHTML = d.repos.map(r => `
+    <div class="repo-card">
+      <a href="${r.url}" target="_blank">${r.name}</a>
+      <div class="repo-desc">${r.description || '<em style="opacity:0.5">No description</em>'}</div>
+      <div class="repo-meta">
+        ${r.language ? `<span><i class="fas fa-circle" style="font-size:0.45rem;color:var(--primary)"></i>${r.language}</span>` : ''}
+        <span><i class="fas fa-star"></i> ${r.stars}</span>
+        <span><i class="fas fa-code-branch"></i> ${r.forks}</span>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('gh-lang-tags').innerHTML = d.top_languages.map(l => `<span class="lang-tag">${l}</span>`).join('');
+}
+
+async function syncGithub() {
+  if (!ghData) return;
+  const r = await fetch('/api/github/sync', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      username: ghData.username,
+      github_data: ghData,
+      merge_skills: document.getElementById('gh-merge-skills')?.checked || false
+    })
+  });
+  const d = await r.json();
+  if (d.success) { showToast('✓ GitHub connected! Refreshing...'); setTimeout(() => location.reload(), 1200); }
+  else showToast(d.error || 'Sync failed', 'error');
+}
+
+async function reSyncGithub(username) {
+  showToast('Re-syncing...');
+  try {
+    const r1 = await fetch('/api/github/fetch', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ username })
+    });
+    const d1 = await r1.json();
+    if (!d1.success) { showToast(d1.error, 'error'); return; }
+    ghData = d1.data;
+    await fetch('/api/github/sync', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ username: ghData.username, github_data: ghData, merge_skills: false })
+    });
+    showToast('✓ Re-synced! Refreshing...');
+    setTimeout(() => location.reload(), 1200);
+  } catch(e) { showToast('Re-sync failed', 'error'); }
+}
+
+async function disconnectGithub() {
+  if (!confirm('Disconnect GitHub? This will remove your GitHub data from SkillBridge.')) return;
+  const r = await fetch('/api/github/disconnect', { method: 'POST' });
+  const d = await r.json();
+  if (d.success) { showToast('GitHub disconnected'); setTimeout(() => location.reload(), 1000); }
+  else showToast('Failed to disconnect', 'error');
+}
+</script>
+</body>
+</html>

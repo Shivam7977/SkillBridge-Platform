@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio | Jasmine Ortiz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <style>
+        :root { --bg: #0A192F; --text: #CCD6F6; --primary: #64FFDA; --secondary: #8892B0; --dark-blue: #0A192F; --light-blue: #112240; }
+        [contenteditable="true"]:hover { outline: 2px dashed var(--primary); }
+        body { margin: 0; font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); line-height: 1.6; }
+        header { position: fixed; width: 100%; background: rgba(10, 25, 47, 0.8); backdrop-filter: blur(10px); z-index: 100; }
+        .nav { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; }
+        .nav-links a { color: var(--text); text-decoration: none; margin-left: 25px; font-family: 'Fira Code', monospace; }
+        .btn { border: 1px solid var(--primary); color: var(--primary); padding: 10px 20px; border-radius: 5px; text-decoration: none; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 120px 20px; }
+        .section { padding: 80px 0; }
+        h1, h2, h3 { color: var(--text); font-weight: 700; }
+        h1 { font-size: clamp(2.5rem, 5vw, 4rem); } h2 { font-size: 2rem; }
+        .hero { min-height: 80vh; display: flex; flex-direction: column; justify-content: center; }
+        .hero p:first-child { color: var(--primary); font-family: 'Fira Code', monospace; }
+        .tech-stack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .stack-category h3 { color: var(--primary); }
+        .stack-category ul { list-style-type: none; padding: 0; } .stack-category li { margin-bottom: 5px; font-family: 'Fira Code'; }
+        .project-card, .job { background-color: var(--light-blue); padding: 30px; border-radius: 8px; margin-bottom: 30px; }
+        .project-links a { color: var(--secondary); text-decoration: none; margin-right: 15px; font-weight: 700; }
+        .tech-tags span { background-color: #172a45; color: var(--primary); padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; font-family: 'Fira Code'; }
+        .job-title { font-weight: 700; font-size: 1.2rem; } .job-company { color: var(--primary); }
+        footer { text-align: center; padding: 40px 20px; font-family: 'Fira Code'; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="nav">
+            <div><a href="#" style="font-family: 'Fira Code'; text-decoration: none; color: var(--primary); font-size: 1.2rem;">JO</a></div>
+            <div class="nav-links">
+                <a href="#about">About</a><a href="#projects">Projects</a><a href="#experience">Experience</a>
+                <a href="#" class="btn">Resume</a>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <section class="hero container">
+            <p contenteditable="true">Hi, my name is</p>
+            <h1 contenteditable="true">Jasmine Ortiz.</h1>
+            <h1 contenteditable="true" style="color: var(--secondary);">I build things for the web.</h1>
+            <p contenteditable="true" style="max-width: 600px; color: var(--secondary);">I'm a full-stack developer specializing in building (and occasionally designing) exceptional digital experiences. Currently, I'm focused on building accessible, human-centered products.</p>
+        </section>
+
+        <section id="about" class="section container">
+            <h2 contenteditable="true">About Me & Tech Stack</h2>
+            <p contenteditable="true" style="color: var(--secondary);">As a software developer, I thrive on solving complex problems and turning ideas into robust, scalable applications. Below are the technologies I work with regularly.</p>
+            <div class="tech-stack-grid" contenteditable="true">
+                <div class="stack-category"><h3>Frontend</h3><ul><li>JavaScript (ES6+)</li><li>TypeScript</li><li>React & Next.js</li><li>HTML5 & CSS3</li></ul></div>
+                <div class="stack-category"><h3>Backend</h3><ul><li>Node.js & Express</li><li>Python & Flask</li><li>SQL & PostgreSQL</li><li>REST & GraphQL APIs</li></ul></div>
+                <div class="stack-category"><h3>DevOps & Cloud</h3><ul><li>Docker</li><li>AWS (EC2, S3, Lambda)</li><li>CI/CD (GitHub Actions)</li><li>Terraform</li></ul></div>
+            </div>
+        </section>
+
+        <section id="projects" class="section container">
+            <h2 contenteditable="true">Featured Projects</h2>
+            <div class="project-card">
+                <h3 contenteditable="true">E-commerce Analytics Platform</h3>
+                <p contenteditable="true" style="color: var(--secondary);">A full-stack app using Next.js and Python to provide real-time sales insights and inventory forecasts. Features include data visualization dashboards and predictive modeling.</p>
+                <div class="tech-tags" contenteditable="true"><span>Next.js</span> <span>Python</span> <span>AWS Lambda</span> <span>PostgreSQL</span></div>
+                <div class="project-links"><a href="#">Live Demo</a> <a href="#">GitHub</a></div>
+            </div>
+        </section>
+
+        <section id="experience" class="section container">
+            <h2 contenteditable="true">Professional Experience</h2>
+            <div class="job">
+                <p class="job-title" contenteditable="true">Senior Software Engineer @ <span class="job-company">TechCorp</span></p>
+                <p contenteditable="true" style="font-family: 'Fira Code'; color: var(--secondary);">2022 - Present</p>
+                <ul contenteditable="true" style="color: var(--secondary);"><li>Led development of a distributed microservices architecture, improving system uptime to 99.99%.</li><li>Mentored junior developers and conducted code reviews to maintain code quality.</li></ul>
+            </div>
+            <div class="job">
+                 <p class="job-title" contenteditable="true">Software Engineer @ <span class="job-company">Innovate LLC</span></p>
+                 <p contenteditable="true" style="font-family: 'Fira Code'; color: var(--secondary);">2019 - 2022</p>
+                 <ul contenteditable="true" style="color: var(--secondary);"><li>Contributed to a high-traffic fintech application, enhancing API performance by 40%.</li><li>Implemented a secure authentication system using OAuth 2.0.</li></ul>
+            </div>
+        </section>
+
+        <section id="contact" class="section container" style="text-align: center;">
+            <h2 contenteditable="true">Get In Touch</h2>
+            <p contenteditable="true" style="color: var(--secondary); max-width: 500px; margin: 0 auto 30px auto;">I'm currently open to new opportunities. Whether you have a question or just want to say hi, my inbox is always open.</p>
+            <a href="#" class="btn" contenteditable="true">Say Hello</a>
+        </section>
+    </main>
+    <footer contenteditable="true">Designed & Built by Jasmine Ortiz</footer>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    gsap.registerPlugin(ScrollTrigger);
+    const sections = gsap.utils.toArray('section');
+    sections.forEach(section => {
+        gsap.from(section, {
+            opacity: 0, y: 50, duration: 1,
+            scrollTrigger: { trigger: section, start: 'top 85%' }
+        });
+    });
+});
+</script>
+</body>
+</html>

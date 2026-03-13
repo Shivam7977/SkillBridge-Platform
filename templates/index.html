@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillBridge — Learn. Build. Prove.</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+:root{
+  --bg-main:#f6f7fb;
+  --bg-tint:#f1effa;
+  --card:#ffffff;
+  --primary:#7c3aed;
+  --accent:#ec4899;
+  --text:#111827;
+  --muted:#6b7280;
+  --border:#e5e7eb;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family:Inter,system-ui;
+  background:linear-gradient(180deg,var(--bg-main),var(--bg-tint));
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+.container{
+  max-width:1200px;
+  margin:auto;
+  padding:0 24px;
+}
+
+/* ---------- NAV ---------- */
+nav{
+  position:sticky;
+  top:0;
+  background:rgba(255,255,255,.85);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  z-index:100;
+}
+.nav-inner{
+  height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.logo{
+  font-size:1.4rem;
+  font-weight:800;
+  color:var(--primary);
+}
+.nav-links a{
+  margin-left:24px;
+  text-decoration:none;
+  font-weight:600;
+  color:var(--muted);
+}
+.nav-links .cta{
+  padding:10px 22px;
+  border-radius:10px;
+  background:linear-gradient(90deg,var(--primary),var(--accent));
+  color:white;
+}
+
+/* ---------- HERO ---------- */
+.hero{
+  padding:120px 0;
+  position:relative;
+}
+.hero::before{
+  content:"";
+  position:absolute;
+  width:520px;
+  height:520px;
+  top:-160px;
+  left:-160px;
+  background:radial-gradient(circle,var(--primary),transparent 70%);
+  opacity:.12;
+  filter:blur(60px);
+  animation:float 10s infinite alternate ease-in-out;
+}
+@keyframes float{
+  from{transform:translateY(0)}
+  to{transform:translateY(40px)}
+}
+
+.hero-grid{
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:60px;
+  align-items:center;
+}
+.hero h1{
+  font-size:3.8rem;
+  font-weight:800;
+  line-height:1.05;
+}
+.hero h1 span{
+  background:linear-gradient(90deg,var(--primary),var(--accent));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.hero p{
+  margin-top:22px;
+  color:var(--muted);
+  max-width:520px;
+}
+.hero-actions{
+  margin-top:36px;
+  display:flex;
+  gap:16px;
+}
+.btn{
+  padding:16px 30px;
+  border-radius:12px;
+  font-weight:600;
+  text-decoration:none;
+  transition:.25s;
+}
+.btn-primary{
+  background:linear-gradient(90deg,var(--primary),var(--accent));
+  color:white;
+}
+.btn-outline{
+  border:1px solid var(--border);
+  background:white;
+  color:var(--text);
+}
+.btn:hover{
+  transform:translateY(-3px);
+  box-shadow:0 12px 30px rgba(124,58,237,.25);
+}
+
+/* ---------- HERO FEATURE CARD ---------- */
+.hero-card{
+  background:var(--card);
+  border-radius:26px;
+  padding:32px;
+  box-shadow:0 30px 70px rgba(124,58,237,.18);
+}
+.hero-step{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:18px 20px;
+  background:#f1ecff;
+  border-radius:14px;
+  font-weight:600;
+  position:relative;
+  margin-bottom:18px;
+  opacity:0;
+  transform:translateX(40px);
+}
+.hero-step:last-child{margin-bottom:0}
+.hero-step::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  width:5px;
+  height:100%;
+  background:linear-gradient(180deg,var(--primary),var(--accent));
+  border-radius:14px 0 0 14px;
+}
+.hero-step span{font-size:1.2rem}
+
+/* ---------- STATS ---------- */
+.stats{
+  padding:100px 0;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:32px;
+}
+.card{
+  background:var(--card);
+  border-radius:24px;
+  padding:42px;
+  text-align:center;
+  box-shadow:0 14px 40px rgba(0,0,0,.06);
+  transition:.3s;
+}
+.card:hover{transform:translateY(-8px)}
+.card h3{
+  font-size:2.8rem;
+}
+.card p{
+  margin-top:8px;
+  color:var(--muted);
+}
+
+/* ---------- FEATURES ---------- */
+.features{
+  padding:120px 0;
+}
+.features h2{
+  text-align:center;
+  font-size:2.6rem;
+  margin-bottom:70px;
+}
+.features .card i{
+  font-size:2rem;
+  color:var(--primary);
+  margin-bottom:16px;
+}
+
+/* ---------- CTA ---------- */
+.cta{
+  padding:120px 0;
+}
+.cta-box{
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:white;
+  padding:80px 40px;
+  border-radius:28px;
+  text-align:center;
+}
+.cta-box h2{
+  font-size:3rem;
+}
+.cta-box p{
+  margin:18px auto 36px;
+  max-width:520px;
+}
+.cta-box a{
+  background:white;
+  color:var(--primary);
+  padding:16px 36px;
+  border-radius:12px;
+  font-weight:700;
+  text-decoration:none;
+}
+
+/* ---------- FOOTER ---------- */
+footer{
+  padding:40px 0;
+  text-align:center;
+  font-size:.85rem;
+  color:var(--muted);
+}
+
+/* ---------- SCROLL REVEAL ---------- */
+.reveal{
+  opacity:0;
+  transform:translateY(60px);
+  transition:.8s ease;
+}
+.reveal.show{
+  opacity:1;
+  transform:none;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media(max-width:900px){
+  .hero-grid,.grid{grid-template-columns:1fr}
+  .hero{text-align:center}
+  .hero-actions{justify-content:center;flex-wrap:wrap}
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+  <div class="container nav-inner">
+    <div class="logo">SkillBridge</div>
+    <div class="nav-links">
+      <a href="{{ url_for('login') }}">Login</a>
+      <a href="{{ url_for('signup') }}" class="cta">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero container">
+  <div class="hero-grid">
+
+    <div class="reveal">
+      <h1>Learn. Build.<br><span>Prove Your Skills.</span></h1>
+      <p>
+        AI roadmaps, real projects, community collaboration,
+        and portfolio proof — all in one platform.
+      </p>
+      <div class="hero-actions">
+        <a href="{{ url_for('signup') }}" class="btn btn-primary">Start Learning</a>
+        <a href="#stats" class="btn btn-outline">See Impact</a>
+      </div>
+    </div>
+
+    <div class="hero-card">
+      <div class="hero-step"><span>📌</span> AI Roadmaps</div>
+      <div class="hero-step"><span>🛠</span> Real Projects</div>
+      <div class="hero-step"><span>👥</span> Community</div>
+      <div class="hero-step"><span>🌐</span> Portfolio Proof</div>
+    </div>
+
+  </div>
+</section>
+
+<section class="stats container" id="stats">
+  <div class="grid">
+    <div class="card reveal">
+      <h3 class="counter" data-target="{{ total_users }}">0</h3>
+      <p>Active Learners</p>
+    </div>
+    <div class="card reveal">
+      <h3 class="counter" data-target="{{ total_projects }}">0</h3>
+      <p>Projects Uploaded</p>
+    </div>
+    <div class="card reveal">
+      <h3 class="counter" data-target="{{ completion_percent }}">0</h3>
+      <p>Projects Completed (%)</p>
+    </div>
+  </div>
+</section>
+
+<section class="features">
+  <div class="container">
+    <h2 class="reveal">Everything you need in one place</h2>
+    <div class="grid">
+      <div class="card reveal">
+        <i class="fa-solid fa-brain"></i>
+        <h3>AI Learning Paths</h3>
+        <p>Goal-based roadmaps generated by AI.</p>
+      </div>
+      <div class="card reveal">
+        <i class="fa-solid fa-code"></i>
+        <h3>Project Workspace</h3>
+        <p>Build, upload, and version real projects.</p>
+      </div>
+      <div class="card reveal">
+        <i class="fa-solid fa-users"></i>
+        <h3>Community Hub</h3>
+        <p>Collaborate with like-minded builders.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="container">
+    <div class="cta-box reveal">
+      <h2>Ready to build your future?</h2>
+      <p>Turn learning into proof — and proof into opportunity.</p>
+      <a href="{{ url_for('signup') }}">Join SkillBridge</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  © 2025 SkillBridge — Learn • Build • Prove
+</footer>
+
+<script>
+/* COUNTERS */
+document.querySelectorAll('.counter').forEach(counter=>{
+  const target = +counter.dataset.target;
+  let count = 0;
+  const step = Math.max(1, Math.floor(target / 60));
+  const interval = setInterval(()=>{
+    count += step;
+    if(count >= target){
+      counter.textContent = target;
+      clearInterval(interval);
+    }else{
+      counter.textContent = count;
+    }
+  }, 20);
+});
+
+/* SCROLL REVEAL */
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting) e.target.classList.add("show");
+  });
+},{threshold:.15});
+document.querySelectorAll(".reveal").forEach(el=>observer.observe(el));
+
+/* HERO STEP STAGGER */
+document.querySelectorAll(".hero-step").forEach((step,i)=>{
+  setTimeout(()=>{
+    step.style.opacity = 1;
+    step.style.transform = "translateX(0)";
+  }, 400 + i*200);
+});
+</script>
+
+</body>
+</html>

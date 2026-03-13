@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Create Project - SkillBridge</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+body{
+    font-family:Poppins,sans-serif;
+    background:#f5f6fb;
+}
+.container{
+    max-width:850px;
+    margin:50px auto;
+    background:#fff;
+    padding:40px;
+    border-radius:16px;
+    box-shadow:0 15px 35px rgba(0,0,0,.08);
+}
+h1{
+    margin-bottom:30px;
+}
+.form-group{
+    margin-bottom:20px;
+}
+label{
+    font-weight:600;
+    display:block;
+    margin-bottom:6px;
+}
+input, textarea{
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #ddd;
+}
+textarea{
+    min-height:120px;
+}
+.radio-group{
+    display:flex;
+    gap:20px;
+    align-items:center;
+}
+button{
+    padding:14px 35px;
+    border:none;
+    border-radius:30px;
+    background:#6366f1;
+    color:#fff;
+    font-weight:700;
+    cursor:pointer;
+}
+button:hover{
+    background:#4f46e5;
+}
+.community-section{
+    background:#f9fafb;
+    padding:20px;
+    border-radius:12px;
+    margin-top:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h1>Create Project</h1>
+
+<form method="POST">
+
+<div class="form-group">
+<label>Project Title *</label>
+<input type="text" name="title" required>
+</div>
+
+<div class="form-group">
+<label>Description *</label>
+<textarea name="description" required></textarea>
+</div>
+
+<div class="form-group">
+<label>Skills (comma separated)</label>
+<input type="text" name="skills" placeholder="Python, Flask">
+</div>
+
+<div class="form-group">
+<label>Create Community?</label>
+<div class="radio-group">
+<label><input type="radio" name="create_community" value="yes" required onclick="toggleCommunity(true)"> Yes</label>
+<label><input type="radio" name="create_community" value="no" onclick="toggleCommunity(false)"> No</label>
+</div>
+</div>
+
+<div id="communitySection" class="community-section" style="display:none;">
+
+<div class="form-group">
+<label>Visibility</label>
+<div class="radio-group">
+<label><input type="radio" name="community_visibility" value="public" checked> Public</label>
+<label><input type="radio" name="community_visibility" value="private"> Private</label>
+</div>
+</div>
+
+<div class="form-group">
+<label>Primary Skill *</label>
+<input type="text" name="community_skill_primary">
+</div>
+
+<div class="form-group">
+<label>Secondary Skill</label>
+<input type="text" name="community_skill_secondary">
+</div>
+
+<div class="form-group">
+<label>Tool / Framework</label>
+<input type="text" name="community_skill_tool">
+</div>
+
+<div class="form-group">
+<label>Domain</label>
+<input type="text" name="community_skill_domain">
+</div>
+
+<div class="form-group">
+<label>Optional Skill</label>
+<input type="text" name="community_skill_optional">
+</div>
+
+</div>
+
+<button type="submit">Create Project</button>
+
+</form>
+</div>
+
+<script>
+function toggleCommunity(show){
+    document.getElementById("communitySection").style.display = show ? "block" : "none";
+}
+</script>
+
+</body>
+</html>

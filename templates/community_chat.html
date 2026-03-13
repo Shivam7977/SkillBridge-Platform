@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>{{ community.project_title }} Community</title>
+
+<style>
+body{
+    margin:0;
+    font-family: Arial;
+    background:#eef1f5;
+}
+
+/* MAIN */
+.chat-container{
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+}
+
+/* HEADER */
+.header{
+    padding:15px 20px;
+    background:#6a4df4;
+    color:#fff;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    cursor:pointer;
+}
+
+/* CHAT */
+.messages{
+    flex:1;
+    overflow-y:auto;
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+}
+
+.message-row{
+    display:flex;
+    margin-bottom:12px;
+    position:relative;
+}
+
+.message-left{ justify-content:flex-start; }
+.message-right{ justify-content:flex-end; }
+
+.message{
+    max-width:65%;
+    padding:12px 15px;
+    border-radius:15px;
+    font-size:14px;
+    position:relative;
+}
+
+.left-bubble{
+    background:#fff;
+    border-top-left-radius:5px;
+}
+
+.right-bubble{
+    background:#dcf8c6;
+    border-top-right-radius:5px;
+}
+
+.sender{
+    font-weight:bold;
+    font-size:12px;
+    margin-bottom:4px;
+}
+
+.time{
+    font-size:10px;
+    color:#777;
+    margin-top:5px;
+    text-align:right;
+}
+
+/* EMOJI */
+.react-btn{
+    position:absolute;
+    top:0;
+    right:-30px;
+    display:none;
+    cursor:pointer;
+}
+
+.message-row:hover .react-btn{
+    display:block;
+}
+
+.emoji-popup{
+    position:absolute;
+    bottom:100%;
+    right:0;
+    background:#fff;
+    padding:6px 10px;
+    border-radius:20px;
+    box-shadow:0 5px 15px rgba(0,0,0,.15);
+    display:none;
+    gap:6px;
+}
+
+.emoji-popup span{
+    cursor:pointer;
+}
+
+.reaction-display{
+    margin-top:5px;
+    font-size:12px;
+}
+
+/* INPUT */
+.input-area{
+    display:flex;
+    padding:15px;
+    background:#fff;
+    border-top:1px solid #ddd;
+}
+
+.input-area input{
+    flex:1;
+    padding:12px;
+    border-radius:20px;
+    border:1px solid #ccc;
+}
+
+.input-area button{
+    margin-left:10px;
+    padding:12px 20px;
+    border:none;
+    border-radius:20px;
+    background:#6a4df4;
+    color:#fff;
+}
+
+/* SIDEBAR */
+.members-sidebar{
+    position:fixed;
+    top:0;
+    right:-320px;
+    width:300px;
+    height:100%;
+    background:#fff;
+    box-shadow:-5px 0 20px rgba(0,0,0,.15);
+    padding:20px;
+    transition:0.3s;
+    overflow-y:auto;
+}
+
+.members-sidebar.active{
+    right:0;
+}
+
+.member-card{
+    background:#f4f4f4;
+    padding:10px;
+    border-radius:8px;
+    margin-bottom:10px;
+}
+
+.owner-tag{
+    background:#16a34a;
+    color:#fff;
+    font-size:10px;
+    padding:2px 6px;
+    border-radius:6px;
+    margin-left:5px;
+}
+
+.admin-tag{
+    background:#2563eb;
+    color:#fff;
+    font-size:10px;
+    padding:2px 6px;
+    border-radius:6px;
+    margin-left:5px;
+}
+
+.actions{
+    margin-top:8px;
+}
+
+.actions a{
+    font-size:12px;
+    margin-right:8px;
+    text-decoration:none;
+    cursor:pointer;
+}
+
+.make-admin{ color:#2563eb; }
+.remove-admin{ color:orange; }
+.remove-member{ color:red; }
+.profile-btn{ color:#6a4df4; }
+
+.close-btn{
+    float:right;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="chat-container">
+
+    <!-- HEADER (CLICK TO OPEN SIDEBAR) -->
+    <div class="header" onclick="toggleSidebar()">
+        <h3>{{ community.project_title }}</h3>
+        🔔 {{ pending_users|length }}
+    </div>
+
+    <!-- CHAT -->
+    <div class="messages">
+        {% for msg in messages %}
+        {% set is_me = msg.sender_id|string == current_user.id %}
+
+        <div class="message-row {{ 'message-right' if is_me else 'message-left' }}">
+            <div class="message {{ 'right-bubble' if is_me else 'left-bubble' }}">
+
+                {% if not is_me %}
+                <div class="sender">{{ msg.sender_name }}</div>
+                {% endif %}
+
+                <div>{{ msg.message }}</div>
+
+                <div class="time">
+                    {{ msg.timestamp.strftime('%I:%M %p') }}
+                </div>
+
+                {% if msg.reactions %}
+                <div class="reaction-display">
+                    {% for emoji, users in msg.reactions.items() %}
+                        {{ emoji }} {{ users|length }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="react-btn" onclick="toggleEmoji(this)">
+                    😊
+                    <div class="emoji-popup">
+                        <span onclick="react('{{ msg._id }}','👍')">👍</span>
+                        <span onclick="react('{{ msg._id }}','❤️')">❤️</span>
+                        <span onclick="react('{{ msg._id }}','🔥')">🔥</span>
+                        <span onclick="react('{{ msg._id }}','😂')">😂</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if is_member %}
+    <form class="input-area" method="POST"
+          action="{{ url_for('send_community_message', community_id=community._id) }}">
+        <input name="message" placeholder="Type message..." required>
+        <button type="submit">Send</button>
+    </form>
+    {% endif %}
+
+</div>
+
+<!-- MEMBERS SIDEBAR -->
+<div class="members-sidebar" id="sidebar">
+    <span class="close-btn" onclick="toggleSidebar()">✖</span>
+
+    <h4>Members ({{ members_data|length }})</h4>
+
+    {% for member in members_data %}
+    <div class="member-card">
+        <strong>{{ member.name }}</strong>
+
+        {% if member.role == "owner" %}
+            <span class="owner-tag">Owner</span>
+        {% elif member.role == "admin" %}
+            <span class="admin-tag">Admin</span>
+        {% endif %}
+
+        <div class="actions">
+
+            <a class="profile-btn"
+               href="{{ url_for('view_user_profile', user_id=member._id) }}">
+               View
+            </a>
+
+            {% if is_owner and member.role != "owner" %}
+                
+                {% if member.role == "admin" %}
+                <a class="remove-admin"
+                   href="{{ url_for('remove_admin',
+                        community_id=community._id,
+                        user_id=member._id) }}">
+                   Remove Admin
+                </a>
+                {% else %}
+                <a class="make-admin"
+                   href="{{ url_for('make_admin',
+                        community_id=community._id,
+                        user_id=member._id) }}">
+                   Make Admin
+                </a>
+                {% endif %}
+
+                <a class="remove-member"
+                   href="{{ url_for('remove_member',
+                        community_id=community._id,
+                        user_id=member._id) }}">
+                   Remove
+                </a>
+
+            {% endif %}
+
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+
+function toggleSidebar(){
+    document.getElementById("sidebar").classList.toggle("active");
+}
+
+function toggleEmoji(el){
+    let popup = el.querySelector('.emoji-popup');
+    popup.style.display = popup.style.display === "flex" ? "none" : "flex";
+}
+
+function react(messageId, emoji){
+    window.location.href =
+        "{{ url_for('react_to_message',
+            community_id=community._id,
+            message_id='MESSAGE',
+            emoji='EMOJI') }}"
+        .replace("MESSAGE", messageId)
+        .replace("EMOJI", emoji);
+}
+
+</script>
+
+</body>
+</html>

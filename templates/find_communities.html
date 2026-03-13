@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Find Communities</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#f4f6f9;
+}
+
+.container{
+    max-width:1100px;
+    margin:40px auto;
+}
+
+.section-title{
+    margin:30px 0 15px 0;
+    padding-bottom:5px;
+    border-bottom:2px solid #ddd;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:20px;
+}
+
+.card{
+    background:#fff;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    position:relative;
+}
+
+.owner-label{
+    position:absolute;
+    top:15px;
+    right:15px;
+    background:#6366f1;
+    color:#fff;
+    padding:4px 10px;
+    font-size:11px;
+    border-radius:20px;
+}
+
+.member-label{
+    position:absolute;
+    top:15px;
+    right:15px;
+    background:#10b981;
+    color:#fff;
+    padding:4px 10px;
+    font-size:11px;
+    border-radius:20px;
+}
+
+.badge{
+    padding:4px 10px;
+    border-radius:10px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.public{
+    background:#d1fae5;
+    color:#065f46;
+}
+
+.private{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.skill{
+    display:inline-block;
+    background:#eef2ff;
+    padding:5px 8px;
+    border-radius:8px;
+    margin:3px;
+    font-size:12px;
+}
+
+.view-btn{
+    display:inline-block;
+    margin-top:10px;
+    padding:8px 15px;
+    background:#6366f1;
+    color:#fff;
+    text-decoration:none;
+    border-radius:20px;
+}
+
+.no-data{
+    color:#888;
+    margin-top:10px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+<h2>Find Communities</h2>
+
+<!-- ===================== -->
+<!-- MY COMMUNITIES       -->
+<!-- ===================== -->
+
+<h3 class="section-title">My Communities (Created by Me)</h3>
+<div class="grid">
+{% set my_comms = communities | selectattr("is_owner") | list %}
+{% if my_comms %}
+    {% for community in my_comms %}
+    <div class="card">
+        <span class="owner-label">Owner</span>
+
+        <h3>{{ community.project_title }}</h3>
+
+        <span class="badge {{ community.visibility }}">
+            {{ community.visibility|capitalize }}
+        </span>
+
+        <div>
+            {% for skill in community.skills_required %}
+                <span class="skill">{{ skill }}</span>
+            {% endfor %}
+        </div>
+
+        <a class="view-btn"
+           href="{{ url_for('view_community', community_id=community._id) }}">
+            Manage Community
+        </a>
+    </div>
+    {% endfor %}
+{% else %}
+    <p class="no-data">You haven’t created any communities.</p>
+{% endif %}
+</div>
+
+
+<!-- ===================== -->
+<!-- JOINED COMMUNITIES   -->
+<!-- ===================== -->
+
+<h3 class="section-title">Communities I Joined</h3>
+<div class="grid">
+{% set joined_comms = communities | selectattr("is_member") | rejectattr("is_owner") | list %}
+{% if joined_comms %}
+    {% for community in joined_comms %}
+    <div class="card">
+        <span class="member-label">Member</span>
+
+        <h3>{{ community.project_title }}</h3>
+
+        <span class="badge {{ community.visibility }}">
+            {{ community.visibility|capitalize }}
+        </span>
+
+        <div>
+            {% for skill in community.skills_required %}
+                <span class="skill">{{ skill }}</span>
+            {% endfor %}
+        </div>
+
+        <a class="view-btn"
+           href="{{ url_for('view_community', community_id=community._id) }}">
+            Open Community
+        </a>
+    </div>
+    {% endfor %}
+{% else %}
+    <p class="no-data">You haven’t joined any communities.</p>
+{% endif %}
+</div>
+
+
+<!-- ===================== -->
+<!-- OTHER COMMUNITIES    -->
+<!-- ===================== -->
+
+<h3 class="section-title">Explore Other Communities</h3>
+<div class="grid">
+{% set other_comms = communities | selectattr("is_other") | list %}
+{% if other_comms %}
+    {% for community in other_comms %}
+    <div class="card">
+
+        <h3>{{ community.project_title }}</h3>
+
+        <span class="badge {{ community.visibility }}">
+            {{ community.visibility|capitalize }}
+        </span>
+
+        <div>
+            {% for skill in community.skills_required %}
+                <span class="skill">{{ skill }}</span>
+            {% endfor %}
+        </div>
+
+        <a class="view-btn"
+           href="{{ url_for('view_community', community_id=community._id) }}">
+            View Community
+        </a>
+    </div>
+    {% endfor %}
+{% else %}
+    <p class="no-data">No other communities available.</p>
+{% endif %}
+</div>
+
+</div>
+
+</body>
+</html>

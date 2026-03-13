@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat with {{ receiver.name }} | SkillBridge</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root {
+  --bg: #f5f6fb;
+  --surface: #ffffff;
+  --primary: #8B5CF6;
+  --secondary: #EC4899;
+  --text-main: #0f172a;
+  --text-dim: #64748b;
+  --border: #e5e7eb;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: var(--bg);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ---------- CHAT CONTAINER ---------- */
+.chat-wrapper {
+  width: 100%;
+  max-width: 500px;
+  height: 90vh;
+  background: var(--surface);
+  border-radius: 30px;
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ---------- HEADER ---------- */
+.chat-header {
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: white;
+}
+.back-link { color: var(--text-dim); text-decoration: none; font-size: 1.2rem; }
+.back-link:hover { color: var(--primary); }
+
+.receiver-img {
+  width: 45px; height: 45px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+.receiver-info h3 { font-size: 1rem; font-weight: 800; }
+.receiver-info p { font-size: 0.75rem; color: #10b981; font-weight: 600; }
+
+/* ---------- MESSAGES AREA ---------- */
+.messages-box {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background-color: #fafafa;
+}
+
+.msg {
+  max-width: 80%;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.msg.sent {
+  align-self: flex-end;
+  background: linear-gradient(135deg, var(--primary), #a78bfa);
+  color: white;
+  border-radius: 18px 18px 4px 18px;
+}
+
+.msg.received {
+  align-self: flex-start;
+  background: white;
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  border-radius: 18px 18px 18px 4px;
+}
+
+.sender-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+
+.timestamp {
+  font-size: 0.65rem;
+  margin-top: 6px;
+  display: block;
+  opacity: 0.7;
+  text-align: right;
+}
+
+/* ---------- INPUT ---------- */
+.input-form {
+  padding: 1.2rem;
+  background: white;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+}
+
+.input-form input {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 25px;
+  border: 1.5px solid var(--border);
+  background: #f8fafc;
+  font-family: inherit;
+}
+.input-form input:focus { border-color: var(--primary); background: white; }
+
+.send-btn {
+  width: 45px; height: 45px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+}
+.send-btn:hover { background: var(--secondary); }
+
+</style>
+</head>
+
+<body>
+
+<div class="chat-wrapper">
+
+  <header class="chat-header">
+    <a href="{{ url_for('messages_list') }}" class="back-link">
+      <i class="fas fa-chevron-left"></i>
+    </a>
+    <img class="receiver-img"
+         src="{{ url_for('static', filename='profile_pics/' + receiver.profile_pic) }}">
+    <div class="receiver-info">
+      <h3>{{ receiver.name }}</h3>
+      <p>Active Now</p>
+    </div>
+  </header>
+
+  <div class="messages-box" id="msgContainer">
+    {% for msg in messages %}
+      {% set is_me = (msg.sender_id|string == current_user.id) %}
+      <div class="msg {{ 'sent' if is_me else 'received' }}">
+        
+        <!-- ✅ SENDER NAME LOGIC -->
+        <div class="sender-label">
+          {{ 'Me' if is_me else receiver.name }}
+        </div>
+
+        {{ msg.content }}
+        <span class="timestamp">{{ msg.timestamp.strftime('%I:%M %p') }}</span>
+      </div>
+    {% endfor %}
+  </div>
+
+  <form class="input-form"
+        action="{{ url_for('chat', receiver_id=receiver._id) }}"
+        method="POST">
+    <input type="text" name="content" placeholder="Type a message..." required autofocus>
+    <button type="submit" class="send-btn">
+      <i class="fas fa-paper-plane"></i>
+    </button>
+  </form>
+
+</div>
+
+<script>
+  const container = document.getElementById('msgContainer');
+  container.scrollTop = container.scrollHeight;
+</script>
+
+</body>
+</html>

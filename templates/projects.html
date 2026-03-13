@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community Projects | SkillBridge</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root {
+  --bg: #f5f6fb;
+  --surface: #ffffff;
+  --primary: #8B5CF6;   /* SkillBridge Purple */
+  --secondary: #EC4899; /* SkillBridge Pink */
+  --text-main: #0f172a;
+  --text-dim: #64748b;
+  --border: #e5e7eb;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: var(--bg);
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+.dashboard-container { display: flex; }
+
+/* ---------- SIDEBAR ---------- */
+.sidebar {
+  width: 260px; background: var(--surface); border-right: 1px solid var(--border);
+  padding: 2.5rem 1.5rem; position: fixed; height: 100vh; z-index: 100;
+}
+.sidebar .logo {
+  font-size: 1.8rem; font-weight: 800; background: linear-gradient(90deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 3rem; display: block; text-decoration: none;
+}
+.sidebar a {
+  display: flex; align-items: center; gap: 12px; padding: .8rem 1rem; border-radius: 12px;
+  color: var(--text-dim); text-decoration: none; margin-bottom: .5rem; font-size: 0.9rem; font-weight: 600; transition: 0.2s;
+}
+.sidebar a:hover { background: #f1f5f9; color: var(--primary); }
+.sidebar a.active { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; }
+
+/* ---------- MAIN CONTENT ---------- */
+.main-content { margin-left: 260px; padding: 4rem; width: calc(100% - 260px); }
+
+.page-header { margin-bottom: 3rem; }
+.page-header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; }
+.page-header p { color: var(--text-dim); font-size: 1rem; }
+
+/* ---------- SECTION TITLES ---------- */
+.section-title {
+    font-size: 1.2rem; font-weight: 800; margin-bottom: 2rem; display: flex; align-items: center; gap: 12px;
+}
+.section-title span {
+    width: 35px; height: 4px; background: var(--primary); border-radius: 10px;
+}
+.section-title.pink span { background: var(--secondary); }
+
+/* ---------- PROJECT GRID ---------- */
+.project-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; margin-bottom: 4rem;
+}
+
+.project-card {
+    background: var(--surface); border-radius: 24px; padding: 2rem;
+    border: 1px solid var(--border); transition: 0.3s; position: relative;
+    display: flex; flex-direction: column; justify-content: space-between;
+}
+.project-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.05); border-color: var(--primary); }
+
+.project-card h3 { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.8rem; color: var(--text-main); }
+.project-card .desc { font-size: 0.9rem; color: var(--text-dim); margin-bottom: 1.5rem; height: 4.5rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+
+/* Clickable User Tag */
+.user-tag {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem;
+    padding: 8px 12px; background: #f8fafc; border-radius: 100px; width: fit-content;
+    text-decoration: none; transition: 0.2s;
+}
+.user-tag:hover { background: rgba(139, 92, 246, 0.1); }
+.user-tag i { color: var(--primary); font-size: 1rem; }
+.user-tag span.by { font-size: 0.75rem; color: var(--text-dim); font-weight: 600; }
+.user-tag span.name { font-size: 0.85rem; color: var(--primary); font-weight: 800; }
+
+/* Skill Tags */
+.skill-box { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 2rem; }
+.skill-badge {
+    background: #f1f5f9; color: var(--text-main); padding: 5px 12px; border-radius: 8px;
+    font-size: 0.7rem; font-weight: 700; border: 1px solid var(--border);
+}
+
+.card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+.view-btn {
+    text-decoration: none; color: var(--primary); font-weight: 800; font-size: 0.85rem;
+    display: flex; align-items: center; gap: 8px; transition: 0.2s;
+}
+.view-btn:hover { gap: 12px; }
+
+.recommended-badge {
+    position: absolute; top: -12px; right: 20px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    color: white; padding: 4px 14px; border-radius: 100px; font-size: 0.7rem; font-weight: 800;
+    box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);
+}
+
+@media (max-width: 768px) {
+    .main-content { margin-left: 0; padding: 2rem; }
+    .sidebar { display: none; }
+    .project-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="dashboard-container">
+
+<aside class="sidebar">
+  <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
+  <a href="{{ url_for('main_page') }}"><i class="fas fa-th-large"></i> Dashboard</a>
+  <a href="{{ url_for('projects') }}" class="active"><i class="fas fa-globe"></i> Community</a>
+  <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
+  <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a>
+  <a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> AI Roadmap</a>
+</aside>
+
+<main class="main-content">
+    <header class="page-header">
+        <h1>Community Architecture</h1>
+        <p>Explore what other builders are crafting in the SkillBridge ecosystem.</p>
+    </header>
+
+    {% if recommended_projects %}
+    <div class="section-title"><span></span> Recommended For You</div>
+    <div class="project-grid">
+        {% for project in recommended_projects %}
+        <div class="project-card">
+            <div class="recommended-badge"><i class="fas fa-star"></i> Skill Match</div>
+            <div>
+                <h3>{{ project.title }}</h3>
+                
+                <a href="{{ url_for('view_user_profile', user_id=project.created_by_id) }}" class="user-tag">
+                    <i class="fas fa-user-circle"></i>
+                    <span class="by">By</span>
+                    <span class="name">{{ project.created_by_name }}</span>
+                </a>
+
+                <p class="desc">{{ project.description }}</p>
+                
+                <div class="skill-box">
+                    {% for skill in project.skills_needed %}
+                    <span class="skill-badge">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <a href="{{ url_for('view_project', project_id=project._id) }}" class="view-btn">
+                    Explore Project <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="section-title pink"><span></span> Explore Ecosystem</div>
+    <div class="project-grid">
+        {% for project in other_projects %}
+        <div class="project-card">
+            <div>
+                <h3>{{ project.title }}</h3>
+                
+                <a href="{{ url_for('view_user_profile', user_id=project.created_by_id) }}" class="user-tag">
+                    <i class="fas fa-user-circle"></i>
+                    <span class="by">By</span>
+                    <span class="name">{{ project.created_by_name }}</span>
+                </a>
+
+                <p class="desc">{{ project.description }}</p>
+                
+                <div class="skill-box">
+                    {% for skill in project.skills_needed %}
+                    <span class="skill-badge">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <a href="{{ url_for('view_project', project_id=project._id) }}" class="view-btn">
+                    Explore Project <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</main>
+</div>
+{% include 'chatbot_widget.html' %}
+</body>
+</html>

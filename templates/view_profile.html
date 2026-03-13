@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ profile.name }} · SkillBridge</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+:root{
+  --primary:#7c3aed;
+  --secondary:#ec4899;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:#e5e7eb;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family:Inter,system-ui;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.wrapper{
+  max-width:1200px;
+  margin:60px auto;
+  padding:0 20px;
+}
+
+/* ---------- HERO ---------- */
+.hero{
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  border-radius:32px;
+  padding:60px;
+  color:white;
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:40px;
+  align-items:center;
+  box-shadow:0 40px 80px rgba(124,58,237,.35);
+}
+
+.avatar{
+  width:170px;
+  height:170px;
+  border-radius:28px;
+  border:6px solid rgba(255,255,255,.6);
+  object-fit:cover;
+  background:white;
+}
+
+.hero h1{
+  font-size:3rem;
+  font-weight:900;
+}
+
+.hero p{
+  margin-top:6px;
+  font-size:1.15rem;
+  opacity:.95;
+}
+
+/* ---------- IDENTITY ---------- */
+.identity-bar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:18px;
+  margin-top:18px;
+}
+
+.identity-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:rgba(255,255,255,.18);
+  padding:12px 18px;
+  border-radius:14px;
+  font-weight:700;
+  font-size:.95rem;
+}
+
+/* ---------- STATS ---------- */
+.stats{
+  margin-top:-40px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:20px;
+}
+
+.stat-card{
+  background:var(--card);
+  border-radius:22px;
+  padding:26px;
+  text-align:center;
+  box-shadow:0 20px 40px rgba(15,23,42,.08);
+}
+
+.stat-card h3{
+  font-size:1.8rem;
+  font-weight:800;
+}
+
+.stat-card span{
+  font-size:.75rem;
+  font-weight:700;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+
+/* ---------- MAIN ---------- */
+.main{
+  margin-top:60px;
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:40px;
+}
+
+/* ---------- SECTIONS ---------- */
+.section{
+  background:var(--card);
+  border-radius:26px;
+  padding:36px;
+  box-shadow:0 20px 50px rgba(0,0,0,.05);
+  margin-bottom:30px;
+}
+
+.section h2{
+  font-size:1.2rem;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--muted);
+  margin-bottom:16px;
+}
+
+.section p{
+  line-height:1.7;
+  color:#334155;
+}
+
+/* ---------- SKILLS ---------- */
+.skills{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+}
+
+.skill{
+  padding:10px 18px;
+  border-radius:14px;
+  font-weight:700;
+  font-size:.85rem;
+  background:#f8fafc;
+  border:1px solid var(--border);
+}
+
+.skill.learning{
+  background:#fff1f2;
+  color:var(--secondary);
+  border-color:var(--secondary);
+}
+
+/* ---------- SIDEBAR ---------- */
+.side-card{
+  background:var(--card);
+  border-radius:26px;
+  padding:30px;
+  box-shadow:0 20px 50px rgba(0,0,0,.05);
+  margin-bottom:30px;
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:14px;
+  font-size:.95rem;
+}
+
+.row span{
+  color:var(--muted);
+  font-weight:600;
+}
+
+/* ---------- CONTACT ---------- */
+.contact-primary{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  background:linear-gradient(90deg,var(--primary),var(--secondary));
+  color:white;
+  padding:14px;
+  border-radius:14px;
+  font-weight:800;
+  text-decoration:none;
+  margin-bottom:14px;
+}
+
+.contact-secondary{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  background:#f8fafc;
+  border:1px solid var(--border);
+  padding:13px;
+  border-radius:14px;
+  font-weight:700;
+  color:var(--text);
+  text-decoration:none;
+  margin-bottom:16px;
+}
+
+.contact-links{
+  display:flex;
+  gap:12px;
+}
+
+.contact-links a{
+  flex:1;
+  padding:12px;
+  border-radius:14px;
+  text-align:center;
+  background:#f8fafc;
+  border:1px solid var(--border);
+  color:var(--muted);
+  font-size:1.2rem;
+  transition:.25s;
+}
+
+.contact-links a:hover{
+  background:var(--primary);
+  color:white;
+}
+
+/* ---------- GOAL ---------- */
+.goal{
+  background:linear-gradient(135deg,#fff1f2,#fdf2f8);
+  border-left:6px solid var(--secondary);
+  padding:24px;
+  border-radius:18px;
+  font-weight:700;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media(max-width:1000px){
+  .hero{grid-template-columns:1fr;text-align:center}
+  .identity-bar{justify-content:center}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .main{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <img src="{{ profile.profile_pic_url }}" class="avatar">
+    <div>
+      <h1>{{ profile.name }}</h1>
+      <p>{{ profile.title or "SkillBridge Member" }}</p>
+
+      <div class="identity-bar">
+        <div class="identity-item"><i class="fa-solid fa-briefcase"></i>{{ profile.title or "Member" }}</div>
+        <div class="identity-item"><i class="fa-solid fa-location-dot"></i>{{ profile.location or "Remote" }}</div>
+        <div class="identity-item"><i class="fa-solid fa-chart-line"></i>{{ profile.experience_years or 0 }} Years Experience</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat-card"><h3>{{ profile.known_skills|length }}</h3><span>Skills</span></div>
+    <div class="stat-card"><h3>{{ profile.learning_skills|length }}</h3><span>Learning</span></div>
+    <div class="stat-card"><h3>{{ profile.experience_years or 0 }}</h3><span>Years</span></div>
+    <div class="stat-card"><h3>100%</h3><span>Profile</span></div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- LEFT -->
+    <div>
+      <div class="section">
+        <h2>About</h2>
+        <p>{{ profile.about_me or "A passionate builder growing on SkillBridge." }}</p>
+      </div>
+
+      <div class="section">
+        <h2>Skills</h2>
+        <div class="skills">
+          {% for skill in profile.known_skills %}
+            <span class="skill">{{ skill }}</span>
+          {% else %}
+            <span class="skill">No skills listed</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Learning Now</h2>
+        <div class="skills">
+          {% for skill in profile.learning_skills %}
+            <span class="skill learning">{{ skill }}</span>
+          {% else %}
+            <span class="skill learning">No active learning</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+
+      {% if profile.career_goal %}
+      <div class="goal side-card">🎯 {{ profile.career_goal }}</div>
+      {% endif %}
+
+      <div class="side-card">
+        <div class="row"><span>Status</span>{{ profile.current_status or "Member" }}</div>
+        <div class="row"><span>Availability</span>{{ profile.availability or "Flexible" }}</div>
+        <div class="row"><span>Education</span>{{ profile.education_degree }}</div>
+      </div>
+
+      <!-- CONTACT CARD -->
+      <div class="side-card">
+
+        <!-- INTERNAL CHAT -->
+        <a href="{{ url_for('chat', receiver_id=profile.id) }}" class="contact-primary">
+          <i class="fas fa-comment-dots"></i> Message Builder
+        </a>
+
+        <!-- EMAIL -->
+        {% if profile.email %}
+        <a href="mailto:{{ profile.email }}" class="contact-secondary">
+          <i class="fa-solid fa-envelope"></i> Email {{ profile.name }}
+        </a>
+        {% endif %}
+
+        <!-- SOCIAL -->
+        <div class="contact-links">
+          {% if profile.linkedin_url %}<a href="{{ profile.linkedin_url }}" target="_blank"><i class="fab fa-linkedin-in"></i></a>{% endif %}
+          {% if profile.github_url %}<a href="{{ profile.github_url }}" target="_blank"><i class="fab fa-github"></i></a>{% endif %}
+          {% if profile.portfolio_url %}<a href="{{ profile.portfolio_url }}" target="_blank"><i class="fa-solid fa-globe"></i></a>{% endif %}
+        </div>
+      </div>
+
+      <a href="{{ url_for('projects') }}" style="color:var(--muted);font-weight:600;text-decoration:none;">
+        ← Back to Community
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resume Builder — SkillBridge</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Fraunces:ital,wght@0,700;0,900;1,700&family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Josefin+Sans:wght@300;400;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+/* ═══════════════════════════════════════
+   DASHBOARD SHELL
+═══════════════════════════════════════ */
+:root{
+  --bg:#f0f2f8; --surface:#fff; --primary:#7c3aed; --accent:#ec4899;
+  --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --sw:260px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
+
+/* sidebar */
+.sb{width:var(--sw);background:var(--surface);border-right:1px solid var(--border);
+  padding:2rem 1.5rem;position:fixed;height:100vh;z-index:50;
+  display:flex;flex-direction:column;overflow-y:auto;}
+.sb .logo{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:900;
+  background:linear-gradient(90deg,var(--primary),var(--accent));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:2rem;text-decoration:none;display:block;}
+.sb a{display:flex;align-items:center;gap:10px;padding:.75rem 1rem;
+  border-radius:12px;color:var(--muted);text-decoration:none;
+  margin-bottom:.25rem;font-size:.87rem;font-weight:500;transition:.18s;}
+.sb a:hover{background:#f8fafc;color:var(--primary);}
+.sb a.on{background:linear-gradient(90deg,var(--primary),var(--accent));
+  color:#fff;box-shadow:0 8px 24px rgba(124,58,237,.3);}
+.sb .out{margin-top:auto;padding-top:1rem;}
+.sb .out a{color:#ef4444;}
+
+/* main */
+.main{margin-left:var(--sw);padding:2rem 2.5rem;}
+
+/* top bar */
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;}
+.topbar h1{font-family:'Fraunces',serif;font-size:2rem;font-weight:900;}
+.topbar p{color:var(--muted);font-size:.85rem;margin-top:4px;}
+.btns{display:flex;gap:10px;flex-shrink:0;}
+.btn{padding:10px 22px;border-radius:12px;font-family:'DM Sans',sans-serif;
+  font-size:.87rem;font-weight:600;cursor:pointer;border:none;
+  display:flex;align-items:center;gap:7px;transition:.22s;}
+.btn-p{background:linear-gradient(90deg,var(--primary),var(--accent));
+  color:#fff;box-shadow:0 6px 20px rgba(124,58,237,.3);}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(124,58,237,.4);}
+.btn-o{background:var(--surface);color:var(--primary);border:1.5px solid var(--primary);}
+.btn-o:hover{background:var(--primary);color:#fff;}
+
+/* layout */
+.layout{display:grid;grid-template-columns:295px 1fr;gap:22px;}
+
+/* control panel */
+.cp{background:var(--surface);border-radius:20px;padding:1.4rem;
+  border:1px solid var(--border);height:fit-content;position:sticky;top:2rem;}
+.cp-lbl{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:.8rem;display:flex;align-items:center;gap:6px;}
+.cp-lbl i{color:var(--primary);}
+.cp-sec{margin-bottom:1.2rem;}
+.divider{height:1px;background:var(--border);margin:.9rem 0;}
+
+/* template list */
+.tpl-list{display:flex;flex-direction:column;gap:5px;max-height:500px;overflow-y:auto;padding-right:3px;}
+.tpl-list::-webkit-scrollbar{width:3px;}
+.tpl-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.tcard{display:flex;align-items:center;gap:9px;padding:9px 11px;
+  border-radius:10px;border:1.5px solid var(--border);background:#f8fafc;
+  cursor:pointer;transition:.18s;text-align:left;}
+.tcard:hover{border-color:var(--primary);background:#f5f3ff;}
+.tcard.on{border-color:var(--primary);background:#f5f3ff;}
+.tcard-ico{width:32px;height:32px;border-radius:7px;display:flex;
+  align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.tcard-name{font-size:.82rem;font-weight:700;color:var(--text);}
+.tcard-tag{font-size:.7rem;color:var(--muted);margin-top:1px;}
+
+/* info box */
+.info-box{background:#f8fafc;border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;font-size:.77rem;color:var(--muted);line-height:1.6;}
+.info-box a{color:var(--primary);font-weight:600;text-decoration:none;}
+.chk{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+.chk i{color:#10b981;font-size:.72rem;}
+
+/* preview */
+.preview-wrap{background:#cbd5e1;border-radius:18px;padding:2px;min-height:820px;overflow:auto;}
+.preview-inner{
+  border-radius:16px;overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,.12);
+  /* No background here — template fills it completely */
+  background:transparent;
+}
+
+/* loading */
+.loader{position:fixed;inset:0;background:rgba(255,255,255,.92);
+  display:none;justify-content:center;align-items:center;z-index:999;
+  flex-direction:column;gap:14px;}
+.loader.show{display:flex;}
+.spin{width:44px;height:44px;border:4px solid var(--border);
+  border-top-color:var(--primary);border-radius:50%;animation:sp .8s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.loader p{font-weight:600;color:var(--muted);font-size:.88rem;}
+
+/* flash */
+.flash{position:fixed;top:18px;right:18px;z-index:1001;display:flex;flex-direction:column;gap:8px;max-width:340px;}
+.fb{padding:.9rem 1.3rem;border-radius:12px;color:#fff;font-weight:500;font-size:.88rem;animation:pi .3s ease;}
+@keyframes pi{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+.fb-success{background:#10b981}.fb-error{background:#ef4444}
+.fb-warning{background:#f59e0b;color:#111}.fb-info{background:#3b82f6}
+
+/* ═══════════════════════════════════════
+   SHARED RESUME UTILITIES
+═══════════════════════════════════════ */
+
+/* Hide all templates by default */
+.rt { display: none; }
+
+/* Active template — fills full A4 page, NO white edges */
+.rt.on {
+  display: flex;
+  flex-direction: column;
+  width: 100%;           /* fills preview-inner exactly */
+  min-height: 1123px;    /* 297mm at 96dpi = full A4 */
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Body section grows to fill all space after the header */
+.rt.on .body {
+  flex: 1 1 auto;
+}
+
+/* vsep = invisible spring — fills empty space in L/R columns */
+.vsep { flex: 1 1 auto; min-height: 16px; display: block; }
+
+/* Generous spacing so sparse content breathes */
+.rt .sec { margin-bottom: 24px; page-break-inside: avoid; }
+.rt p, .rt .about { line-height: 1.85; }
+.rt .pd { line-height: 1.75; }
+.rt .pj { padding: 12px 15px; margin-bottom: 10px; }
+
+/* Two-column grids: columns stretch to full body height */
+.rt .body { min-height: 0; }
+.rt .L, .rt .R {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ═══════════════════════════════════════
+   T1 – CLASSIC TECH
+   Dark indigo header · two-column grid
+═══════════════════════════════════════ */
+#t1{font-family:'Outfit',sans-serif;}
+#t1 .h{background:linear-gradient(135deg,#1e1b4b 0%,#312e81 60%,#4c1d95 100%);
+  color:#fff;padding:38px 46px;position:relative;overflow:hidden;}
+#t1 .h::after{content:'';position:absolute;width:280px;height:280px;border-radius:50%;
+  background:rgba(139,92,246,.15);top:-90px;right:-70px;}
+#t1 .h-name{font-size:2.5rem;font-weight:800;line-height:1.05;position:relative;z-index:1;}
+#t1 .h-role{font-size:.88rem;opacity:.7;margin-top:5px;letter-spacing:.05em;position:relative;z-index:1;}
+#t1 .h-row{display:flex;flex-wrap:wrap;gap:16px;margin-top:16px;position:relative;z-index:1;}
+#t1 .hc{display:flex;align-items:center;gap:6px;font-size:.78rem;opacity:.88;color:#fff;text-decoration:none;}
+#t1 .hc i{color:#a5f3fc;}
+#t1 .body{display:grid;grid-template-columns:1fr 2.1fr;flex:1;align-items:stretch;}
+#t1 .L,#t1 .R{display:flex;flex-direction:column;}
+#t1 .L{background:#f8fafc;padding:28px 24px;border-right:1px solid #e2e8f0;}
+#t1 .R{padding:28px 32px;}
+#t1 .sec{margin-bottom:22px;}
+#t1 .st{font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:#6d28d9;border-bottom:2px solid #6d28d9;padding-bottom:4px;margin-bottom:10px;}
+#t1 .pill{display:inline-block;background:#ede9fe;color:#6d28d9;
+  padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600;margin:2px;}
+#t1 .pill-b{background:#fce7f3;color:#be185d;}
+#t1 .pj{background:#f5f3ff;border-left:3px solid #7c3aed;
+  padding:9px 12px;border-radius:0 8px 8px 0;margin-bottom:9px;}
+#t1 .pj .pt{font-weight:700;font-size:.86rem;}
+#t1 .pj .pd{font-size:.78rem;color:#64748b;margin-top:3px;line-height:1.5;}
+#t1 .about{font-size:.83rem;color:#475569;line-height:1.72;}
+
+/* ═══════════════════════════════════════
+   T2 – MINIMAL PRO
+   Editorial black rules · single serif name
+═══════════════════════════════════════ */
+#t2{font-family:'DM Sans',sans-serif;padding:50px 58px;}
+#t2 .nm{font-family:'Playfair Display',serif;font-size:3.2rem;font-weight:900;
+  letter-spacing:-.02em;border-bottom:4px solid #0f172a;padding-bottom:8px;line-height:1;}
+#t2 .role{font-size:.88rem;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;
+  font-weight:600;margin:9px 0 14px;}
+#t2 .row{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:30px;}
+#t2 .ci{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);text-decoration:none;}
+#t2 .ci i{color:#0f172a;}
+#t2 .sec{margin-bottom:26px;}
+#t2 .st{font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+#t2 .sk{border:1.5px solid #0f172a;padding:3px 12px;font-size:.76rem;font-weight:600;
+  border-radius:2px;display:inline-block;margin:3px 2px;}
+#t2 .pj{padding:12px 0;border-bottom:1px solid var(--border);}
+#t2 .pj:last-child{border-bottom:none;}
+#t2 .pt{font-weight:700;font-size:.9rem;}
+#t2 .pd{font-size:.8rem;color:var(--muted);margin-top:3px;line-height:1.6;}
+#t2 .tags span{font-size:.7rem;color:var(--muted);font-weight:600;}
+
+/* ═══════════════════════════════════════
+   T3 – FRESH GRADUATE
+   Mint green pastel · "open to work" badge
+═══════════════════════════════════════ */
+#t3{font-family:'Sora',sans-serif;}
+#t3 .h{background:linear-gradient(135deg,#ecfdf5,#d1fae5);
+  padding:38px 46px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:20px;}
+#t3 .nm{font-size:2.4rem;font-weight:800;color:#064e3b;line-height:1.1;}
+#t3 .role{font-size:.86rem;color:#065f46;font-weight:600;margin-top:5px;}
+#t3 .otw{background:#059669;color:#fff;padding:7px 16px;border-radius:25px;
+  font-size:.76rem;font-weight:700;white-space:nowrap;display:inline-block;}
+#t3 .row{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px;}
+#t3 .ci{display:flex;align-items:center;gap:6px;font-size:.78rem;color:#065f46;text-decoration:none;}
+#t3 .body{padding:28px 40px;}
+#t3 .st{font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:#059669;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+#t3 .st::after{content:'';flex:1;height:1.5px;background:#d1fae5;}
+#t3 .sec{margin-bottom:22px;}
+#t3 .g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+#t3 .chip{background:#ecfdf5;border:1px solid #6ee7b7;color:#065f46;
+  padding:4px 12px;border-radius:20px;font-size:.74rem;font-weight:600;
+  display:inline-block;margin:2px;}
+#t3 .pj{border:1px solid #d1fae5;border-radius:10px;padding:12px;margin-bottom:8px;}
+#t3 .pt{font-weight:700;font-size:.88rem;color:#064e3b;}
+#t3 .pd{font-size:.78rem;color:#6b7280;margin-top:3px;line-height:1.5;}
+#t3 .hl{background:#ecfdf5;border-radius:10px;padding:13px 15px;
+  font-size:.82rem;color:#065f46;line-height:1.72;}
+
+/* ═══════════════════════════════════════
+   T4 – CREATIVE DESIGNER
+   Ink black + crimson diagonal slash
+═══════════════════════════════════════ */
+#t4{font-family:'Josefin Sans',sans-serif;background:#0a0a0a;color:#fff;}
+#t4 .h{padding:46px 48px 36px;position:relative;}
+#t4 .h::before{content:'';position:absolute;right:0;top:0;width:42%;height:100%;
+  background:#e11d48;clip-path:polygon(22% 0%,100% 0%,100% 100%,0% 100%);}
+#t4 .nm{font-size:2.8rem;font-weight:700;letter-spacing:.04em;line-height:1;position:relative;z-index:1;}
+#t4 .role{font-size:.8rem;letter-spacing:.22em;text-transform:uppercase;color:#e11d48;
+  margin-top:7px;font-weight:300;position:relative;z-index:1;}
+#t4 .row{display:flex;flex-wrap:wrap;gap:14px;margin-top:18px;position:relative;z-index:1;}
+#t4 .ci{display:flex;align-items:center;gap:6px;font-size:.76rem;color:rgba(255,255,255,.7);text-decoration:none;}
+#t4 .body{display:grid;grid-template-columns:1.3fr 1fr;align-items:stretch;flex:1;}
+#t4 .L{padding:28px 36px;border-right:1px solid #1a1a1a;background:#0a0a0a;}
+#t4 .R{padding:28px 26px;background:#111;}
+#t4 .sec{margin-bottom:26px;}
+#t4 .st{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:#e11d48;
+  margin-bottom:12px;font-weight:700;}
+#t4 .sk{border:1px solid #e11d48;color:#e11d48;padding:3px 11px;
+  font-size:.72rem;border-radius:2px;display:inline-block;margin:2px;letter-spacing:.04em;}
+#t4 .pj{border-bottom:1px solid #1a1a1a;padding-bottom:14px;margin-bottom:14px;}
+#t4 .pj:last-child{border-bottom:none;}
+#t4 .pt{font-weight:700;font-size:.9rem;letter-spacing:.02em;}
+#t4 .pd{font-size:.78rem;color:rgba(255,255,255,.5);margin-top:4px;line-height:1.6;}
+#t4 .about{font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.8;font-weight:300;}
+
+/* ═══════════════════════════════════════
+   T5 – DATA SCIENTIST
+   Deep slate · skill bars · stat counters
+═══════════════════════════════════════ */
+#t5{font-family:'Outfit',sans-serif;background:#0f172a;color:#e2e8f0;}
+#t5 .h{padding:42px 50px;border-bottom:1px solid #1e293b;
+  display:flex;justify-content:space-between;align-items:flex-end;background:#0f172a;}
+#t5 .nm{font-size:2.6rem;font-weight:800;line-height:1.1;}
+#t5 .role{font-size:.86rem;color:#64748b;margin-top:5px;letter-spacing:.04em;}
+#t5 .stats{display:flex;gap:9px;}
+#t5 .sb2{background:#1e293b;border:1px solid #334155;border-radius:9px;
+  padding:11px 16px;text-align:center;}
+#t5 .sn{font-size:1.4rem;font-weight:800;color:#38bdf8;}
+#t5 .sl{font-size:.6rem;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin-top:2px;}
+#t5 .contacts{display:flex;flex-wrap:wrap;gap:16px;padding:16px 50px;
+  background:#0d1526;border-bottom:1px solid #1e293b;width:100%;box-sizing:border-box;}
+#t5 .ci{display:flex;align-items:center;gap:6px;font-size:.78rem;color:#94a3b8;text-decoration:none;}
+#t5 .ci i{color:#38bdf8;}
+#t5 .body{display:grid;grid-template-columns:2.2fr 1fr;align-items:stretch;flex:1;}
+#t5 .L{padding:28px 38px;background:#0f172a;}
+#t5 .R{padding:28px 26px;background:#070e1a;border-left:1px solid #1e293b;}
+#t5 .sec{margin-bottom:22px;}
+#t5 .st{font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#38bdf8;margin-bottom:11px;}
+#t5 .bar-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+#t5 .bar-lbl{font-size:.8rem;color:#cbd5e1;}
+#t5 .bar-bg{width:120px;height:4px;background:#1e293b;border-radius:2px;overflow:hidden;}
+#t5 .bar-fg{height:100%;background:linear-gradient(90deg,#38bdf8,#818cf8);border-radius:2px;}
+#t5 .pj{background:#1e293b;border-radius:9px;padding:12px;margin-bottom:9px;}
+#t5 .pt{font-weight:700;font-size:.86rem;color:#e2e8f0;}
+#t5 .pd{font-size:.77rem;color:#94a3b8;margin-top:3px;line-height:1.55;}
+#t5 .badge{background:#0c1a2e;border:1px solid #38bdf8;color:#38bdf8;
+  padding:1px 8px;border-radius:4px;font-size:.68rem;font-weight:600;
+  display:inline-block;margin:2px 1px 0;}
+#t5 .about{font-size:.82rem;color:#94a3b8;line-height:1.75;}
+
+/* ═══════════════════════════════════════
+   T6 – FULL STACK DEVELOPER
+   Terminal / monospace aesthetic, green on black
+═══════════════════════════════════════ */
+#t6{font-family:'Space Mono',monospace;background:#0d1117;color:#c9d1d9;}
+#t6 .h{padding:38px 46px;border-bottom:1px solid #21262d;}
+#t6 .prompt{color:#3fb950;font-size:.82rem;margin-bottom:7px;}
+#t6 .nm{font-size:2.2rem;font-weight:700;color:#f0f6fc;line-height:1.1;}
+#t6 .role{font-size:.76rem;color:#8b949e;margin-top:5px;}
+#t6 .row{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;}
+#t6 .ci{display:flex;align-items:center;gap:6px;font-size:.73rem;color:#8b949e;text-decoration:none;}
+#t6 .ci i{color:#3fb950;}
+#t6 .body{display:grid;grid-template-columns:1.8fr 1fr;align-items:stretch;flex:1;}
+#t6 .L{padding:26px 38px;background:#0d1117;}
+#t6 .R{padding:26px 26px;background:#161b22;border-left:1px solid #21262d;}
+#t6 .sec{margin-bottom:20px;}
+#t6 .st{color:#3fb950;font-size:.72rem;margin-bottom:11px;}
+#t6 .st::before{content:'// ';}
+#t6 .chip{background:#1f2428;border:1px solid #3fb950;color:#3fb950;
+  padding:2px 9px;font-size:.7rem;border-radius:3px;display:inline-block;margin:2px;}
+#t6 .chip-l{border-color:#f0883e;color:#f0883e;}
+#t6 .pj{background:#161b22;border-radius:5px;padding:11px 13px;margin-bottom:7px;
+  border:1px solid #21262d;}
+#t6 .pt{font-size:.84rem;color:#f0f6fc;font-weight:700;}
+#t6 .pd{font-size:.74rem;color:#8b949e;margin-top:3px;line-height:1.5;}
+#t6 .tag{background:#0d1117;border:1px solid #30363d;color:#8b949e;
+  padding:1px 7px;border-radius:3px;font-size:.66rem;display:inline-block;margin:2px;}
+#t6 .about{font-size:.78rem;color:#8b949e;line-height:1.8;}
+
+/* ═══════════════════════════════════════
+   T7 – PRODUCT MANAGER
+   Warm amber · bold KPI accents
+═══════════════════════════════════════ */
+#t7{font-family:'Sora',sans-serif;}
+#t7 .h{background:#faf5eb;border-bottom:4px solid #d97706;
+  padding:38px 48px;display:flex;justify-content:space-between;align-items:center;}
+#t7 .nm{font-size:2.5rem;font-weight:800;color:#1c1917;line-height:1.1;}
+#t7 .role{font-size:.86rem;color:#d97706;font-weight:700;margin-top:5px;text-transform:uppercase;letter-spacing:.04em;}
+#t7 .row{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px;}
+#t7 .ci{display:flex;align-items:center;gap:6px;font-size:.78rem;color:#57534e;text-decoration:none;}
+#t7 .ci i{color:#d97706;}
+#t7 .kpis{display:flex;flex-direction:column;gap:7px;}
+#t7 .kpi{background:#d97706;color:#fff;padding:7px 15px;border-radius:6px;
+  font-size:.78rem;font-weight:700;text-align:center;white-space:nowrap;}
+#t7 .body{padding:28px 38px;}
+#t7 .g2{display:grid;grid-template-columns:1.6fr 1fr;gap:26px;}
+#t7 .sec{margin-bottom:24px;}
+#t7 .st{font-size:.64rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:#d97706;border-left:3px solid #d97706;padding-left:9px;margin-bottom:10px;}
+#t7 .pill{background:#fef3c7;border:1px solid #fcd34d;color:#92400e;
+  padding:3px 11px;border-radius:20px;font-size:.74rem;font-weight:600;display:inline-block;margin:2px;}
+#t7 .pj{background:#fffbeb;border-radius:9px;padding:12px;margin-bottom:9px;border:1px solid #fde68a;}
+#t7 .pt{font-weight:700;font-size:.88rem;color:#1c1917;}
+#t7 .pd{font-size:.78rem;color:#6b7280;margin-top:3px;line-height:1.55;}
+#t7 .about{font-size:.83rem;color:#44403c;line-height:1.72;}
+
+/* ═══════════════════════════════════════
+   T8 – UI/UX DESIGNER
+   Lavender soft · avatar initials · portfolio grid
+═══════════════════════════════════════ */
+#t8{font-family:'DM Sans',sans-serif;background:#faf7ff;}
+#t8 .h{background:#fff;border-bottom:1px solid #ede9fe;
+  padding:42px 50px;display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center;}
+#t8 .av{width:86px;height:86px;border-radius:50%;
+  background:linear-gradient(135deg,#c4b5fd,#f0abfc);
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.1rem;font-weight:800;color:#fff;flex-shrink:0;}
+#t8 .nm{font-size:2.3rem;font-weight:800;color:#1e1b4b;line-height:1.1;}
+#t8 .role{font-size:.86rem;color:#7c3aed;font-weight:600;margin-top:4px;}
+#t8 .row{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;}
+#t8 .ci{display:flex;align-items:center;gap:6px;font-size:.78rem;color:#6b7280;text-decoration:none;}
+#t8 .ci i{color:#7c3aed;}
+#t8 .body{display:grid;grid-template-columns:1fr 2fr;align-items:stretch;flex:1;}
+#t8 .L{padding:26px 24px;background:#f5f3ff;border-right:1px solid #ede9fe;}
+#t8 .R{padding:26px 32px;}
+#t8 .sec{margin-bottom:20px;}
+#t8 .st{font-size:.63rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7c3aed;margin-bottom:10px;}
+#t8 .chip{background:#ede9fe;color:#6d28d9;padding:4px 11px;border-radius:20px;
+  font-size:.73rem;font-weight:600;display:inline-block;margin:2px;}
+#t8 .chip-l{background:#fce7f3;color:#be185d;}
+#t8 .pj{background:#fff;border:1px solid #ede9fe;border-radius:11px;
+  padding:12px;margin-bottom:9px;box-shadow:0 2px 6px rgba(109,40,217,.05);}
+#t8 .pt{font-weight:700;font-size:.88rem;color:#1e1b4b;}
+#t8 .pd{font-size:.78rem;color:#6b7280;margin-top:3px;line-height:1.55;}
+#t8 .about{font-size:.82rem;color:#4b5563;line-height:1.75;}
+#t8 .edu{background:#fff;border:1px solid #ede9fe;border-radius:10px;padding:11px;margin-bottom:7px;}
+#t8 .ed{font-weight:700;font-size:.84rem;color:#1e1b4b;}
+#t8 .es{font-size:.76rem;color:#7c3aed;margin-top:2px;}
+
+/* ═══════════════════════════════════════
+   T9 – MARKETING PRO
+   Bold coral-red · impact-first layout
+═══════════════════════════════════════ */
+#t9{font-family:'Outfit',sans-serif;}
+#t9 .h{background:#dc2626;color:#fff;padding:42px 48px;}
+#t9 .h-top{display:flex;justify-content:space-between;align-items:flex-start;}
+#t9 .nm{font-size:2.9rem;font-weight:800;line-height:1;}
+#t9 .role{font-size:.86rem;opacity:.8;margin-top:5px;letter-spacing:.05em;}
+#t9 .row{display:flex;flex-wrap:wrap;gap:14px;margin-top:16px;}
+#t9 .ci{display:flex;align-items:center;gap:6px;font-size:.78rem;color:rgba(255,255,255,.88);text-decoration:none;}
+#t9 .badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+  border-radius:11px;padding:10px 15px;text-align:center;backdrop-filter:blur(10px);}
+#t9 .bn{font-size:1.8rem;font-weight:800;}
+#t9 .bl{font-size:.65rem;opacity:.75;letter-spacing:.06em;}
+#t9 .body{padding:28px 38px;}
+#t9 .g2{display:grid;grid-template-columns:1.5fr 1fr;gap:28px;}
+#t9 .sec{margin-bottom:22px;}
+#t9 .st{font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#dc2626;margin-bottom:10px;}
+#t9 .pill{background:#fef2f2;border:1px solid #fca5a5;color:#b91c1c;
+  padding:3px 11px;border-radius:20px;font-size:.74rem;font-weight:600;display:inline-block;margin:2px;}
+#t9 .pj{border-left:3px solid #dc2626;padding:9px 13px;margin-bottom:9px;}
+#t9 .pt{font-weight:700;font-size:.86rem;color:#1c1917;}
+#t9 .pd{font-size:.78rem;color:var(--muted);margin-top:3px;line-height:1.5;}
+#t9 .about{font-size:.82rem;color:#44403c;line-height:1.72;}
+#t9 .edu{background:#fff5f5;border-radius:9px;padding:12px;}
+#t9 .ed{font-weight:700;font-size:.86rem;color:#1c1917;}
+#t9 .es{font-size:.78rem;color:#dc2626;margin-top:2px;}
+
+/* ═══════════════════════════════════════
+   T10 – FINANCE / CPA
+   Navy + gold · traditional serif gravitas
+═══════════════════════════════════════ */
+#t10{font-family:'Libre Baskerville',serif;}
+#t10 .h{background:#0d2240;color:#fff;padding:40px 50px;text-align:center;}
+#t10 .nm{font-size:2.5rem;font-weight:700;letter-spacing:.02em;line-height:1.1;}
+#t10 .role{font-size:.86rem;color:#c8a951;margin-top:6px;letter-spacing:.08em;}
+#t10 .rule{width:55px;height:2px;background:#c8a951;margin:12px auto;}
+#t10 .row{display:flex;justify-content:center;flex-wrap:wrap;gap:18px;}
+#t10 .ci{display:flex;align-items:center;gap:6px;font-size:.76rem;
+  color:rgba(255,255,255,.72);text-decoration:none;font-family:'DM Sans',sans-serif;}
+#t10 .ci i{color:#c8a951;}
+#t10 .body{display:grid;grid-template-columns:1fr 2.4fr;align-items:stretch;flex:1;}
+#t10 .L{background:#f8f7f4;padding:28px 24px;border-right:2px solid #e8e3d8;}
+#t10 .R{padding:28px 38px;}
+#t10 .sec{margin-bottom:22px;}
+#t10 .st{font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:#0d2240;border-bottom:2px solid #c8a951;padding-bottom:4px;margin-bottom:10px;
+  font-family:'DM Sans',sans-serif;}
+#t10 .sk-item{display:flex;align-items:center;gap:7px;margin-bottom:7px;
+  font-family:'DM Sans',sans-serif;font-size:.8rem;color:#374151;}
+#t10 .sk-item::before{content:'▸';color:#c8a951;flex-shrink:0;}
+#t10 .pj{border-bottom:1px solid #e8e3d8;padding:10px 0;}
+#t10 .pj:last-child{border-bottom:none;}
+#t10 .pt{font-weight:700;font-size:.88rem;color:#0d2240;}
+#t10 .pd{font-size:.78rem;color:#6b7280;margin-top:3px;line-height:1.55;font-family:'DM Sans',sans-serif;}
+#t10 .about{font-size:.83rem;color:#374151;line-height:1.8;font-family:'DM Sans',sans-serif;}
+#t10 .ed{font-weight:700;font-size:.86rem;color:#0d2240;}
+#t10 .es{font-size:.78rem;color:#c8a951;font-family:'DM Sans',sans-serif;margin-top:2px;}
+
+/* ═══════════════════════════════════════
+   T11 – HEALTHCARE / MEDICAL
+   Teal + white · clinical structure
+═══════════════════════════════════════ */
+#t11{font-family:'Outfit',sans-serif;}
+#t11 .h{background:#0d9488;color:#fff;padding:38px 48px;
+  display:flex;justify-content:space-between;align-items:center;}
+#t11 .nm{font-size:2.3rem;font-weight:800;line-height:1.1;}
+#t11 .role{font-size:.85rem;opacity:.82;margin-top:4px;}
+#t11 .c-col{display:flex;flex-direction:column;gap:7px;align-items:flex-end;}
+#t11 .ci{display:flex;align-items:center;gap:6px;font-size:.78rem;color:rgba(255,255,255,.88);text-decoration:none;}
+#t11 .ci i{color:#99f6e4;}
+#t11 .body{display:grid;grid-template-columns:1fr 2.1fr;align-items:stretch;flex:1;}
+#t11 .L{background:#f0fdfa;padding:26px 22px;border-right:2px solid #ccfbf1;}
+#t11 .R{padding:26px 34px;}
+#t11 .sec{margin-bottom:20px;}
+#t11 .st{font-size:.64rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#0d9488;margin-bottom:9px;}
+#t11 .chip{background:#ccfbf1;color:#0f766e;padding:4px 11px;border-radius:5px;
+  font-size:.74rem;font-weight:600;display:inline-block;margin:2px;}
+#t11 .pj{background:#fff;border:1px solid #ccfbf1;border-radius:9px;padding:11px;margin-bottom:8px;}
+#t11 .pt{font-weight:700;font-size:.86rem;color:#134e4a;}
+#t11 .pd{font-size:.77rem;color:#6b7280;margin-top:3px;line-height:1.55;}
+#t11 .about{font-size:.82rem;color:#374151;line-height:1.72;}
+#t11 .edu{background:#f0fdfa;border-radius:8px;padding:10px 11px;margin-bottom:7px;}
+#t11 .ed{font-weight:700;font-size:.84rem;color:#134e4a;}
+#t11 .es{font-size:.76rem;color:#0d9488;margin-top:2px;}
+
+/* ═══════════════════════════════════════
+   T12 – CYBERSECURITY
+   Near-black + warning red · scanline texture
+═══════════════════════════════════════ */
+#t12{font-family:'Space Mono',monospace;background:#080810;color:#dde1e7;}
+#t12 .h{padding:42px 48px;position:relative;overflow:hidden;}
+#t12 .h::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 22px,rgba(220,38,38,.04) 22px,rgba(220,38,38,.04) 23px);}
+#t12 .alert{color:#dc2626;font-size:.68rem;letter-spacing:.22em;margin-bottom:9px;position:relative;z-index:1;}
+#t12 .nm{font-size:2.1rem;font-weight:700;color:#fff;line-height:1.1;position:relative;z-index:1;}
+#t12 .role{font-size:.75rem;color:#dc2626;letter-spacing:.1em;margin-top:5px;position:relative;z-index:1;}
+#t12 .row{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;position:relative;z-index:1;}
+#t12 .ci{display:flex;align-items:center;gap:6px;font-size:.72rem;color:rgba(255,255,255,.58);text-decoration:none;}
+#t12 .ci i{color:#dc2626;}
+#t12 .body{display:grid;grid-template-columns:1.8fr 1fr;align-items:stretch;flex:1;}
+#t12 .L{padding:26px 38px;border-right:1px solid #14141e;background:#080810;}
+#t12 .R{padding:26px 26px;background:#060610;}
+#t12 .sec{margin-bottom:20px;}
+#t12 .st{color:#dc2626;font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;
+  border-left:2px solid #dc2626;padding-left:8px;margin-bottom:10px;font-weight:700;}
+#t12 .chip{border:1px solid #dc2626;color:#dc2626;padding:2px 9px;
+  font-size:.68rem;border-radius:2px;display:inline-block;margin:2px;}
+#t12 .pj{background:#0d0d18;border:1px solid #1a1a28;border-radius:5px;padding:11px 13px;margin-bottom:7px;}
+#t12 .pt{font-size:.82rem;color:#fff;font-weight:700;}
+#t12 .pd{font-size:.73rem;color:rgba(255,255,255,.48);margin-top:3px;line-height:1.6;}
+#t12 .about{font-size:.76rem;color:rgba(255,255,255,.52);line-height:1.8;}
+
+/* ═══════════════════════════════════════
+   T13 – DEVOPS / CLOUD
+   Sky-to-indigo gradient · infrastructure grid look
+═══════════════════════════════════════ */
+#t13{font-family:'Outfit',sans-serif;}
+#t13 .h{background:linear-gradient(130deg,#0284c7,#4f46e5,#7c3aed);color:#fff;
+  padding:42px 50px;position:relative;overflow:hidden;}
+#t13 .h::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 80% at 80% -20%,rgba(255,255,255,.1),transparent);}
+#t13 .nm{font-size:2.5rem;font-weight:800;line-height:1.1;position:relative;z-index:1;}
+#t13 .role{font-size:.86rem;opacity:.78;margin-top:4px;position:relative;z-index:1;}
+#t13 .row{display:flex;flex-wrap:wrap;gap:14px;margin-top:16px;position:relative;z-index:1;}
+#t13 .ci{display:flex;align-items:center;gap:6px;font-size:.78rem;color:rgba(255,255,255,.82);text-decoration:none;}
+#t13 .ci i{color:#bae6fd;}
+#t13 .body{display:grid;grid-template-columns:1fr 2.1fr;align-items:stretch;flex:1;}
+#t13 .L{background:#f0f9ff;padding:26px 24px;border-right:2px solid #bae6fd;}
+#t13 .R{padding:26px 34px;}
+#t13 .sec{margin-bottom:20px;}
+#t13 .st{font-size:.63rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#0284c7;margin-bottom:10px;}
+#t13 .chip{background:#e0f2fe;border:1px solid #7dd3fc;color:#0369a1;
+  padding:3px 10px;border-radius:6px;font-size:.72rem;font-weight:600;display:inline-block;margin:2px;}
+#t13 .pj{background:#f0f9ff;border-radius:9px;padding:11px 13px;margin-bottom:8px;border:1px solid #bae6fd;}
+#t13 .pt{font-weight:700;font-size:.86rem;color:#0c4a6e;}
+#t13 .pd{font-size:.77rem;color:#6b7280;margin-top:3px;line-height:1.5;}
+#t13 .about{font-size:.82rem;color:#374151;line-height:1.72;}
+
+/* ═══════════════════════════════════════
+   T14 – FREELANCER / CREATIVE WRITER
+   Cream parchment · oversized serif · ink editorial
+═══════════════════════════════════════ */
+#t14{font-family:'Crimson Pro',serif;background:#fffef8;}
+#t14 .h{padding:48px 56px 28px;border-bottom:3px double #0a0a0a;}
+#t14 .nm{font-size:3.8rem;font-weight:700;line-height:.95;letter-spacing:-.02em;color:#0a0a0a;}
+#t14 .role{font-size:1.05rem;color:#555;font-style:italic;margin-top:5px;font-weight:400;}
+#t14 .row{display:flex;flex-wrap:wrap;gap:18px;margin-top:12px;}
+#t14 .ci{display:flex;align-items:center;gap:6px;font-size:.86rem;color:#555;
+  text-decoration:none;font-family:'DM Sans',sans-serif;}
+#t14 .ci i{color:#0a0a0a;font-size:.76rem;}
+#t14 .body{display:grid;grid-template-columns:2.4fr 1fr;align-items:stretch;flex:1;}
+#t14 .L{padding:28px 48px 38px;}
+#t14 .R{padding:28px 28px;border-left:3px double #0a0a0a;}
+#t14 .sec{margin-bottom:26px;}
+#t14 .st{font-size:1.15rem;font-weight:700;color:#0a0a0a;
+  border-bottom:1px solid #0a0a0a;padding-bottom:4px;margin-bottom:12px;}
+#t14 .about{font-size:.96rem;color:#333;line-height:1.85;}
+#t14 .pj{margin-bottom:16px;}
+#t14 .pt{font-weight:700;font-size:1.02rem;color:#0a0a0a;}
+#t14 .pd{font-size:.9rem;color:#555;margin-top:3px;line-height:1.65;}
+#t14 .sk-item{display:block;font-size:.9rem;color:#333;margin-bottom:6px;
+  border-bottom:1px dotted #ccc;padding-bottom:6px;font-family:'DM Sans',sans-serif;}
+
+/* ═══════════════════════════════════════
+   T15 – EXECUTIVE / SENIOR LEADER
+   Charcoal luxury · purple micro-accents
+═══════════════════════════════════════ */
+#t15{font-family:'DM Serif Display',serif;background:#fff;}
+#t15 .h{background:#1c1c1e;color:#fff;padding:50px 54px;}
+#t15 .eyb{font-size:.65rem;font-weight:700;letter-spacing:.3em;text-transform:uppercase;
+  color:#a78bfa;margin-bottom:11px;font-family:'DM Sans',sans-serif;}
+#t15 .nm{font-size:3.1rem;font-weight:400;line-height:1.05;}
+#t15 .role{font-size:.92rem;color:rgba(255,255,255,.52);margin-top:5px;font-family:'DM Sans',sans-serif;}
+#t15 .gr{width:48px;height:2px;background:linear-gradient(90deg,#a78bfa,#f0abfc);margin:16px 0;}
+#t15 .row{display:flex;flex-wrap:wrap;gap:18px;}
+#t15 .ci{display:flex;align-items:center;gap:7px;font-size:.78rem;
+  color:rgba(255,255,255,.58);text-decoration:none;font-family:'DM Sans',sans-serif;}
+#t15 .ci i{color:#a78bfa;}
+#t15 .body{display:grid;grid-template-columns:2.2fr 1fr;align-items:stretch;flex:1;}
+#t15 .L{padding:36px 46px;background:#fff;}
+#t15 .R{padding:36px 30px;background:#f9f9fb;border-left:1px solid #e5e7eb;}
+#t15 .sec{margin-bottom:28px;}
+#t15 .st{font-size:.62rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+  color:#6d28d9;margin-bottom:12px;font-family:'DM Sans',sans-serif;}
+#t15 .about{font-size:.9rem;color:#374151;line-height:1.85;font-family:'DM Sans',sans-serif;}
+#t15 .role-nm{font-size:1.05rem;font-weight:400;color:#1c1c1e;}
+#t15 .co{font-size:.85rem;color:#6d28d9;font-family:'DM Sans',sans-serif;font-weight:600;}
+#t15 .dt{font-size:.76rem;color:#9ca3af;font-family:'DM Sans',sans-serif;}
+#t15 .pj{border-left:2px solid #e5e7eb;padding:9px 15px;margin-bottom:11px;transition:.18s;}
+#t15 .pt{font-size:.93rem;font-weight:400;color:#1c1c1e;}
+#t15 .pd{font-size:.8rem;color:#6b7280;margin-top:3px;line-height:1.6;font-family:'DM Sans',sans-serif;}
+#t15 .sk-item{display:flex;align-items:center;gap:8px;margin-bottom:9px;
+  font-family:'DM Sans',sans-serif;font-size:.82rem;color:#374151;}
+#t15 .sk-item::before{content:'';width:6px;height:6px;border-radius:50%;background:#a78bfa;flex-shrink:0;}
+
+/* ═══════════════════════════════════════
+   T16 – EDUCATOR / TEACHER
+   Warm sage green · welcoming rounded style
+═══════════════════════════════════════ */
+#t16{font-family:'Sora',sans-serif;}
+#t16 .h{background:#fff;border-bottom:4px solid #16a34a;padding:38px 48px;
+  display:grid;grid-template-columns:1fr auto;align-items:center;}
+#t16 .nm{font-size:2.5rem;font-weight:800;color:#14532d;line-height:1.1;}
+#t16 .role{font-size:.86rem;color:#16a34a;font-weight:700;margin-top:4px;}
+#t16 .row{display:flex;flex-wrap:wrap;gap:12px;margin-top:13px;}
+#t16 .ci{display:flex;align-items:center;gap:6px;font-size:.78rem;color:#4b5563;text-decoration:none;}
+#t16 .ci i{color:#16a34a;}
+#t16 .icon{width:78px;height:78px;background:#dcfce7;border-radius:18px;
+  display:flex;align-items:center;justify-content:center;font-size:2.2rem;}
+#t16 .body{display:grid;grid-template-columns:1.8fr 1fr;align-items:stretch;flex:1;}
+#t16 .L{padding:26px 34px;}
+#t16 .R{padding:26px 22px;background:#f0fdf4;border-left:2px solid #bbf7d0;}
+#t16 .sec{margin-bottom:20px;}
+#t16 .st{font-size:.64rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#16a34a;margin-bottom:9px;}
+#t16 .chip{background:#dcfce7;border:1px solid #86efac;color:#14532d;
+  padding:3px 11px;border-radius:20px;font-size:.73rem;font-weight:600;display:inline-block;margin:2px;}
+#t16 .pj{background:#fff;border:1px solid #bbf7d0;border-radius:9px;padding:11px;margin-bottom:7px;}
+#t16 .pt{font-weight:700;font-size:.86rem;color:#14532d;}
+#t16 .pd{font-size:.77rem;color:#6b7280;margin-top:3px;line-height:1.5;}
+#t16 .about{font-size:.82rem;color:#374151;line-height:1.72;}
+#t16 .edu{background:#fff;border-radius:9px;padding:11px 13px;margin-bottom:7px;border:1px solid #bbf7d0;}
+#t16 .ed{font-weight:700;font-size:.86rem;color:#14532d;}
+#t16 .es{font-size:.76rem;color:#16a34a;margin-top:2px;}
+
+/* ═══════════════════════════════════════
+   T17 – SALES PROFESSIONAL
+   Royal blue · metrics bar · results-driven
+═══════════════════════════════════════ */
+#t17{font-family:'Outfit',sans-serif;}
+#t17 .h{background:linear-gradient(135deg,#1e3a8a,#1d4ed8);color:#fff;padding:38px 48px;}
+#t17 .nm{font-size:2.7rem;font-weight:800;line-height:1.1;}
+#t17 .role{font-size:.86rem;opacity:.78;margin-top:4px;letter-spacing:.04em;}
+#t17 .row{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;}
+#t17 .ci{display:flex;align-items:center;gap:6px;font-size:.78rem;color:rgba(255,255,255,.82);text-decoration:none;}
+#t17 .ci i{color:#93c5fd;}
+#t17 .metrics{background:#1e3a8a;display:flex;padding:16px 48px;}
+#t17 .met{flex:1;text-align:center;padding:0 18px;border-right:1px solid rgba(255,255,255,.1);}
+#t17 .met:last-child{border-right:none;}
+#t17 .mn{font-size:1.8rem;font-weight:800;color:#93c5fd;}
+#t17 .ml{font-size:.64rem;color:rgba(255,255,255,.52);letter-spacing:.06em;text-transform:uppercase;margin-top:2px;}
+#t17 .body{padding:26px 38px;}
+#t17 .g2{display:grid;grid-template-columns:1.5fr 1fr;gap:26px;}
+#t17 .sec{margin-bottom:20px;}
+#t17 .st{font-size:.64rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#1d4ed8;margin-bottom:9px;}
+#t17 .chip{background:#dbeafe;border:1px solid #93c5fd;color:#1d4ed8;
+  padding:3px 11px;border-radius:5px;font-size:.73rem;font-weight:600;display:inline-block;margin:2px;}
+#t17 .pj{border-left:3px solid #2563eb;padding:9px 13px;margin-bottom:9px;background:#eff6ff;border-radius:0 8px 8px 0;}
+#t17 .pt{font-weight:700;font-size:.86rem;color:#1e3a8a;}
+#t17 .pd{font-size:.77rem;color:#6b7280;margin-top:3px;line-height:1.5;}
+#t17 .about{font-size:.82rem;color:#374151;line-height:1.72;}
+#t17 .edu{background:#eff6ff;border-radius:9px;padding:12px;}
+#t17 .ed{font-weight:700;font-size:.86rem;color:#1e3a8a;}
+#t17 .es{font-size:.78rem;color:#2563eb;margin-top:2px;}
+
+/* ═══════════════════════════════════════
+   T18 – STARTUP FOUNDER
+   Pitch-black · oversized Fraunces · orange fire
+═══════════════════════════════════════ */
+#t18{font-family:'Fraunces',serif;background:#0a0a0a;color:#fff;}
+#t18 .h{padding:50px 54px 38px;}
+#t18 .eyb{font-family:'DM Sans',sans-serif;font-size:.68rem;font-weight:700;
+  letter-spacing:.26em;text-transform:uppercase;color:#f97316;margin-bottom:11px;}
+#t18 .nm{font-size:4.2rem;font-weight:900;line-height:.9;letter-spacing:-.04em;}
+#t18 .nm span{color:#f97316;}
+#t18 .role{font-family:'DM Sans',sans-serif;font-size:.88rem;color:rgba(255,255,255,.45);
+  margin-top:12px;letter-spacing:.04em;}
+#t18 .row{display:flex;flex-wrap:wrap;gap:14px;margin-top:18px;}
+#t18 .ci{display:flex;align-items:center;gap:6px;font-size:.78rem;
+  color:rgba(255,255,255,.5);text-decoration:none;font-family:'DM Sans',sans-serif;}
+#t18 .ci i{color:#f97316;}
+#t18 .body{display:grid;grid-template-columns:1fr 2.1fr;align-items:stretch;flex:1;}
+#t18 .L{background:#111;padding:28px 28px;border-right:1px solid #1c1c1c;}
+#t18 .R{padding:28px 42px;background:#0a0a0a;}
+#t18 .sec{margin-bottom:24px;}
+#t18 .st{font-family:'DM Sans',sans-serif;font-size:.62rem;font-weight:700;
+  letter-spacing:.2em;text-transform:uppercase;color:#f97316;margin-bottom:11px;}
+#t18 .chip{border:1px solid #f97316;color:#f97316;padding:2px 10px;
+  font-size:.7rem;border-radius:2px;display:inline-block;margin:2px;font-family:'DM Sans',sans-serif;}
+#t18 .pj{border-bottom:1px solid #1c1c1c;padding:12px 0;}
+#t18 .pj:last-child{border-bottom:none;}
+#t18 .pt{font-size:1.02rem;font-weight:700;color:#fff;}
+#t18 .pd{font-family:'DM Sans',sans-serif;font-size:.78rem;color:rgba(255,255,255,.48);margin-top:4px;line-height:1.65;}
+#t18 .tag{background:#161616;border:1px solid #282828;color:rgba(255,255,255,.35);
+  padding:1px 7px;border-radius:3px;font-size:.66rem;display:inline-block;margin:2px;font-family:'DM Sans',sans-serif;}
+#t18 .about{font-size:.88rem;color:rgba(255,255,255,.55);line-height:1.8;font-family:'DM Sans',sans-serif;}
+#t18 .ed{font-size:.88rem;font-weight:700;color:#fff;}
+#t18 .es{font-family:'DM Sans',sans-serif;font-size:.76rem;color:rgba(255,255,255,.38);margin-top:2px;}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div class="loader" id="ldr">
+  <div class="spin"></div>
+  <p>Generating your PDF…</p>
+</div>
+
+<!-- Flash messages -->
+<div class="flash">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for cat,msg in messages %}
+      <div class="fb fb-{{cat}}">{{msg}}</div>
+    {% endfor %}{% endif %}
+  {% endwith %}
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sb">
+  <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
+  <a href="{{ url_for('main_page') }}"><i class="fas fa-home"></i> Dashboard</a>
+  <a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a>
+  <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
+  <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
+  <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a>
+  <a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> Roadmap AI</a>
+  <a href="{{ url_for('portfolio_builder') }}"><i class="fas fa-briefcase"></i> Portfolio Builder</a>
+  <a href="{{ url_for('resume_builder') }}" class="on"><i class="fas fa-file-alt"></i> Resume Builder</a>
+  <a href="{{ url_for('find_communities') }}"><i class="fas fa-users"></i> Communities</a>
+  <div class="out"><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div>
+      <h1>Resume Builder</h1>
+      <p>18 career-specific templates · auto-filled from your profile · one-click PDF</p>
+    </div>
+    <div class="btns">
+      <button class="btn btn-o" onclick="copyHTML()"><i class="fas fa-copy"></i> Copy HTML</button>
+      <button class="btn btn-p" onclick="openPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- CONTROL PANEL -->
+    <div class="cp">
+      <div class="cp-sec">
+        <div class="cp-lbl"><i class="fas fa-palette"></i> Choose Template</div>
+        <div class="tpl-list">
+
+          <div class="tcard on" onclick="sw(1,this)">
+            <div class="tcard-ico" style="background:#ede9fe;color:#6d28d9"><i class="fas fa-columns"></i></div>
+            <div><div class="tcard-name">Classic Tech</div><div class="tcard-tag">Software · Engineering</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(2,this)">
+            <div class="tcard-ico" style="background:#f1f5f9;color:#0f172a"><i class="fas fa-align-left"></i></div>
+            <div><div class="tcard-name">Minimal Pro</div><div class="tcard-tag">Any field · Universal</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(3,this)">
+            <div class="tcard-ico" style="background:#dcfce7;color:#065f46"><i class="fas fa-seedling"></i></div>
+            <div><div class="tcard-name">Fresh Graduate</div><div class="tcard-tag">Entry Level · 0–1 yr</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(4,this)">
+            <div class="tcard-ico" style="background:#0a0a0a;color:#e11d48"><i class="fas fa-paint-brush"></i></div>
+            <div><div class="tcard-name">Creative Bold</div><div class="tcard-tag">Designer · Art Director</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(5,this)">
+            <div class="tcard-ico" style="background:#0f172a;color:#38bdf8"><i class="fas fa-chart-bar"></i></div>
+            <div><div class="tcard-name">Data Scientist</div><div class="tcard-tag">AI · ML · Analytics</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(6,this)">
+            <div class="tcard-ico" style="background:#0d1117;color:#3fb950"><i class="fas fa-terminal"></i></div>
+            <div><div class="tcard-name">Full Stack Dev</div><div class="tcard-tag">Developer · Backend</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(7,this)">
+            <div class="tcard-ico" style="background:#fef3c7;color:#d97706"><i class="fas fa-tasks"></i></div>
+            <div><div class="tcard-name">Product Manager</div><div class="tcard-tag">PM · Strategy</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(8,this)">
+            <div class="tcard-ico" style="background:#f5f3ff;color:#7c3aed"><i class="fas fa-vector-square"></i></div>
+            <div><div class="tcard-name">UI/UX Designer</div><div class="tcard-tag">Product Design</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(9,this)">
+            <div class="tcard-ico" style="background:#fef2f2;color:#dc2626"><i class="fas fa-bullhorn"></i></div>
+            <div><div class="tcard-name">Marketing Pro</div><div class="tcard-tag">Growth · Branding</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(10,this)">
+            <div class="tcard-ico" style="background:#0d2240;color:#c8a951"><i class="fas fa-chart-line"></i></div>
+            <div><div class="tcard-name">Finance / CPA</div><div class="tcard-tag">Finance · Accounting</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(11,this)">
+            <div class="tcard-ico" style="background:#ccfbf1;color:#0f766e"><i class="fas fa-heartbeat"></i></div>
+            <div><div class="tcard-name">Healthcare</div><div class="tcard-tag">Medical · Biotech</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(12,this)">
+            <div class="tcard-ico" style="background:#080810;color:#dc2626"><i class="fas fa-shield-alt"></i></div>
+            <div><div class="tcard-name">Cybersecurity</div><div class="tcard-tag">InfoSec · Pen Testing</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(13,this)">
+            <div class="tcard-ico" style="background:#e0f2fe;color:#0369a1"><i class="fas fa-cloud"></i></div>
+            <div><div class="tcard-name">DevOps / Cloud</div><div class="tcard-tag">Infrastructure · SRE</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(14,this)">
+            <div class="tcard-ico" style="background:#fffef8;color:#0a0a0a;border:1px solid #ddd"><i class="fas fa-feather-alt"></i></div>
+            <div><div class="tcard-name">Freelancer</div><div class="tcard-tag">Creative · Writer</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(15,this)">
+            <div class="tcard-ico" style="background:#1c1c1e;color:#a78bfa"><i class="fas fa-crown"></i></div>
+            <div><div class="tcard-name">Executive</div><div class="tcard-tag">Senior · C-Suite · 8+ yr</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(16,this)">
+            <div class="tcard-ico" style="background:#dcfce7;color:#14532d"><i class="fas fa-chalkboard-teacher"></i></div>
+            <div><div class="tcard-name">Educator</div><div class="tcard-tag">Teaching · Academic</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(17,this)">
+            <div class="tcard-ico" style="background:#dbeafe;color:#1d4ed8"><i class="fas fa-handshake"></i></div>
+            <div><div class="tcard-name">Sales Pro</div><div class="tcard-tag">Sales · Business Dev</div></div>
+          </div>
+
+          <div class="tcard" onclick="sw(18,this)">
+            <div class="tcard-ico" style="background:#0a0a0a;color:#f97316"><i class="fas fa-rocket"></i></div>
+            <div><div class="tcard-name">Startup Founder</div><div class="tcard-tag">Entrepreneur · Builder</div></div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="cp-sec">
+        <div class="cp-lbl"><i class="fas fa-database"></i> Auto-filled from</div>
+        <div class="info-box">
+          <div class="chk"><i class="fas fa-check-circle"></i> Name, title &amp; location</div>
+          <div class="chk"><i class="fas fa-check-circle"></i> About me &amp; career goal</div>
+          <div class="chk"><i class="fas fa-check-circle"></i> Known &amp; learning skills</div>
+          <div class="chk"><i class="fas fa-check-circle"></i> All your projects</div>
+          <div class="chk"><i class="fas fa-check-circle"></i> Education &amp; experience</div>
+          <div class="chk"><i class="fas fa-check-circle"></i> GitHub &amp; LinkedIn links</div>
+          <div style="margin-top:8px;font-size:.74rem;">
+            Edit via <a href="{{ url_for('profile') }}">Profile</a> or
+            <a href="{{ url_for('my_projects') }}">Projects</a>
+          </div>
+        </div>
+      </div>
+    </div><!-- /cp -->
+
+    <!-- PREVIEW -->
+    <div class="preview-wrap">
+      <div class="preview-inner">
+
+<!-- ══════════════════════════════════════════════════════════════
+     T1 — CLASSIC TECH
+══════════════════════════════════════════════════════════════ -->
+<div id="t1" class="rt on">
+  <div class="h">
+    <div class="h-name">{{ user.name or 'Your Name' }}</div>
+    <div class="h-role">{{ user.title or 'Software Developer' }}</div>
+    <div class="h-row">
+      {% if user.email %}<a class="hc" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.location %}<span class="hc"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+      {% if user.github_url %}<a class="hc" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
+      {% if user.linkedin_url %}<a class="hc" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+    </div>
+  </div>
+  <div class="body">
+    <div class="L">
+      {% if user.known_skills %}<div class="sec"><div class="st">Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="pill">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+      {% if user.learning_skills %}<div class="sec"><div class="st">Learning</div>{% for s in user.learning_skills %}{% if s.strip() %}<span class="pill pill-b">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+      <div class="sec"><div class="st">Education</div>
+        <div style="font-size:.86rem;font-weight:700;color:#1e1b4b;">{{user.education_degree or 'Degree'}}</div>
+        <div style="font-size:.78rem;color:#64748b;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
+      </div>
+      {% if user.experience_years %}<div class="sec"><div class="st">Experience</div><div style="font-size:.88rem;font-weight:700;">{{user.experience_years}} Years</div></div>{% endif %}
+      {% if user.current_status %}<div class="sec"><div class="st">Status</div><div style="font-size:.82rem;color:#475569;">{{user.current_status}}</div></div>{% endif %}
+      {% if user.availability %}<div class="sec"><div class="st">Availability</div><div style="font-size:.82rem;color:#475569;">{{user.availability}}</div></div>{% endif %}
+      <div class="vsep"></div>
+    </div>
+    <div class="R">
+      {% if user.about_me %}<div class="sec"><div class="st">About Me</div><p class="about">{{user.about_me}}</p></div>{% endif %}
+      {% if user.career_goal %}<div class="sec"><div class="st">Career Goal</div><p class="about">{{user.career_goal}}</p></div>{% endif %}
+      {% if projects %}<div class="sec"><div class="st">Projects ({{projects|length}})</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div>{% if p.skills_needed %}<div style="margin-top:5px;">{% for sk in p.skills_needed %}<span class="pill" style="font-size:.66rem;">{{sk}}</span>{% endfor %}</div>{% endif %}</div>{% endfor %}</div>{% endif %}
+      {% if user.learning_skills %}
+      <div class="sec"><div class="st">Currently Learning</div>
+        <div style="font-size:.82rem;color:#475569;line-height:1.8;">
+          {% for s in user.learning_skills %}{% if s.strip() %}<span style="display:inline-block;margin-right:6px;margin-bottom:4px;background:#fce7f3;color:#be185d;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600;">{{s.strip()}}</span>{% endif %}{% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      <div class="vsep"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T2 — MINIMAL PRO
+══════════════════════════════════════════════════════════════ -->
+<div id="t2" class="rt">
+  <div class="nm">{{ user.name or 'Your Name' }}</div>
+  <div class="role">{{ user.title or 'Professional' }}</div>
+  <div class="row">
+    {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+    {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+    {% if user.github_url %}<a class="ci" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
+    {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+  </div>
+  {% if user.about_me %}<div class="sec"><div class="st">Profile</div><p style="font-size:.86rem;line-height:1.75;color:#374151;">{{user.about_me}}</p></div>{% endif %}
+  {% if user.known_skills %}<div class="sec"><div class="st">Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="sk">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+  {% if projects %}<div class="sec"><div class="st">Projects</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div>{% if p.skills_needed %}<div class="tags">{% for sk in p.skills_needed %}<span>{{sk}}</span>{% if not loop.last %} &middot; {% endif %}{% endfor %}</div>{% endif %}</div>{% endfor %}</div>{% endif %}
+  <div class="sec"><div class="st">Education</div><div style="font-size:.9rem;"><strong>{{user.education_degree or 'Degree'}}</strong><span style="color:var(--muted)"> — {{user.education_college or 'Institution'}}</span></div></div>
+  <div class="vsep"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T3 — FRESH GRADUATE
+══════════════════════════════════════════════════════════════ -->
+<div id="t3" class="rt">
+  <div class="h">
+    <div>
+      <div class="nm">{{ user.name or 'Your Name' }}</div>
+      <div class="role">{{ user.title or 'Graduate' }}</div>
+      <div class="row">
+        {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+        {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+        {% if user.github_url %}<a class="ci" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
+      </div>
+    </div>
+    <div><span class="otw">Open to Work</span></div>
+  </div>
+  <div class="body">
+    {% if user.about_me %}<div class="sec"><div class="st">Summary</div><div class="hl">{{user.about_me}}</div></div>{% endif %}
+    {% if user.known_skills or user.learning_skills %}
+    <div class="sec"><div class="st">Skills</div>
+      <div class="g2">
+        <div>{% if user.known_skills %}<div style="font-size:.72rem;font-weight:700;color:#065f46;margin-bottom:5px;">Known</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}{% endif %}</div>
+        <div>{% if user.learning_skills %}<div style="font-size:.72rem;font-weight:700;color:#059669;margin-bottom:5px;">Learning</div>{% for s in user.learning_skills %}{% if s.strip() %}<span class="chip" style="background:#d1fae5;">{{s.strip()}}</span>{% endif %}{% endfor %}{% endif %}</div>
+      </div>
+    </div>{% endif %}
+    {% if projects %}<div class="sec"><div class="st">Projects</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
+    <div class="sec"><div class="st">Education</div><div class="pj"><div class="pt">{{user.education_degree or 'Degree / Certification'}}</div><div class="pd">{{user.education_college or 'Institution'}}</div></div></div>
+    <div class="vsep"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T4 — CREATIVE DESIGNER
+══════════════════════════════════════════════════════════════ -->
+<div id="t4" class="rt">
+  <div class="h">
+    <div class="nm">{{ user.name or 'Your Name' }}</div>
+    <div class="role">{{ user.title or 'Creative Designer' }}</div>
+    <div class="row">
+      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+      {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+    </div>
+  </div>
+  <div class="body">
+    <div class="L">
+      {% if user.about_me %}<div class="sec"><div class="st">About</div><p class="about">{{user.about_me}}</p></div>{% endif %}
+      {% if projects %}<div class="sec"><div class="st">Selected Work</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+    <div class="R">
+      {% if user.known_skills %}<div class="sec"><div class="st">Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="sk">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+      {% if user.learning_skills %}<div class="sec"><div class="st">Exploring</div>{% for s in user.learning_skills %}{% if s.strip() %}<span class="sk" style="border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.5);">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+      <div class="sec"><div class="st">Education</div>
+        <div style="font-weight:700;font-size:.86rem;">{{user.education_degree or 'Degree'}}</div>
+        <div style="font-size:.76rem;color:rgba(255,255,255,.5);margin-top:2px;">{{user.education_college or 'Institution'}}</div>
+      </div>
+    <div class="vsep"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T5 — DATA SCIENTIST
+══════════════════════════════════════════════════════════════ -->
+<div id="t5" class="rt">
+  <div class="h">
+    <div>
+      <div class="nm">{{ user.name or 'Your Name' }}</div>
+      <div class="role">{{ user.title or 'Data Scientist' }}</div>
+    </div>
+    <div class="stats">
+      <div class="sb2"><div class="sn">{{user.known_skills|length if user.known_skills else 0}}</div><div class="sl">Skills</div></div>
+      <div class="sb2"><div class="sn">{{projects|length if projects else 0}}</div><div class="sl">Projects</div></div>
+      <div class="sb2"><div class="sn">{{user.experience_years or '0'}}</div><div class="sl">Yrs Exp</div></div>
+    </div>
+  </div>
+  <div class="contacts">
+    {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+    {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+    {% if user.github_url %}<a class="ci" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
+    {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+  </div>
+  <div class="body">
+    <div class="L">
+      {% if user.about_me %}<div class="sec"><div class="st">About</div><p class="about">{{user.about_me}}</p></div>{% endif %}
+      {% if projects %}<div class="sec"><div class="st">Projects</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div>{% if p.skills_needed %}<div style="margin-top:5px;">{% for sk in p.skills_needed %}<span class="badge">{{sk}}</span>{% endfor %}</div>{% endif %}</div>{% endfor %}</div>{% endif %}
+      {% if user.career_goal %}<div class="sec"><div class="st">Goal</div><p class="about">{{user.career_goal}}</p></div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+    <div class="R">
+      {% if user.known_skills %}<div class="sec"><div class="st">Tech Stack</div>{% for s in user.known_skills %}{% if s.strip() %}<div class="bar-row"><span class="bar-lbl">{{s.strip()}}</span><div class="bar-bg"><div class="bar-fg" style="width:{{[88,76,92,68,82,74,90,66,78,85][loop.index0%10]}}%;"></div></div></div>{% endif %}{% endfor %}</div>{% endif %}
+      <div class="sec"><div class="st">Education</div>
+        <div style="font-size:.82rem;color:#cbd5e1;"><strong>{{user.education_degree or 'Degree'}}</strong><br><span style="color:#64748b;">{{user.education_college or 'Institution'}}</span></div>
+      </div>
+    <div class="vsep"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T6 — FULL STACK DEVELOPER
+══════════════════════════════════════════════════════════════ -->
+<div id="t6" class="rt">
+  <div class="h">
+    <div class="prompt">~/resume $ cat {{ (user.name or 'profile')|replace(' ','_')|lower }}.json</div>
+    <div class="nm">{{ user.name or 'Your Name' }}</div>
+    <div class="role">// {{ user.title or 'Full Stack Developer' }}</div>
+    <div class="row">
+      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.github_url %}<a class="ci" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>{{user.github_url}}</a>{% endif %}
+      {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+    </div>
+  </div>
+  <div class="body">
+    <div class="L">
+      {% if user.about_me %}<div class="sec"><div class="st">summary</div><p class="about">{{user.about_me}}</p></div>{% endif %}
+      {% if projects %}<div class="sec"><div class="st">projects</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div>{% if p.skills_needed %}<div style="margin-top:4px;">{% for sk in p.skills_needed %}<span class="tag">{{sk}}</span>{% endfor %}</div>{% endif %}</div>{% endfor %}</div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+    <div class="R">
+      {% if user.known_skills %}<div class="sec"><div class="st">skills[]</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+      {% if user.learning_skills %}<div class="sec"><div class="st">learning[]</div>{% for s in user.learning_skills %}{% if s.strip() %}<span class="chip chip-l">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+      <div class="sec"><div class="st">education</div>
+        <div style="font-size:.8rem;color:#f0f6fc;font-weight:700;">{{user.education_degree or 'Degree'}}</div>
+        <div style="font-size:.73rem;color:#8b949e;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
+      </div>
+      {% if user.career_goal %}<div class="sec"><div class="st">goal</div><p class="about" style="font-size:.75rem;">{{user.career_goal}}</p></div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T7 — PRODUCT MANAGER
+══════════════════════════════════════════════════════════════ -->
+<div id="t7" class="rt">
+  <div class="h">
+    <div>
+      <div class="nm">{{ user.name or 'Your Name' }}</div>
+      <div class="role">{{ user.title or 'Product Manager' }}</div>
+      <div class="row">
+        {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+        {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+        {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+      </div>
+    </div>
+    <div class="kpis">
+      <span class="kpi">{{user.experience_years or '0'}} Yrs Exp</span>
+      <span class="kpi">{{projects|length if projects else 0}} Products</span>
+    </div>
+  </div>
+  <div class="body">
+    <div class="g2">
+      <div>
+        {% if user.about_me %}<div class="sec"><div class="st">Summary</div><p class="about">{{user.about_me}}</p></div>{% endif %}
+        {% if projects %}<div class="sec"><div class="st">Products Built</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
+      </div>
+      <div>
+        {% if user.known_skills %}<div class="sec"><div class="st">Core Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="pill">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+        <div class="sec"><div class="st">Education</div><div class="pj"><div class="pt">{{user.education_degree or 'Degree'}}</div><div class="pd">{{user.education_college or 'Institution'}}</div></div></div>
+        {% if user.career_goal %}<div class="sec"><div class="st">Vision</div><p style="font-size:.81rem;color:#57534e;line-height:1.7;">{{user.career_goal}}</p></div>{% endif %}
+      </div>
+    <div class="vsep"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T8 — UI/UX DESIGNER
+══════════════════════════════════════════════════════════════ -->
+<div id="t8" class="rt">
+  <div class="h">
+    <div>
+      <div class="nm">{{ user.name or 'Your Name' }}</div>
+      <div class="role">{{ user.title or 'UI/UX Designer' }}</div>
+      <div class="row">
+        {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+        {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+        {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+      </div>
+    </div>
+    <div class="av">{{ (user.name or 'U')[0]|upper }}</div>
+  </div>
+  <div class="body">
+    <div class="L">
+      {% if user.known_skills %}<div class="sec"><div class="st">Design Tools</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+      {% if user.learning_skills %}<div class="sec"><div class="st">Exploring</div>{% for s in user.learning_skills %}{% if s.strip() %}<span class="chip chip-l">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+      <div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+    <div class="vsep"></div>
+    </div>
+    <div class="R">
+      {% if user.about_me %}<div class="sec"><div class="st">About Me</div><p class="about">{{user.about_me}}</p></div>{% endif %}
+      {% if user.career_goal %}<div class="sec"><div class="st">Design Vision</div><p class="about">{{user.career_goal}}</p></div>{% endif %}
+      {% if projects %}<div class="sec"><div class="st">Design Projects</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T9 — MARKETING PRO
+══════════════════════════════════════════════════════════════ -->
+<div id="t9" class="rt">
+  <div class="h">
+    <div class="h-top">
+      <div>
+        <div class="nm">{{ user.name or 'Your Name' }}</div>
+        <div class="role">{{ user.title or 'Marketing Professional' }}</div>
+      </div>
+      {% if user.experience_years %}<div class="badge"><div class="bn">{{user.experience_years}}</div><div class="bl">Yrs Exp</div></div>{% endif %}
+    </div>
+    <div class="row">
+      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+      {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+    </div>
+  </div>
+  <div class="body">
+    <div class="g2">
+      <div>
+        {% if user.about_me %}<div class="sec"><div class="st">About</div><p class="about">{{user.about_me}}</p></div>{% endif %}
+        {% if projects %}<div class="sec"><div class="st">Campaigns &amp; Work</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
+      </div>
+      <div>
+        {% if user.known_skills %}<div class="sec"><div class="st">Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="pill">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+        <div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+        {% if user.career_goal %}<div class="sec"><div class="st">Goal</div><p style="font-size:.8rem;color:#44403c;line-height:1.65;">{{user.career_goal}}</p></div>{% endif %}
+      </div>
+    <div class="vsep"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T10 — FINANCE / CPA
+══════════════════════════════════════════════════════════════ -->
+<div id="t10" class="rt">
+  <div class="h">
+    <div class="nm">{{ user.name or 'Your Name' }}</div>
+    <div class="role">{{ user.title or 'Finance Professional' }}</div>
+    <div class="rule"></div>
+    <div class="row">
+      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+      {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+    </div>
+  </div>
+  <div class="body">
+    <div class="L">
+      {% if user.known_skills %}<div class="sec"><div class="st">Competencies</div>{% for s in user.known_skills %}{% if s.strip() %}<div class="sk-item">{{s.strip()}}</div>{% endif %}{% endfor %}</div>{% endif %}
+      <div class="sec"><div class="st">Education</div><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div>
+      {% if user.experience_years %}<div class="sec"><div class="st">Experience</div><div style="font-family:'DM Sans',sans-serif;font-size:.82rem;color:#374151;">{{user.experience_years}} Years</div></div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+    <div class="R">
+      {% if user.about_me %}<div class="sec"><div class="st">Professional Summary</div><p class="about">{{user.about_me}}</p></div>{% endif %}
+      {% if user.career_goal %}<div class="sec"><div class="st">Career Objective</div><p class="about">{{user.career_goal}}</p></div>{% endif %}
+      {% if projects %}<div class="sec"><div class="st">Key Engagements</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T11 — HEALTHCARE
+══════════════════════════════════════════════════════════════ -->
+<div id="t11" class="rt">
+  <div class="h">
+    <div>
+      <div class="nm">{{ user.name or 'Your Name' }}</div>
+      <div class="role">{{ user.title or 'Healthcare Professional' }}</div>
+    </div>
+    <div class="c-col">
+      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+      {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+    </div>
+  </div>
+  <div class="body">
+    <div class="L">
+      {% if user.known_skills %}<div class="sec"><div class="st">Clinical Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+      <div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+      {% if user.availability %}<div class="sec"><div class="st">Availability</div><p style="font-size:.8rem;color:#0f766e;">{{user.availability}}</p></div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+    <div class="R">
+      {% if user.about_me %}<div class="sec"><div class="st">Professional Summary</div><p class="about">{{user.about_me}}</p></div>{% endif %}
+      {% if user.career_goal %}<div class="sec"><div class="st">Career Goal</div><p class="about">{{user.career_goal}}</p></div>{% endif %}
+      {% if projects %}<div class="sec"><div class="st">Key Projects</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T12 — CYBERSECURITY
+══════════════════════════════════════════════════════════════ -->
+<div id="t12" class="rt">
+  <div class="h">
+    <div class="alert">[ SECURITY PROFESSIONAL — AUTHORIZED ACCESS ONLY ]</div>
+    <div class="nm">{{ user.name or 'Your Name' }}</div>
+    <div class="role">{{ user.title or 'Cybersecurity Analyst' }}</div>
+    <div class="row">
+      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.github_url %}<a class="ci" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
+      {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+    </div>
+  </div>
+  <div class="body">
+    <div class="L">
+      {% if user.about_me %}<div class="sec"><div class="st">Profile</div><p class="about">{{user.about_me}}</p></div>{% endif %}
+      {% if projects %}<div class="sec"><div class="st">Operations</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+    <div class="R">
+      {% if user.known_skills %}<div class="sec"><div class="st">Capabilities</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+      <div class="sec"><div class="st">Education</div>
+        <div style="font-weight:700;font-size:.8rem;color:#dde1e7;">{{user.education_degree or 'Degree'}}</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.42);margin-top:2px;">{{user.education_college or 'Institution'}}</div>
+      </div>
+      {% if user.career_goal %}<div class="sec"><div class="st">Objective</div><p class="about">{{user.career_goal}}</p></div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T13 — DEVOPS / CLOUD
+══════════════════════════════════════════════════════════════ -->
+<div id="t13" class="rt">
+  <div class="h">
+    <div class="nm">{{ user.name or 'Your Name' }}</div>
+    <div class="role">{{ user.title or 'DevOps / Cloud Engineer' }}</div>
+    <div class="row">
+      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.github_url %}<a class="ci" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
+      {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+    </div>
+  </div>
+  <div class="body">
+    <div class="L">
+      {% if user.known_skills %}<div class="sec"><div class="st">Tech Stack</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+      <div class="sec"><div class="st">Education</div>
+        <div style="font-weight:700;font-size:.86rem;color:#0c4a6e;">{{user.education_degree or 'Degree'}}</div>
+        <div style="font-size:.78rem;color:#0284c7;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
+      </div>
+      {% if user.experience_years %}<div class="sec"><div class="st">Experience</div><p style="font-size:.82rem;color:#374151;">{{user.experience_years}} Years</p></div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+    <div class="R">
+      {% if user.about_me %}<div class="sec"><div class="st">Summary</div><p class="about">{{user.about_me}}</p></div>{% endif %}
+      {% if projects %}<div class="sec"><div class="st">Infrastructure Projects</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
+      {% if user.career_goal %}<div class="sec"><div class="st">Goal</div><p class="about">{{user.career_goal}}</p></div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T14 — FREELANCER / CREATIVE WRITER
+══════════════════════════════════════════════════════════════ -->
+<div id="t14" class="rt">
+  <div class="h">
+    <div class="nm">{{ user.name or 'Your Name' }}</div>
+    <div class="role">{{ user.title or 'Freelance Creative' }}</div>
+    <div class="row">
+      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+      {% if user.github_url %}<a class="ci" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>Portfolio</a>{% endif %}
+    </div>
+  </div>
+  <div class="body">
+    <div class="L">
+      {% if user.about_me %}<div class="sec"><div class="st">About</div><p class="about">{{user.about_me}}</p></div>{% endif %}
+      {% if user.career_goal %}<div class="sec"><div class="st">What I Seek</div><p class="about" style="font-style:italic;color:#555;">{{user.career_goal}}</p></div>{% endif %}
+      {% if projects %}<div class="sec"><div class="st">Selected Work</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+    <div class="R">
+      {% if user.known_skills %}<div class="sec"><div class="st">Disciplines</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="sk-item">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+      <div class="sec"><div class="st">Education</div>
+        <div style="font-weight:700;font-size:.93rem;">{{user.education_degree or 'Degree'}}</div>
+        <div style="font-size:.84rem;color:#666;font-style:italic;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
+      </div>
+    <div class="vsep"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T15 — EXECUTIVE / SENIOR LEADER
+══════════════════════════════════════════════════════════════ -->
+<div id="t15" class="rt">
+  <div class="h">
+    <div class="eyb">Senior Professional</div>
+    <div class="nm">{{ user.name or 'Your Name' }}</div>
+    <div class="role">{{ user.title or 'Senior Executive' }}</div>
+    <div class="gr"></div>
+    <div class="row">
+      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+      {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+    </div>
+  </div>
+  <div class="body">
+    <div class="L">
+      {% if user.about_me %}<div class="sec"><div class="st">Executive Summary</div><p class="about">{{user.about_me}}</p></div>{% endif %}
+      {% if user.experience_years %}<div class="sec"><div class="st">Experience</div><div class="role-nm">{{user.title or 'Professional'}}</div><div class="co">{{user.experience_years}} Years in Industry</div></div>{% endif %}
+      {% if projects %}<div class="sec"><div class="st">Key Initiatives</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
+      {% if user.career_goal %}<div class="sec"><div class="st">Vision</div><p style="font-family:'DM Sans',sans-serif;font-size:.83rem;color:#6b7280;line-height:1.72;">{{user.career_goal}}</p></div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+    <div class="R">
+      {% if user.known_skills %}<div class="sec"><div class="st">Core Competencies</div>{% for s in user.known_skills %}{% if s.strip() %}<div class="sk-item">{{s.strip()}}</div>{% endif %}{% endfor %}</div>{% endif %}
+      <div class="sec"><div class="st">Education</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;color:#1c1c1e;">{{user.education_degree or 'Degree'}}</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:.8rem;color:#9ca3af;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
+      </div>
+    <div class="vsep"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T16 — EDUCATOR / TEACHER
+══════════════════════════════════════════════════════════════ -->
+<div id="t16" class="rt">
+  <div class="h">
+    <div>
+      <div class="nm">{{ user.name or 'Your Name' }}</div>
+      <div class="role">{{ user.title or 'Educator' }}</div>
+      <div class="row">
+        {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+        {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+        {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+      </div>
+    </div>
+    <div class="icon">🎓</div>
+  </div>
+  <div class="body">
+    <div class="L">
+      {% if user.about_me %}<div class="sec"><div class="st">Teaching Philosophy</div><p class="about">{{user.about_me}}</p></div>{% endif %}
+      {% if projects %}<div class="sec"><div class="st">Courses &amp; Programs</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
+      {% if user.career_goal %}<div class="sec"><div class="st">Mission</div><p class="about">{{user.career_goal}}</p></div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+    <div class="R">
+      {% if user.known_skills %}<div class="sec"><div class="st">Subject Areas</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+      <div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+      {% if user.experience_years %}<div class="sec"><div class="st">Teaching Exp</div><p style="font-size:.82rem;color:#374151;">{{user.experience_years}} Years</p></div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T17 — SALES PROFESSIONAL
+══════════════════════════════════════════════════════════════ -->
+<div id="t17" class="rt">
+  <div class="h">
+    <div class="nm">{{ user.name or 'Your Name' }}</div>
+    <div class="role">{{ user.title or 'Sales Professional' }}</div>
+    <div class="row">
+      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+      {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+    </div>
+  </div>
+  <div class="metrics">
+    <div class="met"><div class="mn">{{user.experience_years or '0'}}</div><div class="ml">Years Exp</div></div>
+    <div class="met"><div class="mn">{{projects|length if projects else 0}}</div><div class="ml">Projects</div></div>
+    <div class="met"><div class="mn">{{user.known_skills|length if user.known_skills else 0}}</div><div class="ml">Core Skills</div></div>
+    <div class="met"><div class="mn">100%</div><div class="ml">Committed</div></div>
+  </div>
+  <div class="body">
+    <div class="g2">
+      <div>
+        {% if user.about_me %}<div class="sec"><div class="st">About</div><p class="about">{{user.about_me}}</p></div>{% endif %}
+        {% if projects %}<div class="sec"><div class="st">Deals &amp; Campaigns</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
+      </div>
+      <div>
+        {% if user.known_skills %}<div class="sec"><div class="st">Sales Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+        <div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+        {% if user.career_goal %}<div class="sec"><div class="st">Goal</div><p style="font-size:.8rem;color:#374151;line-height:1.65;">{{user.career_goal}}</p></div>{% endif %}
+      </div>
+    <div class="vsep"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     T18 — STARTUP FOUNDER
+══════════════════════════════════════════════════════════════ -->
+<div id="t18" class="rt">
+  <div class="h">
+    <div class="eyb">Founder &amp; Builder</div>
+    <div class="nm">
+      {{user.name.split()[0] if user.name else 'Your'}}<br>
+      <span>{{user.name.split()|last if user.name and ' ' in user.name else 'Name'}}</span>
+    </div>
+    <div class="role">{{ user.title or 'Startup Founder · Entrepreneur' }}</div>
+    <div class="row">
+      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.github_url %}<a class="ci" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
+      {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+      {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
+    </div>
+  </div>
+  <div class="body">
+    <div class="L">
+      {% if user.known_skills %}<div class="sec"><div class="st">Stack</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
+      <div class="sec"><div class="st">Education</div><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div>
+      {% if user.experience_years %}<div class="sec"><div class="st">Building Since</div><p style="font-family:'DM Sans',sans-serif;font-size:.82rem;color:rgba(255,255,255,.45);">{{user.experience_years}} Years</p></div>{% endif %}
+      {% if user.career_goal %}<div class="sec"><div class="st">Mission</div><p style="font-family:'DM Sans',sans-serif;font-size:.78rem;color:rgba(255,255,255,.42);line-height:1.7;">{{user.career_goal}}</p></div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+    <div class="R">
+      {% if user.about_me %}<div class="sec"><div class="st">The Story</div><p class="about">{{user.about_me}}</p></div>{% endif %}
+      {% if projects %}<div class="sec"><div class="st">Ventures Built</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div>{% if p.skills_needed %}<div style="margin-top:5px;">{% for sk in p.skills_needed %}<span class="tag">{{sk}}</span>{% endfor %}</div>{% endif %}</div>{% endfor %}</div>{% endif %}
+    <div class="vsep"></div>
+    </div>
+  </div>
+</div>
+
+      </div><!-- /preview-inner -->
+    </div><!-- /preview-wrap -->
+  </div><!-- /layout -->
+</main>
+
+<script>
+let cur = 1;
+
+// Switch template
+function sw(n, el) {
+  // Hide all templates
+  document.querySelectorAll('.rt').forEach(t => {
+    t.classList.remove('on');
+  });
+  // Remove active from all buttons
+  document.querySelectorAll('.tcard').forEach(b => {
+    b.classList.remove('on');
+  });
+  // Show selected
+  document.getElementById('t' + n).classList.add('on');
+  el.classList.add('on');
+  cur = n;
+}
+
+// ── PDF: open the server-rendered resume_pdf page ──
+// All CSS is baked in server-side — no canvas, no popup tricks.
+// The user sees a clean print-preview page and clicks "Save as PDF".
+function openPDF() {
+  window.open('/resume_pdf?t=' + cur, '_blank');
+}
+
+function copyHTML() {
+  // Grab just the active template's outerHTML + all styles
+  const allStyles = Array.from(document.querySelectorAll('style'))
+    .map(s => s.innerHTML).join('\n');
+  const el = document.getElementById('t' + cur);
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#fff;}</style>
+<style>${allStyles}</style>
+</head><body>${el.outerHTML}</body></html>`;
+  navigator.clipboard.writeText(html).then(() => {
+    const b = document.querySelector('.btn-o');
+    const orig = b.innerHTML;
+    b.innerHTML = '<i class="fas fa-check"></i> Copied!';
+    setTimeout(() => b.innerHTML = orig, 2000);
+  });
+}
+
+setTimeout(() => {
+  document.querySelectorAll('.fb').forEach(f => {
+    f.style.transition = 'opacity .4s';
+    f.style.opacity = '0';
+    setTimeout(() => f.remove(), 400);
+  });
+}, 4000);
+</script>
+{% include 'chatbot_widget.html' %}
+</body>
+</html>

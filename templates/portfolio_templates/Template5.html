@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio | Chloe Davis</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=Work+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <style>
+        :root { --bg: #000000; --text: #FFFFFF; --accent: #F40058; }
+        [contenteditable="true"]:hover { outline: 2px dashed var(--accent); }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Work Sans', sans-serif; margin: 0; }
+        header { position: fixed; width: 100%; z-index: 100; }
+        .nav { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 25px 40px; }
+        .nav-links a { color: var(--text); text-decoration: none; margin-left: 30px; font-weight: 500; }
+        .btn { background-color: var(--accent); color: white; padding: 12px 24px; text-decoration: none; }
+        .section { padding: 100px 40px; }
+        h1, h2, h3 { font-family: 'Syne', sans-serif; font-weight: 800; text-transform: uppercase; }
+        h1 { font-size: clamp(3rem, 10vw, 9rem); line-height: 0.9; }
+        h2 { font-size: 3rem; }
+        .hero { min-height: 100vh; display: flex; align-items: center; }
+        .project { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 50px; margin-bottom: 150px; }
+        .project-image-wrapper { height: 80vh; overflow: hidden; }
+        .project-image { width: 100%; height: 100%; object-fit: cover; }
+        .project-info { padding: 20px; }
+        .about { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 50px; }
+        .about p { max-width: 450px; }
+        footer { text-align: center; padding: 50px 20px; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="nav">
+            <div contenteditable="true">Chloe Davis / Visual Designer</div>
+            <div class="nav-links">
+                <a href="#work">Work</a><a href="#about">About</a><a href="#contact" class="btn">Contact</a>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <section class="hero"><h1><span contenteditable="true">Brand Identity & Digital Experiences</span></h1></section>
+
+        <section id="work" class="section">
+            <div class="project">
+                <div class="project-info">
+                    <h2 contenteditable="true">Aura Cosmetics</h2>
+                    <p contenteditable="true">A complete brand identity and packaging design for a new line of organic cosmetics. The design focuses on minimalist aesthetics and natural color palettes to reflect the brand's core values of purity and elegance.</p>
+                </div>
+                <div class="project-image-wrapper"><img class="project-image" src="https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=800"></div>
+            </div>
+            <div class="project">
+                 <div class="project-image-wrapper"><img class="project-image" src="https://images.unsplash.com/photo-1542291026-7eec264c27ab?w=800"></div>
+                 <div class="project-info">
+                    <h2 contenteditable="true">Velocity Fitness</h2>
+                    <p contenteditable="true">Dynamic social media campaign and web assets for a high-energy fitness brand, resulting in a 200% increase in online engagement through bold typography and motion graphics.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="process" class="section">
+             <div style="text-align: center;">
+                <h2>My Process</h2>
+                <div class="about" style="text-align: left; margin-top: 50px;">
+                    <div contenteditable="true"><h3>01. Discover</h3><p>I start every project with a deep dive into the brand, its audience, and its goals. This research phase is critical to building an effective design strategy.</p></div>
+                    <div contenteditable="true"><h3>02. Design</h3><p>From wireframes to high-fidelity mockups, I translate strategy into a compelling visual language, focusing on creating intuitive and beautiful user interfaces.</p></div>
+                    <div contenteditable="true"><h3>03. Deliver</h3><p>I provide polished, production-ready assets and comprehensive style guides to ensure brand consistency across all platforms and a smooth handoff to development teams.</p></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="about" class="section about">
+            <div>
+                <h2 contenteditable="true">I create designs that tell a story.</h2>
+                <p contenteditable="true">As a multidisciplinary designer with a passion for clean aesthetics, I believe that great design is not just about looking good—it's about clear communication. I'm currently based in Mumbai, India, and am always excited to collaborate on new projects.</p>
+            </div>
+        </section>
+
+        <section id="contact" class="section" style="min-height: 70vh;">
+            <div style="text-align:center;">
+                <h1><span contenteditable="true">Let's Create Together</span></h1>
+                <a href="#" class="btn" style="margin-top: 30px; display: inline-block;" contenteditable="true">hello@chloedesigner.com</a>
+            </div>
+        </section>
+    </main>
+    <footer contenteditable="true"><p>© 2025 Chloe Davis. All Rights Reserved.</p></footer>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    gsap.registerPlugin(ScrollTrigger);
+    // Parallax effect for all project images
+    gsap.utils.toArray('.project-image').forEach(img => {
+        gsap.to(img, {
+            yPercent: -20, ease: "none",
+            scrollTrigger: { trigger: img.closest(".project-image-wrapper"), scrub: true }
+        });
+    });
+    // Animate sections on scroll
+    gsap.utils.toArray('h1, h2, h3, p, .project-image-wrapper').forEach(el => {
+        gsap.from(el, {
+            opacity: 0, y: 60, duration: 1,
+            scrollTrigger: { trigger: el, start: 'top 90%' }
+        });
+    });
+});
+</script>
+</body>
+</html>

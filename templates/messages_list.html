@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Messages | SkillBridge</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root{
+  --bg:#f5f6fb;
+  --surface:#ffffff;
+  --primary:#8B5CF6;
+  --secondary:#EC4899;
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:#e5e7eb;
+  --radius:24px;
+  --shadow:0 30px 80px rgba(0,0,0,.08);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* SIDEBAR */
+.sidebar{
+  width:260px;
+  background:#fff;
+  border-right:1px solid var(--border);
+  padding:2.5rem 1.5rem;
+  position:fixed;
+  height:100vh;
+}
+.sidebar .logo{
+  font-size:1.8rem;
+  font-weight:800;
+  background:linear-gradient(90deg,var(--primary),var(--secondary));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  margin-bottom:3rem;
+  text-decoration:none;
+  display:block;
+}
+.sidebar a{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:.9rem 1rem;
+  border-radius:14px;
+  color:var(--muted);
+  text-decoration:none;
+  margin-bottom:.4rem;
+  transition:.25s;
+  font-weight:600;
+}
+.sidebar a:hover{background:#f1f5f9;color:var(--primary)}
+.sidebar a.active{
+  background:linear-gradient(90deg,var(--primary),var(--secondary));
+  color:#fff;
+  box-shadow:0 15px 40px rgba(139,92,246,.4);
+}
+
+/* MAIN */
+.main{
+  margin-left:260px;
+  padding:3rem 4rem;
+}
+
+/* INBOX CARD */
+.inbox{
+  max-width:780px;
+  margin:auto;
+  background:#fff;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+
+.inbox-header{
+  padding:2rem 2.5rem;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.inbox-header h2{
+  font-size:1.5rem;
+  font-weight:800;
+}
+.compose{
+  background:linear-gradient(90deg,var(--primary),var(--secondary));
+  color:#fff;
+  border:none;
+  padding:12px 18px;
+  border-radius:999px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+/* CHAT LIST */
+.chat-list{padding:1rem 0}
+
+.chat-item{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  padding:1.4rem 2.5rem;
+  text-decoration:none;
+  color:inherit;
+  transition:.25s;
+}
+.chat-item:hover{
+  background:#f8fafc;
+  transform:translateX(6px);
+}
+.chat-item.unread{
+  background:linear-gradient(90deg,rgba(139,92,246,.08),transparent);
+}
+
+.avatar{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid transparent;
+}
+.chat-item.unread .avatar{
+  border-color:var(--primary);
+}
+
+.chat-body{flex:1;min-width:0}
+.chat-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:4px;
+}
+.chat-name{
+  font-weight:800;
+  font-size:1rem;
+}
+.chat-time{
+  font-size:.75rem;
+  color:var(--muted);
+}
+
+.chat-preview{
+  font-size:.9rem;
+  color:var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.chat-item.unread .chat-preview{
+  color:var(--text);
+  font-weight:700;
+}
+
+.unread-dot{
+  width:10px;
+  height:10px;
+  background:var(--primary);
+  border-radius:50%;
+}
+
+/* EMPTY */
+.empty{
+  padding:5rem 2rem;
+  text-align:center;
+  color:var(--muted);
+}
+.empty i{
+  font-size:4rem;
+  margin-bottom:1rem;
+  color:#cbd5e1;
+}
+
+@media(max-width:900px){
+  .sidebar{display:none}
+  .main{margin-left:0;padding:1.5rem}
+}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+  <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
+  <a href="{{ url_for('main_page') }}"><i class="fas fa-home"></i> Dashboard</a>
+  <a href="{{ url_for('messages_list') }}" class="active"><i class="fas fa-comment-dots"></i> Messages</a>
+  <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
+  <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> Profile</a>
+</aside>
+
+<main class="main">
+  <div class="inbox">
+    <div class="inbox-header">
+      <h2>Inbox</h2>
+      <button class="compose"><i class="fas fa-pen"></i> New</button>
+    </div>
+
+    <div class="chat-list">
+      {% if conversations %}
+        {% for chat in conversations %}
+        <a href="{{ url_for('chat', receiver_id=chat.user_id) }}"
+           class="chat-item {{ 'unread' if chat.is_unread }}">
+
+          <img class="avatar"
+               src="{{ url_for('static', filename='profile_pics/' + chat.profile_pic) }}">
+
+          <div class="chat-body">
+            <div class="chat-top">
+              <div class="chat-name">{{ chat.user_name }}</div>
+              <div class="chat-time">{{ chat.timestamp }}</div>
+            </div>
+
+            <!-- ✅ FINAL SENDER NAME LOGIC -->
+            <div class="chat-preview">
+              <strong>{{ chat.sender_name }}:</strong>
+              {{ chat.last_message }}
+            </div>
+          </div>
+
+          {% if chat.is_unread %}
+            <div class="unread-dot"></div>
+          {% endif %}
+        </a>
+        {% endfor %}
+      {% else %}
+        <div class="empty">
+          <i class="fas fa-paper-plane"></i>
+          <h3>No messages yet</h3>
+          <p>Start a conversation from the community.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

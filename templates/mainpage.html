@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard – SkillBridge</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{ --bg:#f5f6fb; --surface:#ffffff; --primary:#8B5CF6; --secondary:#EC4899; --accent:#22d3ee; --text:#0f172a; --muted:#64748b; --border:#e5e7eb; --radius:20px; --shadow:0 30px 80px rgba(0,0,0,.12); }
+*{margin:0;padding:0;box-sizing:border-box}
+body{ font-family:Poppins,sans-serif; background: radial-gradient(900px 400px at 10% -10%,rgba(139,92,246,.25),transparent), radial-gradient(700px 300px at 90% 10%,rgba(236,72,153,.2),transparent), var(--bg); color:var(--text); }
+.dashboard-container{display:flex}
+.sidebar{ width:250px; background:#fff; border-right:1px solid var(--border); padding:2rem 1.5rem; position:fixed; height:100vh; z-index:10; display: flex; flex-direction: column; }
+.sidebar .logo{ font-size:1.9rem; font-weight:800; background:linear-gradient(90deg,var(--primary),var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:3rem; text-decoration: none; }
+.sidebar a{ display:flex; align-items: center; gap: 12px; padding:.9rem 1rem; border-radius:14px; color:var(--muted); text-decoration:none; margin-bottom:.4rem; transition:.25s; font-weight: 500; }
+.sidebar a:hover{ background:#f1f5f9; transform:translateX(6px); color: var(--primary); }
+.sidebar a.active{ background:linear-gradient(90deg,var(--primary),var(--secondary)); color:#fff; box-shadow:0 15px 40px rgba(139,92,246,.4); }
+.main-content{ margin-left:250px; padding:3.5rem 4.5rem; width:calc(100% - 250px); }
+.hero{ position:relative; padding:3.5rem; border-radius:32px; background: linear-gradient(135deg,#ffffff,#f7f5ff); box-shadow:var(--shadow); overflow:hidden; }
+.hero-content{ position:relative; z-index:2; display:grid; grid-template-columns:1.4fr .6fr; gap:3rem; }
+.hero h1{ font-size:2.6rem; line-height:1.1; }
+.hero h1 span{ background:linear-gradient(90deg,var(--primary),var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.action-stack{ display:flex; flex-direction:column; gap:16px; justify-content:center; }
+.action-stack a{ padding:16px; border-radius:999px; font-weight:800; text-decoration:none; text-align:center; transition: 0.3s; }
+.action-stack .primary{ background:linear-gradient(90deg,var(--primary),var(--secondary)); color:#fff; box-shadow:0 20px 50px rgba(139,92,246,.45); }
+.action-stack .secondary{ background:#fff; border:1px solid var(--border); color:var(--primary); }
+.stats{ margin:3rem 0; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:2rem; }
+.stat{ background:#fff; border-radius:24px; padding:2rem; box-shadow:var(--shadow); border:1px solid var(--border); }
+.stat h3{ font-size:.9rem; color:var(--muted); margin-bottom:8px; }
+.stat strong{ font-size:2.1rem; }
+.widgets{ display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:2.5rem; }
+.widget{ background:#fff; border-radius:26px; padding:2.5rem; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+.widget h3{ position:relative; font-size:1.4rem; margin-bottom: 10px; }
+.widget p{ color:var(--muted); margin-bottom: 1.5rem; font-size: 0.9rem; }
+.widget .links { display: flex; gap: 15px; position: relative; z-index: 2; }
+.widget a{ color:var(--primary); font-weight:700; text-decoration:none; }
+.profile-cta{ margin-top:3rem; background:linear-gradient(135deg,var(--primary),var(--secondary)); border-radius:30px; padding:2.5rem 3rem; color:#fff; display:flex; justify-content:space-between; align-items:center; }
+.profile-cta a{ background:#fff; color:var(--primary); padding:14px 30px; border-radius:999px; font-weight:900; text-decoration:none; }
+</style>
+</head>
+<body>
+
+<div class="dashboard-container">
+<aside class="sidebar">
+  <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
+  <a href="{{ url_for('main_page') }}" class="active"><i class="fas fa-home"></i> Dashboard</a>
+  <a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a>
+  <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
+  <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
+  <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a>
+  <a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> Roadmap AI</a>
+  <a href="{{ url_for('portfolio_builder') }}">
+  <i class="fas fa-briefcase"></i> Portfolio Builder
+</a>
+<a href="{{ url_for('resume_builder') }}"><i class="fas fa-file-alt"></i> Resume Builder</a>
+<a href="{{ url_for('find_communities') }}">
+    <i class="fas fa-users"></i> All Communities
+</a>
+  <div style="margin-top: auto;">
+    <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+</aside>
+
+<main class="main-content">
+<section class="hero">
+  <div class="hero-content">
+    <div>
+      <h1>Welcome back,<br><span>{{ user_name or 'Builder' }}</span></h1>
+      <p>Your command center for learning, building, and proving your technical architecture.</p>
+    </div>
+    <div class="action-stack">
+      <a href="{{ url_for('roadmap_generator') }}" class="primary">Generate Roadmap</a>
+      <a href="{{ url_for('create_project') }}" class="secondary">Create Project</a>
+    </div>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="stat"><h3>Roadmaps</h3><strong>{{ roadmap_count or 0 }}</strong></div>
+  <div class="stat"><h3>Projects</h3><strong>{{ project_count or 0 }}</strong></div>
+  <div class="stat"><h3>Status</h3><strong style="font-size: 1.5rem; text-transform: uppercase;">Active</strong></div>
+</section>
+
+<section class="widgets">
+  <div class="widget">
+    <h3>Learning Paths</h3>
+    <p>Access AI-powered roadmaps for career growth.</p>
+    <div class="links">
+        <a href="{{ url_for('my_roadmaps') }}">View Saved</a>
+        <a href="{{ url_for('roadmap_generator') }}">Create New</a>
+    </div>
+  </div>
+  
+  <div class="widget">
+    <h3>Direct Messages</h3>
+    <p>Chat with other builders in real-time.</p>
+    <div class="links">
+        <a href="{{ url_for('messages_list') }}">Open Inbox</a>
+    </div>
+  </div>
+
+  <div class="widget">
+    <h3>Community</h3>
+    <p>Explore ecosystem projects.</p>
+    <div class="links"><a href="{{ url_for('projects') }}">Explore Hub</a></div>
+  </div>
+</section>
+
+<div class="profile-cta">
+  <p>Complete your profile to unlock smarter recommendations.</p>
+  <a href="{{ url_for('profile') }}">Complete Profile</a>
+</div>
+</main>
+<style>
+
+</script>
+</div>
+{% include 'chatbot_widget.html' %}
+</body>
+</html>
