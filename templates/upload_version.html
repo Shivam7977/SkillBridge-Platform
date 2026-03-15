@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload Version - {{ project.title }}</title>
@@ -117,5 +117,9 @@
             </div>
         </main>
     </div>
+    <script>
+(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+</script>
+
 </body>
 </html>

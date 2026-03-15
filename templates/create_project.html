@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
 <meta charset="UTF-8">
 <title>Create Project - SkillBridge</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -67,6 +67,11 @@ button:hover{
 <body>
 
 <div class="container">
+<div style="margin-bottom:20px;">
+  <a href="{{ url_for('my_projects') }}" style="color:#6366f1;font-weight:700;text-decoration:none;">
+    ← Back to My Projects
+  </a>
+</div>
 <h1>Create Project</h1>
 
 <form method="POST">
@@ -143,4 +148,7 @@ function toggleCommunity(show){
 </script>
 
 </body>
+<script>
+(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+</script>
 </html>

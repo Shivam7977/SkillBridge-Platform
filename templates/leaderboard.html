@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leaderboard — SkillBridge</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --bg:#f5f6fb; --surface:#fff; --primary:#8B5CF6; --secondary:#EC4899;
+  --text-main:#0f172a; --text-dim:#64748b; --border:#e5e7eb;
+  --shadow:0 20px 50px rgba(0,0,0,0.07);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text-main);}
+.dashboard-container{display:flex;}
+
+/* SIDEBAR */
+.sidebar{width:260px;background:var(--surface);border-right:1px solid var(--border);padding:2.5rem 1.5rem;position:fixed;height:100vh;z-index:100;display:flex;flex-direction:column;overflow-y:auto;}
+.sidebar .logo{font-size:1.8rem;font-weight:800;background:linear-gradient(90deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:2rem;text-decoration:none;display:block;}
+.sidebar a{display:flex;align-items:center;gap:12px;padding:.8rem 1rem;border-radius:14px;color:var(--text-dim);text-decoration:none;margin-bottom:.4rem;font-size:0.88rem;font-weight:600;transition:0.2s;}
+.sidebar a:hover{background:#f1f5f9;color:var(--primary);}
+.sidebar a.active{background:linear-gradient(90deg,var(--primary),var(--secondary));color:#fff;box-shadow:0 8px 24px rgba(139,92,246,.3);}
+.sidebar-bottom{margin-top:auto;padding-top:1rem;border-top:1px solid var(--border);}
+
+/* SIDEBAR XP WIDGET */
+.sb-xp-widget{background:linear-gradient(135deg,rgba(139,92,246,0.08),rgba(236,72,153,0.05));border:1px solid rgba(139,92,246,0.18);border-radius:16px;padding:14px 16px;margin-bottom:1.2rem;}
+.sb-xp-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.sb-xp-icon{font-size:1.5rem;line-height:1;}
+.sb-xp-badge-txt{font-size:0.72rem;font-weight:700;color:var(--primary);}
+.sb-xp-num-s{font-size:1.05rem;font-weight:800;color:var(--text-main);line-height:1.2;}
+.sb-xp-num-s span{font-size:0.68rem;font-weight:600;color:var(--text-dim);}
+.sb-bar-bg{width:100%;height:6px;background:rgba(139,92,246,0.12);border-radius:4px;overflow:hidden;margin-bottom:6px;}
+.sb-bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary));border-radius:4px;}
+.sb-bar-labels{display:flex;justify-content:space-between;font-size:0.62rem;color:var(--text-dim);font-weight:700;margin-bottom:8px;}
+.sb-streak{display:inline-flex;align-items:center;gap:5px;font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.18);color:#dc2626;}
+.sb-streak.cold{background:rgba(100,116,139,0.08);border-color:rgba(100,116,139,0.18);color:var(--text-dim);}
+
+/* MAIN */
+.main-content{margin-left:260px;padding:3rem 4rem;width:calc(100% - 260px);}
+.page-header{margin-bottom:2rem;}
+.page-header h1{font-size:1.9rem;font-weight:800;}
+.page-header p{color:var(--text-dim);font-size:0.95rem;margin-top:4px;}
+
+/* MY RANK BANNER */
+.my-rank-banner{background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:20px;padding:1.5rem 2rem;color:#fff;display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:12px;}
+.my-rank-left{display:flex;align-items:center;gap:16px;}
+.my-rank-num{font-size:2.5rem;font-weight:900;line-height:1;}
+.my-rank-label{font-size:0.8rem;font-weight:700;opacity:0.85;}
+.my-rank-xp{font-size:1.1rem;font-weight:800;}
+.my-rank-xp span{font-size:0.75rem;opacity:0.8;font-weight:600;}
+.reset-badge{background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.3);border-radius:20px;padding:8px 16px;font-size:0.8rem;font-weight:700;display:flex;align-items:center;gap:6px;}
+
+/* TABS */
+.tabs{display:flex;gap:8px;margin-bottom:1.5rem;}
+.tab{padding:10px 24px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);font-weight:700;font-size:0.88rem;cursor:pointer;color:var(--text-dim);transition:0.2s;font-family:inherit;}
+.tab.active{background:linear-gradient(90deg,var(--primary),var(--secondary));color:#fff;border-color:transparent;box-shadow:0 6px 20px rgba(139,92,246,0.3);}
+.tab:hover:not(.active){border-color:var(--primary);color:var(--primary);}
+
+/* LEADERBOARD TABLE */
+.lb-card{background:var(--surface);border-radius:20px;border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;}
+.lb-tab-content{display:none;}
+.lb-tab-content.active{display:block;}
+
+.lb-row{display:flex;align-items:center;gap:16px;padding:14px 24px;border-bottom:1px solid var(--border);transition:background 0.15s;}
+.lb-row:last-child{border-bottom:none;}
+.lb-row:hover{background:#f8fafc;}
+.lb-row.is-me{background:linear-gradient(90deg,rgba(139,92,246,0.06),rgba(236,72,153,0.03));border-left:4px solid var(--primary);}
+
+/* RANK NUMBER */
+.lb-rank{width:36px;text-align:center;font-size:1rem;font-weight:900;color:var(--text-dim);flex-shrink:0;}
+.lb-rank.gold{color:#f59e0b;font-size:1.3rem;}
+.lb-rank.silver{color:#94a3b8;font-size:1.2rem;}
+.lb-rank.bronze{color:#cd7f32;font-size:1.1rem;}
+
+/* AVATAR */
+.lb-avatar{width:44px;height:44px;border-radius:12px;object-fit:cover;border:2px solid var(--border);flex-shrink:0;}
+
+/* USER INFO */
+.lb-user{flex:1;min-width:0;}
+.lb-name{font-weight:800;font-size:0.95rem;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lb-badge{font-size:0.72rem;color:var(--text-dim);font-weight:600;margin-top:2px;}
+
+/* XP */
+.lb-xp{text-align:right;flex-shrink:0;}
+.lb-xp-num{font-size:1.1rem;font-weight:900;color:var(--primary);}
+.lb-xp-label{font-size:0.65rem;color:var(--text-dim);font-weight:700;text-transform:uppercase;}
+
+/* STREAK */
+.lb-streak{font-size:0.75rem;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.15);color:#dc2626;flex-shrink:0;white-space:nowrap;}
+.lb-streak.cold{background:rgba(100,116,139,0.07);border-color:var(--border);color:var(--text-dim);}
+
+/* EMPTY */
+.lb-empty{padding:3rem;text-align:center;color:var(--text-dim);}
+.lb-empty i{font-size:2.5rem;opacity:0.3;display:block;margin-bottom:1rem;}
+
+/* WEEK INFO */
+.week-info{font-size:0.8rem;color:var(--text-dim);font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:6px;}
+
+/* DARK */
+body.dark .lb-card{background:#1a1a2e!important;border-color:#2d2d44!important;}
+body.dark .lb-row{border-bottom-color:#2d2d44!important;}
+body.dark .lb-row:hover{background:#13131f!important;}
+body.dark .lb-row.is-me{background:linear-gradient(90deg,rgba(139,92,246,0.12),rgba(236,72,153,0.06))!important;}
+body.dark .lb-name{color:#e2e8f0!important;}
+body.dark .tab{background:#1a1a2e!important;border-color:#2d2d44!important;color:#64748b!important;}
+body.dark .tab:hover:not(.active){border-color:#a78bfa!important;color:#a78bfa!important;}
+body.dark .sb-xp-num-s{color:#e2e8f0!important;}
+body.dark .sb-xp-widget{background:linear-gradient(135deg,rgba(139,92,246,0.12),rgba(236,72,153,0.08))!important;border-color:rgba(139,92,246,0.25)!important;}
+</style>
+</head>
+<body>
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
+
+    <!-- SIDEBAR XP WIDGET -->
+    <div class="sb-xp-widget">
+      <div class="sb-xp-top">
+        <div class="sb-xp-icon">{{ level_info.icon if level_info else '🥉' }}</div>
+        <div>
+          <div class="sb-xp-badge-txt">Lv.{{ level_info.level if level_info else 1 }} · {{ level_info.badge if level_info else 'Bronze Builder' }}</div>
+          <div class="sb-xp-num-s">{{ current_user_xp }} <span>XP</span></div>
+        </div>
+      </div>
+      <div class="sb-bar-bg"><div class="sb-bar-fill" style="width:{{ progress_pct if progress_pct else 0 }}%"></div></div>
+      <div class="sb-bar-labels">
+        <span>{{ current_user_xp }} XP</span>
+        <span>{% if level_info and level_info.next_xp == 'Max' %}🏆 Max{% elif level_info %}{{ level_info.next_xp }} XP{% endif %}</span>
+      </div>
+      {% if streak and streak >= 1 %}
+        <div class="sb-streak">🔥 {{ streak }} day streak</div>
+      {% else %}
+        <div class="sb-streak cold">❄️ No streak yet</div>
+      {% endif %}
+    </div>
+
+    <a href="{{ url_for('main_page') }}"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a>
+    <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
+    <a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> Roadmap AI</a>
+    <a href="{{ url_for('resume_builder') }}"><i class="fas fa-file-alt"></i> Resume Builder</a>
+    <a href="{{ url_for('portfolio_builder') }}"><i class="fas fa-briefcase"></i> Portfolio Builder</a>
+    <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
+    <a href="{{ url_for('find_communities') }}"><i class="fas fa-users"></i> All Communities</a>
+    <a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a>
+    <a href="{{ url_for('leaderboard') }}" class="active"><i class="fas fa-trophy"></i> Leaderboard</a>
+    <div class="sidebar-bottom">
+      <a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>🏆 Leaderboard</h1>
+      <p>Top builders on SkillBridge — ranked by XP earned.</p>
+    </div>
+
+    <!-- MY RANK BANNER -->
+    {% if current_user_rank %}
+    <div class="my-rank-banner">
+      <div class="my-rank-left">
+        <div>
+          <div class="my-rank-label">YOUR ALL-TIME RANK</div>
+          <div class="my-rank-num">#{{ current_user_rank }}</div>
+        </div>
+        <div>
+          <div class="my-rank-xp">{{ current_user_xp }} <span>XP total</span></div>
+          <div style="font-size:0.75rem;opacity:0.8;margin-top:2px;">Keep earning to climb the board!</div>
+        </div>
+      </div>
+      <div class="reset-badge">
+        <i class="fas fa-clock"></i>
+        Weekly resets in {{ hours_until_reset }}h · Started {{ week_start }}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('weekly', this)">⚡ This Week</button>
+      <button class="tab" onclick="switchTab('alltime', this)">🏆 All Time</button>
+    </div>
+
+    <!-- WEEKLY TAB -->
+    <div class="lb-tab-content active" id="tab-weekly">
+      <div class="week-info">
+        <i class="fas fa-calendar-week"></i>
+        Week of {{ week_start }} — resets in {{ hours_until_reset }} hours
+      </div>
+      <div class="lb-card">
+        {% if weekly %}
+          {% for user in weekly %}
+          <div class="lb-row {% if user._id == current_user.id %}is-me{% endif %}">
+            <div class="lb-rank {% if loop.index == 1 %}gold{% elif loop.index == 2 %}silver{% elif loop.index == 3 %}bronze{% endif %}">
+              {% if loop.index == 1 %}🥇
+              {% elif loop.index == 2 %}🥈
+              {% elif loop.index == 3 %}🥉
+              {% else %}{{ loop.index }}{% endif %}
+            </div>
+            <img class="lb-avatar" src="{{ user.profile_pic_url }}" onerror="this.src='/static/profile_pics/default.jpg'">
+            <div class="lb-user">
+              <div class="lb-name">
+                {{ user.name }}
+                {% if user._id == current_user.id %}<span style="font-size:0.7rem;color:var(--primary);margin-left:6px;font-weight:700;">YOU</span>{% endif %}
+              </div>
+              <div class="lb-badge">{{ user.get('badge', 'Bronze Builder') if user.badge is defined else 'Bronze Builder' }}</div>
+            </div>
+            {% if user.streak_count and user.streak_count >= 1 %}
+              <div class="lb-streak">🔥 {{ user.streak_count }}d</div>
+            {% else %}
+              <div class="lb-streak cold">❄️</div>
+            {% endif %}
+            <div class="lb-xp">
+              <div class="lb-xp-num">{{ user.weekly_xp }}</div>
+              <div class="lb-xp-label">this week</div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="lb-empty">
+            <i class="fas fa-bolt"></i>
+            <p>No activity this week yet.</p>
+            <p style="font-size:0.82rem;margin-top:8px;">Earn XP by uploading projects, completing roadmap stages, and logging in daily!</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ALL TIME TAB -->
+    <div class="lb-tab-content" id="tab-alltime">
+      <div class="lb-card">
+        {% if all_time %}
+          {% for user in all_time %}
+          <div class="lb-row {% if user._id == current_user.id %}is-me{% endif %}">
+            <div class="lb-rank {% if loop.index == 1 %}gold{% elif loop.index == 2 %}silver{% elif loop.index == 3 %}bronze{% endif %}">
+              {% if loop.index == 1 %}🥇
+              {% elif loop.index == 2 %}🥈
+              {% elif loop.index == 3 %}🥉
+              {% else %}{{ loop.index }}{% endif %}
+            </div>
+            <img class="lb-avatar" src="{{ user.profile_pic_url }}" onerror="this.src='/static/profile_pics/default.jpg'">
+            <div class="lb-user">
+              <div class="lb-name">
+                {{ user.name }}
+                {% if user._id == current_user.id %}<span style="font-size:0.7rem;color:var(--primary);margin-left:6px;font-weight:700;">YOU</span>{% endif %}
+              </div>
+              <div class="lb-badge">{{ user.badge if user.badge else 'Bronze Builder' }}</div>
+            </div>
+            {% if user.streak_count and user.streak_count >= 1 %}
+              <div class="lb-streak">🔥 {{ user.streak_count }}d</div>
+            {% else %}
+              <div class="lb-streak cold">❄️</div>
+            {% endif %}
+            <div class="lb-xp">
+              <div class="lb-xp-num">{{ user.xp }}</div>
+              <div class="lb-xp-label">total XP</div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="lb-empty">
+            <i class="fas fa-trophy"></i>
+            <p>No builders ranked yet. Be the first!</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </main>
+</div>
+
+{% include 'chatbot_widget.html' %}
+
+<script>
+function switchTab(tab, btn) {
+  document.querySelectorAll('.lb-tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+applyTheme(localStorage.getItem('sb-theme') || 'light');
+function applyTheme(t){ t==='dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark'); }
+</script>
+</body>
+</html>

@@ -1,0 +1,877 @@
+/* ═══════════════════════════════════════
+   SKILLBRIDGE — DARK THEME
+   Save as: static/dark.css
+═══════════════════════════════════════ */
+
+body.dark {
+  --bg: #0f0f1a;
+  --surface: #1a1a2e;
+  --primary: #a78bfa;
+  --secondary: #f472b6;
+  --accent: #22d3ee;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --border: #2d2d44;
+  --shadow: 0 30px 80px rgba(0,0,0,.4);
+}
+
+/* ── BODY ── */
+body.dark {
+  background: radial-gradient(900px 400px at 10% -10%, rgba(139,92,246,.15), transparent),
+              radial-gradient(700px 300px at 90% 10%, rgba(236,72,153,.1), transparent),
+              #0f0f1a;
+  color: var(--text);
+}
+
+/* ── SIDEBAR ── */
+body.dark .sidebar {
+  background: #13131f;
+  border-right-color: var(--border);
+}
+body.dark .sidebar a {
+  color: var(--muted);
+}
+body.dark .sidebar a:hover {
+  background: #1e1e35;
+  color: var(--primary);
+}
+body.dark .sidebar a.active {
+  background: linear-gradient(90deg, #7c3aed, #db2777);
+  color: #fff;
+}
+
+/* ── THEME TOGGLE BUTTON ── */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: .9rem 1rem;
+  border-radius: 14px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: Poppins, sans-serif;
+  font-size: .9rem;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  transition: .25s;
+  margin-top: 8px;
+}
+.theme-toggle:hover {
+  background: #f1f5f9;
+  color: var(--primary);
+}
+body.dark .theme-toggle:hover {
+  background: #1e1e35;
+  color: var(--primary);
+}
+.theme-toggle i {
+  width: 16px;
+  text-align: center;
+}
+
+/* ── CARDS / SURFACES ── */
+body.dark .hero,
+body.dark .stat,
+body.dark .widget,
+body.dark .form-card,
+body.dark .cp,
+body.dark .preview-wrap,
+body.dark .project-card,
+body.dark .no-projects-message,
+body.dark .preview-card,
+body.dark .github-connected-box,
+body.dark .github-connect-box,
+body.dark .github-preview-card,
+body.dark .cert-card,
+body.dark .modal-box,
+body.dark .edit-modal,
+body.dark .repo-card {
+  background: #1a1a2e !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+/* ── HERO ── */
+body.dark .hero {
+  background: linear-gradient(135deg, #1a1a2e, #16162a) !important;
+}
+body.dark .action-stack .secondary {
+  background: #1e1e35;
+  border-color: var(--border);
+  color: var(--primary);
+}
+
+/* ── TEXT ── */
+body.dark h1, body.dark h2, body.dark h3,
+body.dark .stat strong, body.dark p,
+body.dark label, body.dark .cert-name,
+body.dark .proj-title, body.dark .project-card h3 {
+  color: var(--text) !important;
+}
+body.dark .muted, body.dark .stat h3,
+body.dark .widget p, body.dark .description,
+body.dark .cert-meta, body.dark .cert-issuer {
+  color: var(--muted) !important;
+}
+
+/* ── INPUTS / TEXTAREAS ── */
+body.dark input,
+body.dark textarea,
+body.dark select {
+  background: #0f0f1a !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+body.dark input:focus,
+body.dark textarea:focus,
+body.dark select:focus {
+  border-color: var(--primary) !important;
+  background: #13131f !important;
+}
+body.dark input::placeholder,
+body.dark textarea::placeholder {
+  color: #475569 !important;
+}
+
+/* ── BORDERS / DIVIDERS ── */
+body.dark .border,
+body.dark .divider,
+body.dark .project-board-header,
+body.dark .skills-needed,
+body.dark .completed-toggle,
+body.dark .preview-data-list,
+body.dark .preview-skills {
+  border-color: var(--border) !important;
+}
+
+/* ── SKILL TAGS ── */
+body.dark .skill-tag,
+body.dark .tag,
+body.dark .chip,
+body.dark .pill {
+  background: rgba(167,139,250,.15) !important;
+  border-color: rgba(167,139,250,.3) !important;
+  color: var(--primary) !important;
+}
+
+/* ── COMPLETED BADGES ── */
+body.dark .completed-badge {
+  background: rgba(16,185,129,.15) !important;
+  border-color: rgba(16,185,129,.3) !important;
+  color: #34d399 !important;
+}
+body.dark .completed-badge.incomplete {
+  background: rgba(234,179,8,.1) !important;
+  border-color: rgba(234,179,8,.3) !important;
+  color: #fbbf24 !important;
+}
+
+/* ── PROFILE CTA ── */
+body.dark .profile-cta {
+  background: linear-gradient(135deg, #6d28d9, #be185d);
+}
+body.dark .profile-cta a {
+  background: #0f0f1a;
+  color: var(--primary);
+}
+
+/* ── FLASH MESSAGES ── */
+body.dark .flash-banner {
+  box-shadow: 0 5px 20px rgba(0,0,0,.4);
+}
+
+/* ── SCROLLBAR ── */
+body.dark ::-webkit-scrollbar {
+  width: 6px;
+}
+body.dark ::-webkit-scrollbar-track {
+  background: #13131f;
+}
+body.dark ::-webkit-scrollbar-thumb {
+  background: #2d2d44;
+  border-radius: 3px;
+}
+body.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* ── MODAL OVERLAYS ── */
+body.dark .modal-overlay,
+body.dark .edit-modal-overlay {
+  background: rgba(0,0,0,.7) !important;
+}
+body.dark .modal-box,
+body.dark .edit-modal {
+  background: #1a1a2e !important;
+  color: var(--text) !important;
+}
+body.dark .modal-cancel,
+body.dark .edit-cancel-btn {
+  background: #0f0f1a !important;
+  border-color: var(--border) !important;
+  color: var(--muted) !important;
+}
+
+/* ── GITHUB PREVIEW ── */
+body.dark .repo-card {
+  background: #13131f !important;
+}
+body.dark .gh-prev-stats,
+body.dark .gh-sync-actions,
+body.dark .gh-conn-body {
+  background: #13131f !important;
+}
+body.dark .lang-tag {
+  background: #1e1e35 !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+/* ── CERT BUTTONS ── */
+body.dark .cert-btn {
+  background: #0f0f1a !important;
+  border-color: var(--border) !important;
+  color: var(--muted) !important;
+}
+body.dark .add-cert-btn {
+  border-color: var(--border) !important;
+  color: var(--muted) !important;
+}
+body.dark .add-cert-btn:hover {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+/* ── CONTROL PANEL (Resume/Portfolio builder) ── */
+body.dark .tcard {
+  background: #13131f !important;
+  border-color: var(--border) !important;
+}
+body.dark .tcard:hover,
+body.dark .tcard.on {
+  background: #1e1e35 !important;
+  border-color: var(--primary) !important;
+}
+body.dark .tcard-name { color: var(--text) !important; }
+body.dark .info-box {
+  background: #13131f !important;
+  border-color: var(--border) !important;
+}
+
+/* ── PREVIEW WRAP ── */
+body.dark .preview-wrap {
+  background: #0a0a14 !important;
+}
+
+/* ── NO PROJECTS MESSAGE ── */
+body.dark .no-projects-message {
+  border-color: var(--border) !important;
+}
+
+/* ── COMMUNITY / PROJECT PAGES ── */
+body.dark .project-card {
+  background: #1a1a2e !important;
+  border-color: var(--border) !important;
+}
+body.dark .project-card:hover {
+  border-color: var(--primary) !important;
+}
+
+/* ── EDIT BUTTON ── */
+body.dark .edit-btn {
+  background: #0f0f1a !important;
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+body.dark .edit-btn:hover {
+  background: var(--primary) !important;
+  color: #fff !important;
+}
+/* ── CHAT PAGE ── */
+body.dark .chat-wrapper {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .chat-header {
+  background: #13131f !important;
+  border-bottom-color: #2d2d44 !important;
+}
+body.dark .chat-header h3 { color: #e2e8f0 !important; }
+body.dark .messages-box {
+  background: #0f0f1a !important;
+}
+body.dark .msg.received {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+  color: #e2e8f0 !important;
+}
+body.dark .input-form {
+  background: #13131f !important;
+  border-top-color: #2d2d44 !important;
+}
+body.dark .input-form input {
+  background: #0f0f1a !important;
+  border-color: #2d2d44 !important;
+  color: #e2e8f0 !important;
+}
+body.dark .input-form input:focus {
+  border-color: #a78bfa !important;
+}
+body.dark .back-link { color: #94a3b8 !important; }
+body.dark .back-link:hover { color: #a78bfa !important; }
+/* ── COMMUNITY CHAT ── */
+body.dark .chat-container { background: #0f0f1a !important; }
+body.dark .header { background: #5b21b6 !important; }
+body.dark .messages { background: #0f0f1a !important; }
+body.dark .left-bubble {
+  background: #1a1a2e !important;
+  color: #e2e8f0 !important;
+}
+body.dark .right-bubble {
+  background: #1e3a2e !important;
+  color: #e2e8f0 !important;
+}
+body.dark .sender { color: #a78bfa !important; }
+body.dark .time { color: #64748b !important; }
+body.dark .input-area {
+  background: #13131f !important;
+  border-top-color: #2d2d44 !important;
+}
+body.dark .input-area input {
+  background: #0f0f1a !important;
+  border-color: #2d2d44 !important;
+  color: #e2e8f0 !important;
+}
+body.dark .input-area button { background: #7c3aed !important; }
+body.dark .members-sidebar {
+  background: #1a1a2e !important;
+  color: #e2e8f0 !important;
+}
+body.dark .member-card {
+  background: #13131f !important;
+  color: #e2e8f0 !important;
+}
+body.dark .emoji-popup {
+  background: #1a1a2e !important;
+  box-shadow: 0 5px 15px rgba(0,0,0,.4) !important;
+}
+/* ── CREATE PROJECT ── */
+body.dark .container {
+  background: #1a1a2e !important;
+  color: #e2e8f0 !important;
+}
+body.dark .container h1 { color: #e2e8f0 !important; }
+body.dark .container label { color: #e2e8f0 !important; }
+body.dark .container input,
+body.dark .container textarea {
+  background: #0f0f1a !important;
+  border-color: #2d2d44 !important;
+  color: #e2e8f0 !important;
+}
+body.dark .container input:focus,
+body.dark .container textarea:focus {
+  border-color: #a78bfa !important;
+}
+body.dark .community-section {
+  background: #13131f !important;
+  border: 1px solid #2d2d44;
+}
+/* ── FIND COMMUNITIES ── */
+body.dark .container h2,
+body.dark .container h3 { color: #e2e8f0 !important; }
+body.dark .section-title { border-bottom-color: #2d2d44 !important; }
+body.dark .card {
+  background: #1a1a2e !important;
+  color: #e2e8f0 !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,.3) !important;
+}
+body.dark .card h3 { color: #e2e8f0 !important; }
+body.dark .skill {
+  background: #1e1e35 !important;
+  color: #a78bfa !important;
+}
+body.dark .public {
+  background: rgba(16,185,129,.15) !important;
+  color: #34d399 !important;
+}
+body.dark .private {
+  background: rgba(239,68,68,.15) !important;
+  color: #f87171 !important;
+}
+body.dark .no-data { color: #64748b !important; }
+/* ── FORGOT PASSWORD / LOGIN / SIGNUP (Auth Pages) ── */
+body.dark .form-container {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+  box-shadow: 0 10px 25px rgba(0,0,0,.4) !important;
+}
+body.dark .form-container h2 { color: #e2e8f0 !important; }
+body.dark .form-container p.subtitle { color: #94a3b8 !important; }
+body.dark .input-group label { color: #e2e8f0 !important; }
+body.dark .input-group input[type="email"],
+body.dark .input-group input[type="password"],
+body.dark .input-group input[type="text"] {
+  background: #0f0f1a !important;
+  border-color: #2d2d44 !important;
+  color: #e2e8f0 !important;
+}
+body.dark .input-group input:focus {
+  border-color: #a78bfa !important;
+  box-shadow: 0 0 0 3px rgba(167,139,250,.2) !important;
+}
+body.dark .back-link { color: #94a3b8 !important; }
+/* ── INDEX PAGE ── */
+body.dark nav {
+  background: rgba(15,15,26,.85) !important;
+  border-bottom-color: #2d2d44 !important;
+}
+body.dark .logo { color: #a78bfa !important; }
+body.dark .nav-links a { color: #94a3b8 !important; }
+body.dark .hero h1 { color: #e2e8f0 !important; }
+body.dark .hero p { color: #94a3b8 !important; }
+body.dark .btn-outline {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+  color: #e2e8f0 !important;
+}
+body.dark .hero-card {
+  background: #1a1a2e !important;
+  box-shadow: 0 30px 70px rgba(0,0,0,.4) !important;
+}
+body.dark .hero-step {
+  background: #1e1e35 !important;
+  color: #e2e8f0 !important;
+}
+body.dark .card {
+  background: #1a1a2e !important;
+  color: #e2e8f0 !important;
+}
+body.dark .card h3 { color: #e2e8f0 !important; }
+body.dark .card p { color: #94a3b8 !important; }
+body.dark .card i { color: #a78bfa !important; }
+body.dark .features h2 { color: #e2e8f0 !important; }
+body.dark footer { color: #64748b !important; }
+/* ── MESSAGES LIST ── */
+body.dark .sidebar {
+  background: #13131f !important;
+  border-right-color: #2d2d44 !important;
+}
+body.dark .sidebar a { color: #94a3b8 !important; }
+body.dark .sidebar a:hover { background: #1e1e35 !important; color: #a78bfa !important; }
+body.dark .inbox {
+  background: #1a1a2e !important;
+  box-shadow: 0 30px 80px rgba(0,0,0,.4) !important;
+}
+body.dark .inbox-header {
+  border-bottom-color: #2d2d44 !important;
+}
+body.dark .inbox-header h2 { color: #e2e8f0 !important; }
+body.dark .chat-item { color: #e2e8f0 !important; }
+body.dark .chat-item:hover { background: #13131f !important; }
+body.dark .chat-item.unread {
+  background: linear-gradient(90deg,rgba(167,139,250,.1),transparent) !important;
+}
+body.dark .chat-name { color: #e2e8f0 !important; }
+body.dark .chat-time { color: #64748b !important; }
+body.dark .chat-preview { color: #94a3b8 !important; }
+body.dark .chat-item.unread .chat-preview { color: #e2e8f0 !important; }
+body.dark .empty { color: #64748b !important; }
+body.dark .empty h3 { color: #94a3b8 !important; }
+body.dark .empty i { color: #2d2d44 !important; }
+/* ── MY PROJECTS ── */
+body.dark .main-content { background: transparent !important; }
+body.dark .project-board-header { border-bottom-color: #2d2d44 !important; }
+body.dark .project-board-header h1 { color: #e2e8f0 !important; }
+body.dark .project-board-header p { color: #94a3b8 !important; }
+body.dark .project-card {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .project-card h3 { color: #e2e8f0 !important; }
+body.dark .project-card .description { color: #94a3b8 !important; }
+body.dark .project-card .skills-needed {
+  border-top-color: #2d2d44 !important;
+  color: #94a3b8 !important;
+}
+body.dark .completed-toggle {
+  border-top-color: #2d2d44 !important;
+}
+body.dark .completed-toggle label { color: #94a3b8 !important; }
+body.dark .no-projects-message {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+  color: #94a3b8 !important;
+}
+body.dark .edit-modal {
+  background: #1a1a2e !important;
+}
+body.dark .edit-modal h3 { color: #e2e8f0 !important; }
+body.dark .edit-modal label { color: #94a3b8 !important; }
+body.dark .edit-modal input,
+body.dark .edit-modal textarea {
+  background: #0f0f1a !important;
+  border-color: #2d2d44 !important;
+  color: #e2e8f0 !important;
+}
+body.dark .edit-cancel-btn {
+  background: #0f0f1a !important;
+  border-color: #2d2d44 !important;
+  color: #94a3b8 !important;
+}
+
+/* ── MY ROADMAPS ── */
+body.dark .main-content h1 { color: #e2e8f0 !important; }
+body.dark .main-content .subtitle { color: #94a3b8 !important; }
+body.dark .roadmap-item {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .roadmap-item:hover { border-color: #a78bfa !important; }
+body.dark .roadmap-info h2 { color: #e2e8f0 !important; }
+body.dark .roadmap-info p { color: #94a3b8 !important; }
+body.dark .no-roadmaps {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+  color: #94a3b8 !important;
+}
+/* ── PORTFOLIO BUILDER ── */
+body.dark .sb {
+  background: #13131f !important;
+  border-right-color: #2d2d44 !important;
+}
+body.dark .sb a { color: #94a3b8 !important; }
+body.dark .sb a:hover { background: #1e1e35 !important; color: #a78bfa !important; }
+body.dark .main { background: transparent !important; }
+body.dark .topbar h1 { color: #e2e8f0 !important; }
+body.dark .topbar p { color: #94a3b8 !important; }
+body.dark .cp {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .cp-lbl { color: #94a3b8 !important; }
+body.dark .tcard {
+  background: #13131f !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .tcard:hover,
+body.dark .tcard.on {
+  background: #1e1e35 !important;
+  border-color: #a78bfa !important;
+}
+body.dark .tcard-name { color: #e2e8f0 !important; }
+body.dark .tcard-tag { color: #64748b !important; }
+body.dark .info-box {
+  background: #13131f !important;
+  border-color: #2d2d44 !important;
+  color: #94a3b8 !important;
+}
+body.dark .divider { background: #2d2d44 !important; }
+body.dark .btn-o {
+  background: #1a1a2e !important;
+  border-color: #a78bfa !important;
+  color: #a78bfa !important;
+}
+body.dark .preview-wrap { background: #0a0a14 !important; }
+/* ── PROFILE PAGE ── */
+body.dark .preview-card {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .preview-card h2 { color: #e2e8f0 !important; }
+body.dark .preview-data-list { border-top-color: #2d2d44 !important; }
+body.dark .data-item label { color: #64748b !important; }
+body.dark .data-item span { color: #e2e8f0 !important; }
+body.dark .preview-skills label { color: #64748b !important; }
+body.dark .tag { background: #1e1e35 !important; color: #e2e8f0 !important; }
+body.dark .tag.github-lang { background: #1e1e35 !important; color: #94a3b8 !important; }
+body.dark .preview-github-mini { border-top-color: #2d2d44 !important; }
+body.dark .gh-mini-name { color: #e2e8f0 !important; }
+body.dark .view-my-profile-btn {
+  background: #13131f !important;
+  border-color: #2d2d44 !important;
+  color: #e2e8f0 !important;
+}
+body.dark .form-card {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .section-title { color: #e2e8f0 !important; }
+body.dark .cert-card {
+  background: #13131f !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .cert-name { color: #e2e8f0 !important; }
+body.dark .cert-meta { color: #64748b !important; }
+body.dark .cert-btn {
+  background: #0f0f1a !important;
+  border-color: #2d2d44 !important;
+  color: #94a3b8 !important;
+}
+body.dark .no-certs-msg { color: #64748b !important; }
+body.dark .modal-box {
+  background: #1a1a2e !important;
+}
+body.dark .modal-title { color: #e2e8f0 !important; }
+body.dark .modal-cancel {
+  background: #0f0f1a !important;
+  border-color: #2d2d44 !important;
+  color: #94a3b8 !important;
+}
+body.dark .github-connect-box {
+  border-color: #2d2d44 !important;
+}
+body.dark .github-connect-box h3 { color: #e2e8f0 !important; }
+body.dark .gh-prev-stats,
+body.dark .gh-sync-actions { background: #13131f !important; }
+body.dark .gh-prev-repos,
+body.dark .gh-prev-langs { background: #1a1a2e !important; }
+body.dark .gh-prev-repos h4,
+body.dark .gh-prev-langs h4 { color: #64748b !important; }
+body.dark .gh-disconnect-btn {
+  background: #0f0f1a !important;
+  border-color: #7f1d1d !important;
+}
+body.dark .gh-synced-at { color: #64748b !important; }
+body.dark .gh-merge-label { color: #94a3b8 !important; }
+/* ── COMMUNITY PROJECTS ── */
+body.dark .page-header h1 { color: #e2e8f0 !important; }
+body.dark .page-header p { color: #94a3b8 !important; }
+body.dark .section-title { color: #e2e8f0 !important; }
+body.dark .project-card {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .project-card:hover {
+  box-shadow: 0 20px 40px rgba(0,0,0,.3) !important;
+}
+body.dark .project-card h3 { color: #e2e8f0 !important; }
+body.dark .project-card .desc { color: #94a3b8 !important; }
+body.dark .user-tag {
+  background: #13131f !important;
+}
+body.dark .user-tag span.by { color: #64748b !important; }
+body.dark .skill-badge {
+  background: #1e1e35 !important;
+  border-color: #2d2d44 !important;
+  color: #a78bfa !important;
+}
+body.dark .card-footer {
+  border-top-color: #2d2d44 !important;
+}
+/* ── RESET PASSWORD ── */
+body.dark .form-container {
+  background: #1a1a2e !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,.5) !important;
+}
+body.dark .form-container h2 { color: #e2e8f0 !important; }
+body.dark .form-container input {
+  background: #0f0f1a !important;
+  border-color: #2d2d44 !important;
+  color: #e2e8f0 !important;
+}
+/* ── RESUME BUILDER ── */
+body.dark .main { background: transparent !important; }
+body.dark .topbar h1 { color: #e2e8f0 !important; }
+body.dark .topbar p { color: #94a3b8 !important; }
+body.dark .cp {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .cp-lbl { color: #94a3b8 !important; }
+body.dark .tcard {
+  background: #13131f !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .tcard:hover,
+body.dark .tcard.on {
+  background: #1e1e35 !important;
+  border-color: #a78bfa !important;
+}
+body.dark .tcard-name { color: #e2e8f0 !important; }
+body.dark .tcard-tag { color: #64748b !important; }
+body.dark .info-box {
+  background: #13131f !important;
+  border-color: #2d2d44 !important;
+  color: #94a3b8 !important;
+}
+body.dark .divider { background: #2d2d44 !important; }
+body.dark .preview-wrap { background: #0a0a14 !important; }
+body.dark .btn-o {
+  background: #1a1a2e !important;
+  border-color: #a78bfa !important;
+  color: #a78bfa !important;
+}
+body.dark .loader {
+  background: rgba(15,15,26,.95) !important;
+}
+body.dark .loader p { color: #94a3b8 !important; }
+/* ── ROADMAP GENERATOR ── */
+body.dark .main-content h1 { color: #e2e8f0 !important; }
+body.dark .main-content .subtitle { color: #94a3b8 !important; }
+body.dark .generator-form input[type="text"] {
+  background: #13131f !important;
+  border-color: #2d2d44 !important;
+  color: #e2e8f0 !important;
+}
+body.dark .generator-form input[type="text"]:focus {
+  border-color: #a78bfa !important;
+}
+body.dark .roadmap-container {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .roadmap-header h2 { color: #e2e8f0 !important; }
+body.dark .roadmap-header p { color: #94a3b8 !important; }
+body.dark .stage { border-top-color: #2d2d44 !important; }
+body.dark .stage h3 { color: #a78bfa !important; }
+body.dark .stage-meta { color: #94a3b8 !important; }
+body.dark .stage > p { color: #94a3b8 !important; }
+body.dark .module {
+  background: #13131f !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .module h4 { color: #e2e8f0 !important; }
+body.dark .module-meta { color: #64748b !important; }
+body.dark .module ul { color: #94a3b8 !important; }
+body.dark .module strong { color: #e2e8f0 !important; }
+body.dark .project-idea {
+  background: rgba(167,139,250,.08) !important;
+  border-color: #a78bfa !important;
+}
+body.dark .project-idea h4 { color: #a78bfa !important; }
+body.dark .project-idea p,
+body.dark .project-idea ul { color: #94a3b8 !important; }
+body.dark .next-steps { border-top-color: #2d2d44 !important; }
+body.dark .next-steps h3 { color: #a78bfa !important; }
+body.dark .next-steps ul { color: #94a3b8 !important; }
+/* ── SIGNUP / LOGIN (Auth Pages) ── */
+body.dark .form-container {
+  background: #1a1a2e !important;
+  box-shadow: 0 40px 80px rgba(0,0,0,.5) !important;
+}
+body.dark .form-container h2 { color: #e2e8f0 !important; }
+body.dark .form-container .subtitle { color: #94a3b8 !important; }
+body.dark .form-container .logo { color: #a78bfa !important; }
+body.dark .input-group label { color: #e2e8f0 !important; }
+body.dark .form-container input {
+  background: #0f0f1a !important;
+  border-color: #2d2d44 !important;
+  color: #e2e8f0 !important;
+}
+body.dark .form-container input:focus {
+  border-color: #a78bfa !important;
+  box-shadow: 0 0 0 3px rgba(167,139,250,.2) !important;
+}
+body.dark .toggle { color: #64748b !important; }
+body.dark .switch { color: #94a3b8 !important; }
+/* ── UPLOAD VERSION ── */
+body.dark .form-container {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .form-container h1 { color: #e2e8f0 !important; }
+body.dark .form-container .project-title { color: #94a3b8 !important; }
+body.dark .form-group label { color: #e2e8f0 !important; }
+body.dark .form-group input[type="text"],
+body.dark .form-group input[type="file"] {
+  background: #0f0f1a !important;
+  border-color: #2d2d44 !important;
+  color: #e2e8f0 !important;
+}
+body.dark .form-group input[type="text"]:focus {
+  border-color: #a78bfa !important;
+}
+body.dark .form-group small { color: #64748b !important; }
+/* ── VERIFY / AUTH PAGES (verify, login, signup) ── */
+body.dark .form-container {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .form-container h2 { color: #e2e8f0 !important; }
+body.dark .form-container p.subtitle,
+body.dark .form-container p.timer { color: #94a3b8 !important; }
+body.dark .input-group label { color: #e2e8f0 !important; }
+body.dark .input-group input[type="tel"]#otp,
+body.dark .input-group input[type="email"],
+body.dark .input-group input[type="password"],
+body.dark .input-group input[type="text"] {
+  background: #0f0f1a !important;
+  border-color: #2d2d44 !important;
+  color: #e2e8f0 !important;
+}
+body.dark .input-group input:focus {
+  border-color: #a78bfa !important;
+  box-shadow: 0 0 0 3px rgba(167,139,250,.2) !important;
+}
+body.dark .back-link { color: #94a3b8 !important; }
+/* ── VIEW PROFILE ── */
+body.dark .wrapper { color: #e2e8f0 !important; }
+body.dark .stat-card {
+  background: #1a1a2e !important;
+  box-shadow: 0 20px 40px rgba(0,0,0,.3) !important;
+}
+body.dark .stat-card h3 { color: #e2e8f0 !important; }
+body.dark .section {
+  background: #1a1a2e !important;
+  box-shadow: 0 20px 50px rgba(0,0,0,.3) !important;
+}
+body.dark .section h2 { color: #64748b !important; }
+body.dark .section p { color: #94a3b8 !important; }
+body.dark .skill {
+  background: #13131f !important;
+  border-color: #2d2d44 !important;
+  color: #e2e8f0 !important;
+}
+body.dark .skill.learning {
+  background: rgba(236,72,153,.1) !important;
+  border-color: var(--secondary) !important;
+}
+body.dark .side-card {
+  background: #1a1a2e !important;
+  box-shadow: 0 20px 50px rgba(0,0,0,.3) !important;
+}
+body.dark .row { color: #e2e8f0 !important; }
+body.dark .row span { color: #64748b !important; }
+body.dark .contact-secondary {
+  background: #13131f !important;
+  border-color: #2d2d44 !important;
+  color: #e2e8f0 !important;
+}
+body.dark .contact-links a {
+  background: #13131f !important;
+  border-color: #2d2d44 !important;
+  color: #94a3b8 !important;
+}
+body.dark .contact-links a:hover {
+  background: #7c3aed !important;
+  color: #fff !important;
+}
+body.dark .goal {
+  background: linear-gradient(135deg,rgba(236,72,153,.1),rgba(124,58,237,.1)) !important;
+  border-left-color: var(--secondary) !important;
+  color: #e2e8f0 !important;
+}
+/* ── VIEW ROADMAP ── */
+body.dark .timeline-header h1 { color: #e2e8f0 !important; }
+body.dark .progress-section { color: #94a3b8 !important; }
+body.dark .progress-bar-container { background: #2d2d44 !important; }
+body.dark .timeline::before { background: #2d2d44 !important; }
+body.dark .timeline-content {
+  background: #1a1a2e !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .timeline-item:hover .timeline-content {
+  border-color: #a78bfa !important;
+}
+body.dark .timeline-content h3 { color: #a78bfa !important; }
+body.dark .timeline-item::before { border-color: #0f0f1a !important; }
+body.dark .stage-details { border-top-color: #2d2d44 !important; }
+body.dark .module {
+  background: #13131f !important;
+  border-color: #2d2d44 !important;
+}
+body.dark .module h4 { color: #e2e8f0 !important; }
+body.dark .module ul { color: #94a3b8 !important; }
+body.dark .next-steps { border-top-color: #2d2d44 !important; }

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head>
+<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
 <meta charset="UTF-8">
 <title>{{ community.project_title }} Community</title>
 
@@ -316,6 +316,57 @@ body{
         </div>
     </div>
     {% endfor %}
+    {% if is_member and not is_owner %}
+<style>
+.leave-community-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 18px; border-radius: 8px;
+  border: 1.5px solid #ef4444; background: #fff;
+  color: #ef4444; font-weight: 600; font-size: 0.82rem;
+  cursor: pointer; font-family: inherit; transition: .2s;
+  margin-top: 12px; width: 100%;
+  justify-content: center;
+}
+.leave-community-btn:hover { background: #fef2f2; }
+ 
+/* Leave confirm modal */
+.leave-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
+.leave-modal-overlay.open { display: flex; }
+.leave-modal { background: #fff; border-radius: 16px; padding: 2rem; width: 100%; max-width: 400px; margin: 1rem; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+.leave-modal .modal-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+.leave-modal h3 { font-weight: 700; margin-bottom: 0.5rem; }
+.leave-modal p { font-size: 0.88rem; color: #6B7280; margin-bottom: 1.5rem; line-height: 1.5; }
+.leave-modal-actions { display: flex; gap: 10px; justify-content: center; }
+.leave-cancel { padding: 10px 22px; border-radius: 8px; border: 1.5px solid #dee2e6; background: #fff; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 0.9rem; color: #6B7280; }
+.leave-confirm { padding: 10px 24px; border-radius: 8px; border: none; background: #ef4444; color: #fff; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.9rem; }
+.leave-confirm:hover { background: #dc2626; }
+</style>
+ 
+<button class="leave-community-btn" onclick="document.getElementById('leave-modal').classList.add('open')">
+  <i class="fas fa-sign-out-alt"></i> Leave Community
+</button>
+ 
+<!-- Leave confirm modal -->
+<div class="leave-modal-overlay" id="leave-modal">
+  <div class="leave-modal">
+    <div class="modal-icon">👋</div>
+    <h3>Leave Community?</h3>
+    <p>You will lose <strong>10 XP</strong> for leaving. You can request to rejoin later, but you'll need approval again.</p>
+    <div class="leave-modal-actions">
+      <button class="leave-cancel" onclick="document.getElementById('leave-modal').classList.remove('open')">Cancel</button>
+      <form action="{{ url_for('leave_community', community_id=community._id) }}" method="POST" style="display:inline">
+        <button type="submit" class="leave-confirm"><i class="fas fa-sign-out-alt"></i> Yes, Leave</button>
+      </form>
+    </div>
+  </div>
+</div>
+ 
+<script>
+document.getElementById('leave-modal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+</script>
+{% endif %}
 </div>
 
 <script>
@@ -342,4 +393,7 @@ function react(messageId, emoji){
 </script>
 
 </body>
+<script>
+(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+</script>
 </html>

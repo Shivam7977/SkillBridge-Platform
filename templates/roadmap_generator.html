@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roadmap Generator - SkillBridge</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Light Theme Variables matching mainpage.html */
         :root {
@@ -30,9 +31,9 @@
         body { font-family: 'Poppins', sans-serif; background-color: var(--color-background); color: var(--color-text-primary); margin: 0; line-height: 1.6; }
         .dashboard-container { display: flex; }
         /* Sidebar styles same as mainpage.html */
-        .sidebar { width: 250px; background: var(--color-sidebar-bg); border-right: 1px solid var(--color-sidebar-border); height: 100vh; padding: 2rem 1.5rem; position: fixed; box-sizing: border-box; z-index: 10; }
+        .sidebar { width: 250px; background: var(--color-sidebar-bg); border-right: 1px solid var(--color-sidebar-border); height: 100vh; padding: 2rem 1.5rem; position: fixed; box-sizing: border-box; z-index: 10; display: flex; flex-direction: column; overflow-y: auto; }
         .sidebar .logo { font-size: 1.9em; font-weight: 800; margin-bottom: 3rem; background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; letter-spacing: -1px; display: block; }
-        .sidebar nav { height: calc(100% - 5rem); }
+        .sidebar nav { flex-grow: 1; }
         .sidebar nav ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; height: 100%; }
         .sidebar nav li a { display: block; color: var(--color-text-secondary); text-decoration: none; padding: 0.9rem 1rem; margin-bottom: .5rem; border-radius: var(--border-radius-md); font-weight: 500; transition: all .2s ease-in-out; }
         .sidebar nav li a:hover { background-color: #f1f3f5; color: var(--color-text-primary); transform: translateX(4px); }
@@ -128,15 +129,20 @@
         <aside class="sidebar">
             <div class="logo">SkillBridge</div>
             <nav>
-                 <ul>
-                    <li><a href="{{ url_for('main_page') }}">Dashboard</a></li>
-                    <li><a href="{{ url_for('projects') }}">Community Projects</a></li>
-                    <li><a href="{{ url_for('my_projects') }}">My Projects</a></li>
-                    <li><a href="{{ url_for('profile') }}">My Profile</a></li>
-                    <li><a href="{{ url_for('roadmap_generator') }}" class="active">Roadmap Generator</a></li>
-                    <li><a href="{{ url_for('my_roadmaps') }}">My Saved Roadmaps</a></li>
-                    <li><a href="{{ url_for('portfolio_builder') }}">Portfolio Builder</a></li>
-                    <li class="logout-link"><a href="{{ url_for('logout') }}">Logout</a></li>
+                <ul>
+                    <li><a href="{{ url_for('main_page') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="{{ url_for('profile') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-user-circle"></i> My Profile</a></li>
+                    <li><a href="{{ url_for('my_projects') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-layer-group"></i> My Projects</a></li>
+                    <li><a href="{{ url_for('roadmap_generator') }}" class="active" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-magic"></i> Roadmap AI</a></li>
+                    <li><a href="{{ url_for('resume_builder') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-file-alt"></i> Resume Builder</a></li>
+                    <li><a href="{{ url_for('portfolio_builder') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-briefcase"></i> Portfolio Builder</a></li>
+                    <li><a href="{{ url_for('projects') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-globe"></i> Community</a></li>
+                    <li><a href="{{ url_for('find_communities') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-users"></i> All Communities</a></li>
+                    <li><a href="{{ url_for('messages_list') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-comment-dots"></i> Messages</a></li>
+
+                    <li style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--color-sidebar-border);">
+                        <a href="{{ url_for('settings') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-cog"></i> Settings</a>
+                    </li>
                 </ul>
             </nav>
         </aside>
@@ -289,6 +295,10 @@
             {% endif %} {# end if roadmap_data #}
         </main>
     </div>
-{% include 'chatbot_widget.html' %}    
+{% include 'chatbot_widget.html' %}
+<script>
+applyTheme(localStorage.getItem('sb-theme') || 'light');
+function applyTheme(t){ t==='dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark'); }
+</script>    
 </body>
 </html>

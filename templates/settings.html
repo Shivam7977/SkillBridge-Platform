@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — SkillBridge</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --bg: #f5f6fb; --surface: #ffffff; --primary: #8B5CF6; --secondary: #EC4899;
+  --text-main: #0f172a; --text-dim: #64748b; --border: #e5e7eb; --radius: 20px;
+  --shadow: 0 20px 50px rgba(0,0,0,0.07);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-main); }
+.dashboard-container { display: flex; }
+
+/* SIDEBAR */
+.sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 2.5rem 1.5rem; position: fixed; height: 100vh; z-index: 100; display: flex; flex-direction: column; overflow-y: auto; }
+.sidebar .logo { font-size: 1.8rem; font-weight: 800; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.5rem; text-decoration: none; display: block; }
+.sidebar a { display: flex; align-items: center; gap: 12px; padding: .8rem 1rem; border-radius: 14px; color: var(--text-dim); text-decoration: none; margin-bottom: .4rem; font-size: 0.88rem; font-weight: 600; transition: 0.2s; }
+.sidebar a:hover { background: #f1f5f9; color: var(--primary); }
+.sidebar a.active { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; box-shadow: 0 8px 24px rgba(139,92,246,.3); }
+.sidebar .sidebar-bottom { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border); }
+
+/* SIDEBAR XP WIDGET */
+.sb-xp-widget {
+  background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(236,72,153,0.05));
+  border: 1px solid rgba(139,92,246,0.18); border-radius: 16px;
+  padding: 14px 16px; margin-bottom: 1.5rem;
+}
+.sb-xp-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.sb-xp-icon { font-size: 1.5rem; line-height: 1; }
+.sb-xp-info { flex: 1; min-width: 0; }
+.sb-xp-badge { font-size: 0.72rem; font-weight: 700; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-xp-num { font-size: 1.05rem; font-weight: 800; color: var(--text-main); line-height: 1.2; }
+.sb-xp-num span { font-size: 0.68rem; font-weight: 600; color: var(--text-dim); }
+.sb-bar-bg { width: 100%; height: 6px; background: rgba(139,92,246,0.12); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
+.sb-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 4px; transition: width 1s ease; }
+.sb-bar-labels { display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--text-dim); font-weight: 700; margin-bottom: 8px; }
+.sb-streak { display: inline-flex; align-items: center; gap: 5px; font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.18); color: #dc2626; }
+.sb-streak.cold { background: rgba(100,116,139,0.08); border-color: rgba(100,116,139,0.18); color: var(--text-dim); }
+
+/* MAIN */
+.main-content { margin-left: 260px; padding: 3rem 4rem; width: calc(100% - 260px); }
+.page-header { margin-bottom: 2.5rem; }
+.page-header h1 { font-size: 1.9rem; font-weight: 800; }
+.page-header p { color: var(--text-dim); font-size: 0.95rem; margin-top: 4px; }
+.settings-grid { display: flex; flex-direction: column; gap: 2rem; max-width: 780px; }
+
+/* CARD */
+.settings-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
+.card-header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+.card-header-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+.card-header h2 { font-size: 1rem; font-weight: 800; color: var(--text-main); }
+.card-header p { font-size: 0.78rem; color: var(--text-dim); margin-top: 2px; }
+.card-body { padding: 1.8rem 2rem; }
+
+/* PROGRESSION CARD */
+.xp-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 12px; }
+.level-tag { display: flex; align-items: center; gap: 10px; }
+.lvl-ico { font-size: 2.2rem; background: #f8fafc; padding: 10px; border-radius: 12px; border: 1px solid var(--border); }
+.xp-val { font-size: 1.8rem; font-weight: 900; color: var(--primary); }
+.bar-outer { width: 100%; height: 10px; background: #f1f5f9; border-radius: 10px; overflow: hidden; }
+.bar-inner { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); transition: width 1s ease; }
+.bar-text { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.8rem; font-weight: 700; color: var(--text-dim); }
+
+/* STREAK ROW in progression card */
+.streak-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+.streak-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 800; }
+.streak-badge.hot { background: rgba(239,68,68,0.1); border: 1.5px solid rgba(239,68,68,0.2); color: #dc2626; }
+.streak-badge.warm { background: rgba(245,158,11,0.1); border: 1.5px solid rgba(245,158,11,0.2); color: #d97706; }
+.streak-badge.cold { background: rgba(100,116,139,0.08); border: 1.5px solid var(--border); color: var(--text-dim); }
+.streak-hint { font-size: 0.75rem; color: var(--text-dim); font-weight: 600; }
+
+/* APPEARANCE */
+.theme-options { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.theme-option { border: 2px solid var(--border); border-radius: 14px; padding: 1.2rem; cursor: pointer; transition: 0.2s; position: relative; }
+.theme-option:hover { border-color: var(--primary); }
+.theme-option.active { border-color: var(--primary); background: rgba(139,92,246,0.04); }
+.theme-option .check { position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; border-radius: 50%; background: var(--primary); color: #fff; display: none; align-items: center; justify-content: center; font-size: 0.65rem; }
+.theme-option.active .check { display: flex; }
+.theme-preview { height: 80px; border-radius: 8px; margin-bottom: 10px; overflow: hidden; position: relative; }
+.theme-preview.light-prev { background: #f5f6fb; border: 1px solid #e5e7eb; }
+.theme-preview.dark-prev { background: #0f0f1a; border: 1px solid #2d2d44; }
+.preview-sidebar { position: absolute; left: 0; top: 0; bottom: 0; width: 28%; }
+.light-prev .preview-sidebar { background: #fff; border-right: 1px solid #e5e7eb; }
+.dark-prev .preview-sidebar { background: #13131f; border-right: 1px solid #2d2d44; }
+.preview-dots { padding: 8px 6px; display: flex; flex-direction: column; gap: 4px; }
+.preview-dot { height: 5px; border-radius: 3px; }
+.light-prev .preview-dot { background: #e5e7eb; }
+.dark-prev .preview-dot { background: #2d2d44; }
+.preview-dot.active { background: linear-gradient(90deg, #8B5CF6, #EC4899) !important; }
+.preview-main { position: absolute; left: 28%; right: 0; top: 0; bottom: 0; padding: 8px; }
+.preview-card-mini { border-radius: 5px; height: 28px; margin-bottom: 5px; }
+.light-prev .preview-card-mini { background: #fff; border: 1px solid #e5e7eb; }
+.dark-prev .preview-card-mini { background: #1a1a2e; border: 1px solid #2d2d44; }
+.theme-label { font-size: 0.82rem; font-weight: 700; color: var(--text-main); }
+.theme-sub { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
+
+/* ACCOUNT INFO */
+.info-row { display: flex; align-items: center; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid var(--border); }
+.info-row:last-child { border-bottom: none; padding-bottom: 0; }
+.info-row:first-child { padding-top: 0; }
+.info-label { font-size: 0.78rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+.info-value { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
+.info-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(139,92,246,0.1); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+
+/* PASSWORD */
+.form-group { margin-bottom: 1.2rem; }
+.form-group:last-child { margin-bottom: 0; }
+.form-group label { font-size: 0.83rem; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 6px; }
+.form-group input { width: 100%; background: #f8fafc; border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 16px; font-family: inherit; font-size: 0.9rem; outline: none; transition: 0.2s; color: var(--text-main); }
+.form-group input:focus { border-color: var(--primary); background: #fff; }
+.save-btn { padding: 12px 28px; border-radius: 12px; border: none; background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; font-weight: 700; font-size: 0.88rem; cursor: pointer; font-family: inherit; transition: 0.2s; margin-top: 0.5rem; }
+.save-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139,92,246,0.3); }
+
+/* XP TABLE */
+.xp-section-title { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 10px; margin-top: 1.2rem; }
+.xp-section-title:first-child { margin-top: 0; }
+.xp-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+.xp-table th { font-size: 0.72rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 12px; text-align: left; background: #f8fafc; border-radius: 6px; }
+.xp-table td { padding: 9px 12px; font-size: 0.85rem; border-bottom: 1px solid var(--border); }
+.xp-table tr:last-child td { border-bottom: none; }
+.xp-table td:first-child { font-weight: 600; color: var(--text-main); }
+.xp-table td:last-child { font-weight: 800; color: var(--primary); text-align: right; }
+.xp-badge-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 8px; transition: 0.2s; }
+.xp-badge-row:hover { border-color: var(--primary); background: rgba(139,92,246,0.03); }
+.xp-badge-row.current-level { border-color: var(--primary); background: rgba(139,92,246,0.05); box-shadow: 0 0 0 3px rgba(139,92,246,0.1); }
+.badge-emoji { font-size: 1.5rem; flex-shrink: 0; }
+.badge-info { flex: 1; }
+.badge-name { font-size: 0.88rem; font-weight: 800; color: var(--text-main); }
+.badge-xp { font-size: 0.75rem; color: var(--text-dim); margin-top: 1px; }
+.badge-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.badge-bar-fill { height: 100%; border-radius: 2px; }
+.current-badge-tag { font-size: 0.62rem; font-weight: 800; padding: 2px 8px; border-radius: 20px; background: rgba(139,92,246,0.12); color: var(--primary); margin-left: 8px; }
+
+/* DANGER */
+.danger-zone { border-color: #fecaca !important; }
+.danger-zone .card-header { border-bottom-color: #fecaca; background: #fff5f5; }
+.danger-zone .card-header h2 { color: #dc2626; }
+.danger-warning { background: #fff5f5; border: 1px solid #fecaca; border-radius: 12px; padding: 14px 16px; margin-bottom: 1.2rem; font-size: 0.83rem; color: #991b1b; line-height: 1.6; }
+.danger-warning i { margin-right: 6px; }
+.logout-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 20px; border-radius: 12px; border: 1.5px solid var(--border); background: #fff; color: var(--text-main); font-weight: 700; font-size: 0.88rem; cursor: pointer; font-family: inherit; transition: 0.2s; margin-bottom: 10px; text-decoration: none; }
+.logout-btn:hover { background: #f8fafc; border-color: var(--primary); color: var(--primary); }
+.delete-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 20px; border-radius: 12px; border: 1.5px solid #fecaca; background: #fff; color: #dc2626; font-weight: 700; font-size: 0.88rem; cursor: pointer; font-family: inherit; transition: 0.2s; }
+.delete-btn:hover { background: #fef2f2; border-color: #dc2626; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: #0f172a; color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; z-index: 99999; transition: 0.35s cubic-bezier(.34,1.56,.64,1); opacity: 0; pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast.success { background: linear-gradient(90deg, #059669, #10b981); }
+.toast.error   { background: linear-gradient(90deg, #dc2626, #ef4444); }
+
+/* DARK MODE */
+body.dark .settings-card { background: #1a1a2e !important; border-color: #2d2d44 !important; }
+body.dark .card-header { background: #13131f !important; border-bottom-color: #2d2d44 !important; }
+body.dark .card-header h2 { color: #e2e8f0 !important; }
+body.dark .card-header p { color: #94a3b8 !important; }
+body.dark .lvl-ico { background: #13131f !important; border-color: #2d2d44 !important; }
+body.dark .bar-outer { background: #2d2d44 !important; }
+body.dark .streak-row { border-top-color: #2d2d44 !important; }
+body.dark .streak-badge.cold { background: rgba(100,116,139,0.15) !important; border-color: #2d2d44 !important; }
+body.dark .theme-option { border-color: #2d2d44 !important; }
+body.dark .theme-option.active { background: rgba(167,139,250,0.08) !important; }
+body.dark .theme-label { color: #e2e8f0 !important; }
+body.dark .info-row { border-bottom-color: #2d2d44 !important; }
+body.dark .info-label { color: #64748b !important; }
+body.dark .info-value { color: #e2e8f0 !important; }
+body.dark .form-group label { color: #e2e8f0 !important; }
+body.dark .form-group input { background: #0f0f1a !important; border-color: #2d2d44 !important; color: #e2e8f0 !important; }
+body.dark .form-group input:focus { border-color: #a78bfa !important; background: #13131f !important; }
+body.dark .xp-table th { background: #13131f !important; color: #64748b !important; }
+body.dark .xp-table td { border-bottom-color: #2d2d44 !important; }
+body.dark .xp-table td:first-child { color: #e2e8f0 !important; }
+body.dark .xp-badge-row { border-color: #2d2d44 !important; }
+body.dark .xp-badge-row.current-level { border-color: #a78bfa !important; background: rgba(167,139,250,0.08) !important; }
+body.dark .badge-name { color: #e2e8f0 !important; }
+body.dark .badge-bar { background: #2d2d44 !important; }
+body.dark .danger-zone { border-color: #7f1d1d !important; }
+body.dark .danger-zone .card-header { background: #1a0a0a !important; border-bottom-color: #7f1d1d !important; }
+body.dark .danger-warning { background: #1a0a0a !important; border-color: #7f1d1d !important; color: #fca5a5 !important; }
+body.dark .logout-btn { background: #0f0f1a !important; border-color: #2d2d44 !important; color: #e2e8f0 !important; }
+body.dark .logout-btn:hover { border-color: #a78bfa !important; color: #a78bfa !important; }
+body.dark .delete-btn { background: #0f0f1a !important; border-color: #7f1d1d !important; }
+body.dark .xp-section-title { color: #64748b !important; }
+body.dark .sb-xp-widget { background: linear-gradient(135deg,rgba(139,92,246,0.12),rgba(236,72,153,0.08)) !important; border-color: rgba(139,92,246,0.25) !important; }
+body.dark .sb-xp-num { color: #e2e8f0 !important; }
+body.dark .sb-bar-bg { background: rgba(139,92,246,0.18) !important; }
+
+@media (max-width: 1100px) { .main-content { margin-left: 0; padding: 2rem; } .sidebar { display: none; } }
+</style>
+</head>
+<body>
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
+
+    <!-- ── SIDEBAR XP WIDGET ── -->
+    <div class="sb-xp-widget">
+      <div class="sb-xp-top">
+        <div class="sb-xp-icon">{{ level_info.icon }}</div>
+        <div class="sb-xp-info">
+          <div class="sb-xp-badge">Lv.{{ level_info.level }} · {{ level_info.badge }}</div>
+          <div class="sb-xp-num">{{ xp }} <span>XP</span></div>
+        </div>
+      </div>
+      <div class="sb-bar-bg">
+        <div class="sb-bar-fill" style="width:{{ progress_pct }}%"></div>
+      </div>
+      <div class="sb-bar-labels">
+        <span>{{ xp }} XP</span>
+        <span>{% if level_info.next_xp == 'Max' %}🏆 Max{% else %}{{ level_info.next_xp }} XP{% endif %}</span>
+      </div>
+      {% if streak and streak >= 1 %}
+        <div class="sb-streak">🔥 {{ streak }} day streak</div>
+      {% else %}
+        <div class="sb-streak cold">❄️ No active streak</div>
+      {% endif %}
+    </div>
+    <!-- ── END SIDEBAR XP WIDGET ── -->
+
+    <a href="{{ url_for('main_page') }}"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a>
+    <a href="{{ url_for('leaderboard') }}"><i class="fas fa-trophy"></i> Leaderboard</a>
+    <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
+    <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
+    <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a>
+    <a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> Roadmap AI</a>
+    <a href="{{ url_for('portfolio_builder') }}"><i class="fas fa-briefcase"></i> Portfolio Builder</a>
+    <a href="{{ url_for('resume_builder') }}"><i class="fas fa-file-alt"></i> Resume Builder</a>
+    <a href="{{ url_for('find_communities') }}"><i class="fas fa-users"></i> All Communities</a>
+    <div class="sidebar-bottom">
+      <a href="{{ url_for('settings') }}" class="active"><i class="fas fa-cog"></i> Settings</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>⚙️ Settings</h1>
+      <p>Manage your account, appearance, and preferences.</p>
+    </div>
+
+    <div class="settings-grid">
+
+      <!-- PROGRESSION CARD -->
+      <div class="settings-card">
+        <div class="card-header">
+          <div class="card-header-icon" style="background:rgba(251,191,36,0.15);color:#f59e0b"><i class="fas fa-trophy"></i></div>
+          <div><h2>Your Progression</h2><p>Track your rank, XP and daily streak</p></div>
+        </div>
+        <div class="card-body">
+          <div class="xp-row">
+            <div class="level-tag">
+              <div class="lvl-ico">{{ level_info.icon }}</div>
+              <div>
+                <div style="font-weight:800;font-size:1.1rem;">Level {{ level_info.level }}: {{ level_info.badge }}</div>
+                <div style="font-size:0.8rem;color:var(--text-dim);font-weight:600;">SkillBridge Rank</div>
+              </div>
+            </div>
+            <div>
+              <div class="xp-val">{{ xp }} XP</div>
+              <div style="font-size:0.7rem;font-weight:800;color:var(--text-dim);text-align:right;">TOTAL EARNED</div>
+            </div>
+          </div>
+
+          <div class="bar-outer">
+            <div class="bar-inner" style="width:{{ progress_pct }}%"></div>
+          </div>
+          <div class="bar-text">
+            <span>{{ xp }} XP</span>
+            <span>{% if level_info.next_xp == 'Max' %}🏆 Max Level!{% else %}Goal: {{ level_info.next_xp }} XP{% endif %}</span>
+          </div>
+
+          <!-- STREAK ROW — NEW -->
+          <div class="streak-row">
+            {% set streak = streak if streak else 0 %}
+            {% if streak >= 30 %}
+              <span class="streak-badge hot">🔥 {{ streak }} day streak</span>
+              <span class="streak-hint">Legendary! Keep it going.</span>
+            {% elif streak >= 7 %}
+              <span class="streak-badge warm">🔥 {{ streak }} day streak</span>
+              <span class="streak-hint">On fire! Don't break the chain.</span>
+            {% elif streak >= 1 %}
+              <span class="streak-badge warm">🔥 {{ streak }} day streak</span>
+              <span class="streak-hint">Good start — log in tomorrow to keep it!</span>
+            {% else %}
+              <span class="streak-badge cold">❄️ No active streak</span>
+              <span class="streak-hint">Log in every day to build your streak and earn bonus XP.</span>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+
+      <!-- APPEARANCE -->
+      <div class="settings-card">
+        <div class="card-header">
+          <div class="card-header-icon" style="background:rgba(139,92,246,0.1);color:var(--primary)"><i class="fas fa-palette"></i></div>
+          <div><h2>Appearance</h2><p>Choose your preferred theme</p></div>
+        </div>
+        <div class="card-body">
+          <div class="theme-options">
+            <div class="theme-option" id="light-option" onclick="setTheme('light')">
+              <div class="check"><i class="fas fa-check"></i></div>
+              <div class="theme-preview light-prev">
+                <div class="preview-sidebar"><div class="preview-dots"><div class="preview-dot active"></div><div class="preview-dot"></div><div class="preview-dot"></div></div></div>
+                <div class="preview-main"><div class="preview-card-mini"></div><div class="preview-card-mini"></div></div>
+              </div>
+              <div class="theme-label">☀️ Light Mode</div>
+              <div class="theme-sub">Clean & bright</div>
+            </div>
+            <div class="theme-option" id="dark-option" onclick="setTheme('dark')">
+              <div class="check"><i class="fas fa-check"></i></div>
+              <div class="theme-preview dark-prev">
+                <div class="preview-sidebar"><div class="preview-dots"><div class="preview-dot active"></div><div class="preview-dot"></div><div class="preview-dot"></div></div></div>
+                <div class="preview-main"><div class="preview-card-mini"></div><div class="preview-card-mini"></div></div>
+              </div>
+              <div class="theme-label">🌙 Dark Mode</div>
+              <div class="theme-sub">Easy on the eyes</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCOUNT INFO -->
+      <div class="settings-card">
+        <div class="card-header">
+          <div class="card-header-icon" style="background:rgba(236,72,153,0.1);color:var(--secondary)"><i class="fas fa-user-circle"></i></div>
+          <div><h2>Account Information</h2><p>Your profile details</p></div>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <div class="info-label">Full Name</div>
+            <div class="info-value">{{ current_user.name }}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Email Address</div>
+            <div class="info-value">{{ current_user.email }}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Account Status</div>
+            <div class="info-value"><span class="info-badge"><i class="fas fa-check-circle"></i> Active</span></div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Member Since</div>
+            <div class="info-value">{{ member_since }}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Current Level</div>
+            <div class="info-value"><span class="info-badge">{{ level_info.icon }} {{ level_info.badge }}</span></div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Login Streak</div>
+            <div class="info-value">
+              {% set streak = streak if streak else 0 %}
+              {% if streak >= 1 %}🔥 {{ streak }} days{% else %}❄️ None{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHANGE PASSWORD -->
+      <div class="settings-card">
+        <div class="card-header">
+          <div class="card-header-icon" style="background:rgba(34,211,238,0.1);color:#22d3ee"><i class="fas fa-lock"></i></div>
+          <div><h2>Change Password</h2><p>Update your account password</p></div>
+        </div>
+        <div class="card-body">
+          <form action="{{ url_for('change_password') }}" method="POST">
+            <div class="form-group">
+              <label>Current Password</label>
+              <input type="password" name="current_password" placeholder="Enter current password" required>
+            </div>
+            <div class="form-group">
+              <label>New Password</label>
+              <input type="password" name="new_password" placeholder="Min 8 chars, uppercase, number, symbol" required>
+            </div>
+            <div class="form-group">
+              <label>Confirm New Password</label>
+              <input type="password" name="confirm_password" placeholder="Re-enter new password" required>
+            </div>
+            <button type="submit" class="save-btn"><i class="fas fa-save" style="margin-right:8px"></i>Update Password</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- XP & BADGES GUIDE -->
+      <div class="settings-card">
+        <div class="card-header">
+          <div class="card-header-icon" style="background:rgba(251,191,36,0.15);color:#f59e0b"><i class="fas fa-star"></i></div>
+          <div><h2>XP & Badges Guide</h2><p>Learn how to earn XP and unlock badges</p></div>
+        </div>
+        <div class="card-body">
+          <div class="xp-section-title">How to Earn XP</div>
+          <table class="xp-table">
+            <thead><tr><th>Action</th><th>XP Reward</th></tr></thead>
+            <tbody>
+              <tr><td><i class="fas fa-upload" style="color:var(--primary);margin-right:8px"></i>Upload a project version</td><td>+50 XP</td></tr>
+              <tr><td><i class="fas fa-check-circle" style="color:#10b981;margin-right:8px"></i>Complete a roadmap stage</td><td>+20 XP</td></tr>
+              <tr><td><i class="fas fa-user-circle" style="color:var(--secondary);margin-right:8px"></i>Complete your profile 100%</td><td>+30 XP</td></tr>
+              <tr><td><i class="fas fa-certificate" style="color:#f59e0b;margin-right:8px"></i>Add a certificate</td><td>+15 XP</td></tr>
+              <tr><td><i class="fas fa-users" style="color:#22d3ee;margin-right:8px"></i>Join a community</td><td>+10 XP</td></tr>
+              <tr><td><i class="fab fa-github" style="color:var(--text-main);margin-right:8px"></i>Connect GitHub (one-time)</td><td>+25 XP</td></tr>
+              <tr><td><i class="fas fa-fire" style="color:#ef4444;margin-right:8px"></i>7-day login streak</td><td>+35 XP</td></tr>
+              <tr><td><i class="fas fa-fire" style="color:#f97316;margin-right:8px"></i>30-day login streak</td><td>+100 XP</td></tr>
+              <tr><td><i class="fas fa-layer-group" style="color:var(--primary);margin-right:8px"></i>Create a project</td><td>+10 XP</td></tr>
+            </tbody>
+          </table>
+
+          <div class="xp-section-title" style="margin-top:1.5rem">Badge Levels</div>
+          {% set badges = [
+            ('🥉','Bronze Builder','0 – 200 XP · Getting started!','linear-gradient(90deg,#cd7f32,#a0522d)',1),
+            ('🥈','Silver Coder','201 – 500 XP · Building momentum','linear-gradient(90deg,#94a3b8,#64748b)',2),
+            ('🥇','Gold Developer','501 – 1000 XP · Serious builder','linear-gradient(90deg,#f59e0b,#d97706)',3),
+            ('💎','Platinum Architect','1001 – 2000 XP · Elite tier','linear-gradient(90deg,#22d3ee,#6366f1)',4),
+            ('🚀','Diamond Founder','2000+ XP · Legendary status','linear-gradient(90deg,var(--primary),var(--secondary))',5)
+          ] %}
+          {% for emoji, name, xp_range, color, lvl in badges %}
+          <div class="xp-badge-row {% if level_info.level == lvl %}current-level{% endif %}">
+            <div class="badge-emoji">{{ emoji }}</div>
+            <div class="badge-info">
+              <div class="badge-name">
+                {{ name }}
+                {% if level_info.level == lvl %}<span class="current-badge-tag">YOUR RANK</span>{% endif %}
+              </div>
+              <div class="badge-xp">{{ xp_range }}</div>
+              <div class="badge-bar"><div class="badge-bar-fill" style="width:100%;background:{{ color }}"></div></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- DANGER ZONE -->
+      <div class="settings-card danger-zone">
+        <div class="card-header">
+          <div class="card-header-icon" style="background:rgba(220,38,38,0.1);color:#dc2626"><i class="fas fa-exclamation-triangle"></i></div>
+          <div><h2>Danger Zone</h2><p>Irreversible actions — proceed carefully</p></div>
+        </div>
+        <div class="card-body">
+          <div class="danger-warning">
+            <i class="fas fa-exclamation-circle"></i>
+            Logging out will end your current session. Deleting your account is permanent and cannot be undone — all your data, projects, and roadmaps will be lost forever.
+          </div>
+          <a href="{{ url_for('logout') }}" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i> Logout from SkillBridge
+          </a>
+          <button class="delete-btn" onclick="confirmDelete()">
+            <i class="fas fa-trash-alt"></i> Delete My Account Permanently
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+{% include 'chatbot_widget.html' %}
+
+<script>
+function applyTheme(t) {
+  if (t === 'dark') {
+    document.body.classList.add('dark');
+    document.getElementById('dark-option').classList.add('active');
+    document.getElementById('light-option').classList.remove('active');
+  } else {
+    document.body.classList.remove('dark');
+    document.getElementById('light-option').classList.add('active');
+    document.getElementById('dark-option').classList.remove('active');
+  }
+}
+function setTheme(t) {
+  localStorage.setItem('sb-theme', t);
+  applyTheme(t);
+  showToast(t === 'dark' ? '🌙 Dark mode enabled!' : '☀️ Light mode enabled!');
+}
+applyTheme(localStorage.getItem('sb-theme') || 'light');
+
+function showToast(msg, type = 'success') {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = `toast ${type} show`;
+  setTimeout(() => toast.className = 'toast', 3000);
+}
+
+function confirmDelete() {
+  if (confirm('⚠️ Are you sure you want to DELETE your account?\n\nThis will permanently remove all your data, projects, roadmaps, and communities.\n\nThis action CANNOT be undone!')) {
+    if (confirm('Last warning! Confirm permanent deletion.')) {
+      fetch('/delete_account', { method: 'POST' })
+        .then(r => { window.location.href = '/'; });
+    }
+  }
+}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      showToast('{{ message | e }}', '{{ "success" if category == "success" else "error" }}');
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+</script>
+</body>
+</html>

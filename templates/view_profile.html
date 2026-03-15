@@ -1,253 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ profile.name }} · SkillBridge</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
 <style>
 :root{
-  --primary:#7c3aed;
-  --secondary:#ec4899;
-  --bg:#f4f6fb;
-  --card:#ffffff;
-  --text:#0f172a;
-  --muted:#64748b;
-  --border:#e5e7eb;
+  --primary:#7c3aed; --secondary:#ec4899;
+  --bg:#f4f6fb; --card:#ffffff; --text:#0f172a; --muted:#64748b; --border:#e5e7eb;
 }
-
 *{margin:0;padding:0;box-sizing:border-box}
+body{ font-family:Inter,system-ui; background:var(--bg); color:var(--text); }
+.wrapper{ max-width:1200px; margin:60px auto; padding:0 20px; }
 
-body{
-  font-family:Inter,system-ui;
-  background:var(--bg);
-  color:var(--text);
-}
+/* HERO */
+.hero{ background:linear-gradient(135deg,var(--primary),var(--secondary)); border-radius:32px; padding:60px; color:white; display:grid; grid-template-columns:auto 1fr; gap:40px; align-items:center; box-shadow:0 40px 80px rgba(124,58,237,.35); }
+.avatar{ width:170px; height:170px; border-radius:28px; border:6px solid rgba(255,255,255,.6); object-fit:cover; background:white; }
+.hero h1{ font-size:3rem; font-weight:900; }
+.hero p{ margin-top:6px; font-size:1.15rem; opacity:.95; }
+.identity-bar{ display:flex; flex-wrap:wrap; gap:18px; margin-top:18px; }
+.identity-item{ display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.18); padding:12px 18px; border-radius:14px; font-weight:700; font-size:.95rem; }
 
-.wrapper{
-  max-width:1200px;
-  margin:60px auto;
-  padding:0 20px;
-}
+/* BADGE IN HERO */
+.hero-badge { display:inline-flex; align-items:center; gap:10px; background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.4); border-radius:20px; padding:8px 18px; margin-top:16px; font-weight:800; font-size:0.95rem; }
+.hero-badge-icon { font-size:1.4rem; }
+.hero-streak { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.3); border-radius:20px; padding:7px 16px; margin-top:10px; margin-left:10px; font-weight:700; font-size:0.88rem; }
 
-/* ---------- HERO ---------- */
-.hero{
-  background:linear-gradient(135deg,var(--primary),var(--secondary));
-  border-radius:32px;
-  padding:60px;
-  color:white;
-  display:grid;
-  grid-template-columns:auto 1fr;
-  gap:40px;
-  align-items:center;
-  box-shadow:0 40px 80px rgba(124,58,237,.35);
-}
+/* STATS */
+.stats{ margin-top:-40px; display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+.stat-card{ background:var(--card); border-radius:22px; padding:26px; text-align:center; box-shadow:0 20px 40px rgba(15,23,42,.08); }
+.stat-card h3{ font-size:1.8rem; font-weight:800; }
+.stat-card span{ font-size:.75rem; font-weight:700; color:var(--muted); text-transform:uppercase; }
 
-.avatar{
-  width:170px;
-  height:170px;
-  border-radius:28px;
-  border:6px solid rgba(255,255,255,.6);
-  object-fit:cover;
-  background:white;
-}
+/* XP STAT CARD */
+.stat-card.xp-card { border: 2px solid rgba(124,58,237,0.2); background: linear-gradient(135deg, #faf8ff, #fff); }
+.xp-card-bar-bg { width:100%; height:5px; background:rgba(124,58,237,0.12); border-radius:3px; overflow:hidden; margin-top:8px; }
+.xp-card-bar-fill { height:100%; background:linear-gradient(90deg,var(--primary),var(--secondary)); border-radius:3px; }
+.xp-card-next { font-size:0.62rem; color:var(--muted); font-weight:600; margin-top:4px; }
 
-.hero h1{
-  font-size:3rem;
-  font-weight:900;
-}
+/* MAIN */
+.main{ margin-top:60px; display:grid; grid-template-columns:2fr 1fr; gap:40px; }
 
-.hero p{
-  margin-top:6px;
-  font-size:1.15rem;
-  opacity:.95;
-}
+/* SECTIONS */
+.section{ background:var(--card); border-radius:26px; padding:36px; box-shadow:0 20px 50px rgba(0,0,0,.05); margin-bottom:30px; }
+.section h2{ font-size:1.2rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin-bottom:16px; }
+.section p{ line-height:1.7; color:#334155; }
 
-/* ---------- IDENTITY ---------- */
-.identity-bar{
-  display:flex;
-  flex-wrap:wrap;
-  gap:18px;
-  margin-top:18px;
-}
+/* GAMIFICATION SECTION */
+.xp-section { background: linear-gradient(135deg, #faf8ff, #fdf2f8); border: 1.5px solid rgba(124,58,237,0.15); }
+.xp-section h2 { color: var(--primary) !important; }
+.xp-progress-wrap { margin-bottom: 20px; }
+.xp-progress-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.xp-num { font-size:1.6rem; font-weight:900; color:var(--primary); }
+.xp-level-tag { font-size:0.75rem; font-weight:800; background:rgba(124,58,237,0.1); color:var(--primary); padding:4px 12px; border-radius:20px; }
+.xp-bar-bg { width:100%; height:10px; background:rgba(124,58,237,0.12); border-radius:6px; overflow:hidden; margin-bottom:6px; }
+.xp-bar-fill { height:100%; background:linear-gradient(90deg,var(--primary),var(--secondary)); border-radius:6px; }
+.xp-bar-labels { display:flex; justify-content:space-between; font-size:0.72rem; color:var(--muted); font-weight:700; }
+.xp-meta-row { display:flex; gap:12px; flex-wrap:wrap; margin-top:16px; }
+.xp-meta-badge { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:20px; font-size:0.82rem; font-weight:800; }
+.xp-meta-badge.level  { background:rgba(124,58,237,0.1); border:1.5px solid rgba(124,58,237,0.2); color:var(--primary); }
+.xp-meta-badge.streak-hot  { background:rgba(239,68,68,0.1); border:1.5px solid rgba(239,68,68,0.2); color:#dc2626; }
+.xp-meta-badge.streak-warm { background:rgba(245,158,11,0.1); border:1.5px solid rgba(245,158,11,0.2); color:#d97706; }
+.xp-meta-badge.streak-cold { background:rgba(100,116,139,0.08); border:1.5px solid var(--border); color:var(--muted); }
 
-.identity-item{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  background:rgba(255,255,255,.18);
-  padding:12px 18px;
-  border-radius:14px;
-  font-weight:700;
-  font-size:.95rem;
-}
+/* SKILLS */
+.skills{ display:flex; flex-wrap:wrap; gap:12px; }
+.skill{ padding:10px 18px; border-radius:14px; font-weight:700; font-size:.85rem; background:#f8fafc; border:1px solid var(--border); }
+.skill.learning{ background:#fff1f2; color:var(--secondary); border-color:var(--secondary); }
 
-/* ---------- STATS ---------- */
-.stats{
-  margin-top:-40px;
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:20px;
-}
+/* SIDEBAR */
+.side-card{ background:var(--card); border-radius:26px; padding:30px; box-shadow:0 20px 50px rgba(0,0,0,.05); margin-bottom:30px; }
+.row{ display:flex; justify-content:space-between; margin-bottom:14px; font-size:.95rem; }
+.row span{ color:var(--muted); font-weight:600; }
+.goal{ background:linear-gradient(135deg,#fff1f2,#fdf2f8); border-left:6px solid var(--secondary); padding:24px; border-radius:18px; font-weight:700; }
 
-.stat-card{
-  background:var(--card);
-  border-radius:22px;
-  padding:26px;
-  text-align:center;
-  box-shadow:0 20px 40px rgba(15,23,42,.08);
-}
+/* CONTACT */
+.contact-primary{ display:flex; align-items:center; justify-content:center; gap:10px; background:linear-gradient(90deg,var(--primary),var(--secondary)); color:white; padding:14px; border-radius:14px; font-weight:800; text-decoration:none; margin-bottom:14px; }
+.contact-secondary{ display:flex; align-items:center; justify-content:center; gap:10px; background:#f8fafc; border:1px solid var(--border); padding:13px; border-radius:14px; font-weight:700; color:var(--text); text-decoration:none; margin-bottom:16px; }
+.contact-links{ display:flex; gap:12px; }
+.contact-links a{ flex:1; padding:12px; border-radius:14px; text-align:center; background:#f8fafc; border:1px solid var(--border); color:var(--muted); font-size:1.2rem; transition:.25s; }
+.contact-links a:hover{ background:var(--primary); color:white; }
 
-.stat-card h3{
-  font-size:1.8rem;
-  font-weight:800;
-}
-
-.stat-card span{
-  font-size:.75rem;
-  font-weight:700;
-  color:var(--muted);
-  text-transform:uppercase;
-}
-
-/* ---------- MAIN ---------- */
-.main{
-  margin-top:60px;
-  display:grid;
-  grid-template-columns:2fr 1fr;
-  gap:40px;
-}
-
-/* ---------- SECTIONS ---------- */
-.section{
-  background:var(--card);
-  border-radius:26px;
-  padding:36px;
-  box-shadow:0 20px 50px rgba(0,0,0,.05);
-  margin-bottom:30px;
-}
-
-.section h2{
-  font-size:1.2rem;
-  text-transform:uppercase;
-  letter-spacing:.08em;
-  color:var(--muted);
-  margin-bottom:16px;
-}
-
-.section p{
-  line-height:1.7;
-  color:#334155;
-}
-
-/* ---------- SKILLS ---------- */
-.skills{
-  display:flex;
-  flex-wrap:wrap;
-  gap:12px;
-}
-
-.skill{
-  padding:10px 18px;
-  border-radius:14px;
-  font-weight:700;
-  font-size:.85rem;
-  background:#f8fafc;
-  border:1px solid var(--border);
-}
-
-.skill.learning{
-  background:#fff1f2;
-  color:var(--secondary);
-  border-color:var(--secondary);
-}
-
-/* ---------- SIDEBAR ---------- */
-.side-card{
-  background:var(--card);
-  border-radius:26px;
-  padding:30px;
-  box-shadow:0 20px 50px rgba(0,0,0,.05);
-  margin-bottom:30px;
-}
-
-.row{
-  display:flex;
-  justify-content:space-between;
-  margin-bottom:14px;
-  font-size:.95rem;
-}
-
-.row span{
-  color:var(--muted);
-  font-weight:600;
-}
-
-/* ---------- CONTACT ---------- */
-.contact-primary{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  background:linear-gradient(90deg,var(--primary),var(--secondary));
-  color:white;
-  padding:14px;
-  border-radius:14px;
-  font-weight:800;
-  text-decoration:none;
-  margin-bottom:14px;
-}
-
-.contact-secondary{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  background:#f8fafc;
-  border:1px solid var(--border);
-  padding:13px;
-  border-radius:14px;
-  font-weight:700;
-  color:var(--text);
-  text-decoration:none;
-  margin-bottom:16px;
-}
-
-.contact-links{
-  display:flex;
-  gap:12px;
-}
-
-.contact-links a{
-  flex:1;
-  padding:12px;
-  border-radius:14px;
-  text-align:center;
-  background:#f8fafc;
-  border:1px solid var(--border);
-  color:var(--muted);
-  font-size:1.2rem;
-  transition:.25s;
-}
-
-.contact-links a:hover{
-  background:var(--primary);
-  color:white;
-}
-
-/* ---------- GOAL ---------- */
-.goal{
-  background:linear-gradient(135deg,#fff1f2,#fdf2f8);
-  border-left:6px solid var(--secondary);
-  padding:24px;
-  border-radius:18px;
-  font-weight:700;
-}
-
-/* ---------- RESPONSIVE ---------- */
 @media(max-width:1000px){
   .hero{grid-template-columns:1fr;text-align:center}
   .identity-bar{justify-content:center}
@@ -256,9 +91,7 @@ body{
 }
 </style>
 </head>
-
 <body>
-
 <div class="wrapper">
 
   <!-- HERO -->
@@ -273,15 +106,41 @@ body{
         <div class="identity-item"><i class="fa-solid fa-location-dot"></i>{{ profile.location or "Remote" }}</div>
         <div class="identity-item"><i class="fa-solid fa-chart-line"></i>{{ profile.experience_years or 0 }} Years Experience</div>
       </div>
+
+      <!-- BADGE + STREAK IN HERO -->
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center;">
+        <div class="hero-badge">
+          <span class="hero-badge-icon">{{ level_info.icon }}</span>
+          <span>Level {{ level_info.level }} · {{ level_info.badge }}</span>
+          <span style="opacity:0.8;font-size:0.78rem;">{{ xp }} XP</span>
+        </div>
+        {% if streak and streak >= 1 %}
+          <div class="hero-streak">
+            {% if streak >= 7 %}🔥{% else %}🔥{% endif %}
+            {{ streak }} day streak
+          </div>
+        {% endif %}
+      </div>
+
     </div>
   </div>
 
-  <!-- STATS -->
+  <!-- STATS — replaced last card with XP card -->
   <div class="stats">
     <div class="stat-card"><h3>{{ profile.known_skills|length }}</h3><span>Skills</span></div>
     <div class="stat-card"><h3>{{ profile.learning_skills|length }}</h3><span>Learning</span></div>
-    <div class="stat-card"><h3>{{ profile.experience_years or 0 }}</h3><span>Years</span></div>
-    <div class="stat-card"><h3>100%</h3><span>Profile</span></div>
+    <div class="stat-card"><h3>{{ profile.experience_years or 0 }}</h3><span>Years Exp</span></div>
+    <div class="stat-card xp-card">
+      <h3 style="color:var(--primary)">{{ xp }}</h3>
+      <span>XP Points</span>
+      <div class="xp-card-bar-bg">
+        <div class="xp-card-bar-fill" style="width:{{ progress_pct }}%"></div>
+      </div>
+      <div class="xp-card-next">
+        {% if level_info.next_xp == 'Max' %}🏆 Max Level
+        {% else %}{{ level_info.next_xp - xp }} XP to next level{% endif %}
+      </div>
+    </div>
   </div>
 
   <!-- MAIN -->
@@ -289,6 +148,44 @@ body{
 
     <!-- LEFT -->
     <div>
+
+      <!-- GAMIFICATION SECTION -->
+      <div class="section xp-section">
+        <h2>⚡ Gamification</h2>
+        <div class="xp-progress-wrap">
+          <div class="xp-progress-top">
+            <div>
+              <div style="font-size:1.8rem;line-height:1;">{{ level_info.icon }}</div>
+              <div style="font-weight:800;font-size:1rem;margin-top:4px;">{{ level_info.badge }}</div>
+            </div>
+            <div style="text-align:right">
+              <div class="xp-num">{{ xp }} XP</div>
+              <div class="xp-level-tag">Level {{ level_info.level }}</div>
+            </div>
+          </div>
+          <div class="xp-bar-bg">
+            <div class="xp-bar-fill" style="width:{{ progress_pct }}%"></div>
+          </div>
+          <div class="xp-bar-labels">
+            <span>{{ xp }} XP earned</span>
+            <span>{% if level_info.next_xp == 'Max' %}🏆 Max Level reached!{% else %}Next level: {{ level_info.next_xp }} XP{% endif %}</span>
+          </div>
+        </div>
+
+        <div class="xp-meta-row">
+          <div class="xp-meta-badge level">{{ level_info.icon }} {{ level_info.badge }}</div>
+          {% if streak and streak >= 30 %}
+            <div class="xp-meta-badge streak-hot">🔥 {{ streak }} day streak</div>
+          {% elif streak and streak >= 7 %}
+            <div class="xp-meta-badge streak-hot">🔥 {{ streak }} day streak</div>
+          {% elif streak and streak >= 1 %}
+            <div class="xp-meta-badge streak-warm">🔥 {{ streak }} day streak</div>
+          {% else %}
+            <div class="xp-meta-badge streak-cold">❄️ No active streak</div>
+          {% endif %}
+        </div>
+      </div>
+
       <div class="section">
         <h2>About</h2>
         <p>{{ profile.about_me or "A passionate builder growing on SkillBridge." }}</p>
@@ -315,6 +212,7 @@ body{
           {% endfor %}
         </div>
       </div>
+
     </div>
 
     <!-- RIGHT -->
@@ -328,24 +226,23 @@ body{
         <div class="row"><span>Status</span>{{ profile.current_status or "Member" }}</div>
         <div class="row"><span>Availability</span>{{ profile.availability or "Flexible" }}</div>
         <div class="row"><span>Education</span>{{ profile.education_degree }}</div>
+        <div class="row"><span>Level</span>{{ level_info.icon }} {{ level_info.badge }}</div>
+        <div class="row">
+          <span>Streak</span>
+          {% if streak and streak >= 1 %}🔥 {{ streak }} days{% else %}❄️ None{% endif %}
+        </div>
       </div>
 
       <!-- CONTACT CARD -->
       <div class="side-card">
-
-        <!-- INTERNAL CHAT -->
         <a href="{{ url_for('chat', receiver_id=profile.id) }}" class="contact-primary">
           <i class="fas fa-comment-dots"></i> Message Builder
         </a>
-
-        <!-- EMAIL -->
         {% if profile.email %}
         <a href="mailto:{{ profile.email }}" class="contact-secondary">
           <i class="fa-solid fa-envelope"></i> Email {{ profile.name }}
         </a>
         {% endif %}
-
-        <!-- SOCIAL -->
         <div class="contact-links">
           {% if profile.linkedin_url %}<a href="{{ profile.linkedin_url }}" target="_blank"><i class="fab fa-linkedin-in"></i></a>{% endif %}
           {% if profile.github_url %}<a href="{{ profile.github_url }}" target="_blank"><i class="fab fa-github"></i></a>{% endif %}
@@ -358,10 +255,11 @@ body{
       </a>
 
     </div>
-
   </div>
-
 </div>
 
+<script>
+(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+</script>
 </body>
 </html>

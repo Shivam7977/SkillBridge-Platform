@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Profile Architecture | SkillBridge</title>
@@ -19,19 +19,13 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: var(--text-main); line-height: 1.5; }
 .dashboard-container { display: flex; }
-
-/* SIDEBAR */
 .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 2.5rem 1.5rem; position: fixed; height: 100vh; z-index: 100; overflow-y: auto; }
 .sidebar .logo { font-size: 1.8rem; font-weight: 800; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 3rem; display: block; text-decoration: none; }
 .sidebar a { display: flex; align-items: center; gap: 12px; padding: .8rem 1rem; border-radius: 12px; color: var(--text-dim); text-decoration: none; margin-bottom: .5rem; font-size: 0.9rem; font-weight: 600; transition: 0.2s; }
 .sidebar a:hover { background: #f1f5f9; color: var(--primary); }
 .sidebar a.active { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; }
-
-/* MAIN */
 .main-content { margin-left: 260px; padding: 4rem; width: calc(100% - 260px); }
 .profile-grid { display: grid; grid-template-columns: 380px 1fr; gap: 3rem; align-items: start; }
-
-/* PREVIEW CARD */
 .preview-card { background: var(--surface); border-radius: 24px; padding: 2.5rem; position: sticky; top: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.05); text-align: center; border: 1px solid var(--border); max-height: 95vh; overflow-y: auto; }
 .profile-pic { width: 110px; height: 110px; border-radius: 25px; object-fit: cover; border: 4px solid #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-bottom: 1rem; }
 .preview-card h2 { font-size: 1.4rem; font-weight: 800; color: var(--text-main); }
@@ -54,8 +48,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg)
 .tag.github-lang { background: rgba(15,23,42,0.07); color: var(--text-main); }
 .view-my-profile-btn { display: block; width: 100%; margin-top: 1rem; padding: 12px; border-radius: 12px; background: #f8fafc; border: 1.5px solid var(--border); color: var(--text-main); text-decoration: none; font-weight: 700; font-size: 0.85rem; transition: 0.3s; text-align: center; }
 .view-my-profile-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
-
-/* GitHub mini preview in sidebar */
 .preview-github-mini { margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; text-align: left; }
 .gh-mini-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .gh-mini-avatar { width: 36px; height: 36px; border-radius: 9px; object-fit: cover; }
@@ -64,8 +56,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg)
 .gh-mini-stats { display: flex; gap: 14px; }
 .gh-mini-stat .n { font-weight: 800; font-size: 0.85rem; color: var(--primary); }
 .gh-mini-stat .l { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; font-weight: 600; }
-
-/* FORM CARD */
 .form-card { background: var(--surface); border-radius: 24px; padding: 3.5rem; border: 1px solid var(--border); }
 .form-section { margin-bottom: 3.5rem; }
 .section-title { font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin-bottom: 2rem; display: flex; align-items: center; gap: 15px; }
@@ -77,8 +67,6 @@ input, textarea, select { width: 100%; background: #f8fafc; border: 1.5px solid 
 input:focus, textarea:focus, select:focus { border-color: var(--primary); background: #fff; }
 .update-btn { width: 100%; padding: 18px; border-radius: 14px; border: none; font-weight: 800; cursor: pointer; background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; transition: 0.3s; font-size: 1rem; font-family: inherit; }
 .update-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(139,92,246,0.3); }
-
-/* ── CERTIFICATES ── */
 .cert-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 1.5rem; min-height: 10px; }
 .cert-card { background: #f8fafc; border: 1.5px solid var(--border); border-radius: 16px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: 0.2s; }
 .cert-card:hover { border-color: var(--primary); box-shadow: 0 4px 14px rgba(139,92,246,0.1); }
@@ -96,8 +84,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
 .add-cert-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(139,92,246,0.04); }
 .no-certs-msg { text-align: center; padding: 2rem; color: var(--text-dim); font-size: 0.85rem; }
 .no-certs-msg i { font-size: 2rem; opacity: 0.3; display: block; margin-bottom: 10px; }
-
-/* Certificate Modal */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9998; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
 .modal-overlay.open { display: flex; }
 .modal-box { background: #fff; border-radius: 24px; padding: 2.5rem; width: 100%; max-width: 540px; box-shadow: 0 40px 80px rgba(0,0,0,0.2); animation: modalIn 0.25s ease; margin: 1rem; }
@@ -111,8 +97,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
 .modal-save:hover { opacity: 0.9; }
 .modal-cancel { padding: 14px 20px; border-radius: 12px; border: 1.5px solid var(--border); background: #fff; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.9rem; color: var(--text-dim); }
 .modal-cancel:hover { background: #f1f5f9; }
-
-/* ── GITHUB SECTION ── */
 .github-connect-box { border: 2px dashed var(--border); border-radius: 18px; padding: 2.5rem 2rem; text-align: center; transition: 0.2s; }
 .github-connect-box:hover { border-color: var(--primary); }
 .github-connect-box .gh-icon { font-size: 2.8rem; color: var(--text-dim); margin-bottom: 1rem; }
@@ -122,8 +106,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
 .gh-fetch-btn { padding: 0 22px; border-radius: 12px; border: none; background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; font-weight: 800; cursor: pointer; font-family: inherit; white-space: nowrap; transition: 0.2s; font-size: 0.9rem; }
 .gh-fetch-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(139,92,246,0.35); }
 .gh-fetch-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-/* GitHub Preview */
 .github-preview-card { display: none; border: 1.5px solid var(--border); border-radius: 18px; overflow: hidden; margin-top: 1.5rem; }
 .github-preview-card.show { display: block; }
 .gh-prev-header { background: linear-gradient(135deg, #0f172a, #1e293b); padding: 1.5rem 2rem; display: flex; align-items: center; gap: 16px; }
@@ -148,13 +130,12 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
 .gh-prev-langs h4 { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; letter-spacing: 0.05em; }
 .lang-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .lang-tag { background: #f1f5f9; border: 1.5px solid var(--border); padding: 4px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; color: var(--text-main); }
-.gh-sync-actions { padding: 1.5rem 2rem; border-top: 1px solid var(--border); display: flex; gap: 14px; align-items: center; flex-wrap: wrap; background: #f8fafc; }
-.gh-sync-btn { padding: 12px 24px; border-radius: 12px; border: none; background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; font-weight: 800; cursor: pointer; font-family: inherit; transition: 0.2s; font-size: 0.9rem; }
+.gh-sync-actions { padding: 1.5rem 2rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; background: #f8fafc; }
+.gh-sync-actions-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.gh-sync-btn { padding: 12px 24px; border-radius: 12px; border: none; background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; font-weight: 800; cursor: pointer; font-family: inherit; transition: 0.2s; font-size: 0.9rem; width: fit-content; }
 .gh-sync-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(139,92,246,0.3); }
 .gh-merge-label { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 700; color: var(--text-dim); cursor: pointer; user-select: none; }
 .gh-merge-label input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); }
-
-/* GitHub Connected */
 .github-connected-box { border: 1.5px solid #10b981; border-radius: 18px; overflow: hidden; }
 .gh-conn-header { background: linear-gradient(135deg, #0f172a, #1e293b); padding: 1.2rem 1.5rem; display: flex; align-items: center; gap: 14px; }
 .gh-conn-avatar { width: 48px; height: 48px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2); }
@@ -173,13 +154,34 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
 .gh-disconnect-btn { padding: 10px 16px; border-radius: 10px; border: 1.5px solid #fecaca; background: #fff; color: #ef4444; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.82rem; transition: 0.2s; }
 .gh-disconnect-btn:hover { background: #fef2f2; }
 .gh-synced-at { font-size: 0.68rem; color: var(--text-dim); margin-top: 10px; }
-
-/* Toast */
 .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px); background: #0f172a; color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; z-index: 99999; transition: 0.35s cubic-bezier(.34,1.56,.64,1); opacity: 0; pointer-events: none; white-space: nowrap; }
 .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 .toast.success { background: linear-gradient(90deg, #059669, #10b981); }
 .toast.error   { background: linear-gradient(90deg, #dc2626, #ef4444); }
 
+/* XP CARD IN PREVIEW PANEL */
+.preview-xp-card { margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
+.preview-xp-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.preview-xp-icon { font-size: 1.4rem; }
+.preview-xp-badge { font-size: 0.72rem; font-weight: 800; color: var(--primary); background: rgba(139,92,246,0.1); padding: 3px 10px; border-radius: 20px; }
+.preview-xp-bar-bg { width: 100%; height: 6px; background: #f1f5f9; border-radius: 4px; overflow: hidden; margin-bottom: 5px; }
+.preview-xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 4px; }
+.preview-xp-labels { display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--text-dim); font-weight: 700; margin-bottom: 8px; }
+.preview-xp-num { font-size: 1.2rem; font-weight: 900; color: var(--primary); }
+.preview-xp-num span { font-size: 0.68rem; color: var(--text-dim); font-weight: 600; }
+.preview-streak { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.18); color: #dc2626; margin-top: 4px; }
+.preview-streak.cold { background: rgba(100,116,139,0.08); border-color: rgba(100,116,139,0.18); color: var(--text-dim); }
+.sb-xp-widget { background: linear-gradient(135deg,rgba(139,92,246,0.08),rgba(236,72,153,0.05)); border: 1px solid rgba(139,92,246,0.18); border-radius: 16px; padding: 14px 16px; margin-bottom: 1.2rem; }
+.sb-xp-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.sb-xp-icon { font-size: 1.5rem; line-height: 1; }
+.sb-xp-badge-txt { font-size: 0.72rem; font-weight: 700; color: var(--primary); }
+.sb-xp-num-s { font-size: 1.05rem; font-weight: 800; color: var(--text-main); line-height: 1.2; }
+.sb-xp-num-s span { font-size: 0.68rem; font-weight: 600; color: var(--text-dim); }
+.sb-bar-bg { width: 100%; height: 6px; background: rgba(139,92,246,0.12); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
+.sb-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 4px; }
+.sb-bar-labels { display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--text-dim); font-weight: 700; margin-bottom: 8px; }
+.sb-streak { display: inline-flex; align-items: center; gap: 5px; font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.18); color: #dc2626; }
+.sb-streak.cold { background: rgba(100,116,139,0.08); border-color: rgba(100,116,139,0.18); color: var(--text-dim); }
 @media (max-width: 1100px) { .profile-grid { grid-template-columns: 1fr; } .main-content { margin-left: 0; padding: 2rem; } .sidebar { display: none; } .repo-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -187,15 +189,25 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
 <div class="dashboard-container">
   <aside class="sidebar">
     <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
-    <a href="{{ url_for('main_page') }}"><i class="fas fa-th-large"></i> Dashboard</a>
+    <a href="{{ url_for('main_page') }}"><i class="fas fa-home"></i> Dashboard</a>
     <a href="{{ url_for('profile') }}" class="active"><i class="fas fa-user-circle"></i> My Profile</a>
+    <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
+    <a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> Roadmap AI</a>
+    <a href="{{ url_for('resume_builder') }}"><i class="fas fa-file-alt"></i> Resume Builder</a>
+    <a href="{{ url_for('portfolio_builder') }}"><i class="fas fa-briefcase"></i> Portfolio Builder</a>
     <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
+    <a href="{{ url_for('find_communities') }}"><i class="fas fa-users"></i> All Communities</a>
+    <a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a>
+    <a href="{{ url_for('leaderboard') }}"><i class="fas fa-trophy"></i> Leaderboard</a>
+
+    <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border);">
+      <a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a>
+    </div>
   </aside>
 
   <main class="main-content">
     <div class="profile-grid">
 
-      <!-- ══════════════ LEFT — PREVIEW CARD ══════════════ -->
       <div class="preview-card">
         <img class="profile-pic" src="{{ user.profile_pic_url or url_for('static', filename='profile_pics/default.jpg') }}">
         <h2 id="p-name">{{ user.name or "Your Name" }}</h2>
@@ -217,17 +229,12 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
         <div class="preview-skills">
           <label>Mastered Stack</label>
           <div class="tag-box" id="p-known"></div>
-
           <label>Learning Goals</label>
           <div class="tag-box" id="p-learning"></div>
-
-          <!-- Certs preview -->
           <div id="preview-certs-wrap" style="display:none">
             <label>Certificates</label>
             <div class="tag-box" id="p-certs"></div>
           </div>
-
-          <!-- GitHub langs preview -->
           {% if user.github_username %}
           <label>GitHub Languages</label>
           <div class="tag-box">
@@ -236,7 +243,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
           {% endif %}
         </div>
 
-        <!-- GitHub mini stats if connected -->
         {% if user.github_username %}
         <div class="preview-github-mini">
           <div class="gh-mini-header">
@@ -254,16 +260,41 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
         </div>
         {% endif %}
 
-        <a href="{{ url_for('view_user_profile', user_id=current_user.id) }}" class="view-my-profile-btn">
+        
+        <!-- XP & STREAK CARD -->
+        <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.5rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div>
+              <div style="font-size:1.4rem;line-height:1;">{{ level_info.icon }}</div>
+              <div style="font-size:0.75rem;font-weight:800;color:var(--text-main);margin-top:2px;">{{ level_info.badge }}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:1.2rem;font-weight:900;color:var(--primary);">{{ xp }} <span style="font-size:0.68rem;color:var(--text-dim);font-weight:600;">XP</span></div>
+              <span style="font-size:0.72rem;font-weight:800;color:var(--primary);background:rgba(139,92,246,0.1);padding:3px 10px;border-radius:20px;">Level {{ level_info.level }}</span>
+            </div>
+          </div>
+          <div style="width:100%;height:6px;background:#f1f5f9;border-radius:4px;overflow:hidden;margin-bottom:5px;">
+            <div style="height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary));border-radius:4px;width:{{ progress_pct }}%;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:0.62rem;color:var(--text-dim);font-weight:700;margin-bottom:10px;">
+            <span>{{ xp }} XP</span>
+            <span>{% if level_info.next_xp == 'Max' %}🏆 Max Level{% else %}Next: {{ level_info.next_xp }} XP{% endif %}</span>
+          </div>
+          {% if streak and streak >= 1 %}
+            <div style="display:inline-flex;align-items:center;gap:5px;font-size:0.72rem;font-weight:700;padding:4px 12px;border-radius:20px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.18);color:#dc2626;">🔥 {{ streak }} day streak</div>
+          {% else %}
+            <div style="display:inline-flex;align-items:center;gap:5px;font-size:0.72rem;font-weight:700;padding:4px 12px;border-radius:20px;background:rgba(100,116,139,0.08);border:1px solid rgba(100,116,139,0.18);color:#64748b;">❄️ Log in daily for streak XP!</div>
+          {% endif %}
+        </div>
+        <!-- END XP CARD -->
+<a href="{{ url_for('view_user_profile', user_id=current_user.id) }}" class="view-my-profile-btn">
           <i class="fas fa-eye" style="margin-right:8px"></i> View My Public Profile
         </a>
       </div>
 
-      <!-- ══════════════ RIGHT — FORM CARD ══════════════ -->
       <div class="form-card">
         <form action="{{ url_for('profile') }}" method="POST" enctype="multipart/form-data">
 
-          <!-- Core Identity -->
           <div class="form-section">
             <div class="section-title"><span class="bar"></span> Core Identity</div>
             <div class="form-grid">
@@ -275,7 +306,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
             </div>
           </div>
 
-          <!-- Mastery & Learning -->
           <div class="form-section">
             <div class="section-title"><span class="bar"></span> Mastery & Learning</div>
             <div class="form-grid">
@@ -284,11 +314,10 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
             </div>
           </div>
 
-          <!-- Career Parameters -->
           <div class="form-section">
             <div class="section-title"><span class="bar"></span> Career Parameters</div>
             <div class="form-grid">
-              <div><label>Exp (Years)</label><input type="number" name="experience_years" id="in-exp" value="{{ user.experience_years }}" onkeyup="sync()"></div>
+              <div><label>Exp (Years)</label><input type="number" name="experience_years" id="in-exp" value="{{ user.experience_years }}" min="0" max="50" onkeyup="sync()"></div>
               <div><label>University</label><input type="text" name="education_college" id="in-college" value="{{ user.education_college }}" onkeyup="sync()"></div>
               <div class="full"><label>Current Status</label>
                 <select name="current_status" id="in-status" onchange="sync()">
@@ -300,7 +329,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
             </div>
           </div>
 
-          <!-- Social Links -->
           <div class="form-section">
             <div class="section-title"><span class="bar"></span> Social Links</div>
             <div class="form-grid">
@@ -314,10 +342,8 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
           <button type="submit" class="update-btn">Commit Architecture &amp; Update</button>
         </form>
 
-        <!-- ══ CERTIFICATES (outside form — uses API) ══ -->
         <div class="form-section" style="margin-top:3.5rem">
           <div class="section-title"><span class="bar"></span> <i class="fas fa-certificate" style="color:var(--primary)"></i>&nbsp; Certificates &amp; Credentials</div>
-
           <div class="cert-list" id="cert-list">
             {% if user.certificates %}
               {% for cert in user.certificates %}
@@ -335,15 +361,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
                   </div>
                 </div>
                 <div class="cert-actions">
-                  <button class="cert-btn edit" title="Edit" onclick="openEditCert(
-                    '{{ cert._id }}',
-                    {{ cert.name | tojson }},
-                    {{ cert.issuer | tojson }},
-                    {{ (cert.issue_date or '') | tojson }},
-                    {{ (cert.expiry_date or '') | tojson }},
-                    {{ (cert.credential_id or '') | tojson }},
-                    {{ (cert.cert_url or '') | tojson }}
-                  )"><i class="fas fa-pen"></i></button>
+                  <button class="cert-btn edit" title="Edit" onclick="openEditCert('{{ cert._id }}',{{ cert.name | tojson }},{{ cert.issuer | tojson }},{{ (cert.issue_date or '') | tojson }},{{ (cert.expiry_date or '') | tojson }},{{ (cert.credential_id or '') | tojson }},{{ (cert.cert_url or '') | tojson }})"><i class="fas fa-pen"></i></button>
                   <button class="cert-btn del" title="Delete" onclick="deleteCert('{{ cert._id }}', this)"><i class="fas fa-trash"></i></button>
                 </div>
               </div>
@@ -352,16 +370,13 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
               <div class="no-certs-msg" id="no-certs"><i class="fas fa-certificate"></i>No certificates yet. Add your first one!</div>
             {% endif %}
           </div>
-
           <button class="add-cert-btn" onclick="openAddCert()"><i class="fas fa-plus-circle"></i> Add Certificate</button>
         </div>
 
-        <!-- ══ GITHUB INTEGRATION ══ -->
         <div class="form-section" style="margin-top:0;margin-bottom:0">
           <div class="section-title"><span class="bar"></span> <i class="fab fa-github"></i>&nbsp; GitHub Integration</div>
 
           {% if user.github_username %}
-          <!-- Connected state -->
           <div class="github-connected-box">
             <div class="gh-conn-header">
               <img class="gh-conn-avatar" src="{{ user.github_avatar }}" onerror="this.style.display='none'">
@@ -389,7 +404,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
           </div>
 
           {% else %}
-          <!-- Not connected -->
           <div class="github-connect-box">
             <div class="gh-icon"><i class="fab fa-github"></i></div>
             <h3>Connect Your GitHub</h3>
@@ -401,7 +415,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
           </div>
           {% endif %}
 
-          <!-- Preview card shown after fetch -->
           <div class="github-preview-card" id="gh-preview-card">
             <div class="gh-prev-header">
               <img class="gh-prev-avatar" id="gh-prev-avatar" src="">
@@ -425,21 +438,26 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
               <div class="lang-tags" id="gh-lang-tags"></div>
             </div>
             <div class="gh-sync-actions">
+              <div class="gh-sync-actions-row">
+                <label class="gh-merge-label">
+                  <input type="checkbox" id="gh-merge-skills" checked>
+                  Also add languages to my skills
+                </label>
+                <label class="gh-merge-label">
+                  <input type="checkbox" id="gh-import-repos">
+                  Import top repos as My Projects (marked completed)
+                </label>
+              </div>
               <button class="gh-sync-btn" onclick="syncGithub()"><i class="fas fa-cloud-download-alt"></i> Save to My Profile</button>
-              <label class="gh-merge-label">
-                <input type="checkbox" id="gh-merge-skills" checked>
-                Also add languages to my skills
-              </label>
             </div>
           </div>
 
-        </div><!-- end github section -->
-      </div><!-- end form-card -->
-    </div><!-- end profile-grid -->
+        </div>
+      </div>
+    </div>
   </main>
 </div>
 
-<!-- ══ CERTIFICATE MODAL ══ -->
 <div class="modal-overlay" id="cert-modal">
   <div class="modal-box">
     <div class="modal-title"><i class="fas fa-certificate"></i> <span id="modal-title-text">Add Certificate</span></div>
@@ -454,25 +472,21 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
     </div>
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeCertModal()">Cancel</button>
-      <button class="modal-save"   onclick="saveCert()"><i class="fas fa-save"></i> Save Certificate</button>
+      <button class="modal-save" onclick="saveCert()"><i class="fas fa-save"></i> Save Certificate</button>
     </div>
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
-
 {% include 'chatbot_widget.html' %}
 
 <script>
-// ── SYNC PREVIEW ─────────────────────────────────────
 function sync() {
-  document.getElementById('p-name').innerText   = document.getElementById('in-name').value   || 'Your Name';
-  document.getElementById('p-title').innerText  = document.getElementById('in-title').value  || 'Professional Title';
+  document.getElementById('p-name').innerText   = document.getElementById('in-name').value  || 'Your Name';
+  document.getElementById('p-title').innerText  = document.getElementById('in-title').value || 'Professional Title';
   document.getElementById('p-status').innerText = document.getElementById('in-status').value;
   document.getElementById('p-exp').innerText    = (document.getElementById('in-exp').value || '0') + ' Years';
   document.getElementById('p-loc').innerText    = document.getElementById('in-loc').value    || 'Remote';
-
   ['linkedin','github','instagram','facebook'].forEach(s => {
     const val  = document.getElementById('in-' + s).value.trim();
     const icon = document.getElementById('ic-' + s);
@@ -480,7 +494,6 @@ function sync() {
     if (val) { link.href = val; link.classList.add('active-link'); icon.classList.add('active'); }
     else     { link.href = 'javascript:void(0)'; link.classList.remove('active-link'); icon.classList.remove('active'); }
   });
-
   updateTags('p-known',    document.getElementById('in-known').value,    false);
   updateTags('p-learning', document.getElementById('in-learning').value, true);
 }
@@ -498,7 +511,6 @@ function updateTags(id, value, pink) {
 
 window.onload = () => { sync(); updateCertPreview(); };
 
-// ── TOAST ─────────────────────────────────────────────
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -506,7 +518,6 @@ function showToast(msg, type = 'success') {
   setTimeout(() => t.className = 'toast', 3200);
 }
 
-// ── CERTIFICATE MODAL ──────────────────────────────────
 function openAddCert() {
   document.getElementById('cert-edit-id').value = '';
   document.getElementById('modal-title-text').textContent = 'Add Certificate';
@@ -528,17 +539,14 @@ function openEditCert(id, name, issuer, issueDate, expiryDate, credId, url) {
   document.getElementById('cert-modal').classList.add('open');
 }
 
-function closeCertModal() {
-  document.getElementById('cert-modal').classList.remove('open');
-}
+function closeCertModal() { document.getElementById('cert-modal').classList.remove('open'); }
 document.getElementById('cert-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeCertModal(); });
 
 async function saveCert() {
-  const editId  = document.getElementById('cert-edit-id').value;
-  const name    = document.getElementById('cert-name').value.trim();
-  const issuer  = document.getElementById('cert-issuer').value.trim();
+  const editId = document.getElementById('cert-edit-id').value;
+  const name   = document.getElementById('cert-name').value.trim();
+  const issuer = document.getElementById('cert-issuer').value.trim();
   if (!name || !issuer) { showToast('Name and issuer are required', 'error'); return; }
-
   const payload = {
     name, issuer,
     issue_date:    document.getElementById('cert-issue-date').value,
@@ -546,7 +554,6 @@ async function saveCert() {
     credential_id: document.getElementById('cert-credential-id').value.trim(),
     cert_url:      document.getElementById('cert-url').value.trim(),
   };
-
   const isEdit = !!editId;
   const r = await fetch(isEdit ? `/certificates/edit/${editId}` : '/certificates/add', {
     method: isEdit ? 'PUT' : 'POST',
@@ -554,12 +561,9 @@ async function saveCert() {
     body: JSON.stringify(payload)
   });
   const d = await r.json();
-
   if (!d.success) { showToast(d.error || 'Something went wrong', 'error'); return; }
-
   closeCertModal();
   showToast(isEdit ? '✓ Certificate updated!' : '✓ Certificate added!');
-
   if (isEdit) {
     const card = document.querySelector(`.cert-card[data-id="${editId}"]`);
     if (card) {
@@ -580,16 +584,13 @@ async function saveCert() {
     card.dataset.id = cert._id;
     card.innerHTML = `
       <div class="cert-info">
-        <div class="cert-name">
-          <span>${cert.name}</span>
-          ${cert.cert_url ? `<a href="${cert.cert_url}" target="_blank" style="color:var(--primary);font-size:0.72rem"><i class="fas fa-external-link-alt"></i></a><span class="cert-badge verified">Verified</span>` : ''}
-        </div>
+        <div class="cert-name"><span>${cert.name}</span>${cert.cert_url ? `<a href="${cert.cert_url}" target="_blank" style="color:var(--primary);font-size:0.72rem"><i class="fas fa-external-link-alt"></i></a><span class="cert-badge verified">Verified</span>` : ''}</div>
         <div class="cert-issuer"><i class="fas fa-building" style="margin-right:5px;opacity:0.6"></i>${cert.issuer}</div>
-        <div class="cert-meta">${cert.issue_date ? 'Issued: '+cert.issue_date : ''}${cert.expiry_date ? ' · Expires: '+cert.expiry_date : ''}${cert.credential_id ? ' · ID: '+cert.credential_id : ''}</div>
+        <div class="cert-meta">${cert.issue_date?'Issued: '+cert.issue_date:''}${cert.expiry_date?' · Expires: '+cert.expiry_date:''}${cert.credential_id?' · ID: '+cert.credential_id:''}</div>
       </div>
       <div class="cert-actions">
         <button class="cert-btn edit" title="Edit" onclick="openEditCert('${cert._id}',${JSON.stringify(cert.name)},${JSON.stringify(cert.issuer)},${JSON.stringify(cert.issue_date||'')},${JSON.stringify(cert.expiry_date||'')},${JSON.stringify(cert.credential_id||'')},${JSON.stringify(cert.cert_url||'')})"><i class="fas fa-pen"></i></button>
-        <button class="cert-btn del"  title="Delete" onclick="deleteCert('${cert._id}', this)"><i class="fas fa-trash"></i></button>
+        <button class="cert-btn del" title="Delete" onclick="deleteCert('${cert._id}', this)"><i class="fas fa-trash"></i></button>
       </div>`;
     document.getElementById('cert-list').appendChild(card);
   }
@@ -619,26 +620,19 @@ function updateCertPreview() {
   box.innerHTML = '';
   cards.forEach(c => {
     const name = c.querySelector('.cert-name span')?.textContent.trim();
-    if (name) {
-      const s = document.createElement('span');
-      s.className = 'tag cert-tag'; s.textContent = name;
-      box.appendChild(s);
-    }
+    if (name) { const s = document.createElement('span'); s.className = 'tag cert-tag'; s.textContent = name; box.appendChild(s); }
   });
 }
 
-// ── GITHUB ─────────────────────────────────────────────
 let ghData = null;
 
 async function fetchGithub() {
   const input = document.getElementById('gh-username-input');
   const username = input?.value.trim();
   if (!username) { showToast('Enter a GitHub username', 'error'); return; }
-
   const btn = document.getElementById('gh-fetch-btn');
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
-
   try {
     const r = await fetch('/api/github/fetch', {
       method: 'POST', headers: {'Content-Type':'application/json'},
@@ -666,7 +660,6 @@ function renderGithubPreview(d) {
   document.getElementById('gh-prev-repos').textContent     = d.public_repos;
   document.getElementById('gh-prev-followers').textContent = d.followers;
   document.getElementById('gh-prev-following').textContent = d.following;
-
   document.getElementById('gh-repo-grid').innerHTML = d.repos.map(r => `
     <div class="repo-card">
       <a href="${r.url}" target="_blank">${r.name}</a>
@@ -677,18 +670,19 @@ function renderGithubPreview(d) {
         <span><i class="fas fa-code-branch"></i> ${r.forks}</span>
       </div>
     </div>`).join('');
-
   document.getElementById('gh-lang-tags').innerHTML = d.top_languages.map(l => `<span class="lang-tag">${l}</span>`).join('');
 }
 
+// FIX: import_repos flag now sent to backend
 async function syncGithub() {
   if (!ghData) return;
   const r = await fetch('/api/github/sync', {
     method: 'POST', headers: {'Content-Type':'application/json'},
     body: JSON.stringify({
-      username: ghData.username,
-      github_data: ghData,
-      merge_skills: document.getElementById('gh-merge-skills')?.checked || false
+      username:     ghData.username,
+      github_data:  ghData,
+      merge_skills: document.getElementById('gh-merge-skills')?.checked || false,
+      import_repos: document.getElementById('gh-import-repos')?.checked || false
     })
   });
   const d = await r.json();
@@ -708,7 +702,7 @@ async function reSyncGithub(username) {
     ghData = d1.data;
     await fetch('/api/github/sync', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ username: ghData.username, github_data: ghData, merge_skills: false })
+      body: JSON.stringify({ username: ghData.username, github_data: ghData, merge_skills: false, import_repos: false })
     });
     showToast('✓ Re-synced! Refreshing...');
     setTimeout(() => location.reload(), 1200);
@@ -722,6 +716,10 @@ async function disconnectGithub() {
   if (d.success) { showToast('GitHub disconnected'); setTimeout(() => location.reload(), 1000); }
   else showToast('Failed to disconnect', 'error');
 }
+</script>
+<script>
+applyTheme(localStorage.getItem('sb-theme') || 'light');
+function applyTheme(t){ t==='dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark'); }
 </script>
 </body>
 </html>

@@ -1,149 +1,287 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Saved Roadmaps - SkillBridge</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        /* Light Theme Variables matching mainpage.html */
-        :root {
-            --color-background: #f8f9fa;
-            --color-surface: #ffffff;
-            --color-sidebar-bg: #ffffff;
-            --color-sidebar-border: #dee2e6;
-            --color-primary: #8B5CF6; /* Vibrant purple */
-            --color-secondary: #EC4899; /* Vibrant pink */
-            --color-text-primary: #1F2937; /* Darker text */
-            --color-text-secondary: #6B7280; /* Gray text */
-            --border-radius-lg: 12px;
-            --border-radius-md: 8px;
-            --box-shadow-card: 0 6px 20px rgba(0, 0, 0, 0.06);
-            --box-shadow-widget: 0 4px 15px rgba(0, 0, 0, 0.05);
-            --box-shadow-button: 0 6px 20px rgba(139, 92, 246, 0.3);
-        }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--color-background); color: var(--color-text-primary); margin: 0; line-height: 1.6; }
-        .dashboard-container { display: flex; }
-        /* Sidebar styles same as mainpage.html */
-        .sidebar { width: 250px; background: var(--color-sidebar-bg); border-right: 1px solid var(--color-sidebar-border); height: 100vh; padding: 2rem 1.5rem; position: fixed; box-sizing: border-box; z-index: 10; }
-        .sidebar .logo { font-size: 1.9em; font-weight: 800; margin-bottom: 3rem; background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; letter-spacing: -1px; display: block; }
-        .sidebar nav { height: calc(100% - 5rem); }
-        .sidebar nav ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; height: 100%; }
-        .sidebar nav li a { display: block; color: var(--color-text-secondary); text-decoration: none; padding: 0.9rem 1rem; margin-bottom: .5rem; border-radius: var(--border-radius-md); font-weight: 500; transition: all .2s ease-in-out; }
-        .sidebar nav li a:hover { background-color: #f1f3f5; color: var(--color-text-primary); transform: translateX(4px); }
-        .sidebar nav li a.active { background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); color: #fff; font-weight: 600; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2); transform: translateX(0); }
-        .sidebar .logout-link { margin-top: auto; }
-        .sidebar .logout-link a { color: #dc3545; }
-        .sidebar .logout-link a:hover { background-color: rgba(220, 53, 69, 0.1); color: #b02a37; }
-        /* Main content */
-        .main-content { margin-left: 250px; padding: 2.5rem 3.5rem; width: calc(100% - 250px); box-sizing: border-box; }
-        .main-content h1 { font-size: 2.2em; font-weight: 700; margin-bottom: 0.5rem; color: var(--color-text-primary); }
-        .main-content > p.subtitle { color: var(--color-text-secondary); margin-bottom: 3rem; font-size: 1.1em; margin-top: 0; }
-        .cta-button { background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); color: #fff; padding: 10px 20px; border: none; border-radius: var(--border-radius-md); font-weight: 600; cursor: pointer; transition: transform .2s, box-shadow .3s; font-size: 0.9em; text-decoration: none; display: inline-block; box-shadow: var(--box-shadow-button); }
-        .cta-button:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4); }
-        /* Roadmap List */
-        .roadmap-list { margin-top: 2rem; list-style: none; padding: 0; }
-        .roadmap-item {
-            background: var(--color-surface); /* White card */
-            border: 1px solid var(--color-sidebar-border);
-            border-radius: var(--border-radius-lg);
-            padding: 1.5rem 2rem; /* Adjusted padding */
-            margin-bottom: 1.2rem; /* Spacing */
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: var(--box-shadow-widget); /* Softer shadow */
-            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
-        }
-        .roadmap-item:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.07);
-            border-color: var(--color-primary); /* Highlight border on hover */
-        }
-        .roadmap-info h2 {
-            margin: 0 0 0.3rem 0; /* Adjust spacing */
-            font-size: 1.3em;
-            font-weight: 600; /* Bolder title */
-            color: var(--color-text-primary);
-        }
-        .roadmap-info p {
-            margin: 0;
-            font-size: 0.9em;
-            color: var(--color-text-secondary);
-        }
-        .no-roadmaps { /* Style for 'no roadmaps' message */
-            color: var(--color-text-secondary);
-            margin-top: 2rem;
-            padding: 2rem;
-            background: var(--color-surface); /* White card */
-            border: 1px dashed var(--color-sidebar-border); /* Dashed border */
-            border-radius: var(--border-radius-md);
-            text-align: center;
-        }
-        .no-roadmaps a { color: var(--color-primary); font-weight: 600; text-decoration: none; }
-        .no-roadmaps a:hover { text-decoration: underline; }
-        /* Flash Messages */
-        .flash-messages { position: fixed; top: 20px; right: 20px; z-index: 1001; display: flex; flex-direction: column; gap: 10px; width: calc(100% - 40px); max-width: 380px; }
-        .flash-banner { padding: 1rem 1.5rem; border-radius: var(--border-radius-md); color: #fff; font-weight: 500; box-shadow: 0 5px 20px rgba(0,0,0,0.15); opacity: 0; transform: translateY(-20px) scale(0.95); animation: popDown .4s 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; border-left: 5px solid; }
-        @keyframes popDown { to { opacity: 1; transform: translateY(0) scale(1); } }
-        .flash-success { background-color: #28a745; border-left-color: #1e7e34; }
-        .flash-error   { background-color: #dc3545; border-left-color: #b02a37; }
-        .flash-warning { background-color: #ffc107; color: #333; border-left-color: #d39e00; }
-        .flash-info    { background-color: #17a2b8; border-left-color: #117a8b; }
-    </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Roadmaps — SkillBridge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #8B5CF6; --secondary: #EC4899;
+      --bg: #f8f9fa; --surface: #fff;
+      --border: #dee2e6; --text: #1F2937; --muted: #6B7280;
+      --radius: 12px; --shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); }
+    .dashboard-container { display: flex; }
+
+    /* SIDEBAR */
+    .sidebar { width: 250px; background: var(--surface); border-right: 1px solid var(--border); height: 100vh; padding: 2rem 1.5rem; position: fixed; z-index: 10; display: flex; flex-direction: column; overflow-y: auto; }
+    .sidebar .logo { font-size: 1.9em; font-weight: 800; color: var(--primary); text-decoration: none; letter-spacing: -1px; display: block; margin-bottom: 3rem; }
+    .sidebar nav ul { list-style: none; display: flex; flex-direction: column; height: 100%; }
+    .sidebar nav li a { display: flex; align-items: center; gap: 10px; color: var(--muted); text-decoration: none; padding: 0.9rem 1rem; margin-bottom: .5rem; border-radius: 8px; font-weight: 500; transition: all .2s; }
+    .sidebar nav li a:hover { background: #f1f3f5; color: var(--text); transform: translateX(4px); }
+    .sidebar nav li a.active { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; font-weight: 600; box-shadow: 0 4px 15px rgba(139,92,246,0.2); }
+
+    /* MAIN */
+    .main-content { margin-left: 250px; padding: 2.5rem 3.5rem; width: calc(100% - 250px); }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .page-header h1 { font-size: 2.2em; font-weight: 700; }
+    .page-header p { color: var(--muted); font-size: 1.05em; margin-top: 4px; }
+    .btn-primary { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1em; text-decoration: none; display: inline-block; box-shadow: 0 6px 20px rgba(139,92,246,0.3); transition: transform .2s, box-shadow .3s; }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(139,92,246,0.4); }
+
+    /* CARDS */
+    .roadmap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem; }
+    .roadmap-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow); transition: all .2s; }
+    .roadmap-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 8px 24px rgba(139,92,246,0.12); }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .roadmap-title { font-size: 1.15em; font-weight: 700; color: var(--text); text-decoration: none; flex: 1; }
+    .roadmap-title:hover { color: var(--primary); }
+    .card-date { font-size: 0.75em; color: var(--muted); white-space: nowrap; }
+
+    /* PROGRESS BAR */
+    .progress-wrap { display: flex; align-items: center; gap: 10px; }
+    .progress-bar-bg { flex: 1; height: 8px; background: #f1f3f5; border-radius: 4px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--primary), var(--secondary)); transition: width 0.6s ease; }
+    .progress-label { font-size: 0.78em; font-weight: 600; color: var(--muted); white-space: nowrap; }
+
+    /* STAGES PREVIEW */
+    .stages-preview { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+    .stage-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); }
+    .stage-dot.done { background: var(--primary); border-color: var(--primary); }
+    .stage-dot.todo { background: #f1f3f5; }
+
+    /* ACTION BUTTONS */
+    .card-actions { display: flex; gap: 8px; margin-top: 4px; }
+    .btn-view { flex: 2; padding: 8px 14px; border-radius: 7px; border: 1.5px solid var(--primary); background: #fff; color: var(--primary); font-weight: 600; font-size: 0.8rem; cursor: pointer; font-family: inherit; transition: .2s; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-view:hover { background: var(--primary); color: #fff; }
+    .btn-delete { flex: 1; padding: 8px 14px; border-radius: 7px; border: 1.5px solid #ef4444; background: #fff; color: #ef4444; font-weight: 600; font-size: 0.8rem; cursor: pointer; font-family: inherit; transition: .2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-delete:hover { background: #ef4444; color: #fff; }
+
+    /* EMPTY */
+    .empty-state { text-align: center; padding: 4rem 2rem; background: var(--surface); border: 2px dashed var(--border); border-radius: var(--radius); }
+    .empty-state i { font-size: 3rem; color: var(--muted); margin-bottom: 1rem; }
+    .empty-state h3 { font-weight: 700; margin-bottom: 0.5rem; }
+    .empty-state p { color: var(--muted); margin-bottom: 1.5rem; }
+
+    /* DELETE CONFIRM MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: var(--surface); border-radius: 16px; padding: 2rem; width: 100%; max-width: 420px; margin: 1rem; box-shadow: 0 20px 60px rgba(0,0,0,0.25); text-align: center; }
+    .modal-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    .modal-box h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .modal-box p { font-size: 0.88rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.5; }
+    .modal-actions { display: flex; gap: 10px; justify-content: center; }
+    .btn-cancel-modal { padding: 10px 22px; border-radius: 8px; border: 1.5px solid var(--border); background: #fff; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 0.9rem; color: var(--muted); }
+    .btn-cancel-modal:hover { background: #f8f9fa; }
+    .btn-confirm-delete { padding: 10px 28px; border-radius: 8px; border: none; background: #ef4444; color: #fff; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.9rem; transition: .2s; }
+    .btn-confirm-delete:hover { background: #dc2626; }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; font-size: .85em; font-weight: 600; z-index: 99999; opacity: 0; transform: translateY(10px); transition: all .35s cubic-bezier(.34,1.56,.64,1); pointer-events: none; color: #fff; max-width: 340px; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: linear-gradient(90deg, #059669, #10b981); }
+    .toast.error { background: linear-gradient(90deg, #dc2626, #ef4444); }
+    .toast.levelup { background: linear-gradient(90deg, var(--primary), var(--secondary)); }
+
+    /* FLASH */
+    .flash-messages { position: fixed; top: 20px; right: 20px; z-index: 1001; display: flex; flex-direction: column; gap: 10px; max-width: 380px; }
+    .flash-banner { padding: 1rem 1.5rem; border-radius: 8px; color: #fff; font-weight: 500; box-shadow: 0 5px 20px rgba(0,0,0,0.15); animation: popDown .4s cubic-bezier(0.175,0.885,0.32,1.275) forwards; border-left: 5px solid; opacity: 0; }
+    @keyframes popDown { to { opacity: 1; transform: none; } }
+    .flash-success { background: #28a745; border-left-color: #1e7e34; }
+    .flash-error   { background: #dc3545; border-left-color: #b02a37; }
+    .flash-info    { background: #6B7280; border-left-color: #4B5563; }
+  </style>
 </head>
 <body>
-    <div class="dashboard-container">
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
+    <nav><ul>
+      <li><a href="{{ url_for('main_page') }}"><i class="fas fa-home"></i> Dashboard</a></li>
+      <li><a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a></li>
+      <li><a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a></li>
+      <li><a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> Roadmap AI</a></li>
+      <li><a href="{{ url_for('my_roadmaps') }}" class="active"><i class="fas fa-map"></i> My Roadmaps</a></li>
+      <li><a href="{{ url_for('resume_builder') }}"><i class="fas fa-file-alt"></i> Resume Builder</a></li>
+      <li><a href="{{ url_for('portfolio_builder') }}"><i class="fas fa-briefcase"></i> Portfolio Builder</a></li>
+      <li><a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a></li>
+      <li><a href="{{ url_for('find_communities') }}"><i class="fas fa-users"></i> All Communities</a></li>
+      <li><a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a></li>
+    <a href="{{ url_for('leaderboard') }}"><i class="fas fa-trophy"></i> Leaderboard</a>
+      <li style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border)">
+        <a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a>
+      </li>
+    </ul></nav>
+  </aside>
 
-        <aside class="sidebar">
-            <div class="logo">SkillBridge</div>
-            <nav>
-                <ul>
-                    <li><a href="{{ url_for('main_page') }}">Dashboard</a></li>
-                    <li><a href="{{ url_for('projects') }}">Community Projects</a></li>
-                    <li><a href="{{ url_for('my_projects') }}">My Projects</a></li>
-                    <li><a href="{{ url_for('profile') }}">My Profile</a></li>
-                    <li><a href="{{ url_for('roadmap_generator') }}">Roadmap Generator</a></li>
-                    <li><a href="{{ url_for('my_roadmaps') }}" class="active">My Saved Roadmaps</a></li>
-                    <li><a href="{{ url_for('portfolio_builder') }}">Portfolio Builder</a></li>
-                    <li class="logout-link"><a href="{{ url_for('logout') }}">Logout</a></li>
-                </ul>
-            </nav>
-        </aside>
+  <main class="main-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="flash-banner flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
 
-        <main class="main-content">
-
-            <h1>My Saved Roadmaps</h1>
-            <p class="subtitle">Here are all the learning roadmaps you have generated and saved.</p>
-
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                  <div class="flash-messages">
-                    {% for category, message in messages %}
-                      <div class="flash-banner flash-{{ category }}">{{ message }}</div>
-                    {% endfor %}
-                  </div>
-                {% endif %}
-            {% endwith %}
-
-            <ul class="roadmap-list">
-                {% if roadmaps %}
-                    {% for roadmap in roadmaps %}
-                    <li class="roadmap-item">
-                        <div class="roadmap-info">
-                            <h2>{{ roadmap.goal }}</h2>
-                            <p>Saved on: {{ roadmap.created_at.strftime('%B %d, %Y') if roadmap.created_at else 'Unknown Date' }}</p>
-                        </div>
-                        <a href="{{ url_for('view_roadmap', roadmap_id=roadmap._id) }}" class="cta-button">View Roadmap</a>
-                    </li>
-                    {% endfor %}
-                {% else %}
-                    <li class="no-roadmaps">
-                       <p style="margin: 0;">You haven't saved any roadmaps yet. Go to the <a href="{{ url_for('roadmap_generator') }}">Roadmap Generator</a> to create one!</p>
-                    </li>
-                {% endif %}
-            </ul>
-        </main>
+    <div class="page-header">
+      <div>
+        <h1>🗺️ My Roadmaps</h1>
+        <p>Your saved AI-generated learning roadmaps.</p>
+      </div>
+      <a href="{{ url_for('roadmap_generator') }}" class="btn-primary"><i class="fas fa-plus"></i> New Roadmap</a>
     </div>
+
+    {% if roadmaps %}
+    <div class="roadmap-grid">
+      {% for roadmap in roadmaps %}
+      {% set stages = roadmap.roadmap_content.stages if roadmap.roadmap_content and roadmap.roadmap_content.stages else [] %}
+      {% set total = stages | length %}
+      {% set done = stages | selectattr('completed', 'equalto', True) | list | length %}
+      {% set pct = ((done / total) * 100) | int if total > 0 else 0 %}
+
+      <div class="roadmap-card" id="roadmap-card-{{ roadmap._id }}">
+        <div class="card-top">
+          <a href="{{ url_for('view_roadmap', roadmap_id=roadmap._id) }}" class="roadmap-title">
+            {{ roadmap.goal }}
+          </a>
+          <span class="card-date">
+            {{ roadmap.created_at.strftime('%b %d, %Y') if roadmap.created_at else '' }}
+          </span>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: {{ pct }}%"></div>
+          </div>
+          <span class="progress-label">{{ done }}/{{ total }} stages</span>
+        </div>
+
+        {% if stages %}
+        <div class="stages-preview">
+          {% for s in stages %}
+            <div class="stage-dot {% if s.completed %}done{% else %}todo{% endif %}" title="{{ s.title if s.title else 'Stage' }}"></div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="card-actions">
+          <a href="{{ url_for('view_roadmap', roadmap_id=roadmap._id) }}" class="btn-view">
+            <i class="fas fa-eye"></i> View Roadmap
+          </a>
+          <button class="btn-delete"
+            onclick="openDeleteModal('{{ roadmap._id }}', '{{ roadmap.goal | e }}', {{ done }})">
+            <i class="fas fa-trash-alt"></i> Delete
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-map-signs"></i>
+      <h3>No roadmaps yet</h3>
+      <p>Generate your first AI roadmap and start tracking your learning journey.</p>
+      <a href="{{ url_for('roadmap_generator') }}" class="btn-primary"><i class="fas fa-magic"></i> Generate Roadmap</a>
+    </div>
+    {% endif %}
+  </main>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal-box">
+    <div class="modal-icon">🗺️</div>
+    <h3>Delete Roadmap?</h3>
+    <p id="delete-modal-msg">This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn-confirm-delete" onclick="confirmDelete()"><i class="fas fa-trash-alt"></i> Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let deleteTargetId = null;
+
+function openDeleteModal(id, goal, completedStages) {
+  deleteTargetId = id;
+  const xpLost = completedStages * 20;
+  let msg = `"<strong>${goal}</strong>" will be permanently deleted.`;
+  if (xpLost > 0) msg += ` You will lose <strong>${xpLost} XP</strong> (${completedStages} completed stage${completedStages > 1 ? 's' : ''}).`;
+  document.getElementById('delete-modal-msg').innerHTML = msg;
+  document.getElementById('delete-modal').classList.add('open');
+}
+function closeDeleteModal() {
+  document.getElementById('delete-modal').classList.remove('open');
+  deleteTargetId = null;
+}
+document.getElementById('delete-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeDeleteModal();
+});
+
+async function confirmDelete() {
+  if (!deleteTargetId) return;
+  const id = deleteTargetId;
+  closeDeleteModal();
+  try {
+    const res = await fetch(`/roadmap/delete/${id}`, { method: 'POST', headers: {'Content-Type': 'application/json'} });
+    const data = await res.json();
+    if (data.success) {
+      const card = document.getElementById(`roadmap-card-${id}`);
+      if (card) {
+        card.style.transition = 'opacity .3s, transform .3s';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          card.remove();
+          const grid = document.querySelector('.roadmap-grid');
+          if (grid && !grid.querySelector('.roadmap-card')) {
+            grid.outerHTML = `<div class="empty-state">
+              <i class="fas fa-map-signs"></i>
+              <h3>No roadmaps yet</h3>
+              <p>Generate your first AI roadmap and start tracking your learning journey.</p>
+              <a href="/roadmap_generator" class="btn-primary"><i class="fas fa-magic"></i> Generate Roadmap</a>
+            </div>`;
+          }
+        }, 300);
+      }
+      const msg = data.deducted > 0 ? `🗺️ Roadmap deleted. -${data.deducted} XP` : '🗺️ Roadmap deleted.';
+      showToast(msg, 'error');
+    } else {
+      showToast(data.error || 'Failed to delete roadmap', 'error');
+    }
+  } catch(e) { showToast('Error deleting roadmap', 'error'); }
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.innerHTML = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Level-up toast check
+{% if current_user.is_authenticated %}
+fetch('/api/check_levelup').then(r => r.json()).then(d => {
+  if (d.levelup) showToast(`🎉 Level Up! You are now <strong>${d.badge}</strong>!`, 'levelup');
+});
+{% endif %}
+</script>
+
+{% include 'chatbot_widget.html' %}
+<script>
+applyTheme(localStorage.getItem('sb-theme') || 'light');
+function applyTheme(t) { t === 'dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark'); }
+</script>
 </body>
 </html>

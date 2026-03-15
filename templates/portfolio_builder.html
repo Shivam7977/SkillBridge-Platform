@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portfolio Builder — SkillBridge</title>
@@ -207,9 +207,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 #p3 .contact-item i{width:32px;height:32px;border-radius:8px;background:rgba(124,58,237,.2);display:flex;align-items:center;justify-content:center;color:#a78bfa;font-size:.8rem;}
 #p3 footer{padding:24px 48px;text-align:center;font-size:.72rem;color:rgba(255,255,255,.2);border-top:1px solid rgba(255,255,255,.05);}
 
-/* ═══════════════════════════════════════
+/* ════════════════════════════════
    P4 — WARM STUDIO
-═══════════════════════════════════════ */
+════════════════════════════════ */
 #p4{font-family:'Plus Jakarta Sans',sans-serif;background:#fdf6ee;color:#1a0f00;min-height:100vh;}
 #p4 nav{display:flex;justify-content:space-between;align-items:center;padding:24px 52px;}
 #p4 .nav-name{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:900;color:#c2440b;}
@@ -251,9 +251,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 #p4 .contact-val:hover{color:#c2440b;}
 #p4 footer{padding:20px 52px;font-size:.7rem;color:#b8906e;border-top:1px solid #ecdec8;}
 
-/* ═══════════════════════════════════════
+/* ════════════════════════════════
    P5 — MINIMAL MONO
-═══════════════════════════════════════ */
+════════════════════════════════ */
 #p5{font-family:'Space Grotesk',sans-serif;background:#fff;color:#0a0a0a;min-height:100vh;}
 #p5 nav{display:flex;justify-content:space-between;align-items:center;padding:20px 48px;border-bottom:1px solid #0a0a0a;}
 #p5 .nav-name{font-size:.88rem;font-weight:700;letter-spacing:.06em;}
@@ -293,9 +293,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 #p5 .contact-item i{font-size:.7rem;}
 #p5 footer{padding:20px 48px;display:flex;justify-content:space-between;font-size:.68rem;color:#ccc;border-top:1px solid #eee;}
 
-/* ═══════════════════════════════════════
+/* ════════════════════════════════
    P6 — NEON CITY
-═══════════════════════════════════════ */
+════════════════════════════════ */
 #p6{font-family:'Outfit',sans-serif;background:#0a0f1e;color:#c8d6eb;min-height:100vh;}
 #p6 nav{display:flex;justify-content:space-between;align-items:center;padding:20px 48px;border-bottom:1px solid rgba(0,255,247,.1);position:sticky;top:0;background:#0a0f1e;z-index:10;}
 #p6 .nav-logo{font-size:.9rem;font-weight:700;color:#00fff7;letter-spacing:.1em;}
@@ -351,7 +351,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 </head>
 <body>
 
-<!-- Flash messages -->
 <div class="flash">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}{% for cat,msg in messages %}
@@ -360,22 +359,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   {% endwith %}
 </div>
 
-<!-- SIDEBAR -->
 <aside class="sb">
   <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
   <a href="{{ url_for('main_page') }}"><i class="fas fa-home"></i> Dashboard</a>
-  <a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a>
-  <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
-  <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
   <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a>
+  <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
   <a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> Roadmap AI</a>
-  <a href="{{ url_for('portfolio_builder') }}" class="on"><i class="fas fa-briefcase"></i> Portfolio Builder</a>
   <a href="{{ url_for('resume_builder') }}"><i class="fas fa-file-alt"></i> Resume Builder</a>
-  <a href="{{ url_for('find_communities') }}"><i class="fas fa-users"></i> Communities</a>
-  <div class="out"><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+  <a href="{{ url_for('portfolio_builder') }}" class="on"><i class="fas fa-briefcase"></i> Portfolio Builder</a>
+  <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
+  <a href="{{ url_for('find_communities') }}"><i class="fas fa-users"></i> All Communities</a>
+  <a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a>
+
+  <div class="out" style="border-top: 1px solid var(--border); padding-top: 1rem;">
+      <a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a>
+  </div>
 </aside>
 
-<!-- MAIN -->
 <main class="main">
   <div class="topbar">
     <div>
@@ -390,7 +390,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 
   <div class="layout">
 
-    <!-- CONTROL PANEL -->
     <div class="cp">
       <div class="cp-sec">
         <div class="cp-lbl"><i class="fas fa-palette"></i> Choose Template</div>
@@ -434,6 +433,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
           <div class="chk"><i class="fas fa-check"></i> Education &amp; Experience</div>
           <div class="chk"><i class="fas fa-check"></i> GitHub · LinkedIn · Email</div>
           <div class="chk"><i class="fas fa-check"></i> Certificates ({{ user.certificates|length if user.certificates else 0 }})</div>
+          <div style="margin-top:8px;font-size:.74rem;">
+            Edit via <a href="{{ url_for('profile') }}">Profile</a> or <a href="{{ url_for('my_projects') }}">Projects</a>
+          </div>
         </div>
       </div>
 
@@ -449,13 +451,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       </div>
     </div>
 
-    <!-- PREVIEW -->
     <div class="preview-wrap">
       <div class="preview-inner" id="preview-inner">
 
-<!-- ════════════════════════════════
-     P1 — DARK HACKER
-════════════════════════════════ -->
 <div id="p1" class="pt on">
   <nav>
     <div class="nav-logo">{{ (user.name or 'DEV').upper().replace(' ','_') }}</div>
@@ -517,9 +515,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   <footer>{{ user.name or 'Portfolio' }} &nbsp;·&nbsp; Built with SkillBridge</footer>
 </div>
 
-<!-- ════════════════════════════════
-     P2 — EDITORIAL LIGHT
-════════════════════════════════ -->
 <div id="p2" class="pt">
   <nav>
     <div class="nav-name">{{ user.name or 'Your Name' }}</div>
@@ -588,9 +583,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   <footer><span>{{ user.name or 'Portfolio' }}</span><span>Built with SkillBridge</span></footer>
 </div>
 
-<!-- ════════════════════════════════
-     P3 — GRADIENT GLOW
-════════════════════════════════ -->
 <div id="p3" class="pt">
   <nav>
     <div class="nav-logo">{{ user.name or 'Portfolio' }}</div>
@@ -652,9 +644,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   <footer>{{ user.name or 'Portfolio' }} · Built with SkillBridge</footer>
 </div>
 
-<!-- ════════════════════════════════
-     P4 — WARM STUDIO
-════════════════════════════════ -->
 <div id="p4" class="pt">
   <nav>
     <div class="nav-name">{{ user.name or 'Your Name' }}</div>
@@ -719,9 +708,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   <footer>{{ user.name or 'Portfolio' }} · Built with SkillBridge</footer>
 </div>
 
-<!-- ════════════════════════════════
-     P5 — MINIMAL MONO
-════════════════════════════════ -->
 <div id="p5" class="pt">
   <nav>
     <div class="nav-name">{{ user.name or 'Your Name' }}</div>
@@ -803,9 +789,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   <footer><span>{{ user.name or 'Portfolio' }}</span><span>Built with SkillBridge</span></footer>
 </div>
 
-<!-- ════════════════════════════════
-     P6 — NEON CITY
-════════════════════════════════ -->
 <div id="p6" class="pt">
   <nav>
     <div class="nav-logo">{{ user.name or 'Portfolio' }}</div>
@@ -868,10 +851,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   <footer>{{ user.name or 'PORTFOLIO' }} &nbsp;//&nbsp; BUILT WITH SKILLBRIDGE</footer>
 </div>
 
-      </div><!-- /preview-inner -->
-    </div><!-- /preview-wrap -->
-  </div><!-- /layout -->
-</main>
+      </div></div></div></main>
 
 <script>
 let cur = 1;
@@ -942,5 +922,9 @@ setTimeout(() => {
 }, 4000);
 </script>
 {% include 'chatbot_widget.html' %}
+<script>
+applyTheme(localStorage.getItem('sb-theme') || 'light');
+function applyTheme(t){ t==='dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark'); }
+</script>
 </body>
 </html>

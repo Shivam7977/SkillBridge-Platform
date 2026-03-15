@@ -1,17 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
+<link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
 <title>Find Communities</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 <style>
-body{
-    font-family: Arial;
-    background:#f4f6f9;
+/* ---------- SIDEBAR & LAYOUT STYLES ---------- */
+:root {
+  --bg: #f5f6fb;
+  --surface: #ffffff;
+  --primary: #8B5CF6;
+  --secondary: #EC4899;
+  --text-main: #0f172a;
+  --text-dim: #64748b;
+  --border: #e5e7eb;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+    background: #f4f6f9;
+}
+.dashboard-container { display: flex; }
+
+.sidebar {
+  width: 260px; background: var(--surface); border-right: 1px solid var(--border);
+  padding: 2.5rem 1.5rem; position: fixed; height: 100vh; z-index: 100;
+  display: flex; flex-direction: column; overflow-y: auto;
+}
+.sidebar .logo {
+  font-size: 1.8rem; font-weight: 800; background: linear-gradient(90deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 3rem; display: block; text-decoration: none;
+}
+.sidebar a {
+  display: flex; align-items: center; gap: 12px; padding: .8rem 1rem; border-radius: 12px;
+  color: var(--text-dim); text-decoration: none; margin-bottom: .5rem; font-size: 0.9rem; font-weight: 600; transition: 0.2s;
+}
+.sidebar a:hover { background: #f1f5f9; color: var(--primary); }
+.sidebar a.active { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; }
+
+.main-content { margin-left: 260px; padding: 2rem 4rem; width: calc(100% - 260px); min-height: 100vh; }
+
+@media (max-width: 768px) {
+    .main-content { margin-left: 0; padding: 1.5rem; width: 100%; }
+    .sidebar { display: none; }
 }
 
+/* ---------- ORIGINAL PAGE STYLES ---------- */
 .container{
     max-width:1100px;
-    margin:40px auto;
+    margin: 0 auto;
 }
 
 .section-title{
@@ -32,6 +72,15 @@ body{
     border-radius:12px;
     box-shadow:0 8px 20px rgba(0,0,0,.08);
     position:relative;
+}
+
+/* OVERLAP FIX: Added padding-right to h3 so it doesn't collide with the badge */
+.card h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    padding-right: 75px; 
+    line-height: 1.4;
+    font-size: 1.2rem;
 }
 
 .owner-label{
@@ -61,6 +110,8 @@ body{
     border-radius:10px;
     font-size:12px;
     font-weight:bold;
+    display: inline-block;
+    margin-bottom: 8px;
 }
 
 .public{
@@ -84,12 +135,14 @@ body{
 
 .view-btn{
     display:inline-block;
-    margin-top:10px;
+    margin-top:15px;
     padding:8px 15px;
     background:#6366f1;
     color:#fff;
     text-decoration:none;
     border-radius:20px;
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 
 .no-data{
@@ -102,116 +155,130 @@ body{
 
 <body>
 
-<div class="container">
-<h2>Find Communities</h2>
+<div class="dashboard-container">
+    <aside class="sidebar">
+      <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
+      <a href="{{ url_for('main_page') }}"><i class="fas fa-home"></i> Dashboard</a>
+      <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a>
+      <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
+      <a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> Roadmap AI</a>
+      <a href="{{ url_for('resume_builder') }}"><i class="fas fa-file-alt"></i> Resume Builder</a>
+      <a href="{{ url_for('portfolio_builder') }}"><i class="fas fa-briefcase"></i> Portfolio Builder</a>
+      <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
+      <a href="{{ url_for('find_communities') }}" class="active"><i class="fas fa-users"></i> All Communities</a>
+      <a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a>
+    <a href="{{ url_for('leaderboard') }}"><i class="fas fa-trophy"></i> Leaderboard</a>
 
-<!-- ===================== -->
-<!-- MY COMMUNITIES       -->
-<!-- ===================== -->
+      <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border);">
+        <a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a>
+      </div>
+    </aside>
 
-<h3 class="section-title">My Communities (Created by Me)</h3>
-<div class="grid">
-{% set my_comms = communities | selectattr("is_owner") | list %}
-{% if my_comms %}
-    {% for community in my_comms %}
-    <div class="card">
-        <span class="owner-label">Owner</span>
+    <main class="main-content">
+        <div class="container">
+        <h2>Find Communities</h2>
 
-        <h3>{{ community.project_title }}</h3>
+        <h3 class="section-title">My Communities (Created by Me)</h3>
+        <div class="grid">
+        {% set my_comms = communities | selectattr("is_owner") | list %}
+        {% if my_comms %}
+            {% for community in my_comms %}
+            <div class="card">
+                <span class="owner-label">Owner</span>
 
-        <span class="badge {{ community.visibility }}">
-            {{ community.visibility|capitalize }}
-        </span>
+                <h3>{{ community.project_title }}</h3>
 
-        <div>
-            {% for skill in community.skills_required %}
-                <span class="skill">{{ skill }}</span>
+                <span class="badge {{ community.visibility }}">
+                    {{ community.visibility|capitalize }}
+                </span>
+
+                <div>
+                    {% for skill in community.skills_required %}
+                        <span class="skill">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+
+                <a class="view-btn"
+                   href="{{ url_for('view_community', community_id=community._id) }}">
+                    Manage Community
+                </a>
+            </div>
             {% endfor %}
+        {% else %}
+            <p class="no-data">You haven’t created any communities.</p>
+        {% endif %}
         </div>
 
-        <a class="view-btn"
-           href="{{ url_for('view_community', community_id=community._id) }}">
-            Manage Community
-        </a>
-    </div>
-    {% endfor %}
-{% else %}
-    <p class="no-data">You haven’t created any communities.</p>
-{% endif %}
-</div>
 
+        <h3 class="section-title">Communities I Joined</h3>
+        <div class="grid">
+        {% set joined_comms = communities | selectattr("is_member") | rejectattr("is_owner") | list %}
+        {% if joined_comms %}
+            {% for community in joined_comms %}
+            <div class="card">
+                <span class="member-label">Member</span>
 
-<!-- ===================== -->
-<!-- JOINED COMMUNITIES   -->
-<!-- ===================== -->
+                <h3>{{ community.project_title }}</h3>
 
-<h3 class="section-title">Communities I Joined</h3>
-<div class="grid">
-{% set joined_comms = communities | selectattr("is_member") | rejectattr("is_owner") | list %}
-{% if joined_comms %}
-    {% for community in joined_comms %}
-    <div class="card">
-        <span class="member-label">Member</span>
+                <span class="badge {{ community.visibility }}">
+                    {{ community.visibility|capitalize }}
+                </span>
 
-        <h3>{{ community.project_title }}</h3>
+                <div>
+                    {% for skill in community.skills_required %}
+                        <span class="skill">{{ skill }}</span>
+                    {% endfor %}
+                </div>
 
-        <span class="badge {{ community.visibility }}">
-            {{ community.visibility|capitalize }}
-        </span>
-
-        <div>
-            {% for skill in community.skills_required %}
-                <span class="skill">{{ skill }}</span>
+                <a class="view-btn"
+                   href="{{ url_for('view_community', community_id=community._id) }}">
+                    Open Community
+                </a>
+            </div>
             {% endfor %}
+        {% else %}
+            <p class="no-data">You haven’t joined any communities.</p>
+        {% endif %}
         </div>
 
-        <a class="view-btn"
-           href="{{ url_for('view_community', community_id=community._id) }}">
-            Open Community
-        </a>
-    </div>
-    {% endfor %}
-{% else %}
-    <p class="no-data">You haven’t joined any communities.</p>
-{% endif %}
-</div>
 
+        <h3 class="section-title">Explore Other Communities</h3>
+        <div class="grid">
+        {% set other_comms = communities | selectattr("is_other") | list %}
+        {% if other_comms %}
+            {% for community in other_comms %}
+            <div class="card">
 
-<!-- ===================== -->
-<!-- OTHER COMMUNITIES    -->
-<!-- ===================== -->
+                <h3>{{ community.project_title }}</h3>
 
-<h3 class="section-title">Explore Other Communities</h3>
-<div class="grid">
-{% set other_comms = communities | selectattr("is_other") | list %}
-{% if other_comms %}
-    {% for community in other_comms %}
-    <div class="card">
+                <span class="badge {{ community.visibility }}">
+                    {{ community.visibility|capitalize }}
+                </span>
 
-        <h3>{{ community.project_title }}</h3>
+                <div>
+                    {% for skill in community.skills_required %}
+                        <span class="skill">{{ skill }}</span>
+                    {% endfor %}
+                </div>
 
-        <span class="badge {{ community.visibility }}">
-            {{ community.visibility|capitalize }}
-        </span>
-
-        <div>
-            {% for skill in community.skills_required %}
-                <span class="skill">{{ skill }}</span>
+                <a class="view-btn"
+                   href="{{ url_for('view_community', community_id=community._id) }}">
+                    View Community
+                </a>
+            </div>
             {% endfor %}
+        {% else %}
+            <p class="no-data">No other communities available.</p>
+        {% endif %}
         </div>
 
-        <a class="view-btn"
-           href="{{ url_for('view_community', community_id=community._id) }}">
-            View Community
-        </a>
-    </div>
-    {% endfor %}
-{% else %}
-    <p class="no-data">No other communities available.</p>
-{% endif %}
+        </div> </main>
 </div>
 
-</div>
+{% include 'chatbot_widget.html' %}
 
+<script>
+(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+</script>
 </body>
 </html>
