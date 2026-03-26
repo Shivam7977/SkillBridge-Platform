@@ -41,6 +41,17 @@
         .project-board-header p { margin-top: 0; font-size: 1.1em; }
         .cta-button { background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); color: #fff; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: transform .2s, box-shadow .3s; font-size: 1em; text-decoration: none; display: inline-block; white-space: nowrap; box-shadow: var(--box-shadow-button); }
         .cta-button:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4); }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none !important; }
+            .main-content { margin-left: 0 !important; width: 100% !important; padding: 1.2rem !important; padding-top: 60px !important; }
+            .project-board-header { flex-direction: column; align-items: flex-start; gap: .75rem; }
+            .project-board-header .cta-button { width: 100%; text-align: center; }
+            .project-grid { grid-template-columns: 1fr !important; }
+            .card-actions { flex-direction: row; }
+            .edit-modal { max-width: 95vw !important; margin: 1rem !important; }
+            .delete-modal { max-width: 95vw !important; margin: 1rem !important; }
+        }
         .project-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; }
         .project-card { background: var(--color-surface); border: 1px solid var(--color-sidebar-border); border-radius: var(--border-radius-lg); padding: 1.5rem; display: flex; flex-direction: column; transition: all .2s ease-out; box-shadow: var(--box-shadow-widget); }
         .project-card:hover { transform: translateY(-5px); border-color: var(--color-primary); box-shadow: var(--box-shadow-card); }
@@ -104,6 +115,78 @@
         /* Toast */
         .toast { position: fixed; bottom: 24px; right: 24px; background: #1f2937; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: .85em; font-weight: 500; z-index: 9999; opacity: 0; transform: translateY(10px); transition: all .3s; pointer-events: none; }
         .toast.show { opacity: 1; transform: translateY(0); }
+
+        /* Pagination */
+        .pagination { display:flex; align-items:center; justify-content:center; gap:8px; margin: 2.5rem 0; flex-wrap:wrap; }
+
+        /* ── Tab Switcher ── */
+        .tab-bar {
+            display: flex; gap: 6px; margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--color-sidebar-border); padding-bottom: 0;
+        }
+        .tab-btn {
+            padding: 9px 20px; border: none; background: none; cursor: pointer;
+            font-family: 'Poppins', sans-serif; font-size: .88rem; font-weight: 600;
+            color: var(--color-text-secondary); border-bottom: 2px solid transparent;
+            margin-bottom: -2px; transition: all .2s; display: flex; align-items: center; gap: 6px;
+        }
+        .tab-btn.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+        .tab-btn:hover { color: var(--color-primary); }
+        .tab-count {
+            background: var(--color-primary); color: #fff;
+            font-size: .68rem; padding: 1px 7px; border-radius: 20px; font-weight: 700;
+        }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        /* Bookmark cards */
+        .bookmark-card {
+            background: var(--color-surface); border: 1px solid var(--color-sidebar-border);
+            border-radius: var(--border-radius-lg); padding: 1.25rem 1.5rem;
+            display: flex; align-items: flex-start; justify-content: space-between;
+            gap: 1rem; margin-bottom: .85rem; transition: all .2s;
+            box-shadow: var(--box-shadow-widget);
+        }
+        .bookmark-card:hover { border-color: var(--color-primary); transform: translateY(-2px); box-shadow: var(--box-shadow-card); }
+        .bookmark-card-info { flex: 1; min-width: 0; }
+        .bookmark-card-info h3 { font-size: 1rem; font-weight: 700; margin: 0 0 .3rem; color: var(--color-text-primary); }
+        .bookmark-card-info p { font-size: .85rem; color: var(--color-text-secondary); margin: 0 0 .5rem; }
+        .bookmark-card-actions { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
+        .unbookmark-btn {
+            background: none; border: 1.5px solid #f59e0b; color: #f59e0b;
+            border-radius: 8px; padding: 6px 12px; font-size: .78rem; font-weight: 700;
+            cursor: pointer; font-family: 'Poppins', sans-serif; transition: all .2s;
+        }
+        .unbookmark-btn:hover { background: #f59e0b; color: #fff; }
+        .no-bookmarks {
+            text-align: center; padding: 2.5rem; color: var(--color-text-secondary);
+            background: var(--color-surface); border: 1px dashed var(--color-sidebar-border);
+            border-radius: var(--border-radius-lg);
+        }
+        .no-bookmarks i { font-size: 2rem; color: #f59e0b; margin-bottom: .75rem; display: block; }
+        .no-bookmarks a { color: var(--color-primary); font-weight: 600; text-decoration: none; }
+        .page-btn { padding:8px 16px; border-radius:8px; border:1.5px solid var(--color-sidebar-border); background:#fff; color:var(--color-text-secondary); font-weight:600; font-size:0.85rem; cursor:pointer; text-decoration:none; transition:0.2s; font-family:inherit; }
+        .page-btn:hover { border-color:var(--color-primary); color:var(--color-primary); }
+        .page-btn.active { background:linear-gradient(90deg,var(--color-primary),var(--color-secondary)); color:#fff; border-color:transparent; }
+        .page-btn.disabled { opacity:0.4; cursor:not-allowed; pointer-events:none; }
+        .page-info { font-size:0.82rem; color:var(--color-text-secondary); font-weight:600; text-align:center; margin-top:0.5rem; }
+
+        /* ── Project Stats Row ── */
+        .project-stats-row {
+            display: flex; align-items: center; gap: 14px;
+            padding: 8px 0; margin: 8px 0;
+            border-top: 1px solid var(--color-sidebar-border);
+            border-bottom: 1px solid var(--color-sidebar-border);
+        }
+        .p-stat {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 0.8rem; font-weight: 600;
+            color: var(--color-text-secondary);
+        }
+        .p-stat i { font-size: 0.78rem; }
+        .p-stat.views i  { color: #8B5CF6; }
+        .p-stat.likes i  { color: #ef4444; }
+        .p-stat.comments i { color: #3b82f6; }
     </style>
 </head>
 <body>
@@ -122,7 +205,7 @@
                     <li><a href="{{ url_for('projects') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-globe"></i> Community</a></li>
                     <li><a href="{{ url_for('find_communities') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-users"></i> All Communities</a></li>
                     <li><a href="{{ url_for('messages_list') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-comment-dots"></i> Messages</a></li>
-    <a href="{{ url_for('leaderboard') }}"><i class="fas fa-trophy"></i> Leaderboard</a>
+                    <li><a href="{{ url_for('leaderboard') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-trophy"></i> Leaderboard</a></li>
 
                     <li style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--color-sidebar-border);">
                         <a href="{{ url_for('settings') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-cog"></i> Settings</a>
@@ -151,6 +234,27 @@
                 {% endif %}
             {% endwith %}
 
+            <!-- ── Tab Bar ── -->
+            <div class="tab-bar">
+                <button class="tab-btn active" id="tab-mine" onclick="switchTab('mine')">
+                    <i class="fas fa-layer-group"></i> My Projects
+                    <span class="tab-count">{{ total }}</span>
+                </button>
+                <button class="tab-btn" id="tab-saved" onclick="switchTab('saved')">
+                    <i class="fas fa-bookmark"></i> Saved
+                    <span class="tab-count" style="background:#f59e0b;">{{ bookmarked_projects|length }}</span>
+                </button>
+            </div>
+
+            <!-- ══ MY PROJECTS TAB ══ -->
+            <div class="tab-pane active" id="pane-mine">
+
+            {% if total == 0 %}
+            <div class="no-projects-message">
+                <p>You haven't created any projects yet. Click <a href="{{ url_for('create_project') }}">Create New Project</a> to get started!</p>
+            </div>
+            {% endif %}
+
             <div class="project-grid" id="project-grid">
                 {% for project in projects %}
                 <div class="project-card" id="card-{{ project._id }}">
@@ -163,6 +267,22 @@
                     {% else %}
                         <span class="completed-badge incomplete">⏳ In Progress — hidden from Resume & Portfolio</span>
                     {% endif %}
+
+                    <!-- ── Stats Row ── -->
+                    <div class="project-stats-row">
+                        <div class="p-stat views">
+                            <i class="fas fa-eye"></i>
+                            <span>{{ project.view_count or 0 }}</span>
+                        </div>
+                        <div class="p-stat likes">
+                            <i class="fas fa-heart"></i>
+                            <span>{{ project.like_count or 0 }}</span>
+                        </div>
+                        <div class="p-stat comments">
+                            <i class="fas fa-comment"></i>
+                            <span>{{ project.comment_count or 0 }}</span>
+                        </div>
+                    </div>
 
                     <p class="description">{{ project.description | truncate(150, True) }}</p>
 
@@ -202,12 +322,86 @@
                         </button>
                     </div>
                 </div>
-                {% else %}
-                <div class="no-projects-message">
-                    <p>You haven't created any projects yet. Click "Create New Project" to get started!</p>
-                </div>
                 {% endfor %}
             </div>
+
+            <!-- PAGINATION BAR -->
+            {% if total_pages > 1 %}
+            <div class="pagination">
+                {% if page > 1 %}
+                    <a href="{{ url_for('my_projects', page=page-1) }}" class="page-btn">← Previous</a>
+                {% else %}
+                    <span class="page-btn disabled">← Previous</span>
+                {% endif %}
+
+                {% for p in range(1, total_pages + 1) %}
+                    {% if p == page %}
+                        <span class="page-btn active">{{ p }}</span>
+                    {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+                        <a href="{{ url_for('my_projects', page=p) }}" class="page-btn">{{ p }}</a>
+                    {% elif p == page - 3 or p == page + 3 %}
+                        <span style="color:var(--color-text-secondary);padding:0 4px;">…</span>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page < total_pages %}
+                    <a href="{{ url_for('my_projects', page=page+1) }}" class="page-btn">Next →</a>
+                {% else %}
+                    <span class="page-btn disabled">Next →</span>
+                {% endif %}
+            </div>
+            <div class="page-info">
+                Showing {{ ((page-1) * 10) + 1 }}–{{ [page * 10, total]|min }} of {{ total }} projects
+            </div>
+            {% endif %}
+
+            </div><!-- end pane-mine -->
+
+            <!-- ══ SAVED TAB ══ -->
+            <div class="tab-pane" id="pane-saved">
+                {% if bookmarked_projects %}
+                <div style="margin-bottom:1rem;">
+                    {% for p in bookmarked_projects %}
+                    <div class="bookmark-card" id="bm-card-{{ p._id }}">
+                        <div class="bookmark-card-info">
+                            <h3>{{ p.title }}</h3>
+                            <p>{{ p.description | truncate(120, True) }}</p>
+                            <div>
+                                {% for skill in p.skills_needed[:4] %}
+                                    <span class="skill-tag">{{ skill }}</span>
+                                {% endfor %}
+                            </div>
+                            <div style="display:flex;gap:14px;margin-top:.5rem;">
+                                <span style="font-size:.78rem;color:var(--color-text-secondary);">
+                                    <i class="fas fa-eye" style="color:#8B5CF6"></i> {{ p.view_count or 0 }}
+                                </span>
+                                <span style="font-size:.78rem;color:var(--color-text-secondary);">
+                                    <i class="fas fa-heart" style="color:#ef4444"></i> {{ p.like_count or 0 }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="bookmark-card-actions">
+                            <a href="{{ url_for('view_project', project_id=p._id) }}"
+                               class="cta-button" style="padding:8px 16px;font-size:.82rem;">
+                                <i class="fas fa-arrow-right"></i> View
+                            </a>
+                            <button class="unbookmark-btn"
+                                onclick="removeBookmark('{{ p._id }}', this)">
+                                <i class="fas fa-bookmark"></i> Saved
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="no-bookmarks">
+                    <i class="fas fa-bookmark"></i>
+                    <p style="font-weight:600;margin-bottom:.4rem;">No saved projects yet</p>
+                    <p style="font-size:.88rem;">Browse <a href="{{ url_for('projects') }}">Community Projects</a> and click 🔖 to save them here.</p>
+                </div>
+                {% endif %}
+            </div><!-- end pane-saved -->
+
         </main>
     </div>
 
@@ -390,9 +584,50 @@
         t.classList.add('show');
         setTimeout(() => t.classList.remove('show'), 2800);
     }
-    </script>
 
+    // ── TAB SWITCHER ──────────────────────────────────────────
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        document.getElementById('pane-' + tab).classList.add('active');
+    }
+
+    // ── REMOVE BOOKMARK ───────────────────────────────────────
+    async function removeBookmark(projectId, btn) {
+        try {
+            const res = await fetch(`/project/${projectId}/bookmark`, { method: 'POST' });
+            const data = await res.json();
+            if (data.success && !data.bookmarked) {
+                const card = document.getElementById('bm-card-' + projectId);
+                if (card) {
+                    card.style.transition = 'opacity .3s, transform .3s';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.96)';
+                    setTimeout(() => {
+                        card.remove();
+                        // Check if no bookmarks left
+                        const pane = document.getElementById('pane-saved');
+                        if (!pane.querySelector('.bookmark-card')) {
+                            pane.innerHTML = `<div class="no-bookmarks">
+                                <i class="fas fa-bookmark"></i>
+                                <p style="font-weight:600;margin-bottom:.4rem;">No saved projects yet</p>
+                                <p style="font-size:.88rem;">Browse <a href="/projects">Community Projects</a> and click 🔖 to save them here.</p>
+                            </div>`;
+                        }
+                    }, 300);
+                }
+                // Update saved count badge
+                const badge = document.querySelector('#tab-saved .tab-count');
+                if (badge) badge.textContent = Math.max(0, parseInt(badge.textContent) - 1);
+                showToast('Bookmark removed');
+            }
+        } catch(e) { showToast('Error removing bookmark', false); }
+    }
+    </script>
+{% include 'notification_bell.html' %}
 {% include 'chatbot_widget.html' %}
+
 <script>
 applyTheme(localStorage.getItem('sb-theme') || 'light');
 function applyTheme(t){ t==='dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark'); }

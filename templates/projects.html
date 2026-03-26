@@ -1,6 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+<head>
+<script>
+(function(){
+    var t=localStorage.getItem('sb-theme')||'light';
+    if(t==='dark'){
+        document.documentElement.setAttribute('data-theme','dark');
+        document.documentElement.style.background='#0f0f1a';
+        document.documentElement.style.color='#e2e8f0';
+        // Apply immediately before CSS loads
+        var s=document.createElement('style');
+        s.id='pre-dark';
+        s.textContent='body{background:#0f0f1a!important;color:#e2e8f0!important}'+
+            '.project-card{background:#1a1a2e!important;border-color:#2d2d44!important}'+
+            '.sidebar{background:#13131f!important;border-color:#2d2d44!important}'+
+            '.skill-badge{background:#1e1e35!important;border-color:#2d2d44!important;color:#e2e8f0!important}'+
+            '.user-tag{background:#13131f!important}'+
+            '.card-footer{border-top-color:#2d2d44!important}'+
+            '.page-header h1{color:#e2e8f0!important}'+
+            '.page-header p{color:#94a3b8!important}'+
+            '.project-card h3{color:#e2e8f0!important}'+
+            '.project-card .desc{color:#94a3b8!important}';
+        document.head.appendChild(s);
+    }
+})();
+</script><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Community Projects | SkillBridge</title>
@@ -102,6 +126,33 @@ body {
 }
 .view-btn:hover { gap: 12px; }
 
+/* ── Bookmark button on cards ── */
+.bookmark-btn {
+    background: none; border: 1.5px solid var(--border);
+    border-radius: 50px; padding: 6px 12px; cursor: pointer;
+    font-size: 0.85rem; color: var(--text-dim);
+    transition: all 0.2s; display: flex; align-items: center;
+}
+.bookmark-btn:hover { border-color: #f59e0b; color: #f59e0b; }
+.bookmark-btn.bm-active { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.07); }
+body.dark .bookmark-btn { border-color: #2d2d44; color: #64748b; }
+body.dark .bookmark-btn:hover { border-color: #f59e0b; color: #f59e0b; }
+body.dark .bookmark-btn.bm-active { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.1); }
+
+/* ── Card Stats Row ── */
+.card-stats {
+    display: flex; align-items: center; gap: 12px;
+    padding: .6rem 0; margin: .5rem 0;
+    border-top: 1px solid var(--border);
+}
+.card-stat-pill {
+    display: flex; align-items: center; gap: 4px;
+    font-size: .75rem; font-weight: 600; color: var(--text-dim);
+}
+.card-stat-pill i { font-size: .72rem; }
+body.dark .card-stats { border-color: #2d2d44; }
+body.dark .card-stat-pill { color: #64748b; }
+
 .recommended-badge {
     position: absolute; top: -12px; right: 20px;
     background: linear-gradient(90deg, var(--primary), var(--secondary));
@@ -114,6 +165,40 @@ body {
     .sidebar { display: none; }
     .project-grid { grid-template-columns: 1fr; }
 }
+
+/* ── DARK MODE ── */
+body.dark {
+    background: #0f0f1a !important;
+    color: #e2e8f0 !important;
+    --bg: #0f0f1a;
+    --surface: #1a1a2e;
+    --text-main: #e2e8f0;
+    --text-dim: #94a3b8;
+    --border: #2d2d44;
+}
+body.dark .sidebar { background: #13131f !important; border-right-color: #2d2d44 !important; }
+body.dark .sidebar a { color: #94a3b8 !important; }
+body.dark .sidebar a:hover { background: #1e1e35 !important; color: #a78bfa !important; }
+body.dark .main-content { background: transparent !important; }
+body.dark .project-card {
+    background: #1a1a2e !important;
+    border-color: #2d2d44 !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
+}
+body.dark .project-card:hover { border-color: #a78bfa !important; }
+body.dark .project-card h3 { color: #e2e8f0 !important; }
+body.dark .project-card .desc { color: #94a3b8 !important; }
+body.dark .skill-badge { background: #1e1e35 !important; border-color: #2d2d44 !important; color: #e2e8f0 !important; }
+body.dark .user-tag { background: #13131f !important; border-color: #2d2d44 !important; }
+body.dark .user-tag span.by { color: #64748b !important; }
+body.dark .user-tag span.name { color: #a78bfa !important; }
+body.dark .card-footer { border-top-color: #2d2d44 !important; }
+body.dark .card-stat { color: #64748b !important; }
+body.dark .view-btn { color: #a78bfa !important; }
+body.dark .page-header h1 { color: #e2e8f0 !important; }
+body.dark .page-header p { color: #94a3b8 !important; }
+body.dark .section-title { color: #e2e8f0 !important; }
+body.dark #load-more-btn { background: #1a1a2e !important; border-color: #a78bfa !important; color: #a78bfa !important; }
 </style>
 </head>
 
@@ -156,7 +241,7 @@ body {
                 <a href="{{ url_for('view_user_profile', user_id=project.created_by_id) }}" class="user-tag">
                     <i class="fas fa-user-circle"></i>
                     <span class="by">By</span>
-                    <span class="name">{{ project.created_by_name }}</span>
+                    <span class="name">{{ project.created_by_name }}{% if project.created_by_username %} <span style="font-size:0.7rem;opacity:0.75;font-weight:600;">@{{ project.created_by_username }}</span>{% endif %}</span>
                 </a>
 
                 <p class="desc">{{ project.description }}</p>
@@ -168,52 +253,195 @@ body {
                 </div>
             </div>
 
+                <!-- Stats row -->
+                <div class="card-stats">
+                    <div class="card-stat-pill"><i class="fas fa-eye" style="color:#8B5CF6"></i> {{ project.view_count or project.views or 0 }}</div>
+                    <div class="card-stat-pill"><i class="fas fa-heart" style="color:#ef4444"></i> {{ project.like_count or 0 }}</div>
+                    <div class="card-stat-pill"><i class="fas fa-comment" style="color:#3b82f6"></i> {{ project.comment_count or 0 }}</div>
+                </div>
             <div class="card-footer">
                 <a href="{{ url_for('view_project', project_id=project._id) }}" class="view-btn">
                     Explore Project <i class="fas fa-arrow-right"></i>
                 </a>
+                {% if current_user.is_authenticated %}
+                <button class="bookmark-btn {% if project._id|string in user_bookmark_ids %}bm-active{% endif %}"
+                    onclick="toggleBookmark('{{ project._id }}', this)"
+                    title="{% if project._id|string in user_bookmark_ids %}Remove Bookmark{% else %}Save Project{% endif %}">
+                    <i class="{% if project._id|string in user_bookmark_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                </button>
+                {% endif %}
             </div>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <div class="section-title pink"><span></span> Explore Ecosystem</div>
-    <div class="project-grid">
+    <div class="section-title pink" style="display:flex;justify-content:space-between;align-items:center;">
+      <div style="display:flex;align-items:center;gap:12px;"><span></span> Explore Ecosystem</div>
+      <div style="font-size:0.82rem;color:var(--text-dim);font-weight:600;">
+        Showing <span id="showing-count">{{ other_projects|length }}</span> of {{ total }} projects
+      </div>
+    </div>
+
+    <div class="project-grid" id="projects-grid">
         {% for project in other_projects %}
         <div class="project-card">
             <div>
                 <h3>{{ project.title }}</h3>
-                
                 <a href="{{ url_for('view_user_profile', user_id=project.created_by_id) }}" class="user-tag">
                     <i class="fas fa-user-circle"></i>
                     <span class="by">By</span>
-                    <span class="name">{{ project.created_by_name }}</span>
+                    <span class="name">{{ project.created_by_name }}{% if project.created_by_username %} <span style="font-size:0.7rem;opacity:0.75;font-weight:600;">@{{ project.created_by_username }}</span>{% endif %}</span>
                 </a>
-
                 <p class="desc">{{ project.description }}</p>
-                
                 <div class="skill-box">
                     {% for skill in project.skills_needed %}
                     <span class="skill-badge">{{ skill }}</span>
                     {% endfor %}
                 </div>
             </div>
-
+                <!-- Stats row -->
+                <div class="card-stats">
+                    <div class="card-stat-pill"><i class="fas fa-eye" style="color:#8B5CF6"></i> {{ project.view_count or project.views or 0 }}</div>
+                    <div class="card-stat-pill"><i class="fas fa-heart" style="color:#ef4444"></i> {{ project.like_count or 0 }}</div>
+                    <div class="card-stat-pill"><i class="fas fa-comment" style="color:#3b82f6"></i> {{ project.comment_count or 0 }}</div>
+                </div>
             <div class="card-footer">
                 <a href="{{ url_for('view_project', project_id=project._id) }}" class="view-btn">
                     Explore Project <i class="fas fa-arrow-right"></i>
                 </a>
+                {% if current_user.is_authenticated %}
+                <button class="bookmark-btn {% if project._id|string in user_bookmark_ids %}bm-active{% endif %}"
+                    onclick="toggleBookmark('{{ project._id }}', this)"
+                    title="{% if project._id|string in user_bookmark_ids %}Remove Bookmark{% else %}Save Project{% endif %}">
+                    <i class="{% if project._id|string in user_bookmark_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                </button>
+                {% endif %}
             </div>
         </div>
         {% endfor %}
     </div>
 
+    <!-- LOAD MORE BUTTON -->
+    {% if has_more %}
+    <div style="text-align:center;margin:2.5rem 0;" id="load-more-wrap">
+        <button id="load-more-btn" onclick="loadMore()"
+            style="padding:14px 40px;border-radius:50px;border:2px solid var(--primary);
+                   background:#fff;color:var(--primary);font-family:inherit;font-weight:800;
+                   font-size:0.95rem;cursor:pointer;transition:0.2s;display:inline-flex;
+                   align-items:center;gap:10px;">
+            <i class="fas fa-plus-circle"></i> Load More Projects
+        </button>
+        <div style="margin-top:8px;font-size:0.78rem;color:var(--text-dim);">
+            Page {{ page }} of {{ total_pages }}
+        </div>
+    </div>
+    {% else %}
+    <div style="text-align:center;margin:2rem 0;font-size:0.85rem;color:var(--text-dim);">
+        ✅ You've seen all {{ total }} projects!
+    </div>
+    {% endif %}
+
 </main>
 </div>
+{% include 'notification_bell.html' %}
 {% include 'chatbot_widget.html' %}
+
 <script>
-(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+(function(){ 
+    var t=localStorage.getItem('sb-theme')||'light'; 
+    if(t==='dark') document.body.classList.add('dark');
+    else document.body.classList.remove('dark');
+})();
+
+
+
+// ── LOAD MORE ─────────────────────────────────────────────
+let currentPage = {{ page }};
+let isLoading = false;
+
+async function loadMore() {
+    if (isLoading) return;
+    isLoading = true;
+
+    const btn = document.getElementById('load-more-btn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`/api/projects?page=${currentPage + 1}`);
+        const data = await res.json();
+
+        const grid = document.getElementById('projects-grid');
+
+        data.projects.forEach(p => {
+            const skillsHtml = p.skills_needed.length
+                ? p.skills_needed.map(s => `<span class="skill-badge">${s}</span>`).join('')
+                : '';
+
+            const card = document.createElement('div');
+            card.className = 'project-card';
+            card.innerHTML = `
+                <div>
+                    <h3>${p.title}</h3>
+                    <a href="/user/${p.created_by_id}" class="user-tag">
+                        <i class="fas fa-user-circle"></i>
+                        <span class="by">By</span>
+                        <span class="name">${p.created_by_name}${p.created_by_username ? ' <span style="font-size:0.7rem;opacity:0.75;font-weight:600;">@'+p.created_by_username+'</span>' : ''}</span>
+                    </a>
+                    <p class="desc">${p.description}</p>
+                    <div class="skill-box">${skillsHtml}</div>
+                </div>
+                <div class="card-footer">
+                    <a href="/project/${p._id}" class="view-btn">
+                        Explore Project <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>`;
+            grid.appendChild(card);
+        });
+
+        currentPage++;
+
+        // Update showing count
+        const countEl = document.getElementById('showing-count');
+        if (countEl) countEl.textContent = parseInt(countEl.textContent) + data.projects.length;
+
+        // Hide Load More if no more pages
+        if (!data.has_more) {
+            document.getElementById('load-more-wrap').innerHTML =
+                '<p style="color:var(--text-dim);font-size:0.85rem;">✅ You've seen all projects!</p>';
+        } else {
+            btn.innerHTML = '<i class="fas fa-plus-circle"></i> Load More Projects';
+            btn.disabled = false;
+        }
+    } catch(e) {
+        btn.innerHTML = '<i class="fas fa-plus-circle"></i> Load More Projects';
+        btn.disabled = false;
+        console.error('Load more error:', e);
+    }
+    isLoading = false;
+}
+
+async function toggleBookmark(projectId, btn) {
+    try {
+        const res = await fetch(`/project/${projectId}/bookmark`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            const icon = btn.querySelector('i');
+            if (data.bookmarked) {
+                btn.classList.add('bm-active');
+                btn.title = 'Remove Bookmark';
+                icon.className = 'fas fa-bookmark';
+                icon.style.transform = 'scale(1.3)';
+                setTimeout(() => { icon.style.transform = 'scale(1)'; }, 200);
+            } else {
+                btn.classList.remove('bm-active');
+                btn.title = 'Save Project';
+                icon.className = 'far fa-bookmark';
+            }
+        }
+    } catch(e) { console.error('Bookmark error:', e); }
+}
 </script>
 </body>
 </html>

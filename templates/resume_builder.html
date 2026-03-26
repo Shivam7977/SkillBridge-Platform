@@ -31,11 +31,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 .sb .out{margin-top:auto;padding-top:1rem;}
 .sb .out a{color:#ef4444;}
 
-.main{margin-left:var(--sw);padding:2rem 2.5rem;}
+.main{margin-left:var(--sw);padding:2rem 2.5rem;transition:padding-right .3s ease;}
+.main.panel-open{padding-right:380px;}
 .topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;}
 .topbar h1{font-family:'Fraunces',serif;font-size:2rem;font-weight:900;}
 .topbar p{color:var(--muted);font-size:.85rem;margin-top:4px;}
 .btns{display:flex;gap:10px;flex-shrink:0;}
+@media(max-width:768px){
+  .sb{display:none!important;}
+  .main{margin-left:0!important;width:100%!important;padding:1rem!important;padding-top:60px!important;}
+  .topbar{flex-direction:column;align-items:flex-start;gap:.75rem;}
+  .btns{width:100%;flex-wrap:wrap;}
+  .btns .btn{flex:1;justify-content:center;font-size:.78rem;padding:8px 10px;}
+  .layout{grid-template-columns:1fr!important;}
+  .cp{position:static!important;}
+  .preview-wrap{min-height:400px;}
+}
 .btn{padding:10px 22px;border-radius:12px;font-family:'DM Sans',sans-serif;
   font-size:.87rem;font-weight:600;cursor:pointer;border:none;
   display:flex;align-items:center;gap:7px;transition:.22s;}
@@ -92,6 +103,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 .fb-warning{background:#f59e0b;color:#111}.fb-info{background:#3b82f6}
 
 /* ── SHARED RESUME UTILITIES ── */
+/* Experience item — shared across all templates */
+.rt .exp-item { padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,.06); }
+.rt .exp-item:last-child { border-bottom: none; }
+.rt .exp-role { font-weight: 700; font-size: .86rem; }
+.rt .exp-co { font-size: .8rem; font-weight: 600; opacity: .75; margin-top: 1px; }
+.rt .exp-dates { font-size: .74rem; opacity: .55; margin-top: 2px; }
 .rt { display: none; }
 .rt.on { display: flex; flex-direction: column; width: 100%; min-height: 1123px; box-sizing: border-box; overflow: hidden; }
 .rt.on .body { flex: 1 1 auto; }
@@ -575,10 +592,121 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       <p>18 career-specific templates · auto-filled from your profile · one-click PDF</p>
     </div>
     <div class="btns">
+      <button class="btn btn-o" onclick="toggleEditPanel()"><i class="fas fa-pen"></i> Edit Content</button>
       <button class="btn btn-o" onclick="copyHTML()"><i class="fas fa-copy"></i> Copy HTML</button>
       <button class="btn btn-p" onclick="openPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
     </div>
   </div>
+
+  <!-- ── EDIT PANEL ── -->
+  <div id="edit-panel" style="display:none;position:fixed;top:0;right:0;width:360px;height:100vh;background:#fff;border-left:1px solid #e2e8f0;z-index:9999;box-shadow:-8px 0 40px rgba(0,0,0,.12);">
+  <div id="edit-panel-scroll" style="height:calc(100vh - 110px);overflow-y:auto;padding:1.5rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
+      <h3 style="font-size:1rem;font-weight:700;color:#0f172a;"><i class="fas fa-pen" style="color:#7c3aed;margin-right:6px;"></i> Edit Resume Content</h3>
+      <button onclick="toggleEditPanel()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:#64748b;">✕</button>
+    </div>
+    <p style="font-size:.75rem;color:#94a3b8;margin-bottom:1.2rem;background:#f8fafc;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0;">
+      ✏️ Edits apply to preview only. Copy HTML to save. Changes reset when you leave.
+    </p>
+
+    <div class="ep-group">
+      <label class="ep-lbl">Full Name</label>
+      <input class="ep-inp" id="ep-name" oninput="liveUpdate()" placeholder="Your name">
+    </div>
+    <div class="ep-group">
+      <label class="ep-lbl">Job Title / Role</label>
+      <input class="ep-inp" id="ep-title" oninput="liveUpdate()" placeholder="e.g. Full Stack Developer">
+    </div>
+    <div class="ep-group">
+      <label class="ep-lbl">Email</label>
+      <input class="ep-inp" id="ep-email" oninput="liveUpdate()" placeholder="you@email.com">
+    </div>
+    <div class="ep-group">
+      <label class="ep-lbl">Location</label>
+      <input class="ep-inp" id="ep-location" oninput="liveUpdate()" placeholder="City, Country">
+    </div>
+    <div class="ep-group">
+      <label class="ep-lbl">LinkedIn URL</label>
+      <input class="ep-inp" id="ep-linkedin" oninput="liveUpdate()" placeholder="https://linkedin.com/in/...">
+    </div>
+    <div class="ep-group">
+      <label class="ep-lbl">GitHub URL</label>
+      <input class="ep-inp" id="ep-github" oninput="liveUpdate()" placeholder="https://github.com/...">
+    </div>
+    <div class="ep-group">
+      <label class="ep-lbl">About Me</label>
+      <textarea class="ep-inp" id="ep-about" oninput="liveUpdate()" rows="3" placeholder="Brief bio..."></textarea>
+    </div>
+    <div class="ep-group">
+      <label class="ep-lbl">Career Goal</label>
+      <textarea class="ep-inp" id="ep-goal" oninput="liveUpdate()" rows="2" placeholder="Your career goal..."></textarea>
+    </div>
+    <div class="ep-group">
+      <label class="ep-lbl">Known Skills <span style="color:#94a3b8;font-weight:400;">(comma separated)</span></label>
+      <textarea class="ep-inp" id="ep-skills" oninput="liveUpdate()" rows="2" placeholder="Python, Flask, React..."></textarea>
+    </div>
+    <div class="ep-group">
+      <label class="ep-lbl">Learning Skills <span style="color:#94a3b8;font-weight:400;">(comma separated)</span></label>
+      <textarea class="ep-inp" id="ep-learning" oninput="liveUpdate()" rows="2" placeholder="Rust, Go, Web3..."></textarea>
+    </div>
+    <div class="ep-group">
+      <label class="ep-lbl">Education Degree</label>
+      <input class="ep-inp" id="ep-degree" oninput="liveUpdate()" placeholder="B.Tech Computer Science">
+    </div>
+    <div class="ep-group">
+      <label class="ep-lbl">College / Institution</label>
+      <input class="ep-inp" id="ep-college" oninput="liveUpdate()" placeholder="University name">
+    </div>
+    <div class="ep-group">
+      <label class="ep-lbl">Years of Experience</label>
+      <input class="ep-inp" id="ep-exp" oninput="liveUpdate()" placeholder="e.g. 3">
+    </div>
+
+    <!-- Work Experience Entries -->
+    <div style="margin:.75rem 0 .5rem;padding-top:.75rem;border-top:1.5px solid #e2e8f0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;">
+        <div class="ep-lbl" style="font-size:.75rem;color:#7c3aed;">💼 Work Experience</div>
+        <button type="button" onclick="addEpExp()" style="padding:3px 10px;border-radius:6px;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;">+ Add</button>
+      </div>
+      <div id="ep-exp-list"></div>
+    </div>
+    <div style="margin:1rem 0 .5rem;padding-top:.75rem;border-top:1.5px solid #e2e8f0;">
+      <div class="ep-lbl" style="font-size:.75rem;color:#7c3aed;margin-bottom:.6rem;">⚡ Projects</div>
+    </div>
+    {% for p in projects %}
+    <div class="ep-group" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:.75rem;">
+      <label class="ep-lbl">Project {{ loop.index }} — Title</label>
+      <input class="ep-inp" id="ep-proj-title-{{ loop.index0 }}" oninput="liveUpdate()" placeholder="{{ p.title }}" style="margin-bottom:.4rem;">
+      <label class="ep-lbl" style="margin-top:.3rem;">Description</label>
+      <textarea class="ep-inp" id="ep-proj-desc-{{ loop.index0 }}" oninput="liveUpdate()" rows="3" placeholder="{{ p.description }}"></textarea>
+    </div>
+    {% endfor %}
+
+    <button onclick="resetEdits()" style="width:100%;margin-top:.5rem;padding:10px;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-weight:600;cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;">
+      <i class="fas fa-undo"></i> Reset to Original
+    </button>
+  </div>
+  <div style="position:absolute;bottom:0;left:0;right:0;padding:1rem 1.5rem;border-top:1px solid #e2e8f0;background:#fff;">
+    <button onclick="copyHTML()" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid #7c3aed;background:#fff;color:#7c3aed;font-weight:700;cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:.5rem;">
+      <i class="fas fa-copy"></i> Copy HTML
+    </button>
+    <button onclick="openPDF()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(90deg,#7c3aed,#ec4899);color:#fff;font-weight:700;cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:7px;">
+      <i class="fas fa-file-pdf"></i> Download PDF
+    </button>
+  </div>
+  </div>
+
+  <style>
+  .ep-group { margin-bottom:.85rem; }
+  .ep-lbl { display:block;font-size:.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px; }
+  .ep-inp { width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-family:'DM Sans',sans-serif;font-size:.85rem;color:#0f172a;resize:vertical;outline:none;transition:border-color .2s; }
+  .ep-inp:focus { border-color:#7c3aed; }
+  body.dark #edit-panel { background:#1a1a2e;border-color:#2d2d44; }
+  body.dark #edit-panel > div:last-child { background:#1a1a2e!important;border-color:#2d2d44!important; }
+  body.dark .ep-inp { background:#13131f;border-color:#2d2d44;color:#e2e8f0; }
+  body.dark .ep-inp:focus { border-color:#a78bfa; }
+  body.dark .ep-lbl { color:#64748b; }
+  </style>
 
   <div class="layout">
     <div class="cp">
@@ -631,7 +759,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="h-name">{{ user.name or 'Your Name' }}</div>
     <div class="h-role">{{ user.title or 'Software Developer' }}</div>
     <div class="h-row">
-      {% if user.email %}<a class="hc" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.email %}<a class="hc" href="/cdn-cgi/l/email-protection#374c4c4244524519525a565e5b4a4a"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
       {% if user.location %}<span class="hc"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
       {% if user.github_url %}<a class="hc" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
       {% if user.linkedin_url %}<a class="hc" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
@@ -646,7 +774,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
         <div style="font-size:.86rem;font-weight:700;color:#1e1b4b;">{{user.education_degree or 'Degree'}}</div>
         <div style="font-size:.78rem;color:#64748b;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
       </div>
-      {% if user.experience_years %}<div class="sec"><div class="st">Experience</div><div style="font-size:.88rem;font-weight:700;">{{user.experience_years}} Years</div></div>{% endif %}
+      {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
       {% if user.current_status %}<div class="sec"><div class="st">Status</div><div style="font-size:.82rem;color:#475569;">{{user.current_status}}</div></div>{% endif %}
       <div class="vsep"></div>
     </div>
@@ -663,7 +791,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   <div class="nm">{{ user.name or 'Your Name' }}</div>
   <div class="role">{{ user.title or 'Professional' }}</div>
   <div class="row">
-    {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+    {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#d8a3a3adabbdaaf6bdb5b9b1b4a5a5"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
     {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
     {% if user.github_url %}<a class="ci" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
     {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
@@ -672,6 +800,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   {% if user.known_skills %}<div class="sec"><div class="st">Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="sk">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
   {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<div class="cert-row"><span class="cn">{{c.name}}</span><span style="font-size:.74rem;color:var(--muted);">{{c.issuer}}</span><span class="ci2">{% if c.issue_date %}{{c.issue_date}}{% endif %}</span></div>{% endfor %}</div>{% endif %}
   {% if projects %}<div class="sec"><div class="st">Projects</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
+  {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
   <div class="sec"><div class="st">Education</div><div style="font-size:.9rem;"><strong>{{user.education_degree or 'Degree'}}</strong><span style="color:var(--muted)"> — {{user.education_college or 'Institution'}}</span></div></div>
   <div class="vsep"></div>
 </div>
@@ -682,7 +811,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       <div class="nm">{{ user.name or 'Your Name' }}</div>
       <div class="role">{{ user.title or 'Graduate' }}</div>
       <div class="row">
-        {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+        {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#7e05050b0d1b0c501b131f17120303"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
         {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
         {% if user.github_url %}<a class="ci" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
       </div>
@@ -700,7 +829,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     </div>{% endif %}
     {% if user.certificates %}<div class="sec"><div class="st">Certificates</div>{% for c in user.certificates %}<span class="cert-chip">🏅 {{c.name}}</span>{% endfor %}</div>{% endif %}
     {% if projects %}<div class="sec"><div class="st">Projects</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
-    <div class="sec"><div class="st">Education</div><div class="pj"><div class="pt">{{user.education_degree or 'Degree / Certification'}}</div><div class="pd">{{user.education_college or 'Institution'}}</div></div></div>
+    {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
+<div class="sec"><div class="st">Education</div><div class="pj"><div class="pt">{{user.education_degree or 'Degree / Certification'}}</div><div class="pd">{{user.education_college or 'Institution'}}</div></div></div>
     <div class="vsep"></div>
   </div>
 </div>
@@ -710,7 +840,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="nm">{{ user.name or 'Your Name' }}</div>
     <div class="role">{{ user.title or 'Creative Designer' }}</div>
     <div class="row">
-      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#6f14141a1c0a1d410a020e06031212"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
       {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
       {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
     </div>
@@ -725,7 +855,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       {% if user.known_skills %}<div class="sec"><div class="st">Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="sk">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.learning_skills %}<div class="sec"><div class="st">Exploring</div>{% for s in user.learning_skills %}{% if s.strip() %}<span class="sk" style="border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.5);">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<div class="cert-item"><div class="cn">{{c.name}}</div><div class="ci2">{{c.issuer}}</div></div>{% endfor %}</div>{% endif %}
-      <div class="sec"><div class="st">Education</div>
+      {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
+<div class="sec"><div class="st">Education</div>
         <div style="font-weight:700;font-size:.86rem;">{{user.education_degree or 'Degree'}}</div>
         <div style="font-size:.76rem;color:rgba(255,255,255,.5);margin-top:2px;">{{user.education_college or 'Institution'}}</div>
       </div>
@@ -747,7 +878,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     </div>
   </div>
   <div class="contacts">
-    {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+    {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#0f74747a7c6a7d216a626e66637272"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
     {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
     {% if user.github_url %}<a class="ci" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
     {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
@@ -762,7 +893,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="R">
       {% if user.known_skills %}<div class="sec"><div class="st">Tech Stack</div>{% for s in user.known_skills %}{% if s.strip() %}<div class="bar-row"><span class="bar-lbl">{{s.strip()}}</span><div class="bar-bg"><div class="bar-fg" style="width:{{[88,76,92,68,82,74,90,66,78,85][loop.index0%10]}}%;"></div></div></div>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="cert-badge">{{c.name}}</span>{% endfor %}</div>{% endif %}
-      <div class="sec"><div class="st">Education</div>
+      {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
+<div class="sec"><div class="st">Education</div>
         <div style="font-size:.82rem;color:#cbd5e1;"><strong>{{user.education_degree or 'Degree'}}</strong><br><span style="color:#64748b;">{{user.education_college or 'Institution'}}</span></div>
       </div>
       <div class="vsep"></div>
@@ -776,7 +908,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="nm">{{ user.name or 'Your Name' }}</div>
     <div class="role">// {{ user.title or 'Full Stack Developer' }}</div>
     <div class="row">
-      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#017a7a747264732f646c60686d7c7c"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
       {% if user.github_url %}<a class="ci" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>{{user.github_url}}</a>{% endif %}
       {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
     </div>
@@ -795,7 +927,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
         <div style="font-size:.8rem;color:#f0f6fc;font-weight:700;">{{user.education_degree or 'Degree'}}</div>
         <div style="font-size:.73rem;color:#8b949e;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
       </div>
-      <div class="vsep"></div>
+      {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
+<div class="vsep"></div>
     </div>
   </div>
 </div>
@@ -806,7 +939,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       <div class="nm">{{ user.name or 'Your Name' }}</div>
       <div class="role">{{ user.title or 'Product Manager' }}</div>
       <div class="row">
-        {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+        {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#8af1f1fff9eff8a4efe7ebe3e6f7f7"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
         {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
         {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
       </div>
@@ -826,7 +959,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       <div>
         {% if user.known_skills %}<div class="sec"><div class="st">Core Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="pill">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
         {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="pill pill-c">{{c.name}}</span>{% endfor %}</div>{% endif %}
-        <div class="sec"><div class="st">Education</div><div class="pj"><div class="pt">{{user.education_degree or 'Degree'}}</div><div class="pd">{{user.education_college or 'Institution'}}</div></div></div>
+        {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
+<div class="sec"><div class="st">Education</div><div class="pj"><div class="pt">{{user.education_degree or 'Degree'}}</div><div class="pd">{{user.education_college or 'Institution'}}</div></div></div>
         {% if user.career_goal %}<div class="sec"><div class="st">Vision</div><p style="font-size:.81rem;color:#57534e;line-height:1.7;">{{user.career_goal}}</p></div>{% endif %}
       </div>
     </div>
@@ -840,7 +974,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       <div class="nm">{{ user.name or 'Your Name' }}</div>
       <div class="role">{{ user.title or 'UI/UX Designer' }}</div>
       <div class="row">
-        {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+        {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#f78c8c82849285d9929a969e9b8a8a"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
         {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
         {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
       </div>
@@ -852,7 +986,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       {% if user.known_skills %}<div class="sec"><div class="st">Design Tools</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.learning_skills %}<div class="sec"><div class="st">Exploring</div>{% for s in user.learning_skills %}{% if s.strip() %}<span class="chip chip-l">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip chip-c">{{c.name}}</span>{% endfor %}</div>{% endif %}
-      <div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+      {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
+<div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
       <div class="vsep"></div>
     </div>
     <div class="R">
@@ -874,7 +1009,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       {% if user.experience_years %}<div class="badge"><div class="bn">{{user.experience_years}}</div><div class="bl">Yrs Exp</div></div>{% endif %}
     </div>
     <div class="row">
-      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#5e25252b2d3b2c703b333f37322323"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
       {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
       {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
     </div>
@@ -888,7 +1023,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       <div>
         {% if user.known_skills %}<div class="sec"><div class="st">Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="pill">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
         {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="pill pill-c">{{c.name}}</span>{% endfor %}</div>{% endif %}
-        <div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+        {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
+<div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
       </div>
     </div>
     <div class="vsep"></div>
@@ -901,7 +1037,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="role">{{ user.title or 'Finance Professional' }}</div>
     <div class="rule"></div>
     <div class="row">
-      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#e992929c9a8c9bc78c848880859494"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
       {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
       {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
     </div>
@@ -911,7 +1047,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       {% if user.known_skills %}<div class="sec"><div class="st">Competencies</div>{% for s in user.known_skills %}{% if s.strip() %}<div class="sk-item">{{s.strip()}}</div>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<div class="cert-item"><div><div class="cn">{{c.name}}</div><div class="ci2">{{c.issuer}}</div></div></div>{% endfor %}</div>{% endif %}
       <div class="sec"><div class="st">Education</div><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div>
-      {% if user.experience_years %}<div class="sec"><div class="st">Experience</div><div style="font-family:'DM Sans',sans-serif;font-size:.82rem;color:#374151;">{{user.experience_years}} Years</div></div>{% endif %}
+      {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
       <div class="vsep"></div>
     </div>
     <div class="R">
@@ -930,7 +1066,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       <div class="role">{{ user.title or 'Healthcare Professional' }}</div>
     </div>
     <div class="c-col">
-      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#651e1e101600174b0008040c091818"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
       {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
       {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
     </div>
@@ -939,7 +1075,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="L">
       {% if user.known_skills %}<div class="sec"><div class="st">Clinical Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip chip-c">{{c.name}}</span>{% endfor %}</div>{% endif %}
-      <div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+      {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
+<div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
       {% if user.availability %}<div class="sec"><div class="st">Availability</div><p style="font-size:.8rem;color:#0f766e;">{{user.availability}}</p></div>{% endif %}
       <div class="vsep"></div>
     </div>
@@ -958,7 +1095,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="nm">{{ user.name or 'Your Name' }}</div>
     <div class="role">{{ user.title or 'Cybersecurity Analyst' }}</div>
     <div class="row">
-      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#057e7e707660772b6068646c697878"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
       {% if user.github_url %}<a class="ci" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
       {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
     </div>
@@ -972,7 +1109,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="R">
       {% if user.known_skills %}<div class="sec"><div class="st">Capabilities</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip chip-c">{{c.name}}</span>{% endfor %}</div>{% endif %}
-      <div class="sec"><div class="st">Education</div>
+      {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
+<div class="sec"><div class="st">Education</div>
         <div style="font-weight:700;font-size:.8rem;color:#dde1e7;">{{user.education_degree or 'Degree'}}</div>
         <div style="font-size:.72rem;color:rgba(255,255,255,.42);margin-top:2px;">{{user.education_college or 'Institution'}}</div>
       </div>
@@ -987,7 +1125,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="nm">{{ user.name or 'Your Name' }}</div>
     <div class="role">{{ user.title or 'DevOps / Cloud Engineer' }}</div>
     <div class="row">
-      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#8ff4f4fafceafda1eae2eee6e3f2f2"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
       {% if user.github_url %}<a class="ci" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
       {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
     </div>
@@ -1000,7 +1138,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
         <div style="font-weight:700;font-size:.86rem;color:#0c4a6e;">{{user.education_degree or 'Degree'}}</div>
         <div style="font-size:.78rem;color:#0284c7;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
       </div>
-      {% if user.experience_years %}<div class="sec"><div class="st">Experience</div><p style="font-size:.82rem;color:#374151;">{{user.experience_years}} Years</p></div>{% endif %}
+      {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
       <div class="vsep"></div>
     </div>
     <div class="R">
@@ -1017,7 +1155,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="nm">{{ user.name or 'Your Name' }}</div>
     <div class="role">{{ user.title or 'Freelance Creative' }}</div>
     <div class="row">
-      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#7d0606080e180f5318101c14110000"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
       {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
       {% if user.github_url %}<a class="ci" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>Portfolio</a>{% endif %}
     </div>
@@ -1032,7 +1170,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="R">
       {% if user.known_skills %}<div class="sec"><div class="st">Disciplines</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="sk-item">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Credentials</div>{% for c in user.certificates %}<div class="cert-item"><div class="cn">{{c.name}}</div><div class="ci2">{{c.issuer}}{% if c.issue_date %} · {{c.issue_date}}{% endif %}</div></div>{% endfor %}</div>{% endif %}
-      <div class="sec"><div class="st">Education</div>
+      {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
+<div class="sec"><div class="st">Education</div>
         <div style="font-weight:700;font-size:.93rem;">{{user.education_degree or 'Degree'}}</div>
         <div style="font-size:.84rem;color:#666;font-style:italic;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
       </div>
@@ -1048,7 +1187,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="role">{{ user.title or 'Senior Executive' }}</div>
     <div class="gr"></div>
     <div class="row">
-      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#0873737d7b6d7a266d656961647575"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
       {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
       {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
     </div>
@@ -1056,7 +1195,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   <div class="body">
     <div class="L">
       {% if user.about_me %}<div class="sec"><div class="st">Executive Summary</div><p class="about">{{user.about_me}}</p></div>{% endif %}
-      {% if user.experience_years %}<div class="sec"><div class="st">Experience</div><div class="role-nm">{{user.title or 'Professional'}}</div><div class="co">{{user.experience_years}} Years in Industry</div></div>{% endif %}
+      {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
       {% if projects %}<div class="sec"><div class="st">Key Initiatives</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
       {% if user.career_goal %}<div class="sec"><div class="st">Vision</div><p style="font-family:'DM Sans',sans-serif;font-size:.83rem;color:#6b7280;line-height:1.72;">{{user.career_goal}}</p></div>{% endif %}
       <div class="vsep"></div>
@@ -1079,7 +1218,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       <div class="nm">{{ user.name or 'Your Name' }}</div>
       <div class="role">{{ user.title or 'Educator' }}</div>
       <div class="row">
-        {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+        {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#1d6666686e786f3378707c74716060"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
         {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
         {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
       </div>
@@ -1097,7 +1236,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       {% if user.known_skills %}<div class="sec"><div class="st">Subject Areas</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip chip-c">{{c.name}} <span style="font-size:.65rem;opacity:.7;">— {{c.issuer}}</span></span>{% endfor %}</div>{% endif %}
       <div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
-      {% if user.experience_years %}<div class="sec"><div class="st">Teaching Exp</div><p style="font-size:.82rem;color:#374151;">{{user.experience_years}} Years</p></div>{% endif %}
+      {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
       <div class="vsep"></div>
     </div>
   </div>
@@ -1108,7 +1247,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="nm">{{ user.name or 'Your Name' }}</div>
     <div class="role">{{ user.title or 'Sales Professional' }}</div>
     <div class="row">
-      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#d0ababa5a3b5a2feb5bdb1b9bcadad"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
       {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
       {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
     </div>
@@ -1128,7 +1267,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       <div>
         {% if user.known_skills %}<div class="sec"><div class="st">Sales Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
         {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip chip-c">{{c.name}}</span>{% endfor %}</div>{% endif %}
-        <div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+        {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
+<div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
         {% if user.career_goal %}<div class="sec"><div class="st">Goal</div><p style="font-size:.8rem;color:#374151;line-height:1.65;">{{user.career_goal}}</p></div>{% endif %}
       </div>
     </div>
@@ -1145,7 +1285,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     </div>
     <div class="role">{{ user.title or 'Startup Founder · Entrepreneur' }}</div>
     <div class="row">
-      {% if user.email %}<a class="ci" href="mailto:{{user.email}}"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
+      {% if user.email %}<a class="ci" href="/cdn-cgi/l/email-protection#88f3f3fdfbedfaa6ede5e9e1e4f5f5"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
       {% if user.github_url %}<a class="ci" href="{{user.github_url}}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
       {% if user.linkedin_url %}<a class="ci" href="{{user.linkedin_url}}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
       {% if user.location %}<span class="ci"><i class="fas fa-map-marker-alt"></i>{{user.location}}</span>{% endif %}
@@ -1156,7 +1296,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       {% if user.known_skills %}<div class="sec"><div class="st">Stack</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Credentials</div>{% for c in user.certificates %}<span class="chip chip-c">{{c.name}}</span>{% endfor %}</div>{% endif %}
       <div class="sec"><div class="st">Education</div><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div>
-      {% if user.experience_years %}<div class="sec"><div class="st">Building Since</div><p style="font-family:'DM Sans',sans-serif;font-size:.82rem;color:rgba(255,255,255,.45);">{{user.experience_years}} Years</p></div>{% endif %}
+      {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
       {% if user.career_goal %}<div class="sec"><div class="st">Mission</div><p style="font-family:'DM Sans',sans-serif;font-size:.78rem;color:rgba(255,255,255,.42);line-height:1.7;">{{user.career_goal}}</p></div>{% endif %}
       <div class="vsep"></div>
     </div>
@@ -1170,7 +1310,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 
       </div></div></div></main>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 let cur = 1;
 function sw(n, el) {
   document.querySelectorAll('.rt').forEach(t => t.classList.remove('on'));
@@ -1188,25 +1328,245 @@ function copyHTML() {
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#fff;}</style>
 <style>${allStyles}</style>
-</head><body>${el.outerHTML}</body></html>`;
+</head><body>${el.outerHTML}`;
   navigator.clipboard.writeText(html).then(() => {
-    const b = document.querySelector('.btn-o');
-    const orig = b.innerHTML;
-    b.innerHTML = '<i class="fas fa-check"></i> Copied!';
-    setTimeout(() => b.innerHTML = orig, 2000);
+    const b = document.querySelector('.btn-o[onclick="copyHTML()"]');
+    if(b){const orig=b.innerHTML;b.innerHTML='<i class="fas fa-check"></i> Copied!';setTimeout(()=>b.innerHTML=orig,2000);}
   });
 }
-setTimeout(() => {
-  document.querySelectorAll('.fb').forEach(f => {
-    f.style.transition = 'opacity .4s'; f.style.opacity = '0';
-    setTimeout(() => f.remove(), 400);
+
+// ── ORIGINAL DATA (injected from Jinja, session-only) ──
+const ORIG = {
+  name:     {{ (user.name or '')|tojson }},
+  title:    {{ (user.title or '')|tojson }},
+  email:    {{ (user.email or '')|tojson }},
+  location: {{ (user.location or '')|tojson }},
+  linkedin: {{ (user.linkedin_url or '')|tojson }},
+  github:   {{ (user.github_url or '')|tojson }},
+  about:    {{ (user.about_me or '')|tojson }},
+  goal:     {{ (user.career_goal or '')|tojson }},
+  skills:   {{ (user.known_skills or [])|tojson }},
+  learning: {{ (user.learning_skills or [])|tojson }},
+  degree:   {{ (user.education_degree or '')|tojson }},
+  college:  {{ (user.education_college or '')|tojson }},
+  exp:      {{ (user.experience_years or '')|tojson }},
+  projects:  {{ projects | map(attribute='title') | list | tojson }},
+  projdescs: {{ projects | map(attribute='description') | list | tojson }},
+  work_experience: {{ (work_experience or [])|tojson }},
+};
+
+// ── Editable experience entries ──
+let epExpEntries = JSON.parse(JSON.stringify(ORIG.work_experience || []));
+
+function renderEpExpList() {
+  const list = document.getElementById('ep-exp-list');
+  if (!list) return;
+  if (!epExpEntries.length) { list.innerHTML = ''; return; }
+  list.innerHTML = epExpEntries.map((e, i) => `
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.75rem;margin-bottom:.5rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.4rem;">
+        <input class="ep-inp" placeholder="Role" value="${e.role||''}" oninput="epExpEntries[${i}].role=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+        <input class="ep-inp" placeholder="Company" value="${e.company||''}" oninput="epExpEntries[${i}].company=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+        <input class="ep-inp" placeholder="From Year" value="${e.from_year||''}" oninput="epExpEntries[${i}].from_year=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+        <input class="ep-inp" placeholder="${e.is_current?'Present':e.to_year||'To Year'}" value="${e.is_current?'':e.to_year||''}" ${e.is_current?'disabled':''} oninput="epExpEntries[${i}].to_year=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+      </div>
+      <button onclick="epExpEntries.splice(${i},1);renderEpExpList();liveUpdate()" style="padding:2px 10px;border-radius:5px;border:1px solid #ef4444;background:transparent;color:#ef4444;font-size:.72rem;cursor:pointer;font-family:inherit;">✕ Remove</button>
+    </div>
+  `).join('');
+}
+
+function addEpExp() {
+  epExpEntries.push({role:'',company:'',from_year:'',to_year:'',is_current:false});
+  renderEpExpList();
+}
+
+// ── POPULATE EDIT PANEL WITH ORIGINAL DATA ──
+function populatePanel() {
+  document.getElementById('ep-name').value     = ORIG.name;
+  document.getElementById('ep-title').value    = ORIG.title;
+  document.getElementById('ep-email').value    = ORIG.email;
+  document.getElementById('ep-location').value = ORIG.location;
+  document.getElementById('ep-linkedin').value = ORIG.linkedin;
+  document.getElementById('ep-github').value   = ORIG.github;
+  document.getElementById('ep-about').value    = ORIG.about;
+  document.getElementById('ep-goal').value     = ORIG.goal;
+  document.getElementById('ep-skills').value   = (ORIG.skills || []).join(', ');
+  document.getElementById('ep-learning').value = (ORIG.learning || []).join(', ');
+  document.getElementById('ep-degree').value   = ORIG.degree;
+  document.getElementById('ep-college').value  = ORIG.college;
+  document.getElementById('ep-exp').value      = ORIG.exp;
+  epExpEntries = JSON.parse(JSON.stringify(ORIG.work_experience || []));
+  renderEpExpList();
+  // Projects
+  (ORIG.projects || []).forEach((title, i) => {
+    const tf = document.getElementById('ep-proj-title-' + i);
+    const df = document.getElementById('ep-proj-desc-' + i);
+    if (tf) tf.value = title || '';
+    if (df) df.value = (ORIG.projdescs || [])[i] || '';
   });
-}, 4000);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  populatePanel();
+  renderEpExpList();
+  liveUpdate();
+});
+
+function toggleEditPanel() {
+  const p = document.getElementById('edit-panel');
+  const mainEl = document.querySelector('.main');
+  const isHidden = p.style.display === 'none' || p.style.display === '';
+  p.style.display = isHidden ? 'block' : 'none';
+  if (isHidden) {
+    mainEl.classList.add('panel-open');
+  } else {
+    mainEl.classList.remove('panel-open');
+  }
+}
+
+function resetEdits() {
+  populatePanel();
+  liveUpdate();
+}
+
+// ── LIVE UPDATE — updates the ACTIVE template only ──
+function liveUpdate() {
+  const name     = document.getElementById('ep-name').value;
+  const title    = document.getElementById('ep-title').value;
+  const email    = document.getElementById('ep-email').value;
+  const location = document.getElementById('ep-location').value;
+  const linkedin = document.getElementById('ep-linkedin').value;
+  const github   = document.getElementById('ep-github').value;
+  const about    = document.getElementById('ep-about').value;
+  const goal     = document.getElementById('ep-goal').value;
+  const skills   = document.getElementById('ep-skills').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const learning = document.getElementById('ep-learning').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const degree   = document.getElementById('ep-degree').value;
+  const college  = document.getElementById('ep-college').value;
+
+  // Only update the currently visible template
+  const t = document.getElementById('t' + cur);
+  if (!t) return;
+
+  // ── Name: .nm class ──
+  t.querySelectorAll('.nm').forEach(el => { if(name) el.textContent = name; });
+  // ── Name: .h-name class (t1) ──
+  t.querySelectorAll('.h-name').forEach(el => { if(name) el.textContent = name; });
+
+  // ── Role/Title ──
+  t.querySelectorAll('.role,.h-role').forEach(el => {
+    // skip .role inside .kpis or .metrics (those show counts)
+    if(!el.closest('.kpis') && !el.closest('.metrics') && !el.closest('.sb2')) {
+      if(title) el.textContent = title;
+    }
+  });
+
+  // ── About — always p.about or .hl ──
+  t.querySelectorAll('p.about, .hl').forEach(el => { if(about !== '') el.textContent = about; });
+  // Also inline-style paragraphs inside about sections
+  t.querySelectorAll('.sec').forEach(sec => {
+    const st = sec.querySelector('.st');
+    if (!st) return;
+    const label = st.textContent.toLowerCase();
+    if (label.includes('about')||label.includes('summary')||label.includes('philosophy')||label.includes('story')||label.includes('profile')) {
+      sec.querySelectorAll('p:not(.about)').forEach(p => { if(about !== '') p.textContent = about; });
+    }
+    if (label.includes('goal')||label.includes('vision')||label.includes('mission')) {
+      sec.querySelectorAll('p').forEach(p => { if(goal !== '') p.textContent = goal; });
+    }
+    // Education
+    if (label.includes('educ')) {
+      // pattern 1: .pt / .pd inside .pj
+      const pt = sec.querySelector('.pt, .ed, .role-nm');
+      const pd = sec.querySelector('.pd, .es, .co');
+      if (pt && degree) pt.textContent = degree;
+      if (pd && college) pd.textContent = college;
+      // pattern 2: inline div/strong (t2 style: strong + span)
+      const strong = sec.querySelector('strong');
+      if (strong && degree) strong.textContent = degree;
+      const span = sec.querySelector('span[style]');
+      if (span && college) span.textContent = ' — ' + college;
+      // pattern 3: bare divs with font-size style
+      const divs = Array.from(sec.querySelectorAll('div[style]')).filter(d => !d.classList.length);
+      if (divs[0] && degree) divs[0].textContent = degree;
+      if (divs[1] && college) divs[1].textContent = college;
+    }
+    // Skills rebuild
+    const lbl = label.replace(/[^a-z]/g,'');
+    const isSkills = ['skills','techstack','corecompetencies','salesskills','subjectareas','coreskills','stack','skills'].includes(lbl);
+    const isLearning = label.includes('learning') || label.includes('exploring');
+    if (isSkills) rebuildTags(sec, skills);
+    if (isLearning) rebuildTags(sec, learning);
+  });
+
+  // ── Contact: email, location, linkedin, github ──
+  t.querySelectorAll('a').forEach(a => {
+    if (a.querySelector && a.querySelector('.fa-envelope')) {
+      if (email) {
+        a.href = 'mailto:' + email;
+        // last text node
+        const nodes = Array.from(a.childNodes).filter(n => n.nodeType === 3);
+        if (nodes.length) nodes[nodes.length-1].textContent = email;
+        else a.append(email);
+      }
+    }
+    if (a.querySelector && a.querySelector('.fa-linkedin') && linkedin) a.href = linkedin;
+    if (a.querySelector && a.querySelector('.fa-github') && github) a.href = github;
+  });
+  t.querySelectorAll('span,div').forEach(el => {
+    if (el.querySelector && el.querySelector('.fa-map-marker-alt') && location) {
+      const nodes = Array.from(el.childNodes).filter(n => n.nodeType === 3);
+      if (nodes.length) nodes[nodes.length-1].textContent = location;
+    }
+  });
+
+  // ── Projects — update title (.pt) and description (.pd) per card ──
+  const projCards = t.querySelectorAll('.pj');
+  projCards.forEach((card, i) => {
+    const titleEl = card.querySelector('.pt');
+    const descEl  = card.querySelector('.pd');
+    const titleInp = document.getElementById('ep-proj-title-' + i);
+    const descInp  = document.getElementById('ep-proj-desc-' + i);
+    if (titleInp && titleInp.value && titleEl) titleEl.textContent = titleInp.value;
+    if (descInp  && descInp.value  && descEl)  descEl.textContent  = descInp.value;
+  });
+
+  // ── Work Experience — rebuild all exp sections in active template ──
+  if (epExpEntries) {
+    t.querySelectorAll('.sec').forEach(sec => {
+      const st = sec.querySelector('.st');
+      if (!st || st.textContent.trim().toLowerCase() !== 'experience') return;
+      // Remove existing exp-items and ep-exp-temp items
+      sec.querySelectorAll('.exp-item,[data-ep-exp]').forEach(e => e.remove());
+      epExpEntries.forEach(e => {
+        if (!e.role && !e.company) return;
+        const div = document.createElement('div');
+        div.className = 'exp-item';
+        div.setAttribute('data-ep-exp','1');
+        div.innerHTML = `<div class="exp-role">${e.role||''}</div><div class="exp-co">${e.company||''}</div><div class="exp-dates">${e.from_year||''}${e.from_year?' – ':''}${e.is_current?'Present':e.to_year||''}</div>`;
+        sec.appendChild(div);
+      });
+    });
+  }
+}
+
+function rebuildTags(secEl, arr) {
+  // Clone a sample tag to preserve styling
+  const sample = secEl.querySelector('[class*="pill"],[class*="chip"],[class*="sk"],[class*="badge"],[class*="bar-row"]');
+  if (!sample) return;
+  const cls = sample.className;
+  // Remove all existing tags of same class
+  secEl.querySelectorAll('.' + cls.split(' ')[0]).forEach(e => e.remove());
+  arr.forEach(s => {
+    const el = document.createElement(sample.tagName.toLowerCase());
+    el.className = cls;
+    el.textContent = s;
+    secEl.appendChild(el);
+  });
+}
+
+(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
 </script>
+{% include 'notification_bell.html' %}
 {% include 'chatbot_widget.html' %}
-<script>
-applyTheme(localStorage.getItem('sb-theme') || 'light');
-function applyTheme(t){ t==='dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark'); }
-</script>
 </body>
 </html>

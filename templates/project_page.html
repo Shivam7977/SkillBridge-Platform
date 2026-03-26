@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ project.title }} - SkillBridge</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Light Theme Variables */
         :root {
@@ -137,6 +138,174 @@
             border-radius: 8px;
             text-align: center;
         }
+
+        /* ── Like & View Stats ── */
+        .project-stats {
+            display: flex; align-items: center; gap: 20px;
+            padding: 1rem 0; margin-bottom: 1rem;
+            border-bottom: 1px solid var(--color-sidebar-border);
+        }
+        .stat-pill {
+            display: flex; align-items: center; gap: 7px;
+            font-size: 0.88rem; font-weight: 700; color: var(--color-text-secondary);
+        }
+        .stat-pill i { font-size: 0.9rem; }
+        .like-btn {
+            display: flex; align-items: center; gap: 7px;
+            background: none; border: 1.5px solid var(--color-sidebar-border);
+            border-radius: 50px; padding: 7px 18px; cursor: pointer;
+            font-size: 0.88rem; font-weight: 700; color: var(--color-text-secondary);
+            font-family: inherit; transition: 0.2s;
+        }
+        .like-btn:hover { border-color: #ef4444; color: #ef4444; }
+        .like-btn.liked { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.06); }
+        .like-btn.liked i { color: #ef4444; }
+        .like-btn i { font-size: 0.9rem; transition: transform 0.2s; }
+        .like-btn:hover i { transform: scale(1.2); }
+
+        /* ── Fix notification bell and chatbot z-index ── */
+        .notif-float-btn { z-index: 9999 !important; }
+        .notif-dropdown  { z-index: 9998 !important; }
+        #sb-bubble       { z-index: 9999 !important; }
+        #sb-window       { z-index: 9998 !important; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none !important; }
+            .main-content { margin-left: 0 !important; width: 100% !important; padding: 1.5rem !important; }
+        }
+
+        /* ── COMMENTS SECTION ── */
+        .comments-section { margin-top: 2.5rem; }
+        .comments-header {
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: .75rem;
+            border-bottom: 1px solid var(--color-sidebar-border);
+            padding-bottom: .75rem; margin-bottom: 1.25rem;
+        }
+        .comments-header h2 { margin: 0; border: none; padding: 0; }
+        .sort-toggle {
+            display: flex; gap: .4rem;
+        }
+        .sort-btn {
+            background: none; border: 1.5px solid var(--color-input-border);
+            border-radius: 20px; padding: 5px 14px; font-size: .8rem; font-weight: 600;
+            cursor: pointer; color: var(--color-text-secondary); transition: all .2s;
+            font-family: 'Poppins', sans-serif;
+        }
+        .sort-btn.active, .sort-btn:hover {
+            background: var(--color-primary); color: #fff; border-color: var(--color-primary);
+        }
+
+        /* Comment form */
+        .comment-form-wrap { margin-bottom: 1.5rem; }
+        .comment-form-wrap textarea {
+            width: 100%; box-sizing: border-box;
+            border: 1.5px solid var(--color-input-border);
+            border-radius: var(--border-radius-md);
+            padding: .75rem 1rem; font-family: 'Poppins', sans-serif;
+            font-size: .9rem; resize: vertical; min-height: 80px;
+            background: var(--color-input-bg); color: var(--color-text-primary);
+            transition: border-color .2s;
+        }
+        .comment-form-wrap textarea:focus { outline: none; border-color: var(--color-primary); }
+        .comment-form-actions {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: .5rem;
+        }
+        .char-counter { font-size: .78rem; color: var(--color-text-secondary); }
+        .char-counter.warn { color: #ef4444; }
+
+        /* Comment card */
+        .comment-card {
+            background: var(--color-input-bg);
+            border: 1px solid var(--color-sidebar-border);
+            border-radius: var(--border-radius-md);
+            padding: 1rem 1.25rem; margin-bottom: .85rem;
+            transition: box-shadow .2s;
+        }
+        .comment-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,.06); }
+        .comment-card.is-owner-comment {
+            border-left: 3px solid var(--color-primary);
+        }
+        .comment-card.deleted-comment {
+            opacity: .55;
+        }
+        .comment-top {
+            display: flex; align-items: center; gap: .65rem; margin-bottom: .5rem;
+        }
+        .comment-avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            object-fit: cover; flex-shrink: 0;
+        }
+        .comment-meta { flex: 1; min-width: 0; }
+        .comment-author {
+            font-weight: 600; font-size: .9rem; color: var(--color-text-primary);
+            display: flex; align-items: center; gap: .4rem; flex-wrap: wrap;
+        }
+        .owner-badge {
+            font-size: .7rem; background: rgba(139,92,246,.15);
+            color: var(--color-primary); border: 1px solid rgba(139,92,246,.3);
+            border-radius: 10px; padding: 1px 8px; font-weight: 600;
+        }
+        .comment-date { font-size: .78rem; color: var(--color-text-secondary); }
+        .comment-body {
+            font-size: .9rem; color: var(--color-text-primary);
+            line-height: 1.55; margin-bottom: .6rem; word-break: break-word;
+        }
+        .comment-actions {
+            display: flex; align-items: center; gap: .6rem;
+        }
+        .cmt-action-btn {
+            background: none; border: none; cursor: pointer; padding: 4px 8px;
+            border-radius: 8px; font-size: .8rem; font-weight: 600;
+            color: var(--color-text-secondary); display: flex; align-items: center;
+            gap: 5px; transition: all .2s; font-family: 'Poppins', sans-serif;
+        }
+        .cmt-action-btn:hover { background: rgba(139,92,246,.08); color: var(--color-primary); }
+        .cmt-action-btn.liked { color: #ef4444; }
+        .cmt-action-btn.liked i { color: #ef4444; }
+        .cmt-action-btn.delete-btn:hover { background: rgba(239,68,68,.08); color: #ef4444; }
+
+        /* Replies */
+        .replies-wrap {
+            margin-top: .75rem; padding-left: 1.25rem;
+            border-left: 2px solid var(--color-input-border);
+        }
+        .reply-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-sidebar-border);
+            border-radius: var(--border-radius-md);
+            padding: .75rem 1rem; margin-bottom: .5rem;
+        }
+        .reply-card.is-owner-comment { border-left: 3px solid var(--color-primary); }
+        .reply-form-wrap { margin-top: .6rem; display: none; }
+        .reply-form-wrap textarea {
+            width: 100%; box-sizing: border-box;
+            border: 1.5px solid var(--color-input-border);
+            border-radius: var(--border-radius-md);
+            padding: .6rem .85rem; font-family: 'Poppins', sans-serif;
+            font-size: .85rem; resize: none; height: 60px;
+            background: var(--color-input-bg); color: var(--color-text-primary);
+        }
+        .reply-form-wrap textarea:focus { outline: none; border-color: var(--color-primary); }
+        .reply-form-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .4rem; }
+        .cancel-reply-btn {
+            background: none; border: 1px solid var(--color-input-border);
+            border-radius: 6px; padding: 5px 12px; cursor: pointer;
+            font-size: .8rem; color: var(--color-text-secondary); font-family: 'Poppins', sans-serif;
+        }
+        .no-comments-msg {
+            text-align: center; padding: 2rem; color: var(--color-text-secondary);
+            background: var(--color-input-bg); border: 1px dashed var(--color-input-border);
+            border-radius: var(--border-radius-md); font-size: .9rem;
+        }
+        .login-to-comment {
+            text-align: center; padding: 1.25rem;
+            background: var(--color-input-bg); border: 1px dashed var(--color-input-border);
+            border-radius: var(--border-radius-md); color: var(--color-text-secondary);
+            font-size: .9rem; margin-bottom: 1.5rem;
+        }
+        .login-to-comment a { color: var(--color-primary); font-weight: 600; }
     </style>
 </head>
 <body>
@@ -188,6 +357,49 @@
                     {% endif %}
                 </div>
 
+                <!-- ── STATS BAR ── -->
+                <div class="project-stats">
+                    <!-- View Count -->
+                    <div class="stat-pill">
+                        <i class="fas fa-eye" style="color:#8B5CF6"></i>
+                        <span id="view-count">{{ project.views or 0 }}</span> views
+                    </div>
+
+                    <!-- Like Button -->
+                    {% if current_user.is_authenticated and not is_owner %}
+                    <button class="like-btn {% if user_liked %}liked{% endif %}"
+                        id="like-btn"
+                        onclick="toggleLike('{{ project._id }}')"
+                        title="{% if user_liked %}Unlike{% else %}Like{% endif %} this project">
+                        <i class="fas fa-heart"></i>
+                        <span id="like-count">{{ like_count }}</span>
+                    </button>
+                    {% else %}
+                    <div class="stat-pill">
+                        <i class="fas fa-heart" style="color:#ef4444"></i>
+                        <span>{{ like_count }}</span> likes
+                    </div>
+                    {% endif %}
+
+                    <!-- Bookmark Button -->
+                    {% if current_user.is_authenticated %}
+                    <button class="like-btn {% if user_bookmarked %}bookmarked{% endif %}"
+                        id="bookmark-btn"
+                        onclick="toggleBookmark('{{ project._id }}')"
+                        title="{% if user_bookmarked %}Remove Bookmark{% else %}Bookmark this project{% endif %}"
+                        style="border-color:{% if user_bookmarked %}#f59e0b{% else %}var(--color-input-border){% endif %};">
+                        <i class="{% if user_bookmarked %}fas{% else %}far{% endif %} fa-bookmark"
+                           style="color:{% if user_bookmarked %}#f59e0b{% else %}var(--color-text-secondary){% endif %}"></i>
+                        <span id="bookmark-count">{{ bookmark_count or 0 }}</span>
+                    </button>
+                    {% else %}
+                    <div class="stat-pill">
+                        <i class="fas fa-bookmark" style="color:#f59e0b"></i>
+                        <span>{{ bookmark_count or 0 }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
                 <div class="project-body">
                     <h2>Project Description</h2>
                     <p class="project-description">
@@ -207,6 +419,7 @@
                         </div>
                     </div>
 
+                    {% if is_owner %}
                     <h2>Project History</h2>
                     <ul class="history-list">
                         {% for commit in commits %}
@@ -228,12 +441,447 @@
                         </li>
                         {% endfor %}
                     </ul>
+                    {% endif %}
                 </div>
+
+                <!-- ══════════════════════════════════
+                     COMMENTS SECTION
+                ═══════════════════════════════════ -->
+                <div class="comments-section" id="comments-section">
+                    <div class="comments-header">
+                        <h2 style="font-size:1.25rem">
+                            💬 Comments
+                            <span id="comment-count-badge" style="font-size:.85rem;color:var(--color-text-secondary);font-weight:500">
+                                ({{ comment_count }})
+                            </span>
+                        </h2>
+                        <div class="sort-toggle">
+                            <button class="sort-btn active" id="sort-recent" onclick="loadSorted('recent')">Recent</button>
+                            <button class="sort-btn" id="sort-top" onclick="loadSorted('top')">Top</button>
+                        </div>
+                    </div>
+
+                    {% if current_user.is_authenticated %}
+                    <!-- New Comment Box -->
+                    <div class="comment-form-wrap">
+                        <textarea id="new-comment-text" placeholder="Write a comment… (max 500 chars)"
+                            oninput="updateCharCounter(this, 'main-char-count', 500)"></textarea>
+                        <div class="comment-form-actions">
+                            <span class="char-counter" id="main-char-count">0 / 500</span>
+                            <button class="cta-button" onclick="submitComment('{{ project._id }}')">Post Comment</button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="login-to-comment">
+                        <a href="{{ url_for('login') }}">Log in</a> to leave a comment.
+                    </div>
+                    {% endif %}
+
+                    <!-- Comments List -->
+                    <div id="comments-list">
+                        {% if comments %}
+                            {% for c in comments %}
+                            <div class="comment-card {% if c.is_owner_comment %}is-owner-comment{% endif %} {% if c.is_deleted %}deleted-comment{% endif %}"
+                                 id="comment-{{ c._id }}">
+                                <div class="comment-top">
+                                    <img class="comment-avatar"
+                                         src="/static/profile_pics/{{ c.profile_pic or 'default.jpg' }}"
+                                         onerror="this.src='/static/profile_pics/default.jpg'"
+                                         alt="{{ c.user_name }}">
+                                    <div class="comment-meta">
+                                        <div class="comment-author">
+                                            {{ c.user_name }}
+                                            {% if c.username %}<span style="color:var(--color-text-secondary);font-weight:400">@{{ c.username }}</span>{% endif %}
+                                            {% if c.is_owner_comment %}<span class="owner-badge">🏅 Owner</span>{% endif %}
+                                        </div>
+                                        <div class="comment-date">{{ c.created_at_str }}</div>
+                                    </div>
+                                </div>
+                                <div class="comment-body">{{ c.content }}</div>
+                                <div class="comment-actions">
+                                    <button class="cmt-action-btn {% if c.user_liked %}liked{% endif %}"
+                                        id="clike-{{ c._id }}"
+                                        onclick="toggleCommentLike('{{ c._id }}')">
+                                        <i class="fas fa-heart"></i>
+                                        <span id="clike-count-{{ c._id }}">{{ c.like_count }}</span>
+                                    </button>
+                                    {% if current_user.is_authenticated and not c.is_deleted %}
+                                    <button class="cmt-action-btn" onclick="toggleReplyBox('{{ c._id }}')">
+                                        <i class="fas fa-reply"></i> Reply
+                                    </button>
+                                    {% endif %}
+                                    {% if c.can_delete and not c.is_deleted %}
+                                    <button class="cmt-action-btn delete-btn" onclick="deleteComment('{{ c._id }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Reply form -->
+                                {% if current_user.is_authenticated %}
+                                <div class="reply-form-wrap" id="reply-form-{{ c._id }}">
+                                    <textarea placeholder="Write a reply… (max 500 chars)"
+                                        oninput="updateCharCounter(this, 'rchar-{{ c._id }}', 500)"
+                                        id="reply-text-{{ c._id }}"></textarea>
+                                    <div class="reply-form-actions">
+                                        <span class="char-counter" id="rchar-{{ c._id }}">0 / 500</span>
+                                        <button class="cancel-reply-btn" onclick="toggleReplyBox('{{ c._id }}')">Cancel</button>
+                                        <button class="cta-button" style="padding:5px 14px;font-size:.82rem"
+                                            onclick="submitReply('{{ project._id }}', '{{ c._id }}')">Reply</button>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Replies -->
+                                {% if c.replies %}
+                                <div class="replies-wrap" id="replies-{{ c._id }}">
+                                    {% for r in c.replies %}
+                                    <div class="reply-card {% if r.is_owner_comment %}is-owner-comment{% endif %}"
+                                         id="comment-{{ r._id }}">
+                                        <div class="comment-top">
+                                            <img class="comment-avatar"
+                                                 src="/static/profile_pics/{{ r.profile_pic or 'default.jpg' }}"
+                                                 onerror="this.src='/static/profile_pics/default.jpg'"
+                                                 alt="{{ r.user_name }}" style="width:28px;height:28px">
+                                            <div class="comment-meta">
+                                                <div class="comment-author">
+                                                    {{ r.user_name }}
+                                                    {% if r.username %}<span style="color:var(--color-text-secondary);font-weight:400">@{{ r.username }}</span>{% endif %}
+                                                    {% if r.is_owner_comment %}<span class="owner-badge">🏅 Owner</span>{% endif %}
+                                                </div>
+                                                <div class="comment-date">{{ r.created_at_str }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="comment-body">{{ r.content }}</div>
+                                        <div class="comment-actions">
+                                            <button class="cmt-action-btn {% if r.user_liked %}liked{% endif %}"
+                                                id="clike-{{ r._id }}"
+                                                onclick="toggleCommentLike('{{ r._id }}')">
+                                                <i class="fas fa-heart"></i>
+                                                <span id="clike-count-{{ r._id }}">{{ r.like_count }}</span>
+                                            </button>
+                                            {% if r.can_delete %}
+                                            <button class="cmt-action-btn delete-btn" onclick="deleteComment('{{ r._id }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="replies-wrap" id="replies-{{ c._id }}" style="display:none"></div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                        <div class="no-comments-msg" id="no-comments-msg">
+                            No comments yet. Be the first to comment!
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
             </div>
         </main>
     </div>
+    {% include 'notification_bell.html' %}
+{% include 'chatbot_widget.html' %}
     <script>
-(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+(function(){
+    var t = localStorage.getItem('sb-theme') || 'light';
+    t === 'dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark');
+})();
+
+/* ── Bookmark project ── */
+async function toggleBookmark(projectId) {
+    const btn = document.getElementById('bookmark-btn');
+    const countEl = document.getElementById('bookmark-count');
+    if (!btn || !countEl) return;
+    try {
+        const res = await fetch(`/project/${projectId}/bookmark`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            const count = parseInt(countEl.textContent) || 0;
+            if (data.bookmarked) {
+                btn.classList.add('bookmarked');
+                btn.title = 'Remove Bookmark';
+                btn.style.borderColor = '#f59e0b';
+                btn.querySelector('i').className = 'fas fa-bookmark';
+                btn.querySelector('i').style.color = '#f59e0b';
+                countEl.textContent = count + 1;
+                // Bounce animation
+                btn.querySelector('i').style.transform = 'scale(1.4)';
+                setTimeout(() => { btn.querySelector('i').style.transform = 'scale(1)'; }, 200);
+            } else {
+                btn.classList.remove('bookmarked');
+                btn.title = 'Bookmark this project';
+                btn.style.borderColor = 'var(--color-input-border)';
+                btn.querySelector('i').className = 'far fa-bookmark';
+                btn.querySelector('i').style.color = 'var(--color-text-secondary)';
+                countEl.textContent = Math.max(0, count - 1);
+            }
+        }
+    } catch(e) { console.error('Bookmark error:', e); }
+}
+async function toggleLike(projectId) {
+    const btn = document.getElementById('like-btn');
+    const countEl = document.getElementById('like-count');
+    if (!btn || !countEl) return;
+    try {
+        const res = await fetch(`/project/${projectId}/like`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            countEl.textContent = data.count;
+            if (data.liked) {
+                btn.classList.add('liked'); btn.title = 'Unlike this project';
+                btn.querySelector('i').style.transform = 'scale(1.4)';
+                setTimeout(() => { btn.querySelector('i').style.transform = 'scale(1)'; }, 200);
+            } else {
+                btn.classList.remove('liked'); btn.title = 'Like this project';
+            }
+        }
+    } catch(e) { console.error('Like error:', e); }
+}
+
+/* ── Char counter ── */
+function updateCharCounter(el, counterId, max) {
+    const len = el.value.length;
+    const counter = document.getElementById(counterId);
+    if (!counter) return;
+    counter.textContent = `${len} / ${max}`;
+    counter.classList.toggle('warn', len >= max * 0.9);
+}
+
+/* ── Toggle reply form ── */
+function toggleReplyBox(commentId) {
+    const form = document.getElementById(`reply-form-${commentId}`);
+    if (!form) return;
+    const isHidden = form.style.display === 'none' || form.style.display === '';
+    form.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) document.getElementById(`reply-text-${commentId}`)?.focus();
+}
+
+/* ── Submit top-level comment ── */
+async function submitComment(projectId) {
+    const textarea = document.getElementById('new-comment-text');
+    const content = textarea.value.trim();
+    if (!content) return;
+    if (content.length > 500) { alert('Comment too long (max 500 chars)'); return; }
+    try {
+        const res = await fetch(`/project/${projectId}/comment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content })
+        });
+        const data = await res.json();
+        if (data.success) {
+            textarea.value = '';
+            document.getElementById('main-char-count').textContent = '0 / 500';
+            prependComment(data.comment, projectId);
+            updateCommentCount(1);
+        } else {
+            alert(data.error || 'Could not post comment');
+        }
+    } catch(e) { console.error(e); }
+}
+
+/* ── Submit reply ── */
+async function submitReply(projectId, commentId) {
+    const textarea = document.getElementById(`reply-text-${commentId}`);
+    const content = textarea.value.trim();
+    if (!content) return;
+    if (content.length > 500) { alert('Reply too long (max 500 chars)'); return; }
+    try {
+        const res = await fetch(`/project/${projectId}/comment/${commentId}/reply`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content })
+        });
+        const data = await res.json();
+        if (data.success) {
+            textarea.value = '';
+            document.getElementById(`rchar-${commentId}`).textContent = '0 / 500';
+            document.getElementById(`reply-form-${commentId}`).style.display = 'none';
+            appendReply(data.reply, commentId);
+            updateCommentCount(1);
+        } else {
+            alert(data.error || 'Could not post reply');
+        }
+    } catch(e) { console.error(e); }
+}
+
+/* ── Like a comment ── */
+async function toggleCommentLike(commentId) {
+    const btn = document.getElementById(`clike-${commentId}`);
+    const countEl = document.getElementById(`clike-count-${commentId}`);
+    if (!btn || !countEl) return;
+    try {
+        const res = await fetch(`/api/comment/${commentId}/like`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            countEl.textContent = data.count;
+            btn.classList.toggle('liked', data.liked);
+        }
+    } catch(e) { console.error(e); }
+}
+
+/* ── Delete a comment ── */
+async function deleteComment(commentId) {
+    if (!confirm('Delete this comment? Replies will also be deleted.')) return;
+    try {
+        const res = await fetch(`/api/comment/${commentId}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+            const card = document.getElementById(`comment-${commentId}`);
+            if (card) {
+                if (data.is_top_level) {
+                    // Remove entire comment card including its replies wrap
+                    card.style.transition = 'opacity .25s, transform .25s';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.97)';
+                    setTimeout(() => {
+                        const removed = card.remove();
+                        checkEmpty();
+                    }, 250);
+                    updateCommentCount(-(1 + (data.replies_deleted || 0)));
+                } else {
+                    // Just remove the reply card
+                    card.style.transition = 'opacity .25s, transform .25s';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.97)';
+                    setTimeout(() => card.remove(), 250);
+                    updateCommentCount(-1);
+                }
+            }
+        } else {
+            alert(data.error || 'Could not delete comment');
+        }
+    } catch(e) { console.error(e); }
+}
+
+function checkEmpty() {
+    const list = document.getElementById('comments-list');
+    if (list && !list.querySelector('.comment-card')) {
+        list.innerHTML = '<div class="no-comments-msg" id="no-comments-msg">No comments yet. Be the first to comment!</div>';
+    }
+}
+
+/* ── Sort toggle ── */
+async function loadSorted(sortType) {
+    const projectId = '{{ project._id }}';
+    document.getElementById('sort-recent').classList.toggle('active', sortType === 'recent');
+    document.getElementById('sort-top').classList.toggle('active', sortType === 'top');
+    try {
+        const res = await fetch(`/project/${projectId}/comments?sort=${sortType}`);
+        const data = await res.json();
+        if (data.success) {
+            renderCommentsList(data.comments, projectId);
+        }
+    } catch(e) { console.error(e); }
+}
+
+/* ── Render full comments list (after sort) ── */
+function renderCommentsList(comments, projectId) {
+    const list = document.getElementById('comments-list');
+    if (!comments.length) {
+        list.innerHTML = '<div class="no-comments-msg">No comments yet. Be the first to comment!</div>';
+        return;
+    }
+    list.innerHTML = comments.map(c => buildCommentHTML(c, projectId)).join('');
+}
+
+/* ── Build comment HTML from JS object ── */
+function buildCommentHTML(c, projectId) {
+    const ownerBadge = c.is_owner_comment ? '<span class="owner-badge">🏅 Owner</span>' : '';
+    const username = c.username ? `<span style="color:var(--color-text-secondary);font-weight:400">@${c.username}</span>` : '';
+    const deleteBtn = c.can_delete && !c.is_deleted
+        ? `<button class="cmt-action-btn delete-btn" onclick="deleteComment('${c._id}')"><i class="fas fa-trash"></i></button>` : '';
+    const replyBtn = !c.is_deleted
+        ? `<button class="cmt-action-btn" onclick="toggleReplyBox('${c._id}')"><i class="fas fa-reply"></i> Reply</button>` : '';
+    const repliesHTML = c.replies && c.replies.length
+        ? `<div class="replies-wrap" id="replies-${c._id}">${c.replies.map(r => buildReplyHTML(r)).join('')}</div>`
+        : `<div class="replies-wrap" id="replies-${c._id}" style="display:none"></div>`;
+    return `
+    <div class="comment-card ${c.is_owner_comment ? 'is-owner-comment' : ''} ${c.is_deleted ? 'deleted-comment' : ''}" id="comment-${c._id}">
+        <div class="comment-top">
+            <img class="comment-avatar" src="/static/profile_pics/${c.profile_pic || 'default.jpg'}"
+                onerror="this.src='/static/profile_pics/default.jpg'" alt="${c.user_name}">
+            <div class="comment-meta">
+                <div class="comment-author">${c.user_name} ${username} ${ownerBadge}</div>
+                <div class="comment-date">${c.created_at}</div>
+            </div>
+        </div>
+        <div class="comment-body">${c.content}</div>
+        <div class="comment-actions">
+            <button class="cmt-action-btn ${c.user_liked ? 'liked' : ''}" id="clike-${c._id}" onclick="toggleCommentLike('${c._id}')">
+                <i class="fas fa-heart"></i> <span id="clike-count-${c._id}">${c.like_count}</span>
+            </button>
+            ${replyBtn} ${deleteBtn}
+        </div>
+        <div class="reply-form-wrap" id="reply-form-${c._id}">
+            <textarea placeholder="Write a reply… (max 500 chars)"
+                oninput="updateCharCounter(this,'rchar-${c._id}',500)"
+                id="reply-text-${c._id}"></textarea>
+            <div class="reply-form-actions">
+                <span class="char-counter" id="rchar-${c._id}">0 / 500</span>
+                <button class="cancel-reply-btn" onclick="toggleReplyBox('${c._id}')">Cancel</button>
+                <button class="cta-button" style="padding:5px 14px;font-size:.82rem"
+                    onclick="submitReply('${projectId}','${c._id}')">Reply</button>
+            </div>
+        </div>
+        ${repliesHTML}
+    </div>`;
+}
+
+function buildReplyHTML(r) {
+    const ownerBadge = r.is_owner_comment ? '<span class="owner-badge">🏅 Owner</span>' : '';
+    const username = r.username ? `<span style="color:var(--color-text-secondary);font-weight:400">@${r.username}</span>` : '';
+    const deleteBtn = r.can_delete && !r.is_deleted
+        ? `<button class="cmt-action-btn delete-btn" onclick="deleteComment('${r._id}')"><i class="fas fa-trash"></i></button>` : '';
+    return `
+    <div class="reply-card ${r.is_owner_comment ? 'is-owner-comment' : ''}" id="comment-${r._id}">
+        <div class="comment-top">
+            <img class="comment-avatar" src="/static/profile_pics/${r.profile_pic || 'default.jpg'}"
+                onerror="this.src='/static/profile_pics/default.jpg'" alt="${r.user_name}" style="width:28px;height:28px">
+            <div class="comment-meta">
+                <div class="comment-author">${r.user_name} ${username} ${ownerBadge}</div>
+                <div class="comment-date">${r.created_at}</div>
+            </div>
+        </div>
+        <div class="comment-body">${r.content}</div>
+        <div class="comment-actions">
+            <button class="cmt-action-btn ${r.user_liked ? 'liked' : ''}" id="clike-${r._id}" onclick="toggleCommentLike('${r._id}')">
+                <i class="fas fa-heart"></i> <span id="clike-count-${r._id}">${r.like_count}</span>
+            </button>
+            ${deleteBtn}
+        </div>
+    </div>`;
+}
+
+/* ── Prepend a new comment to the top of the list ── */
+function prependComment(c, projectId) {
+    const noMsg = document.getElementById('no-comments-msg');
+    if (noMsg) noMsg.remove();
+    const list = document.getElementById('comments-list');
+    list.insertAdjacentHTML('afterbegin', buildCommentHTML(c, projectId));
+}
+
+/* ── Append a reply inside its parent ── */
+function appendReply(r, parentId) {
+    let wrap = document.getElementById(`replies-${parentId}`);
+    if (!wrap) return;
+    wrap.style.display = '';
+    wrap.insertAdjacentHTML('beforeend', buildReplyHTML(r));
+}
+
+/* ── Update comment count badge ── */
+function updateCommentCount(delta) {
+    const badge = document.getElementById('comment-count-badge');
+    if (!badge) return;
+    const current = parseInt(badge.textContent.replace(/\D/g, '')) || 0;
+    badge.textContent = `(${Math.max(0, current + delta)})`;
+}
 </script>
 </body>
 </html>

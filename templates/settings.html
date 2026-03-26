@@ -190,7 +190,68 @@ body.dark .sb-xp-widget { background: linear-gradient(135deg,rgba(139,92,246,0.1
 body.dark .sb-xp-num { color: #e2e8f0 !important; }
 body.dark .sb-bar-bg { background: rgba(139,92,246,0.18) !important; }
 
+
+/* XP ANALYTICS */
+.xp-bar-item { display:flex; flex-direction:column; align-items:center; flex-shrink:0; }
+.xp-bar-item .bar { width:20px; border-radius:4px 4px 0 0; background:linear-gradient(180deg,var(--primary),var(--secondary)); transition:height 0.6s ease; min-height:2px; }
+.xp-bar-item .bar-label { font-size:0.55rem; color:var(--text-dim); font-weight:600; margin-top:4px; transform:rotate(-45deg); white-space:nowrap; }
+.xp-bar-item:hover .bar { opacity:0.75; }
+.xp-timeline-item { display:flex; align-items:center; gap:12px; padding:10px 2rem; border-bottom:1px solid var(--border); }
+.xp-timeline-item:last-child { border-bottom:none; }
+.xp-tl-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.78rem; flex-shrink:0; }
+.xp-tl-icon.earn   { background:rgba(139,92,246,0.1); color:var(--primary); }
+.xp-tl-icon.deduct { background:rgba(239,68,68,0.1);  color:#ef4444; }
+.xp-tl-reason { flex:1; font-size:0.82rem; font-weight:600; color:var(--text-main); }
+.xp-tl-date   { font-size:0.7rem; color:var(--text-dim); margin-top:2px; }
+.xp-tl-points { font-size:0.9rem; font-weight:900; flex-shrink:0; }
+.xp-tl-points.earn   { color:var(--primary); }
+.xp-tl-points.deduct { color:#ef4444; }
+body.dark .xp-timeline-item { border-bottom-color:#2d2d44 !important; }
+body.dark .xp-tl-reason { color:#e2e8f0 !important; }
+
+/* COLLAPSIBLE CARDS */
+.card-header.collapsible { cursor: pointer; user-select: none; }
+.card-header.collapsible:hover { background: #fafbfc; }
+.card-chevron { color: var(--text-dim); transition: transform 0.3s; font-size: 0.85rem; margin-left: auto; flex-shrink: 0; }
+.card-chevron.open { transform: rotate(180deg); }
+.collapsible-body { display: none; }
+.collapsible-body.open { display: block; }
+body.dark .card-header.collapsible:hover { background: #0f0f1a !important; }
 @media (max-width: 1100px) { .main-content { margin-left: 0; padding: 2rem; } .sidebar { display: none; } }
+
+/* ===== AI USAGE CARD ===== */
+.ai-usage-row { padding: 0.3rem 0 0.5rem; }
+.ai-usage-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 12px; flex-wrap: wrap; }
+.ai-usage-label { display: flex; align-items: center; gap: 12px; }
+.ai-usage-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0; }
+.ai-usage-title { font-size: 0.9rem; font-weight: 800; color: var(--text-main); }
+.ai-usage-sub { font-size: 0.72rem; color: var(--text-dim); font-weight: 600; margin-top: 1px; }
+.ai-usage-count { display: flex; align-items: baseline; gap: 3px; flex-shrink: 0; }
+.ai-used { font-size: 1.55rem; font-weight: 900; color: var(--primary); line-height: 1; }
+.ai-sep { font-size: 1rem; font-weight: 700; color: var(--text-dim); }
+.ai-limit { font-size: 1rem; font-weight: 800; color: var(--text-main); }
+.ai-unit { font-size: 0.7rem; font-weight: 700; color: var(--text-dim); margin-left: 4px; align-self: center; }
+.ai-bar-wrap { margin-bottom: 6px; }
+.ai-bar-track { width: 100%; height: 9px; background: #f1f5f9; border-radius: 10px; overflow: hidden; }
+.ai-bar-fill { height: 100%; border-radius: 10px; transition: width 1s cubic-bezier(.4,0,.2,1); }
+.ai-bar-ok { background: linear-gradient(90deg, var(--primary), var(--secondary)); }
+.ai-bar-warn { background: linear-gradient(90deg, #f59e0b, #fb923c); }
+.ai-bar-full { background: linear-gradient(90deg, #ef4444, #dc2626); }
+.ai-bar-label { display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.7rem; font-weight: 700; color: var(--text-dim); }
+.ai-limit-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 700; padding: 5px 12px; border-radius: 20px; margin-top: 8px; }
+.ai-limit-hit { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #dc2626; }
+.ai-limit-warn { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #d97706; }
+.ai-divider { border: none; border-top: 1px solid var(--border); margin: 1.2rem 0; }
+.ai-info-footer { font-size: 0.75rem; color: var(--text-dim); background: rgba(139,92,246,0.05); border: 1px solid rgba(139,92,246,0.12); border-radius: 10px; padding: 10px 14px; margin-top: 1.2rem; display: flex; align-items: flex-start; gap: 8px; line-height: 1.6; }
+.ai-info-footer i { color: var(--primary); margin-top: 2px; flex-shrink: 0; }
+
+/* Dark mode overrides for AI Usage */
+body.dark .ai-bar-track { background: #1e1e30 !important; }
+body.dark .ai-usage-title { color: #e2e8f0 !important; }
+body.dark .ai-limit { color: #e2e8f0 !important; }
+body.dark .ai-info-footer { background: rgba(139,92,246,0.08) !important; border-color: rgba(139,92,246,0.2) !important; color: #94a3b8 !important; }
+body.dark .ai-limit-hit { background: rgba(239,68,68,0.15) !important; border-color: rgba(239,68,68,0.3) !important; }
+body.dark .ai-limit-warn { background: rgba(245,158,11,0.12) !important; border-color: rgba(245,158,11,0.25) !important; }
 </style>
 </head>
 <body>
@@ -214,8 +275,8 @@ body.dark .sb-bar-bg { background: rgba(139,92,246,0.18) !important; }
         <span>{{ xp }} XP</span>
         <span>{% if level_info.next_xp == 'Max' %}🏆 Max{% else %}{{ level_info.next_xp }} XP{% endif %}</span>
       </div>
-      {% if streak and streak >= 1 %}
-        <div class="sb-streak">🔥 {{ streak }} day streak</div>
+      {% if user.streak_count and user.streak_count >= 1 %}
+        <div class="sb-streak">🔥 {{ user.streak_count }} day streak</div>
       {% else %}
         <div class="sb-streak cold">❄️ No active streak</div>
       {% endif %}
@@ -224,7 +285,6 @@ body.dark .sb-bar-bg { background: rgba(139,92,246,0.18) !important; }
 
     <a href="{{ url_for('main_page') }}"><i class="fas fa-home"></i> Dashboard</a>
     <a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a>
-    <a href="{{ url_for('leaderboard') }}"><i class="fas fa-trophy"></i> Leaderboard</a>
     <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
     <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
     <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a>
@@ -247,10 +307,12 @@ body.dark .sb-bar-bg { background: rgba(139,92,246,0.18) !important; }
 
       <!-- PROGRESSION CARD -->
       <div class="settings-card">
-        <div class="card-header">
+        <div class="card-header collapsible" onclick="toggleCard('progression')">
           <div class="card-header-icon" style="background:rgba(251,191,36,0.15);color:#f59e0b"><i class="fas fa-trophy"></i></div>
           <div><h2>Your Progression</h2><p>Track your rank, XP and daily streak</p></div>
+          <i class="fas fa-chevron-down card-chevron open" id="chev-progression"></i>
         </div>
+        <div class="collapsible-body open" id="body-progression">
         <div class="card-body">
           <div class="xp-row">
             <div class="level-tag">
@@ -276,14 +338,14 @@ body.dark .sb-bar-bg { background: rgba(139,92,246,0.18) !important; }
 
           <!-- STREAK ROW — NEW -->
           <div class="streak-row">
-            {% set streak = streak if streak else 0 %}
+            {% set streak = user.streak_count if user.streak_count else 0 %}
             {% if streak >= 30 %}
               <span class="streak-badge hot">🔥 {{ streak }} day streak</span>
               <span class="streak-hint">Legendary! Keep it going.</span>
             {% elif streak >= 7 %}
               <span class="streak-badge warm">🔥 {{ streak }} day streak</span>
               <span class="streak-hint">On fire! Don't break the chain.</span>
-            {% elif streak >= 1 %}
+            {% elif streak >= 2 %}
               <span class="streak-badge warm">🔥 {{ streak }} day streak</span>
               <span class="streak-hint">Good start — log in tomorrow to keep it!</span>
             {% else %}
@@ -294,13 +356,16 @@ body.dark .sb-bar-bg { background: rgba(139,92,246,0.18) !important; }
 
         </div>
       </div>
+        </div>
 
       <!-- APPEARANCE -->
       <div class="settings-card">
-        <div class="card-header">
+        <div class="card-header collapsible" onclick="toggleCard('appearance')">
           <div class="card-header-icon" style="background:rgba(139,92,246,0.1);color:var(--primary)"><i class="fas fa-palette"></i></div>
           <div><h2>Appearance</h2><p>Choose your preferred theme</p></div>
+          <i class="fas fa-chevron-down card-chevron" id="chev-appearance"></i>
         </div>
+        <div class="collapsible-body" id="body-appearance">
         <div class="card-body">
           <div class="theme-options">
             <div class="theme-option" id="light-option" onclick="setTheme('light')">
@@ -324,17 +389,26 @@ body.dark .sb-bar-bg { background: rgba(139,92,246,0.18) !important; }
           </div>
         </div>
       </div>
+        </div>
 
       <!-- ACCOUNT INFO -->
       <div class="settings-card">
-        <div class="card-header">
+        <div class="card-header collapsible" onclick="toggleCard('account')">
           <div class="card-header-icon" style="background:rgba(236,72,153,0.1);color:var(--secondary)"><i class="fas fa-user-circle"></i></div>
           <div><h2>Account Information</h2><p>Your profile details</p></div>
+          <i class="fas fa-chevron-down card-chevron" id="chev-account"></i>
         </div>
+        <div class="collapsible-body" id="body-account">
         <div class="card-body">
           <div class="info-row">
             <div class="info-label">Full Name</div>
             <div class="info-value">{{ current_user.name }}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Username</div>
+            <div class="info-value" style="color:#8B5CF6;font-weight:700;">
+                {% if username %}@{{ username }}{% else %}<span style="color:#94a3b8;font-style:italic;">Not assigned yet</span>{% endif %}
+            </div>
           </div>
           <div class="info-row">
             <div class="info-label">Email Address</div>
@@ -355,19 +429,68 @@ body.dark .sb-bar-bg { background: rgba(139,92,246,0.18) !important; }
           <div class="info-row">
             <div class="info-label">Login Streak</div>
             <div class="info-value">
-              {% set streak = streak if streak else 0 %}
+              {% set streak = user.streak_count if user.streak_count else 0 %}
               {% if streak >= 1 %}🔥 {{ streak }} days{% else %}❄️ None{% endif %}
             </div>
+          </div>
+        </div>
+      </div>
+        </div>
+
+      <!-- WORK EXPERIENCE -->
+      <div class="settings-card">
+        <div class="card-header collapsible" onclick="toggleCard('workexp')">
+          <div class="card-header-icon" style="background:rgba(139,92,246,0.1);color:var(--primary)"><i class="fas fa-briefcase"></i></div>
+          <div><h2>Work Experience</h2><p>Your career history — shown in Resume & Portfolio</p></div>
+          <i class="fas fa-chevron-down card-chevron" id="chev-workexp"></i>
+        </div>
+        <div class="collapsible-body" id="body-workexp">
+          <div class="card-body">
+            {% if user.current_status == 'Student' %}
+              <div style="text-align:center;padding:1rem;color:var(--text-dim);font-size:.88rem;">
+                <i class="fas fa-user-graduate" style="font-size:1.5rem;margin-bottom:.5rem;display:block;color:#8B5CF6;"></i>
+                You're set as a <strong>Student</strong>. Change your status to <strong>Working</strong> or <strong>Fresher</strong> in <a href="{{ url_for('profile') }}" style="color:var(--primary);font-weight:700;">My Profile</a> to add work experience.
+              </div>
+            {% elif user.work_experience %}
+              {% for exp in user.work_experience %}
+              <div class="info-row" style="flex-direction:column;align-items:flex-start;gap:.2rem;padding:.85rem 0;">
+                <div style="display:flex;justify-content:space-between;width:100%;flex-wrap:wrap;gap:.3rem;">
+                  <div>
+                    <div class="info-value">{{ exp.role }}</div>
+                    <div style="font-size:.82rem;color:var(--primary);font-weight:600;">{{ exp.company }}</div>
+                  </div>
+                  <div style="font-size:.78rem;color:var(--text-dim);font-weight:600;">
+                    {{ exp.from_year }}{% if exp.from_year %} — {% endif %}{% if exp.is_current %}Present{% else %}{{ exp.to_year }}{% endif %}
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+              <a href="{{ url_for('profile') }}" class="save-btn" style="display:inline-flex;align-items:center;gap:8px;margin-top:.5rem;text-decoration:none;">
+                <i class="fas fa-pen"></i> Edit Experience
+              </a>
+            {% else %}
+              <div style="text-align:center;padding:1rem;color:var(--text-dim);font-size:.88rem;">
+                <i class="fas fa-briefcase" style="font-size:1.5rem;margin-bottom:.5rem;display:block;color:#8B5CF6;"></i>
+                No work experience added yet.
+              </div>
+              <div style="text-align:center;">
+                <a href="{{ url_for('profile') }}" class="save-btn" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;">
+                  <i class="fas fa-plus"></i> Add Experience
+                </a>
+              </div>
+            {% endif %}
           </div>
         </div>
       </div>
 
       <!-- CHANGE PASSWORD -->
       <div class="settings-card">
-        <div class="card-header">
+        <div class="card-header collapsible" onclick="toggleCard('password')">
           <div class="card-header-icon" style="background:rgba(34,211,238,0.1);color:#22d3ee"><i class="fas fa-lock"></i></div>
           <div><h2>Change Password</h2><p>Update your account password</p></div>
+          <i class="fas fa-chevron-down card-chevron" id="chev-password"></i>
         </div>
+        <div class="collapsible-body" id="body-password">
         <div class="card-body">
           <form action="{{ url_for('change_password') }}" method="POST">
             <div class="form-group">
@@ -386,20 +509,23 @@ body.dark .sb-bar-bg { background: rgba(139,92,246,0.18) !important; }
           </form>
         </div>
       </div>
+        </div>
 
       <!-- XP & BADGES GUIDE -->
       <div class="settings-card">
-        <div class="card-header">
+        <div class="card-header collapsible" onclick="toggleCard('xpguide')">
           <div class="card-header-icon" style="background:rgba(251,191,36,0.15);color:#f59e0b"><i class="fas fa-star"></i></div>
           <div><h2>XP & Badges Guide</h2><p>Learn how to earn XP and unlock badges</p></div>
+          <i class="fas fa-chevron-down card-chevron" id="chev-xpguide"></i>
         </div>
+        <div class="collapsible-body" id="body-xpguide">
         <div class="card-body">
           <div class="xp-section-title">How to Earn XP</div>
           <table class="xp-table">
             <thead><tr><th>Action</th><th>XP Reward</th></tr></thead>
             <tbody>
               <tr><td><i class="fas fa-upload" style="color:var(--primary);margin-right:8px"></i>Upload a project version</td><td>+50 XP</td></tr>
-              <tr><td><i class="fas fa-check-circle" style="color:#10b981;margin-right:8px"></i>Complete a roadmap stage</td><td>+20 XP</td></tr>
+              <tr><td><i class="fas fa-check-circle" style="color:#10b981;margin-right:8px"></i>Complete a roadmap stage</td><td>+5 XP</td></tr>
               <tr><td><i class="fas fa-user-circle" style="color:var(--secondary);margin-right:8px"></i>Complete your profile 100%</td><td>+30 XP</td></tr>
               <tr><td><i class="fas fa-certificate" style="color:#f59e0b;margin-right:8px"></i>Add a certificate</td><td>+15 XP</td></tr>
               <tr><td><i class="fas fa-users" style="color:#22d3ee;margin-right:8px"></i>Join a community</td><td>+10 XP</td></tr>
@@ -434,12 +560,173 @@ body.dark .sb-bar-bg { background: rgba(139,92,246,0.18) !important; }
         </div>
       </div>
 
+        </div>
+
+      <!-- XP ANALYTICS CARD -->
+      <div class="settings-card">
+        <div class="card-header" style="cursor:pointer;" onclick="toggleAnalytics()">
+          <div class="card-header-icon" style="background:rgba(139,92,246,0.1);color:var(--primary)"><i class="fas fa-chart-line"></i></div>
+          <div style="flex:1">
+            <h2>XP Analytics</h2>
+            <p>See exactly how you earned your XP over time</p>
+          </div>
+          <div id="analytics-chevron" style="color:var(--text-dim);transition:transform 0.3s;font-size:0.9rem;">
+            <i class="fas fa-chevron-down"></i>
+          </div>
+        </div>
+        <div id="analytics-panel" style="display:none;">
+          <div class="card-body" style="padding-bottom:0">
+
+            <!-- SUMMARY STATS -->
+            <div id="analytics-summary" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1.5rem;">
+              <div style="background:#f8fafc;border-radius:12px;padding:14px;text-align:center;border:1px solid var(--border);">
+                <div style="font-size:1.4rem;font-weight:900;color:var(--primary);" id="stat-earned">—</div>
+                <div style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;margin-top:3px;">Total Earned</div>
+              </div>
+              <div style="background:#f8fafc;border-radius:12px;padding:14px;text-align:center;border:1px solid var(--border);">
+                <div style="font-size:1.4rem;font-weight:900;color:#ef4444;" id="stat-deducted">—</div>
+                <div style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;margin-top:3px;">Total Deducted</div>
+              </div>
+              <div style="background:#f8fafc;border-radius:12px;padding:14px;text-align:center;border:1px solid var(--border);">
+                <div style="font-size:1.4rem;font-weight:900;color:var(--text-main);" id="stat-txns">—</div>
+                <div style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;margin-top:3px;">Transactions</div>
+              </div>
+            </div>
+
+            <!-- BAR CHART -->
+            <div style="margin-bottom:1.5rem;">
+              <div style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:12px;">XP Earned Per Day</div>
+              <div id="xp-chart-wrap" style="position:relative;height:120px;display:flex;align-items:flex-end;gap:4px;overflow-x:auto;padding-bottom:24px;">
+                <div style="color:var(--text-dim);font-size:0.8rem;width:100%;text-align:center;padding-top:40px;">Loading chart...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TIMELINE -->
+          <div style="border-top:1px solid var(--border);">
+            <div style="padding:1rem 2rem 0.5rem;display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);">Transaction History</div>
+              <div style="font-size:0.72rem;color:var(--text-dim);" id="txn-count"></div>
+            </div>
+            <div id="xp-timeline" style="max-height:360px;overflow-y:auto;">
+              <div style="padding:2rem;text-align:center;color:var(--text-dim);font-size:0.85rem;">Loading...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI USAGE CARD -->
+      <div class="settings-card" id="ai-usage-card">
+        <div class="card-header collapsible" onclick="toggleCard('aiusage')">
+          <div class="card-header-icon" style="background:linear-gradient(135deg,rgba(139,92,246,0.15),rgba(236,72,153,0.1));color:var(--primary)">
+            <i class="fas fa-robot"></i>
+          </div>
+          <div style="flex:1">
+            <h2>AI Usage Today</h2>
+            <p>Your daily AI credits reset at midnight IST</p>
+          </div>
+          <i class="fas fa-chevron-down card-chevron open" id="chev-aiusage"></i>
+        </div>
+        <div class="collapsible-body" id="body-aiusage">
+          <div class="card-body">
+
+            <!-- ROADMAP GENERATOR -->
+            <div class="ai-usage-row" id="ai-roadmap-row">
+              <div class="ai-usage-meta">
+                <div class="ai-usage-label">
+                  <span class="ai-usage-icon" style="background:rgba(139,92,246,0.12);color:var(--primary)">
+                    <i class="fas fa-map-signs"></i>
+                  </span>
+                  <div>
+                    <div class="ai-usage-title">Roadmap Generator</div>
+                    <div class="ai-usage-sub">AI-powered learning path creation</div>
+                  </div>
+                </div>
+                <div class="ai-usage-count" id="roadmap-count-display">
+                  <span class="ai-used" id="roadmap-used">{{ ai_usage.roadmap_used }}</span>
+                  <span class="ai-sep">/</span>
+                  <span class="ai-limit">{{ ai_usage.roadmap_limit }}</span>
+                  <span class="ai-unit">used</span>
+                </div>
+              </div>
+              <div class="ai-bar-wrap">
+                {% set roadmap_pct = ((ai_usage.roadmap_used / ai_usage.roadmap_limit) * 100) | int %}
+                <div class="ai-bar-track">
+                  <div class="ai-bar-fill {% if roadmap_pct >= 100 %}ai-bar-full{% elif roadmap_pct >= 70 %}ai-bar-warn{% else %}ai-bar-ok{% endif %}"
+                       style="width: {{ [roadmap_pct, 100] | min }}%"
+                       id="roadmap-bar"></div>
+                </div>
+                <div class="ai-bar-label">
+                  <span>{{ ai_usage.roadmap_limit - ai_usage.roadmap_used }} remaining</span>
+                  <span>{{ roadmap_pct }}%</span>
+                </div>
+              </div>
+              {% if ai_usage.roadmap_used >= ai_usage.roadmap_limit %}
+              <div class="ai-limit-badge ai-limit-hit"><i class="fas fa-ban"></i> Daily limit reached &mdash; resets at midnight IST</div>
+              {% elif roadmap_pct >= 70 %}
+              <div class="ai-limit-badge ai-limit-warn"><i class="fas fa-exclamation-triangle"></i> Running low on roadmap credits</div>
+              {% endif %}
+            </div>
+
+            <div class="ai-divider"></div>
+
+            <!-- CHATBOT -->
+            <div class="ai-usage-row" id="ai-chat-row">
+              <div class="ai-usage-meta">
+                <div class="ai-usage-label">
+                  <span class="ai-usage-icon" style="background:rgba(236,72,153,0.12);color:var(--secondary)">
+                    <i class="fas fa-comments"></i>
+                  </span>
+                  <div>
+                    <div class="ai-usage-title">AI Chat Assistant</div>
+                    <div class="ai-usage-sub">Career advice &amp; skill gap analysis</div>
+                  </div>
+                </div>
+                <div class="ai-usage-count" id="chat-count-display">
+                  <span class="ai-used" id="chat-used">{{ ai_usage.chat_used }}</span>
+                  <span class="ai-sep">/</span>
+                  <span class="ai-limit">{{ ai_usage.chat_limit }}</span>
+                  <span class="ai-unit">used</span>
+                </div>
+              </div>
+              <div class="ai-bar-wrap">
+                {% set chat_pct = ((ai_usage.chat_used / ai_usage.chat_limit) * 100) | int %}
+                <div class="ai-bar-track">
+                  <div class="ai-bar-fill {% if chat_pct >= 100 %}ai-bar-full{% elif chat_pct >= 70 %}ai-bar-warn{% else %}ai-bar-ok{% endif %}"
+                       style="width: {{ [chat_pct, 100] | min }}%"
+                       id="chat-bar"></div>
+                </div>
+                <div class="ai-bar-label">
+                  <span>{{ ai_usage.chat_limit - ai_usage.chat_used }} remaining</span>
+                  <span>{{ chat_pct }}%</span>
+                </div>
+              </div>
+              {% if ai_usage.chat_used >= ai_usage.chat_limit %}
+              <div class="ai-limit-badge ai-limit-hit"><i class="fas fa-ban"></i> Daily limit reached &mdash; resets at midnight IST</div>
+              {% elif chat_pct >= 70 %}
+              <div class="ai-limit-badge ai-limit-warn"><i class="fas fa-exclamation-triangle"></i> Running low on chat credits</div>
+              {% endif %}
+            </div>
+
+            <!-- INFO FOOTER -->
+            <div class="ai-info-footer">
+              <i class="fas fa-info-circle"></i>
+              Limits reset daily at <strong>12:00 AM IST</strong>. Credits are per-account and cannot be transferred.
+              <a href="{{ url_for('roadmap_generator') }}" style="color:var(--primary);font-weight:700;text-decoration:none;margin-left:6px;">Generate a Roadmap &rarr;</a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
       <!-- DANGER ZONE -->
       <div class="settings-card danger-zone">
-        <div class="card-header">
+        <div class="card-header collapsible" onclick="toggleCard('danger')" style="background:#fff5f5;">
           <div class="card-header-icon" style="background:rgba(220,38,38,0.1);color:#dc2626"><i class="fas fa-exclamation-triangle"></i></div>
           <div><h2>Danger Zone</h2><p>Irreversible actions — proceed carefully</p></div>
+          <i class="fas fa-chevron-down card-chevron" id="chev-danger" style="color:#dc2626;"></i>
         </div>
+        <div class="collapsible-body" id="body-danger">
         <div class="card-body">
           <div class="danger-warning">
             <i class="fas fa-exclamation-circle"></i>
@@ -452,6 +739,7 @@ body.dark .sb-bar-bg { background: rgba(139,92,246,0.18) !important; }
             <i class="fas fa-trash-alt"></i> Delete My Account Permanently
           </button>
         </div>
+        </div>
       </div>
 
     </div>
@@ -462,6 +750,17 @@ body.dark .sb-bar-bg { background: rgba(139,92,246,0.18) !important; }
 {% include 'chatbot_widget.html' %}
 
 <script>
+
+// ── COLLAPSIBLE CARDS ────────────────────────────────────
+function toggleCard(id) {
+    const body = document.getElementById('body-' + id);
+    const chev = document.getElementById('chev-' + id);
+    if (!body) return;
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    if (chev) chev.classList.toggle('open', !isOpen);
+}
+
 function applyTheme(t) {
   if (t === 'dark') {
     document.body.classList.add('dark');
@@ -494,6 +793,85 @@ function confirmDelete() {
         .then(r => { window.location.href = '/'; });
     }
   }
+}
+
+
+// ── XP ANALYTICS ────────────────────────────────────────
+let analyticsLoaded = false;
+let analyticsOpen = false;
+
+function toggleAnalytics() {
+    analyticsOpen = !analyticsOpen;
+    const panel = document.getElementById('analytics-panel');
+    const chevron = document.getElementById('analytics-chevron');
+    panel.style.display = analyticsOpen ? 'block' : 'none';
+    chevron.style.transform = analyticsOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    if (analyticsOpen && !analyticsLoaded) {
+        loadAnalytics();
+        analyticsLoaded = true;
+    }
+}
+
+async function loadAnalytics() {
+    try {
+        const res = await fetch('/api/xp_history');
+        const data = await res.json();
+
+        // Summary stats
+        document.getElementById('stat-earned').textContent = '+' + data.total_earned + ' XP';
+        document.getElementById('stat-deducted').textContent = '-' + data.total_deducted + ' XP';
+        document.getElementById('stat-txns').textContent = data.total_transactions;
+        document.getElementById('txn-count').textContent = data.total_transactions + ' total';
+
+        // Bar chart
+        renderChart(data.chart_data);
+
+        // Timeline
+        renderTimeline(data.history);
+
+    } catch(e) {
+        document.getElementById('xp-chart-wrap').innerHTML = '<div style="color:var(--text-dim);font-size:0.8rem;padding:20px;text-align:center">No XP history yet — start earning!</div>';
+        document.getElementById('xp-timeline').innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-dim);font-size:0.85rem;">No transactions yet.</div>';
+    }
+}
+
+function renderChart(chartData) {
+    const wrap = document.getElementById('xp-chart-wrap');
+    if (!chartData || !chartData.length) {
+        wrap.innerHTML = '<div style="color:var(--text-dim);font-size:0.8rem;width:100%;text-align:center;padding-top:40px;">No data yet — earn some XP first!</div>';
+        return;
+    }
+    const maxXP = Math.max(...chartData.map(d => d.xp), 1);
+    const maxH = 90;
+    wrap.innerHTML = chartData.map(d => {
+        const h = Math.max(2, Math.round((d.xp / maxXP) * maxH));
+        const label = d.date.slice(5); // MM-DD
+        return `<div class="xp-bar-item" title="${d.date}: +${d.xp} XP">
+            <div class="bar" style="height:${h}px"></div>
+            <div class="bar-label">${label}</div>
+        </div>`;
+    }).join('');
+}
+
+function renderTimeline(history) {
+    const tl = document.getElementById('xp-timeline');
+    if (!history || !history.length) {
+        tl.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-dim);font-size:0.85rem;">No transactions yet.</div>';
+        return;
+    }
+    const icons = {
+        earn:   '<i class="fas fa-arrow-up"></i>',
+        deduct: '<i class="fas fa-arrow-down"></i>'
+    };
+    tl.innerHTML = history.map(h => `
+        <div class="xp-timeline-item">
+            <div class="xp-tl-icon ${h.type}">${icons[h.type] || icons.earn}</div>
+            <div style="flex:1;min-width:0;">
+                <div class="xp-tl-reason">${h.reason}</div>
+                <div class="xp-tl-date">${h.timestamp}</div>
+            </div>
+            <div class="xp-tl-points ${h.type}">${h.type === 'earn' ? '+' : ''}${h.points} XP</div>
+        </div>`).join('');
 }
 
 {% with messages = get_flashed_messages(with_categories=true) %}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 — Page Not Found | SkillBridge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+  <style>
+    :root { --bg:#f5f6fb;--surface:#ffffff;--primary:#8B5CF6;--secondary:#EC4899;--text-main:#0f172a;--text-dim:#64748b;--border:#e5e7eb; }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text-main);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;}
+    .wrapper{text-align:center;max-width:560px;width:100%;}
+    .logo{font-size:1.7rem;font-weight:800;margin-bottom:2.5rem;display:block;background:linear-gradient(90deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
+    .card{background:var(--surface);border-radius:28px;padding:3.5rem 2.5rem;border:1px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,0.07);}
+    .error-code{font-size:7rem;font-weight:900;line-height:1;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.5rem;}
+    .emoji{font-size:3.5rem;margin-bottom:1.2rem;display:block;}
+    h1{font-size:1.7rem;font-weight:800;margin-bottom:0.8rem;}
+    p{font-size:0.95rem;color:var(--text-dim);margin-bottom:2.5rem;line-height:1.7;}
+    .btn-group{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+    .btn-primary{padding:12px 28px;border-radius:50px;text-decoration:none;background:linear-gradient(90deg,var(--primary),var(--secondary));color:#fff;font-weight:700;font-size:0.88rem;transition:0.2s;display:inline-flex;align-items:center;gap:8px;}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(139,92,246,0.35);}
+    .btn-secondary{padding:12px 28px;border-radius:50px;text-decoration:none;border:2px solid var(--border);background:transparent;color:var(--text-main);font-weight:700;font-size:0.88rem;transition:0.2s;display:inline-flex;align-items:center;gap:8px;}
+    .btn-secondary:hover{border-color:var(--primary);color:var(--primary);}
+    .suggestions{margin-top:2.5rem;padding-top:2rem;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+    .suggestion-link{font-size:0.8rem;font-weight:700;color:var(--text-dim);text-decoration:none;padding:6px 14px;border-radius:20px;background:#f1f5f9;transition:0.2s;}
+    .suggestion-link:hover{background:rgba(139,92,246,0.1);color:var(--primary);}
+    body.dark{--bg:#0f0f1a;--surface:#1a1a2e;--text-main:#e2e8f0;--text-dim:#94a3b8;--border:#2d2d44;}
+    body.dark .suggestion-link{background:#13131f;}
+    body.dark .btn-secondary{color:#e2e8f0;}
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <a href="/" class="logo">SkillBridge</a>
+    <div class="card">
+      <div class="error-code">404</div>
+      <span class="emoji">🔍</span>
+      <h1>Page Not Found</h1>
+      <p>The page you're looking for doesn't exist or may have been moved. Don't worry — your XP is safe!</p>
+      <div class="btn-group">
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('main_page') }}" class="btn-primary">🏠 Go to Dashboard</a>
+        {% else %}
+          <a href="{{ url_for('index') }}" class="btn-primary">🏠 Go Home</a>
+        {% endif %}
+        <a href="javascript:history.back()" class="btn-secondary">← Go Back</a>
+      </div>
+      <div class="suggestions">
+        <a href="{{ url_for('projects') }}" class="suggestion-link">🌐 Community</a>
+        <a href="{{ url_for('roadmap_generator') }}" class="suggestion-link">🗺️ Roadmap AI</a>
+        <a href="{{ url_for('leaderboard') }}" class="suggestion-link">🏆 Leaderboard</a>
+        <a href="{{ url_for('find_communities') }}" class="suggestion-link">👥 Communities</a>
+      </div>
+    </div>
+  </div>
+  <script>(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();</script>
+</body>
+</html>

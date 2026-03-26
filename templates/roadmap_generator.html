@@ -47,6 +47,12 @@
         .main-content > p.subtitle { color: var(--color-text-secondary); margin-bottom: 2.5rem; font-size: 1.1em; margin-top: 0; }
         /* Form styling */
         .generator-form { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+        @media (max-width: 768px) {
+            .sidebar { display: none !important; }
+            .main-content { margin-left: 0 !important; width: 100% !important; padding: 1.2rem !important; padding-top: 60px !important; }
+            .generator-form { flex-direction: column; }
+            .generator-form .cta-button { width: 100%; text-align: center; }
+        }
         .generator-form input[type="text"] {
             flex-grow: 1; /* Take remaining space */
             padding: 14px 16px;
@@ -295,7 +301,9 @@
             {% endif %} {# end if roadmap_data #}
         </main>
     </div>
+{% include 'notification_bell.html' %}
 {% include 'chatbot_widget.html' %}
+
 <script>
 applyTheme(localStorage.getItem('sb-theme') || 'light');
 function applyTheme(t){ t==='dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark'); }

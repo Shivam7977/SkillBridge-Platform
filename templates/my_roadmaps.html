@@ -277,8 +277,9 @@ fetch('/api/check_levelup').then(r => r.json()).then(d => {
 });
 {% endif %}
 </script>
-
+{% include 'notification_bell.html' %}
 {% include 'chatbot_widget.html' %}
+
 <script>
 applyTheme(localStorage.getItem('sb-theme') || 'light');
 function applyTheme(t) { t === 'dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark'); }

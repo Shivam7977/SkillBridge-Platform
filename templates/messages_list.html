@@ -228,7 +228,12 @@ body{
 
           <div class="chat-body">
             <div class="chat-top">
-              <div class="chat-name">{{ chat.user_name }}</div>
+              <div>
+                <div class="chat-name">{{ chat.user_name }}</div>
+                {% if chat.username %}
+                  <div style="font-size:0.72rem;color:var(--primary);font-weight:700;">@{{ chat.username }}</div>
+                {% endif %}
+              </div>
               <div class="chat-time">{{ chat.timestamp }}</div>
             </div>
 
@@ -252,6 +257,8 @@ body{
       {% endif %}
     </div>
   </div>
+  {% include 'notification_bell.html' %}
+{% include 'chatbot_widget.html' %}
 </main>
 <script>
 (function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();

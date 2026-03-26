@@ -1,284 +1,610 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
-<title>Find Communities</title>
-
+<script>(function(){var t=localStorage.getItem('sb-theme')||'light';if(t==='dark'){document.documentElement.className='dark';document.documentElement.style.background='#0f0f1a';}})()</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Communities — SkillBridge</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+<link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
 <style>
-/* ---------- SIDEBAR & LAYOUT STYLES ---------- */
+/* ─── CSS VARIABLES ─── */
 :root {
   --bg: #f5f6fb;
   --surface: #ffffff;
-  --primary: #8B5CF6;
-  --secondary: #EC4899;
+  --primary: #7c3aed;
+  --primary-light: #8B5CF6;
+  --secondary: #db2777;
   --text-main: #0f172a;
   --text-dim: #64748b;
   --border: #e5e7eb;
+  --radius: 16px;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.06);
+  --shadow-md: 0 8px 24px rgba(0,0,0,.09);
+  --shadow-lg: 0 20px 50px rgba(0,0,0,.12);
 }
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin:0; padding:0; box-sizing:border-box; }
 body {
-    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-    background: #f4f6f9;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text-main);
+  transition: background .15s, color .15s;
 }
-.dashboard-container { display: flex; }
 
+/* ─── LAYOUT ─── */
+.layout { display: flex; min-height: 100vh; }
+
+/* ─── SIDEBAR ─── */
 .sidebar {
   width: 260px; background: var(--surface); border-right: 1px solid var(--border);
-  padding: 2.5rem 1.5rem; position: fixed; height: 100vh; z-index: 100;
+  padding: 2rem 1.25rem; position: fixed; height: 100vh; z-index: 100;
   display: flex; flex-direction: column; overflow-y: auto;
 }
-.sidebar .logo {
-  font-size: 1.8rem; font-weight: 800; background: linear-gradient(90deg, var(--primary), var(--secondary));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 3rem; display: block; text-decoration: none;
+.logo {
+  font-size: 1.7rem; font-weight: 800;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 2.5rem; display: block; text-decoration: none;
 }
-.sidebar a {
-  display: flex; align-items: center; gap: 12px; padding: .8rem 1rem; border-radius: 12px;
-  color: var(--text-dim); text-decoration: none; margin-bottom: .5rem; font-size: 0.9rem; font-weight: 600; transition: 0.2s;
+.nav-item {
+  display: flex; align-items: center; gap: 11px; padding: .75rem 1rem;
+  border-radius: 12px; color: var(--text-dim); text-decoration: none;
+  margin-bottom: .3rem; font-size: .875rem; font-weight: 600; transition: .18s;
 }
-.sidebar a:hover { background: #f1f5f9; color: var(--primary); }
-.sidebar a.active { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; }
+.nav-item:hover { background: #f1f5f9; color: var(--primary); }
+.nav-item.active {
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  color: #fff;
+}
+.nav-item i { width: 18px; text-align: center; font-size: .9rem; }
+.sidebar-bottom { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border); }
 
-.main-content { margin-left: 260px; padding: 2rem 4rem; width: calc(100% - 260px); min-height: 100vh; }
+/* ─── MAIN ─── */
+.main { margin-left: 260px; padding: 2.5rem 3rem; flex: 1; }
 
+/* ─── PAGE HEADER ─── */
+.page-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 2.5rem; gap: 1.5rem; flex-wrap: wrap;
+}
+.page-header-left h1 {
+  font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: .4rem;
+}
+.page-header-left p { color: var(--text-dim); font-size: .9rem; }
+
+/* ─── SEARCH BAR ─── */
+.search-wrap {
+  position: relative; min-width: 280px;
+}
+.search-wrap input {
+  width: 100%; padding: .75rem 1rem .75rem 2.8rem;
+  border: 1.5px solid var(--border); border-radius: 50px;
+  background: var(--surface); color: var(--text-main);
+  font-family: inherit; font-size: .875rem; font-weight: 500;
+  outline: none; transition: border-color .18s, box-shadow .18s;
+}
+.search-wrap input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(124,58,237,.1);
+}
+.search-wrap .search-icon {
+  position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+  color: var(--text-dim); font-size: .85rem; pointer-events: none;
+}
+
+/* ─── FILTER TABS ─── */
+.filter-tabs {
+  display: flex; gap: .5rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;
+}
+.filter-tab {
+  padding: .45rem 1.1rem; border-radius: 50px;
+  border: 1.5px solid var(--border); background: var(--surface);
+  color: var(--text-dim); font-family: inherit; font-size: .8rem;
+  font-weight: 600; cursor: pointer; transition: .18s; user-select: none;
+}
+.filter-tab:hover { border-color: var(--primary); color: var(--primary); }
+.filter-tab.active {
+  background: var(--primary); border-color: var(--primary); color: #fff;
+}
+.filter-count {
+  margin-left: auto; font-size: .8rem; color: var(--text-dim); font-weight: 600;
+}
+
+/* ─── SECTION HEADER ─── */
+.section-head {
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; margin-top: 2.5rem;
+}
+.section-head:first-of-type { margin-top: 0; }
+.section-head h2 {
+  font-size: 1rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .07em; color: var(--text-dim);
+}
+.section-line { flex: 1; height: 1px; background: var(--border); }
+.section-badge {
+  font-size: .75rem; font-weight: 700; padding: .2rem .6rem;
+  border-radius: 50px; background: rgba(124,58,237,.1); color: var(--primary);
+}
+
+/* ─── COMMUNITY GRID ─── */
+.comm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+/* ─── COMMUNITY CARD ─── */
+.comm-card {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 1.5rem;
+  box-shadow: var(--shadow-sm); transition: transform .2s, box-shadow .2s, border-color .2s;
+  position: relative; display: flex; flex-direction: column; gap: .85rem;
+  cursor: default;
+}
+.comm-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(124,58,237,.3);
+}
+
+/* Card top row */
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+.card-name {
+  font-size: 1.05rem; font-weight: 800; color: var(--text-main);
+  line-height: 1.35; flex: 1; word-break: break-word;
+}
+.card-badges { display: flex; flex-direction: column; align-items: flex-end; gap: .35rem; flex-shrink: 0; }
+
+/* Role badge (Owner / Member) */
+.role-badge {
+  font-size: .7rem; font-weight: 700; padding: .25rem .65rem;
+  border-radius: 50px; white-space: nowrap;
+}
+.role-badge.owner { background: rgba(124,58,237,.12); color: var(--primary); border: 1px solid rgba(124,58,237,.25); }
+.role-badge.member { background: rgba(16,185,129,.12); color: #059669; border: 1px solid rgba(16,185,129,.25); }
+.role-badge.pending { background: rgba(245,158,11,.12); color: #d97706; border: 1px solid rgba(245,158,11,.3); }
+
+/* Visibility badge */
+.vis-badge {
+  font-size: .7rem; font-weight: 700; padding: .22rem .6rem;
+  border-radius: 6px; white-space: nowrap;
+}
+.vis-badge.public { background: rgba(16,185,129,.1); color: #059669; }
+.vis-badge.private { background: rgba(239,68,68,.1); color: #dc2626; }
+
+/* Owner username */
+.card-owner {
+  font-size: .78rem; color: var(--primary); font-weight: 700;
+}
+
+/* Skills */
+.card-skills { display: flex; flex-wrap: wrap; gap: .4rem; }
+.skill-pill {
+  font-size: .72rem; font-weight: 600; padding: .25rem .65rem;
+  background: rgba(124,58,237,.08); color: var(--primary);
+  border-radius: 50px; border: 1px solid rgba(124,58,237,.15);
+}
+
+/* Member count */
+.card-meta {
+  display: flex; align-items: center; gap: 1rem;
+  font-size: .78rem; color: var(--text-dim); font-weight: 600;
+}
+.card-meta i { font-size: .75rem; }
+
+/* Card action button */
+.card-action {
+  display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+  padding: .6rem 1.25rem; border-radius: 50px;
+  font-family: inherit; font-size: .82rem; font-weight: 700;
+  text-decoration: none; cursor: pointer; border: none;
+  transition: opacity .18s, transform .15s; margin-top: auto;
+}
+.card-action:hover { opacity: .88; transform: scale(1.02); }
+.btn-primary {
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  color: #fff;
+}
+.btn-outline {
+  background: transparent; border: 1.5px solid var(--primary); color: var(--primary);
+}
+.btn-ghost {
+  background: var(--bg); border: 1.5px solid var(--border); color: var(--text-dim);
+}
+
+/* Empty state */
+.empty-state {
+  grid-column: 1 / -1; padding: 2.5rem 1.5rem; text-align: center;
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  color: var(--text-dim); font-size: .9rem; font-weight: 500;
+}
+.empty-state i { font-size: 2rem; margin-bottom: .75rem; opacity: .4; display: block; }
+
+/* ─── LOAD MORE ─── */
+.load-more-wrap { text-align: center; margin: 2rem 0 1rem; }
+.load-more-btn {
+  display: inline-flex; align-items: center; gap: .6rem;
+  padding: .75rem 2rem; border-radius: 50px;
+  border: 2px solid var(--primary); background: var(--surface);
+  color: var(--primary); font-family: inherit; font-weight: 700;
+  font-size: .88rem; cursor: pointer; transition: .2s;
+}
+.load-more-btn:hover { background: var(--primary); color: #fff; }
+.showing-count { font-size: .78rem; color: var(--text-dim); margin-top: .5rem; font-weight: 600; }
+
+/* ─── DARK MODE ─── */
+html.dark body, body.dark {
+  background: #0f0f1a !important;
+  color: #e2e8f0 !important;
+  --surface: #1a1a2e;
+  --text-main: #e2e8f0;
+  --text-dim: #94a3b8;
+  --border: #2d2d44;
+  --bg: #0f0f1a;
+}
+body.dark .sidebar { background: #13131f !important; border-right-color: #2d2d44 !important; }
+body.dark .nav-item { color: #94a3b8 !important; }
+body.dark .nav-item:hover { background: #1e1e35 !important; color: #a78bfa !important; }
+body.dark .nav-item.active { background: linear-gradient(90deg, #7c3aed, #db2777) !important; color: #fff !important; }
+body.dark .sidebar-bottom { border-top-color: #2d2d44 !important; }
+body.dark .comm-card { background: #1a1a2e !important; border-color: #2d2d44 !important; }
+body.dark .comm-card:hover { border-color: #7c3aed !important; box-shadow: 0 20px 50px rgba(0,0,0,.4) !important; }
+body.dark .card-name { color: #e2e8f0 !important; }
+body.dark .skill-pill { background: rgba(167,139,250,.12) !important; color: #a78bfa !important; border-color: rgba(167,139,250,.2) !important; }
+body.dark .vis-badge.public { background: rgba(16,185,129,.12) !important; color: #34d399 !important; }
+body.dark .vis-badge.private { background: rgba(239,68,68,.1) !important; color: #f87171 !important; }
+body.dark .role-badge.owner { background: rgba(167,139,250,.12) !important; color: #a78bfa !important; border-color: rgba(167,139,250,.25) !important; }
+body.dark .role-badge.member { background: rgba(16,185,129,.12) !important; color: #34d399 !important; border-color: rgba(16,185,129,.25) !important; }
+body.dark .role-badge.pending { background: rgba(251,191,36,.1) !important; color: #fbbf24 !important; }
+body.dark .search-wrap input { background: #13131f !important; border-color: #2d2d44 !important; color: #e2e8f0 !important; }
+body.dark .search-wrap input:focus { border-color: #a78bfa !important; }
+body.dark .filter-tab { background: #1a1a2e !important; border-color: #2d2d44 !important; color: #94a3b8 !important; }
+body.dark .filter-tab:hover { border-color: #a78bfa !important; color: #a78bfa !important; }
+body.dark .filter-tab.active { background: #7c3aed !important; border-color: #7c3aed !important; color: #fff !important; }
+body.dark .load-more-btn { background: #1a1a2e !important; border-color: #a78bfa !important; color: #a78bfa !important; }
+body.dark .load-more-btn:hover { background: #7c3aed !important; color: #fff !important; }
+body.dark .empty-state { border-color: #2d2d44 !important; color: #64748b !important; }
+body.dark .section-head h2 { color: #64748b !important; }
+body.dark .section-line { background: #2d2d44 !important; }
+body.dark .card-meta { color: #64748b !important; }
+body.dark .card-owner { color: #a78bfa !important; }
+body.dark .btn-outline { border-color: #a78bfa !important; color: #a78bfa !important; }
+body.dark .btn-ghost { background: #13131f !important; border-color: #2d2d44 !important; color: #94a3b8 !important; }
+body.dark .page-header-left h1 { color: #e2e8f0 !important; }
+body.dark .page-header-left p { color: #94a3b8 !important; }
+
+/* ─── RESPONSIVE ─── */
 @media (max-width: 768px) {
-    .main-content { margin-left: 0; padding: 1.5rem; width: 100%; }
-    .sidebar { display: none; }
-}
-
-/* ---------- ORIGINAL PAGE STYLES ---------- */
-.container{
-    max-width:1100px;
-    margin: 0 auto;
-}
-
-.section-title{
-    margin:30px 0 15px 0;
-    padding-bottom:5px;
-    border-bottom:2px solid #ddd;
-}
-
-.grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-    gap:20px;
-}
-
-.card{
-    background:#fff;
-    padding:20px;
-    border-radius:12px;
-    box-shadow:0 8px 20px rgba(0,0,0,.08);
-    position:relative;
-}
-
-/* OVERLAP FIX: Added padding-right to h3 so it doesn't collide with the badge */
-.card h3 {
-    margin-top: 0;
-    margin-bottom: 12px;
-    padding-right: 75px; 
-    line-height: 1.4;
-    font-size: 1.2rem;
-}
-
-.owner-label{
-    position:absolute;
-    top:15px;
-    right:15px;
-    background:#6366f1;
-    color:#fff;
-    padding:4px 10px;
-    font-size:11px;
-    border-radius:20px;
-}
-
-.member-label{
-    position:absolute;
-    top:15px;
-    right:15px;
-    background:#10b981;
-    color:#fff;
-    padding:4px 10px;
-    font-size:11px;
-    border-radius:20px;
-}
-
-.badge{
-    padding:4px 10px;
-    border-radius:10px;
-    font-size:12px;
-    font-weight:bold;
-    display: inline-block;
-    margin-bottom: 8px;
-}
-
-.public{
-    background:#d1fae5;
-    color:#065f46;
-}
-
-.private{
-    background:#fee2e2;
-    color:#991b1b;
-}
-
-.skill{
-    display:inline-block;
-    background:#eef2ff;
-    padding:5px 8px;
-    border-radius:8px;
-    margin:3px;
-    font-size:12px;
-}
-
-.view-btn{
-    display:inline-block;
-    margin-top:15px;
-    padding:8px 15px;
-    background:#6366f1;
-    color:#fff;
-    text-decoration:none;
-    border-radius:20px;
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-.no-data{
-    color:#888;
-    margin-top:10px;
+  .sidebar { display: none; }
+  .main { margin-left: 0; padding: 1.5rem; }
+  .comm-grid { grid-template-columns: 1fr; }
+  .page-header { flex-direction: column; }
+  .search-wrap { min-width: 100%; }
 }
 </style>
-
 </head>
 
 <body>
+<div class="layout">
 
-<div class="dashboard-container">
-    <aside class="sidebar">
-      <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
-      <a href="{{ url_for('main_page') }}"><i class="fas fa-home"></i> Dashboard</a>
-      <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a>
-      <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
-      <a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> Roadmap AI</a>
-      <a href="{{ url_for('resume_builder') }}"><i class="fas fa-file-alt"></i> Resume Builder</a>
-      <a href="{{ url_for('portfolio_builder') }}"><i class="fas fa-briefcase"></i> Portfolio Builder</a>
-      <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
-      <a href="{{ url_for('find_communities') }}" class="active"><i class="fas fa-users"></i> All Communities</a>
-      <a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a>
-    <a href="{{ url_for('leaderboard') }}"><i class="fas fa-trophy"></i> Leaderboard</a>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
+    <a href="{{ url_for('main_page') }}" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="{{ url_for('profile') }}" class="nav-item"><i class="fas fa-user-circle"></i> My Profile</a>
+    <a href="{{ url_for('my_projects') }}" class="nav-item"><i class="fas fa-layer-group"></i> My Projects</a>
+    <a href="{{ url_for('roadmap_generator') }}" class="nav-item"><i class="fas fa-magic"></i> Roadmap AI</a>
+    <a href="{{ url_for('resume_builder') }}" class="nav-item"><i class="fas fa-file-alt"></i> Resume Builder</a>
+    <a href="{{ url_for('portfolio_builder') }}" class="nav-item"><i class="fas fa-briefcase"></i> Portfolio Builder</a>
+    <a href="{{ url_for('projects') }}" class="nav-item"><i class="fas fa-globe"></i> Explore Projects</a>
+    <a href="{{ url_for('find_communities') }}" class="nav-item active"><i class="fas fa-users"></i> Communities</a>
+    <a href="{{ url_for('messages_list') }}" class="nav-item"><i class="fas fa-comment-dots"></i> Messages</a>
+    <a href="{{ url_for('leaderboard') }}" class="nav-item"><i class="fas fa-trophy"></i> Leaderboard</a>
+    <div class="sidebar-bottom">
+      <a href="{{ url_for('settings') }}" class="nav-item"><i class="fas fa-cog"></i> Settings</a>
+    </div>
+  </aside>
 
-      <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border);">
-        <a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a>
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>Communities</h1>
+        <p>Connect, collaborate and grow with project communities</p>
       </div>
-    </aside>
+      <div class="search-wrap">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="search-input" placeholder="Search communities..." autocomplete="off">
+      </div>
+    </div>
 
-    <main class="main-content">
-        <div class="container">
-        <h2>Find Communities</h2>
+    <!-- FILTER TABS -->
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="all">All</button>
+      <button class="filter-tab" data-filter="mine">My Communities</button>
+      <button class="filter-tab" data-filter="joined">Joined</button>
+      <button class="filter-tab" data-filter="explore">Explore</button>
+      <button class="filter-tab" data-filter="public">Public</button>
+      <button class="filter-tab" data-filter="private">Private</button>
+      <span class="filter-count" id="count-display"></span>
+    </div>
 
-        <h3 class="section-title">My Communities (Created by Me)</h3>
-        <div class="grid">
-        {% set my_comms = communities | selectattr("is_owner") | list %}
-        {% if my_comms %}
-            {% for community in my_comms %}
-            <div class="card">
-                <span class="owner-label">Owner</span>
-
-                <h3>{{ community.project_title }}</h3>
-
-                <span class="badge {{ community.visibility }}">
-                    {{ community.visibility|capitalize }}
-                </span>
-
-                <div>
-                    {% for skill in community.skills_required %}
-                        <span class="skill">{{ skill }}</span>
-                    {% endfor %}
-                </div>
-
-                <a class="view-btn"
-                   href="{{ url_for('view_community', community_id=community._id) }}">
-                    Manage Community
-                </a>
-            </div>
-            {% endfor %}
-        {% else %}
-            <p class="no-data">You haven’t created any communities.</p>
-        {% endif %}
+    <!-- ── MY COMMUNITIES ── -->
+    {% if my_communities %}
+    <div class="section-head" data-section="mine">
+      <h2>My Communities</h2>
+      <div class="section-line"></div>
+      <span class="section-badge">{{ my_communities|length }}</span>
+    </div>
+    <div class="comm-grid" id="my-grid">
+      {% for c in my_communities %}
+      <div class="comm-card" data-section="mine" data-vis="{{ c.visibility }}" data-name="{{ c.project_title|lower }}">
+        <div class="card-top">
+          <div class="card-name">{{ c.project_title }}</div>
+          <div class="card-badges">
+            <span class="role-badge owner"><i class="fas fa-crown" style="font-size:.6rem"></i> Owner</span>
+            <span class="vis-badge {{ c.visibility }}">{{ c.visibility|capitalize }}</span>
+          </div>
         </div>
-
-
-        <h3 class="section-title">Communities I Joined</h3>
-        <div class="grid">
-        {% set joined_comms = communities | selectattr("is_member") | rejectattr("is_owner") | list %}
-        {% if joined_comms %}
-            {% for community in joined_comms %}
-            <div class="card">
-                <span class="member-label">Member</span>
-
-                <h3>{{ community.project_title }}</h3>
-
-                <span class="badge {{ community.visibility }}">
-                    {{ community.visibility|capitalize }}
-                </span>
-
-                <div>
-                    {% for skill in community.skills_required %}
-                        <span class="skill">{{ skill }}</span>
-                    {% endfor %}
-                </div>
-
-                <a class="view-btn"
-                   href="{{ url_for('view_community', community_id=community._id) }}">
-                    Open Community
-                </a>
-            </div>
-            {% endfor %}
-        {% else %}
-            <p class="no-data">You haven’t joined any communities.</p>
+        {% if c.owner_username %}
+        <div class="card-owner">@{{ c.owner_username }}</div>
         {% endif %}
+        <div class="card-skills">
+          {% for skill in c.skills_required %}<span class="skill-pill">{{ skill }}</span>{% endfor %}
         </div>
+        <div class="card-meta">
+          <span><i class="fas fa-users"></i> {{ c.members|length }} member{{ 's' if c.members|length != 1 }}</span>
+          {% if c.pending_requests %}<span><i class="fas fa-clock"></i> {{ c.pending_requests|length }} pending</span>{% endif %}
+        </div>
+        <a href="{{ url_for('view_community', community_id=c._id) }}" class="card-action btn-primary">
+          <i class="fas fa-cog"></i> Manage Community
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
 
-
-        <h3 class="section-title">Explore Other Communities</h3>
-        <div class="grid">
-        {% set other_comms = communities | selectattr("is_other") | list %}
-        {% if other_comms %}
-            {% for community in other_comms %}
-            <div class="card">
-
-                <h3>{{ community.project_title }}</h3>
-
-                <span class="badge {{ community.visibility }}">
-                    {{ community.visibility|capitalize }}
-                </span>
-
-                <div>
-                    {% for skill in community.skills_required %}
-                        <span class="skill">{{ skill }}</span>
-                    {% endfor %}
-                </div>
-
-                <a class="view-btn"
-                   href="{{ url_for('view_community', community_id=community._id) }}">
-                    View Community
-                </a>
-            </div>
-            {% endfor %}
-        {% else %}
-            <p class="no-data">No other communities available.</p>
+    <!-- ── JOINED COMMUNITIES ── -->
+    {% if joined_communities %}
+    <div class="section-head" data-section="joined">
+      <h2>Communities I Joined</h2>
+      <div class="section-line"></div>
+      <span class="section-badge">{{ joined_communities|length }}</span>
+    </div>
+    <div class="comm-grid" id="joined-grid">
+      {% for c in joined_communities %}
+      <div class="comm-card" data-section="joined" data-vis="{{ c.visibility }}" data-name="{{ c.project_title|lower }}">
+        <div class="card-top">
+          <div class="card-name">{{ c.project_title }}</div>
+          <div class="card-badges">
+            <span class="role-badge member"><i class="fas fa-check-circle" style="font-size:.6rem"></i> Member</span>
+            <span class="vis-badge {{ c.visibility }}">{{ c.visibility|capitalize }}</span>
+          </div>
+        </div>
+        {% if c.owner_username %}
+        <div class="card-owner">@{{ c.owner_username }}</div>
         {% endif %}
+        <div class="card-skills">
+          {% for skill in c.skills_required %}<span class="skill-pill">{{ skill }}</span>{% endfor %}
         </div>
+        <div class="card-meta">
+          <span><i class="fas fa-users"></i> {{ c.members|length }} member{{ 's' if c.members|length != 1 }}</span>
+        </div>
+        <a href="{{ url_for('view_community', community_id=c._id) }}" class="card-action btn-primary">
+          <i class="fas fa-comments"></i> Open Community
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
 
-        </div> </main>
+    <!-- ── NO MY/JOINED COMMUNITIES EMPTY STATE ── -->
+    {% if not my_communities and not joined_communities %}
+    <div class="section-head">
+      <h2>Your Communities</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="comm-grid">
+      <div class="empty-state">
+        <i class="fas fa-users"></i>
+        You haven't created or joined any communities yet.<br>
+        <span style="font-size:.82rem;margin-top:.5rem;display:inline-block">Explore below and send a join request!</span>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── EXPLORE OTHER COMMUNITIES ── -->
+    <div class="section-head" data-section="explore">
+      <h2>Explore Communities</h2>
+      <div class="section-line"></div>
+      <span class="section-badge" id="explore-count">{{ other_total }}</span>
+    </div>
+
+    <div class="comm-grid" id="explore-grid">
+      {% if other_communities %}
+        {% for c in other_communities %}
+        <div class="comm-card" data-section="explore" data-vis="{{ c.visibility }}" data-name="{{ c.project_title|lower }}">
+          <div class="card-top">
+            <div class="card-name">{{ c.project_title }}</div>
+            <div class="card-badges">
+              <span class="vis-badge {{ c.visibility }}">{{ c.visibility|capitalize }}</span>
+            </div>
+          </div>
+          {% if c.owner_username %}
+          <div class="card-owner">@{{ c.owner_username }}</div>
+          {% endif %}
+          <div class="card-skills">
+            {% for skill in c.skills_required %}<span class="skill-pill">{{ skill }}</span>{% endfor %}
+          </div>
+          <div class="card-meta">
+            <span><i class="fas fa-users"></i> {{ c.member_count }} member{{ 's' if c.member_count != 1 }}</span>
+            <span><i class="fas fa-{{ 'unlock-alt' if c.visibility == 'public' else 'lock' }}"></i> {{ c.visibility|capitalize }}</span>
+          </div>
+          <a href="{{ url_for('view_community', community_id=c._id) }}" class="card-action btn-outline">
+            <i class="fas fa-eye"></i> View Community
+          </a>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <i class="fas fa-compass"></i>
+          No other communities yet. Create one from your next project!
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- LOAD MORE -->
+    {% if has_more %}
+    <div class="load-more-wrap" id="load-more-wrap">
+      <button class="load-more-btn" id="load-more-btn" onclick="loadMore()">
+        <i class="fas fa-plus-circle"></i> Load More
+      </button>
+      <div class="showing-count">
+        Showing <span id="showing-count">{{ other_communities|length }}</span> of {{ other_total }}
+      </div>
+    </div>
+    {% else %}
+      {% if other_total > 0 %}
+      <div style="text-align:center;margin:1.5rem 0;font-size:.82rem;color:var(--text-dim);font-weight:600;">
+        ✅ You've seen all {{ other_total }} communities
+      </div>
+      {% endif %}
+    {% endif %}
+
+  </main>
 </div>
 
+{% include 'notification_bell.html' %}
 {% include 'chatbot_widget.html' %}
 
 <script>
-(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+// ── THEME ──
+(function(){
+  var t = localStorage.getItem('sb-theme') || 'light';
+  document.body.classList.toggle('dark', t === 'dark');
+})();
+
+// ── SEARCH + FILTER ──
+const searchInput = document.getElementById('search-input');
+const filterTabs  = document.querySelectorAll('.filter-tab');
+let   activeFilter = 'all';
+
+function applyFilters() {
+  const q = searchInput.value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.comm-card');
+  let visible = 0;
+
+  cards.forEach(card => {
+    const name    = card.dataset.name || '';
+    const section = card.dataset.section || '';
+    const vis     = card.dataset.vis || '';
+
+    const matchesSearch = !q || name.includes(q);
+    let matchesFilter = true;
+    if (activeFilter === 'mine')    matchesFilter = section === 'mine';
+    else if (activeFilter === 'joined')  matchesFilter = section === 'joined';
+    else if (activeFilter === 'explore') matchesFilter = section === 'explore';
+    else if (activeFilter === 'public')  matchesFilter = vis === 'public';
+    else if (activeFilter === 'private') matchesFilter = vis === 'private';
+
+    const show = matchesSearch && matchesFilter;
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+
+  // Hide section headers when all cards in them are hidden
+  document.querySelectorAll('.section-head[data-section]').forEach(head => {
+    const sec = head.dataset.section;
+    const anyVisible = [...document.querySelectorAll(`.comm-card[data-section="${sec}"]`)]
+      .some(c => c.style.display !== 'none');
+    head.style.display = anyVisible ? '' : 'none';
+    const grid = document.getElementById(sec === 'mine' ? 'my-grid' : sec === 'joined' ? 'joined-grid' : 'explore-grid');
+    if (grid) grid.style.display = anyVisible ? '' : 'none';
+  });
+
+  const countEl = document.getElementById('count-display');
+  if (countEl) countEl.textContent = `${visible} result${visible !== 1 ? 's' : ''}`;
+}
+
+searchInput.addEventListener('input', applyFilters);
+
+filterTabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    filterTabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    activeFilter = tab.dataset.filter;
+    applyFilters();
+  });
+});
+
+// ── LOAD MORE ──
+let currentPage = {{ page }};
+let isLoading = false;
+
+async function loadMore() {
+  if (isLoading) return;
+  isLoading = true;
+  const btn = document.getElementById('load-more-btn');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`/api/communities?page=${currentPage + 1}`);
+    const data = await res.json();
+    const grid = document.getElementById('explore-grid');
+
+    data.communities.forEach(c => {
+      const skills = c.skills_required.map(s => `<span class="skill-pill">${s}</span>`).join('');
+      const visClass = c.visibility === 'public' ? 'public' : 'private';
+      const lockIcon = c.visibility === 'public' ? 'unlock-alt' : 'lock';
+      const card = document.createElement('div');
+      card.className = 'comm-card';
+      card.dataset.section = 'explore';
+      card.dataset.vis = c.visibility;
+      card.dataset.name = (c.project_title || '').toLowerCase();
+      card.innerHTML = `
+        <div class="card-top">
+          <div class="card-name">${c.project_title}</div>
+          <div class="card-badges">
+            <span class="vis-badge ${visClass}">${c.visibility.charAt(0).toUpperCase() + c.visibility.slice(1)}</span>
+          </div>
+        </div>
+        ${c.owner_username ? `<div class="card-owner">@${c.owner_username}</div>` : ''}
+        <div class="card-skills">${skills}</div>
+        <div class="card-meta">
+          <span><i class="fas fa-users"></i> ${c.member_count} member${c.member_count !== 1 ? 's' : ''}</span>
+          <span><i class="fas fa-${lockIcon}"></i> ${c.visibility.charAt(0).toUpperCase() + c.visibility.slice(1)}</span>
+        </div>
+        <a href="/community/${c._id}" class="card-action btn-outline">
+          <i class="fas fa-eye"></i> View Community
+        </a>`;
+      grid.appendChild(card);
+    });
+
+    currentPage++;
+
+    const countEl = document.getElementById('showing-count');
+    if (countEl) countEl.textContent = parseInt(countEl.textContent) + data.communities.length;
+
+    if (!data.has_more) {
+      document.getElementById('load-more-wrap').innerHTML =
+        '<p style="color:var(--text-dim);font-size:.82rem;font-weight:600;">✅ You\'ve seen all communities!</p>';
+    } else {
+      btn.innerHTML = '<i class="fas fa-plus-circle"></i> Load More';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    btn.innerHTML = '<i class="fas fa-plus-circle"></i> Load More';
+    btn.disabled = false;
+  }
+  isLoading = false;
+}
+
+// Initial count display
+applyFilters();
 </script>
 </body>
 </html>

@@ -87,6 +87,81 @@ body{ font-family:Poppins,sans-serif; background: radial-gradient(900px 400px at
 body.dark .sb-xp-num{ color:#e2e8f0 !important; }
 body.dark .sb-xp-widget{ background:linear-gradient(135deg,rgba(139,92,246,0.12),rgba(236,72,153,0.08)) !important; border-color:rgba(139,92,246,0.25) !important; }
 body.dark .sb-bar-bg{ background:rgba(139,92,246,0.18) !important; }
+
+/* ── SEARCH BAR ── */
+.search-section { position:relative; margin:2.5rem 0 0; }
+.search-form {
+    display:flex; align-items:center;
+    background:#fff; border-radius:20px;
+    box-shadow:0 8px 30px rgba(139,92,246,0.12);
+    border:2px solid transparent; overflow:hidden; transition:0.2s;
+}
+.search-form:focus-within {
+    border-color:var(--primary);
+    box-shadow:0 8px 30px rgba(139,92,246,0.22);
+}
+.search-icon { padding:0 18px; color:var(--muted); font-size:1rem; flex-shrink:0; }
+.search-field {
+    flex:1; padding:16px 0; border:none; outline:none;
+    font-family:Poppins,sans-serif; font-size:0.95rem; color:var(--text); background:transparent;
+}
+.search-field::placeholder { color:var(--muted); }
+.search-submit {
+    padding:14px 26px; background:linear-gradient(90deg,var(--primary),var(--secondary));
+    color:#fff; border:none; font-family:Poppins,sans-serif; font-weight:700;
+    font-size:0.88rem; cursor:pointer; transition:0.2s; display:flex; align-items:center; gap:8px; flex-shrink:0;
+}
+.search-submit:hover { opacity:0.9; }
+.search-hint { font-size:0.72rem; color:var(--muted); margin-top:6px; margin-left:4px; font-weight:600; }
+
+/* Dropdown */
+.search-drop {
+    position:absolute; top:calc(100% + 8px); left:0; right:0;
+    background:#fff; border-radius:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.12);
+    border:1px solid var(--border); z-index:9000;
+    display:none; max-height:360px; overflow-y:auto;
+}
+.search-drop.open { display:block; }
+.search-drop-item {
+    display:flex; align-items:center; gap:12px;
+    padding:12px 18px; text-decoration:none; color:inherit;
+    border-bottom:1px solid #f1f5f9; transition:0.15s;
+}
+.search-drop-item:last-child { border-bottom:none; }
+.search-drop-item:hover { background:#f8fafc; }
+.search-drop-avatar { width:40px; height:40px; border-radius:10px; object-fit:cover; border:2px solid var(--border); flex-shrink:0; }
+.search-drop-name { font-size:0.88rem; font-weight:800; }
+.search-drop-username { font-size:0.72rem; color:var(--primary); font-weight:700; }
+.search-drop-title { font-size:0.75rem; color:var(--muted); }
+.search-drop-badge { font-size:0.68rem; font-weight:700; color:var(--primary); background:rgba(139,92,246,0.08); padding:3px 10px; border-radius:10px; margin-left:auto; white-space:nowrap; }
+.search-drop-empty { padding:1.5rem; text-align:center; color:var(--muted); font-size:0.85rem; }
+
+body.dark .search-form { background:#1a1a2e !important; }
+body.dark .search-field { color:#e2e8f0 !important; }
+body.dark .search-drop { background:#1a1a2e !important; border-color:#2d2d44 !important; }
+body.dark .search-drop-item { border-bottom-color:#2d2d44 !important; }
+body.dark .search-drop-item:hover { background:#13131f !important; }
+body.dark .search-drop-name { color:#e2e8f0 !important; }
+
+/* ── SEARCH BAR RESPONSIVE ── */
+@media (max-width: 768px) {
+    .search-section { margin: 1.5rem 0 0; }
+    .search-submit span { display: none; } /* hide text, keep icon */
+    .search-submit {
+        padding: 14px 18px !important;
+    }
+    .search-field {
+        font-size: 0.85rem !important;
+    }
+    .search-drop {
+        max-height: 280px !important;
+    }
+}
+@media (max-width: 480px) {
+    .search-form { border-radius: 14px !important; }
+    .search-submit { padding: 12px 14px !important; }
+}
 </style>
 </head>
 <body>
@@ -146,6 +221,23 @@ body.dark .sb-bar-bg{ background:rgba(139,92,246,0.18) !important; }
         </div>
       </div>
     </section>
+
+    <!-- ── SEARCH BUILDERS ── -->
+    <div class="search-section">
+        <div class="search-form">
+            <div class="search-icon"><i class="fas fa-search"></i></div>
+            <input class="search-field" id="sb-search" type="text"
+                placeholder="Search builders by name or @username..."
+                autocomplete="off"
+                oninput="sbLiveSearch(this.value)"
+                onkeydown="if(event.key==='Enter'&&this.value.trim())window.location.href='/search?q='+encodeURIComponent(this.value.trim())">
+            <button class="search-submit" onclick="sbGoSearch()">
+                <i class="fas fa-search"></i> Find
+            </button>
+        </div>
+        <div class="search-hint">Type a name or <strong>@username</strong> · Press Enter for full results</div>
+        <div class="search-drop" id="sb-drop"></div>
+    </div>
 
     <section class="stats">
       <div class="stat"><h3>Roadmaps</h3><strong>{{ roadmap_count or 0 }}</strong></div>
@@ -221,7 +313,8 @@ body.dark .sb-bar-bg{ background:rgba(139,92,246,0.18) !important; }
 
 <!-- Level-up toast -->
 <div class="levelup-toast" id="levelup-toast"></div>
-
+{% include 'notification_bell.html' %}
+{% include 'onboarding_widget.html' %}
 {% include 'chatbot_widget.html' %}
 
 <script>
@@ -237,6 +330,49 @@ fetch('/api/check_levelup').then(r => r.json()).then(d => {
     setTimeout(() => t.classList.remove('show'), 4500);
   }
 }).catch(() => {});
+
+// ── SEARCH ────────────────────────────────────
+let sbTimer;
+async function sbLiveSearch(val) {
+    const drop = document.getElementById('sb-drop');
+    val = val.trim();
+    if (!val || val.length < 2) { drop.classList.remove('open'); return; }
+    clearTimeout(sbTimer);
+    sbTimer = setTimeout(async () => {
+        try {
+            const res = await fetch(`/api/search_users?q=${encodeURIComponent(val)}`);
+            const data = await res.json();
+            const results = data.results || [];
+            if (!results.length) {
+                drop.innerHTML = `<div class="search-drop-empty">No builders found for "<strong>${val}</strong>"</div>`;
+            } else {
+                drop.innerHTML = results.map(u => `
+                    <a href="/user/${u._id}" class="search-drop-item">
+                        <img class="search-drop-avatar" src="/static/profile_pics/${u.profile_pic}" alt="">
+                        <div style="flex:1;min-width:0;">
+                            <div class="search-drop-name">${u.name}</div>
+                            ${u.username ? `<div class="search-drop-username">@${u.username}</div>` : ''}
+                            <div class="search-drop-title">${u.title || 'SkillBridge Member'}</div>
+                        </div>
+                        <span class="search-drop-badge">${u.badge || 'Bronze'}</span>
+                    </a>`).join('');
+            }
+            drop.classList.add('open');
+        } catch(e) {}
+    }, 300);
+}
+
+function sbGoSearch() {
+    const val = document.getElementById('sb-search').value.trim();
+    if (val) window.location.href = `/search?q=${encodeURIComponent(val)}`;
+}
+
+document.addEventListener('click', function(e) {
+    const section = document.querySelector('.search-section');
+    if (section && !section.contains(e.target)) {
+        document.getElementById('sb-drop').classList.remove('open');
+    }
+});
 </script>
 </body>
 </html>

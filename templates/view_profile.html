@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+<head>
+<script>(function(){var t=localStorage.getItem('sb-theme')||'light';if(t==='dark'){document.documentElement.style.background='#0f0f1a';}})();</script>
+<link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ profile.name }} · SkillBridge</title>
@@ -89,6 +91,36 @@ body{ font-family:Inter,system-ui; background:var(--bg); color:var(--text); }
   .stats{grid-template-columns:repeat(2,1fr)}
   .main{grid-template-columns:1fr}
 }
+
+/* ── DARK MODE ── */
+body.dark {
+    background: #0f0f1a !important;
+    color: #e2e8f0 !important;
+    --bg: #0f0f1a;
+    --card: #1a1a2e;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --border: #2d2d44;
+}
+body.dark .wrapper { background: transparent !important; }
+body.dark .stat-card { background: #1a1a2e !important; box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important; }
+body.dark .stat-card h3 { color: #e2e8f0 !important; }
+body.dark .section { background: #1a1a2e !important; box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important; }
+body.dark .section p { color: #94a3b8 !important; }
+body.dark .section h2 { color: #64748b !important; }
+body.dark .xp-section { background: linear-gradient(135deg,#1a1a2e,#16162a) !important; border-color: #2d2d44 !important; }
+body.dark .xp-bar-bg { background: rgba(139,92,246,0.2) !important; }
+body.dark .xp-card-bar-bg { background: rgba(139,92,246,0.2) !important; }
+body.dark .side-card { background: #1a1a2e !important; box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important; }
+body.dark .row { color: #e2e8f0 !important; }
+body.dark .row span { color: #64748b !important; }
+body.dark .skill { background: #13131f !important; border-color: #2d2d44 !important; color: #e2e8f0 !important; }
+body.dark .skill.learning { background: rgba(236,72,153,0.1) !important; color: #f472b6 !important; }
+body.dark .goal { background: linear-gradient(135deg,rgba(236,72,153,0.1),rgba(124,58,237,0.1)) !important; }
+body.dark .contact-secondary { background: #13131f !important; border-color: #2d2d44 !important; color: #e2e8f0 !important; }
+body.dark .contact-links a { background: #13131f !important; border-color: #2d2d44 !important; color: #94a3b8 !important; }
+body.dark .stat-card.xp-card { background: linear-gradient(135deg,#1e1e35,#1a1a2e) !important; border-color: rgba(139,92,246,0.3) !important; }
+body.dark .xp-meta-badge.streak-cold { background: rgba(100,116,139,0.1) !important; border-color: #2d2d44 !important; }
 </style>
 </head>
 <body>
@@ -99,7 +131,10 @@ body{ font-family:Inter,system-ui; background:var(--bg); color:var(--text); }
     <img src="{{ profile.profile_pic_url }}" class="avatar">
     <div>
       <h1>{{ profile.name }}</h1>
-      <p>{{ profile.title or "SkillBridge Member" }}</p>
+      {% if profile.username %}
+        <div style="font-size:0.95rem;font-weight:700;opacity:0.85;margin-top:2px;">@{{ profile.username }}</div>
+      {% endif %}
+      <p style="margin-top:4px;">{{ profile.title or "SkillBridge Member" }}</p>
 
       <div class="identity-bar">
         <div class="identity-item"><i class="fa-solid fa-briefcase"></i>{{ profile.title or "Member" }}</div>
@@ -191,6 +226,25 @@ body{ font-family:Inter,system-ui; background:var(--bg); color:var(--text); }
         <p>{{ profile.about_me or "A passionate builder growing on SkillBridge." }}</p>
       </div>
 
+      {% if profile.work_experience %}
+      <div class="section">
+        <h2>Work Experience</h2>
+        {% for exp in profile.work_experience %}
+        <div style="padding:.85rem 0;border-bottom:1px solid rgba(0,0,0,.07);{% if loop.last %}border-bottom:none;{% endif %}">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:.3rem;">
+            <div>
+              <div style="font-weight:700;font-size:.95rem;color:#0f172a;">{{ exp.role }}</div>
+              <div style="font-size:.85rem;color:var(--primary);font-weight:600;">{{ exp.company }}</div>
+            </div>
+            <div style="font-size:.78rem;color:var(--muted);font-weight:600;white-space:nowrap;">
+              {{ exp.from_year }}{% if exp.from_year %} — {% endif %}{% if exp.is_current %}Present{% else %}{{ exp.to_year }}{% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
       <div class="section">
         <h2>Skills</h2>
         <div class="skills">
@@ -239,7 +293,7 @@ body{ font-family:Inter,system-ui; background:var(--bg); color:var(--text); }
           <i class="fas fa-comment-dots"></i> Message Builder
         </a>
         {% if profile.email %}
-        <a href="mailto:{{ profile.email }}" class="contact-secondary">
+        <a href="/cdn-cgi/l/email-protection#5c27277c2c2e333a3530397239313d35307c2121" class="contact-secondary">
           <i class="fa-solid fa-envelope"></i> Email {{ profile.name }}
         </a>
         {% endif %}
@@ -259,7 +313,11 @@ body{ font-family:Inter,system-ui; background:var(--bg); color:var(--text); }
 </div>
 
 <script>
-(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+(function(){ 
+    var t=localStorage.getItem('sb-theme')||'light'; 
+    if(t==='dark') document.body.classList.add('dark');
+    else document.body.classList.remove('dark');
+})();
 </script>
 </body>
 </html>

@@ -875,3 +875,682 @@ body.dark .module {
 body.dark .module h4 { color: #e2e8f0 !important; }
 body.dark .module ul { color: #94a3b8 !important; }
 body.dark .next-steps { border-top-color: #2d2d44 !important; }
+
+/* ═══════════════════════════════════════
+   MOBILE SIDEBAR — works on all pages
+   Hamburger button injected by notification_bell.html
+═══════════════════════════════════════ */
+
+/* Hamburger button — hidden on desktop */
+.sb-hamburger {
+    display: none;
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 10002;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #8B5CF6, #EC4899);
+    border: none;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(139,92,246,0.4);
+    color: #fff;
+    font-size: 1.1rem;
+    transition: transform 0.2s;
+}
+.sb-hamburger:hover { transform: scale(1.05); }
+
+/* Dark overlay */
+.sb-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 10000;
+    backdrop-filter: blur(2px);
+}
+.sb-overlay.active { display: block; }
+
+/* Close button inside sidebar */
+.sb-close-btn {
+    display: none !important;
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(139,92,246,0.1);
+    color: #8B5CF6;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    z-index: 10003;
+}
+
+@media (max-width: 768px) {
+
+    /* Show hamburger button */
+    .sb-hamburger {
+        display: flex !important;
+    }
+
+    /* Show close button when sidebar is open */
+    .sidebar.sb-open .sb-close-btn {
+        display: flex !important;
+    }
+
+    /* Notification bell — shift right to clear hamburger */
+    .notif-float-btn {
+        top: 14px !important;
+        right: 14px !important;
+    }
+    .notif-dropdown {
+        top: 70px !important;
+        right: 14px !important;
+        width: calc(100vw - 28px) !important;
+        max-width: 360px !important;
+    }
+
+    /* SIDEBAR — slide off screen by default */
+    /* .sidebar = most pages | .sb = resume & portfolio builder */
+    .sidebar,
+    aside.sidebar,
+    body .sidebar,
+    body aside.sidebar,
+    .sb,
+    aside.sb,
+    body .sb,
+    body aside.sb {
+        display: flex !important;
+        flex-direction: column !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        height: 100vh !important;
+        width: 260px !important;
+        z-index: 10001 !important;
+        transform: translateX(-100%) !important;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        overflow-y: auto !important;
+        overflow-x: visible !important;
+    }
+
+    /* Slide in when hamburger clicked */
+    .sidebar.sb-open,
+    aside.sidebar.sb-open,
+    body .sidebar.sb-open,
+    body aside.sidebar.sb-open,
+    .sb.sb-open,
+    aside.sb.sb-open,
+    body .sb.sb-open,
+    body aside.sb.sb-open {
+        transform: translateX(0) !important;
+        box-shadow: 4px 0 30px rgba(0,0,0,0.25) !important;
+    }
+
+    /* MAIN CONTENT — full width, space at top for hamburger */
+    .main-content,
+    main.main-content,
+    .main,
+    main.main,
+    body .main-content,
+    body .main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        padding-top: 70px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Prevent horizontal scroll */
+    html, body {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+    }
+
+    /* Resume builder & portfolio builder — use grid layout */
+    .layout {
+        display: block !important;
+        grid-template-columns: unset !important;
+    }
+
+    /* .main class used by resume/portfolio builder */
+    .main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 1rem !important;
+        padding-top: 70px !important;
+        box-sizing: border-box !important;
+    }
+}
+
+/* Dark mode adjustments */
+body.dark .sb-hamburger {
+    box-shadow: 0 4px 16px rgba(139,92,246,0.3);
+}
+body.dark .sb-close-btn {
+    background: rgba(139,92,246,0.2) !important;
+    color: #a78bfa !important;
+}
+body.dark .sb-overlay {
+    background: rgba(0,0,0,0.7);
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE FIXES — All Pages
+   Fixes content overflow at small screens
+═══════════════════════════════════════ */
+
+/* ── GENERAL FIXES (all screen sizes) ── */
+img, video, iframe {
+    max-width: 100% !important;
+}
+
+/* ── TABLET (max 1024px) ── */
+@media (max-width: 1024px) {
+    .main-content {
+        padding: 2rem !important;
+    }
+}
+
+/* ── MOBILE (max 768px) ── */
+@media (max-width: 768px) {
+
+    /* ── DASHBOARD / MAINPAGE ── */
+    /* Hero card — stack buttons below text */
+    .hero {
+        padding: 1.5rem !important;
+        flex-direction: column !important;
+    }
+    .action-stack {
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 10px !important;
+        margin-top: 1rem !important;
+    }
+    .action-stack a,
+    .action-stack button {
+        width: 100% !important;
+        text-align: center !important;
+        justify-content: center !important;
+    }
+    /* Stats grid — 2 columns on mobile */
+    .stats-row,
+    .stat-grid,
+    .widget-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 1rem !important;
+    }
+    .widget {
+        padding: 1.2rem !important;
+    }
+
+    /* ── GENERAL CARD FIXES ── */
+    .project-card,
+    .card,
+    .settings-card,
+    .section {
+        border-radius: 16px !important;
+        padding: 1.2rem !important;
+    }
+
+    /* ── HEADINGS ── */
+    h1 { font-size: 1.6rem !important; }
+    h2 { font-size: 1.2rem !important; }
+
+    /* ── FORMS ── */
+    .form-card,
+    .form-container {
+        padding: 1.5rem !important;
+        margin: 0.5rem !important;
+        width: calc(100vw - 1rem) !important;
+        box-sizing: border-box !important;
+    }
+    input, textarea, select {
+        font-size: 16px !important; /* prevents iOS zoom on focus */
+    }
+
+    /* ── PROJECT GRID ── */
+    .project-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    /* ── BUTTONS — prevent overflow ── */
+    .cta-button,
+    .btn,
+    .save-btn,
+    button[type="submit"] {
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+
+    /* ── PROFILE PAGE ── */
+    .profile-grid,
+    .profile-layout {
+        grid-template-columns: 1fr !important;
+        flex-direction: column !important;
+    }
+
+    /* ── LEADERBOARD ── */
+    .leaderboard-table th,
+    .leaderboard-table td {
+        padding: 0.6rem 0.5rem !important;
+        font-size: 0.78rem !important;
+    }
+
+    /* ── SETTINGS ── */
+    .settings-grid {
+        max-width: 100% !important;
+    }
+    .theme-options {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* ── ROADMAP ── */
+    .timeline-item {
+        padding-left: 40px !important;
+    }
+    .timeline::before {
+        left: 12px !important;
+    }
+    .timeline-item::before {
+        left: 0px !important;
+    }
+    .timeline-header h1 {
+        font-size: 1.4rem !important;
+    }
+
+    /* ── COMMUNITY / FIND COMMUNITIES ── */
+    .grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    /* ── MESSAGES LIST ── */
+    .conversation-item {
+        padding: 0.8rem !important;
+    }
+
+    /* ── MODALS ── */
+    .edit-modal,
+    .delete-modal,
+    .modal-box {
+        width: calc(100vw - 2rem) !important;
+        margin: 1rem !important;
+        padding: 1.5rem !important;
+    }
+
+    /* ── PAGINATION ── */
+    .pagination {
+        gap: 6px !important;
+    }
+    .page-btn {
+        padding: 6px 10px !important;
+        font-size: 0.78rem !important;
+    }
+
+    /* ── ADMIN TABLE — horizontal scroll ── */
+    .section-body {
+        overflow-x: auto !important;
+    }
+    .admin-table {
+        min-width: 600px !important;
+    }
+
+    /* ── NOTIFICATION DROPDOWN ── */
+    .notif-dropdown {
+        width: calc(100vw - 28px) !important;
+        right: 14px !important;
+    }
+}
+
+/* ── VERY SMALL SCREENS (max 375px) ── */
+@media (max-width: 375px) {
+    .main-content,
+    .main {
+        padding: 0.8rem !important;
+        padding-top: 65px !important;
+    }
+    h1 { font-size: 1.4rem !important; }
+    .project-card {
+        padding: 1rem !important;
+    }
+    .stats-row,
+    .stat-grid,
+    .widget-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+
+/* ═══════════════════════════════════════
+   DARK MODE — projects.html (Community Architecture)
+═══════════════════════════════════════ */
+body.dark .page-header h1 { color: #e2e8f0 !important; }
+body.dark .page-header p { color: #94a3b8 !important; }
+body.dark .section-title { color: #e2e8f0 !important; }
+
+/* Project cards */
+body.dark .project-card {
+    background: #1a1a2e !important;
+    border-color: #2d2d44 !important;
+}
+body.dark .project-card:hover {
+    border-color: #8B5CF6 !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3) !important;
+}
+body.dark .project-card h3 { color: #e2e8f0 !important; }
+body.dark .project-card .desc { color: #94a3b8 !important; }
+
+/* User tag on cards */
+body.dark .user-tag { background: #13131f !important; }
+body.dark .user-tag span.by { color: #64748b !important; }
+body.dark .user-tag span.name { color: #a78bfa !important; }
+
+/* Skill badges */
+body.dark .skill-badge {
+    background: #1e1e35 !important;
+    border-color: #2d2d44 !important;
+    color: #e2e8f0 !important;
+}
+
+/* Card footer */
+body.dark .card-footer { border-top-color: #2d2d44 !important; }
+body.dark .view-btn { color: #a78bfa !important; }
+body.dark .card-stat { color: #64748b !important; }
+
+/* Recommended badge */
+body.dark .recommended-badge {
+    box-shadow: 0 5px 15px rgba(139,92,246,0.2) !important;
+}
+
+/* Main background */
+body.dark .main-content {
+    background: transparent !important;
+}
+
+/* Load more button */
+body.dark #load-more-btn {
+    background: #1a1a2e !important;
+    border-color: #a78bfa !important;
+    color: #a78bfa !important;
+}
+
+/* ═══════════════════════════════════════
+   DARK MODE — find_communities.html
+═══════════════════════════════════════ */
+body.dark .communities-page,
+body.dark .find-communities-wrap { background: transparent !important; }
+
+/* Section headings */
+body.dark .section-heading,
+body.dark .communities-section h2,
+body.dark h2.section-title { color: #e2e8f0 !important; }
+
+/* Community cards */
+body.dark .community-card,
+body.dark .comm-card {
+    background: #1a1a2e !important;
+    border-color: #2d2d44 !important;
+}
+body.dark .community-card:hover,
+body.dark .comm-card:hover {
+    border-color: #8B5CF6 !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3) !important;
+}
+body.dark .community-card h3,
+body.dark .comm-card h3,
+body.dark .community-card .name,
+body.dark .comm-card .comm-name { color: #e2e8f0 !important; }
+body.dark .community-card p,
+body.dark .comm-card .comm-desc { color: #94a3b8 !important; }
+
+/* Tags inside community cards */
+body.dark .comm-tag,
+body.dark .topic-tag {
+    background: #1e1e35 !important;
+    border-color: #2d2d44 !important;
+    color: #a78bfa !important;
+}
+
+/* Owner/member badges */
+body.dark .owner-badge { background: rgba(139,92,246,0.2) !important; color: #a78bfa !important; }
+body.dark .member-badge { background: rgba(16,185,129,0.15) !important; color: #34d399 !important; }
+
+/* Dividers */
+body.dark .section-divider,
+body.dark hr { border-color: #2d2d44 !important; }
+
+/* Empty state text */
+body.dark .empty-text,
+body.dark .no-communities { color: #64748b !important; }
+
+/* Manage/Join buttons inherit gradient — no change needed */
+
+/* ═══════════════════════════════════════
+   DARK MODE — project_page.html (project detail)
+═══════════════════════════════════════ */
+body.dark .project-detail-container {
+    background: #1a1a2e !important;
+    border-color: #2d2d44 !important;
+}
+body.dark .project-header { border-bottom-color: #2d2d44 !important; }
+body.dark .project-header h1 { color: #e2e8f0 !important; }
+body.dark .project-author { color: #94a3b8 !important; }
+body.dark .project-description { color: #cbd5e1 !important; }
+body.dark h2 { color: #a78bfa !important; border-bottom-color: #2d2d44 !important; }
+body.dark .project-stats { border-bottom-color: #2d2d44 !important; }
+body.dark .stat-pill { color: #94a3b8 !important; }
+body.dark .like-btn {
+    border-color: #2d2d44 !important;
+    color: #94a3b8 !important;
+    background: transparent !important;
+}
+body.dark .like-btn.liked { border-color: #ef4444 !important; color: #ef4444 !important; background: rgba(239,68,68,0.08) !important; }
+body.dark .history-item {
+    background: #13131f !important;
+    border-color: #2d2d44 !important;
+}
+body.dark .history-item-info p { color: #e2e8f0 !important; }
+body.dark .history-item-info span { color: #64748b !important; }
+body.dark .no-history {
+    background: #13131f !important;
+    border-color: #2d2d44 !important;
+    color: #64748b !important;
+}
+
+/* ═══════════════════════════════════════
+   DARK MODE — CSS VARIABLE OVERRIDES
+   Fixes pages that use --bg, --surface, --text-main variables
+   (projects.html, find_communities.html, messages_list.html etc.)
+═══════════════════════════════════════ */
+body.dark {
+    --bg: #0f0f1a !important;
+    --surface: #1a1a2e !important;
+    --text-main: #e2e8f0 !important;
+    --text-dim: #94a3b8 !important;
+    --border: #2d2d44 !important;
+    background-color: #0f0f1a !important;
+}
+
+/* Force body background on pages that set it directly */
+body.dark,
+body.dark .main-content,
+body.dark main {
+    background-color: #0f0f1a !important;
+}
+
+/* Pages that set background:#f4f6f9 directly on body or wrapper */
+body.dark .communities-wrap,
+body.dark .page-wrap,
+body.dark .wrapper { background: transparent !important; }
+
+/* Sidebar on these pages */
+body.dark .sidebar {
+    background: #13131f !important;
+    border-right-color: #2d2d44 !important;
+}
+body.dark .sidebar a { color: #94a3b8 !important; }
+body.dark .sidebar a:hover { background: #1e1e35 !important; color: #a78bfa !important; }
+
+/* ALL white cards — catch-all for any page */
+body.dark [style*="background:#fff"],
+body.dark [style*="background: #fff"],
+body.dark [style*="background:white"],
+body.dark [style*="background: white"] {
+    background: #1a1a2e !important;
+}
+
+
+/* ═══════════════════════════════════════
+   DARK MODE — TARGETED CARD FIXES
+   Fixes hardcoded background:#fff on cards
+═══════════════════════════════════════ */
+
+/* find_communities.html — .card class */
+body.dark .card {
+    background: #1a1a2e !important;
+    border-color: #2d2d44 !important;
+    color: #e2e8f0 !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
+}
+body.dark .card h3 { color: #e2e8f0 !important; }
+body.dark .card p { color: #94a3b8 !important; }
+body.dark .card h4 { color: #e2e8f0 !important; }
+
+/* find_communities.html — body background */
+body.dark { background: #0f0f1a !important; }
+body.dark body { background: #0f0f1a !important; }
+
+/* Page level backgrounds */
+body.dark,
+body.dark .page,
+body.dark .container,
+body.dark .main-content,
+body.dark .main-wrap { background-color: #0f0f1a !important; }
+
+/* Headings on find_communities */
+body.dark h1, body.dark h2, body.dark h3 { color: #e2e8f0 !important; }
+body.dark p { color: #94a3b8 !important; }
+
+/* Skill/topic tags in find_communities */
+body.dark .tag,
+body.dark .topic,
+body.dark .skill-tag-sm {
+    background: #1e1e35 !important;
+    color: #a78bfa !important;
+    border-color: #2d2d44 !important;
+}
+
+/* Status badges */
+body.dark .status-public { background: rgba(16,185,129,0.15) !important; color: #34d399 !important; }
+body.dark .status-private { background: rgba(239,68,68,0.12) !important; color: #f87171 !important; }
+
+/* Section dividers */
+body.dark .section-divider { border-color: #2d2d44 !important; background: #2d2d44 !important; }
+
+/* projects.html — white cards fix */
+body.dark .project-card {
+    background: #1a1a2e !important;
+    border-color: #2d2d44 !important;
+}
+body.dark .project-card h3 { color: #e2e8f0 !important; }
+body.dark .project-card .desc { color: #94a3b8 !important; }
+body.dark .skill-badge {
+    background: #1e1e35 !important;
+    border-color: #2d2d44 !important;
+    color: #e2e8f0 !important;
+}
+body.dark .user-tag { background: #13131f !important; }
+body.dark .card-footer { border-top-color: #2d2d44 !important; }
+body.dark .card-stat { color: #64748b !important; }
+/* ── COMMENTS — project_page.html ── */
+body.dark .comment-card,
+body.dark .reply-card {
+    background: #13131f !important;
+    border-color: #2d2d44 !important;
+}
+body.dark .comment-card.is-owner-comment,
+body.dark .reply-card.is-owner-comment {
+    border-left-color: #a78bfa !important;
+}
+body.dark .comment-author { color: #e2e8f0 !important; }
+body.dark .comment-date,
+body.dark .char-counter { color: #64748b !important; }
+body.dark .comment-body { color: #cbd5e1 !important; }
+body.dark .cmt-action-btn { color: #64748b !important; }
+body.dark .cmt-action-btn:hover { background: rgba(167,139,250,.12) !important; color: #a78bfa !important; }
+body.dark .cmt-action-btn.liked,
+body.dark .cmt-action-btn.liked i { color: #f87171 !important; }
+body.dark .cmt-action-btn.delete-btn:hover { background: rgba(239,68,68,.12) !important; color: #f87171 !important; }
+body.dark .owner-badge {
+    background: rgba(167,139,250,.15) !important;
+    color: #a78bfa !important;
+    border-color: rgba(167,139,250,.3) !important;
+}
+body.dark .comment-form-wrap textarea,
+body.dark .reply-form-wrap textarea {
+    background: #13131f !important;
+    border-color: #2d2d44 !important;
+    color: #e2e8f0 !important;
+}
+body.dark .comment-form-wrap textarea:focus,
+body.dark .reply-form-wrap textarea:focus { border-color: #a78bfa !important; }
+body.dark .sort-btn {
+    border-color: #2d2d44 !important;
+    color: #94a3b8 !important;
+}
+body.dark .sort-btn.active,
+body.dark .sort-btn:hover {
+    background: #7c3aed !important;
+    border-color: #7c3aed !important;
+    color: #fff !important;
+}
+body.dark .no-comments-msg,
+body.dark .login-to-comment {
+    background: #13131f !important;
+    border-color: #2d2d44 !important;
+    color: #64748b !important;
+}
+body.dark .replies-wrap { border-left-color: #2d2d44 !important; }
+body.dark .cancel-reply-btn {
+    border-color: #2d2d44 !important;
+    color: #94a3b8 !important;
+    background: transparent !important;
+}
+
+/* ── MY PROJECTS — stats row ── */
+body.dark .project-stats-row {
+    border-color: #2d2d44 !important;
+}
+body.dark .p-stat {
+    color: #64748b !important;
+}
+
+/* ── BOOKMARKS — my_projects.html ── */
+body.dark .bookmark-card {
+    background: #1a1a2e !important;
+    border-color: #2d2d44 !important;
+}
+body.dark .bookmark-card:hover { border-color: #a78bfa !important; }
+body.dark .bookmark-card-info h3 { color: #e2e8f0 !important; }
+body.dark .bookmark-card-info p { color: #94a3b8 !important; }
+body.dark .no-bookmarks {
+    background: #1a1a2e !important;
+    border-color: #2d2d44 !important;
+    color: #64748b !important;
+}
+body.dark .tab-btn { color: #64748b !important; }
+body.dark .tab-btn.active { color: #a78bfa !important; border-bottom-color: #a78bfa !important; }
+body.dark .tab-bar { border-bottom-color: #2d2d44 !important; }
+body.dark .unbookmark-btn { border-color: #f59e0b !important; color: #f59e0b !important; }
+body.dark .unbookmark-btn:hover { background: #f59e0b !important; color: #fff !important; }

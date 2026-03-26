@@ -182,6 +182,15 @@ button:hover{
   .wrapper{grid-template-columns:1fr}
   .brand{display:none}
 }
+
+/* Username field dark mode */
+body.dark #username-status { filter: brightness(1.2); }
+body.dark input { background:#0f0f1a !important; border-color:#2d2d44 !important; color:#e2e8f0 !important; }
+body.dark .form-container { background:#1a1a2e !important; }
+body.dark h2, body.dark label { color:#e2e8f0 !important; }
+body.dark .subtitle { color:#94a3b8 !important; }
+body.dark .switch { color:#94a3b8 !important; }
+body.dark .switch a { color:#a78bfa !important; }
 </style>
 </head>
 
@@ -224,6 +233,17 @@ button:hover{
         </div>
 
         <div class="input-group">
+          <label>Username</label>
+          <div class="input-wrapper">
+            <input type="text" name="username" id="username" placeholder="e.g. shivam_pandey" required
+              autocomplete="off" oninput="checkUsername(this.value)"
+              style="padding-right:110px;">
+            <span id="username-status" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:0.75rem;font-weight:700;"></span>
+          </div>
+          <div style="font-size:0.72rem;color:#6b7280;margin-top:4px;">3-20 chars, letters/numbers/underscores only</div>
+        </div>
+
+        <div class="input-group">
           <label>Password</label>
           <div class="input-wrapper">
             <input type="password" id="password" name="password" required>
@@ -257,6 +277,39 @@ function toggle(id){
   el.type=el.type==="password"?"text":"password";
 }
 
+let usernameTimer;
+let usernameValid = false;
+
+async function checkUsername(val) {
+    const status = document.getElementById('username-status');
+    val = val.trim().toLowerCase();
+    if (!val) { status.textContent = ''; usernameValid = false; return; }
+    if (!/^[a-z0-9_]{3,20}$/.test(val)) {
+        status.textContent = '❌ Invalid format';
+        status.style.color = '#ef4444';
+        usernameValid = false;
+        return;
+    }
+    status.textContent = '⏳ Checking...';
+    status.style.color = '#6b7280';
+    clearTimeout(usernameTimer);
+    usernameTimer = setTimeout(async () => {
+        try {
+            const res = await fetch(`/api/check_username?username=${encodeURIComponent(val)}`);
+            const data = await res.json();
+            if (data.available) {
+                status.textContent = '✅ Available!';
+                status.style.color = '#10b981';
+                usernameValid = true;
+            } else {
+                status.textContent = data.error || '❌ Taken';
+                status.style.color = '#ef4444';
+                usernameValid = false;
+            }
+        } catch(e) { status.textContent = ''; }
+    }, 500);
+}
+
 /* existing validation untouched */
 document.getElementById('signupForm').addEventListener('submit', function(event) {
   event.preventDefault(); 
@@ -266,6 +319,11 @@ document.getElementById('signupForm').addEventListener('submit', function(event)
 
   if (password !== confirmPassword) {
     alert('Passwords do not match.');
+    return;
+  }
+
+  if (!usernameValid) {
+    alert('Please choose a valid and available username.');
     return;
   }
 

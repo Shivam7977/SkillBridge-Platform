@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — SkillBridge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root{--bg:#f5f6fb;--surface:#fff;--primary:#8B5CF6;--secondary:#EC4899;--accent:#22d3ee;--text:#0f172a;--muted:#64748b;--border:#e5e7eb;--danger:#ef4444;--success:#22c55e;--warning:#f59e0b;--radius:16px;--shadow:0 4px 24px rgba(0,0,0,.08);}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:Poppins,sans-serif;background:var(--bg);color:var(--text);}
+    .layout{display:flex;min-height:100vh;}
+    .sidebar{width:230px;background:#fff;border-right:1px solid var(--border);padding:1.5rem 1rem;position:fixed;height:100vh;overflow-y:auto;display:flex;flex-direction:column;z-index:10;}
+    .logo{font-size:1.4rem;font-weight:800;background:linear-gradient(90deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.3rem;display:block;text-decoration:none;}
+    .admin-badge{font-size:.65rem;font-weight:700;color:var(--danger);background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:1.5rem;}
+    .sidebar nav a{display:flex;align-items:center;gap:10px;padding:.7rem 1rem;border-radius:12px;color:var(--muted);text-decoration:none;margin-bottom:.25rem;font-weight:500;font-size:.875rem;transition:.2s;}
+    .sidebar nav a:hover,.sidebar nav a.active{background:linear-gradient(90deg,var(--primary),var(--secondary));color:#fff;}
+    .badge-count{margin-left:auto;background:var(--danger);color:#fff;font-size:.62rem;padding:1px 7px;border-radius:20px;font-weight:700;}
+    .back-link{margin-top:auto;padding-top:1rem;border-top:1px solid var(--border);}
+    .back-link a{display:flex;align-items:center;gap:8px;color:var(--muted);text-decoration:none;font-size:.875rem;font-weight:500;padding:.6rem 1rem;border-radius:10px;}
+    .back-link a:hover{background:#f1f5f9;color:var(--primary);}
+    .main{margin-left:230px;padding:2rem 2.5rem;width:calc(100% - 230px);}
+    .page-header{margin-bottom:2rem;}
+    .page-header h1{font-size:1.75rem;font-weight:800;}
+    .page-header p{color:var(--muted);font-size:.875rem;margin-top:4px;}
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1rem;margin-bottom:2rem;}
+    .stat-card{background:#fff;border-radius:var(--radius);padding:1.2rem 1.4rem;box-shadow:var(--shadow);border:1px solid var(--border);cursor:pointer;transition:.2s;}
+    .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.12);}
+    .stat-label{font-size:.7rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+    .stat-value{font-size:1.9rem;font-weight:800;margin-top:4px;}
+    .c-primary .stat-value{color:var(--primary);} .c-danger .stat-value{color:var(--danger);} .c-warning .stat-value{color:var(--warning);} .c-success .stat-value{color:var(--success);}
+    .section{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:2rem;overflow:hidden;}
+    .section-header{padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+    .section-header h2{font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:8px;}
+    .cnt{font-size:.68rem;background:var(--primary);color:#fff;padding:2px 8px;border-radius:20px;font-weight:700;}
+    .cnt.danger{background:var(--danger);}
+    .chevron{transition:transform .2s;color:var(--muted);font-size:.85rem;}
+    .chevron.open{transform:rotate(180deg);}
+    .section-body{display:none;} .section-body.open{display:block;}
+    .tabs{display:flex;border-bottom:1px solid var(--border);padding:0 1.5rem;}
+    .tab-btn{padding:.7rem 1.1rem;border:none;background:none;font-family:Poppins,sans-serif;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.2s;}
+    .tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);}
+    .tab-pane{display:none;} .tab-pane.active{display:block;}
+    .search-wrap{padding:.8rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+    .search-wrap input{border:none;outline:none;font-family:Poppins,sans-serif;font-size:.85rem;width:100%;background:transparent;color:var(--text);}
+    .search-wrap i{color:var(--muted);}
+    .admin-table{width:100%;border-collapse:collapse;font-size:.83rem;}
+    .admin-table th{padding:.7rem 1rem;text-align:left;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:#fafafa;border-bottom:1px solid var(--border);}
+    .admin-table td{padding:.8rem 1rem;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
+    .admin-table tr:last-child td{border-bottom:none;}
+    .admin-table tr:hover td{background:#fafbff;}
+    .user-info{display:flex;align-items:center;gap:10px;}
+    .avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--border);}
+    .uname{font-weight:600;font-size:.85rem;} .uemail{font-size:.73rem;color:var(--muted);}
+    .pill{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:700;}
+    .pill.admin{background:rgba(139,92,246,.1);color:var(--primary);border:1px solid rgba(139,92,246,.2);}
+    .pill.banned{background:rgba(239,68,68,.1);color:var(--danger);border:1px solid rgba(239,68,68,.2);}
+    .pill.active{background:rgba(34,197,94,.1);color:var(--success);border:1px solid rgba(34,197,94,.2);}
+    .btn{padding:5px 11px;border-radius:8px;border:none;cursor:pointer;font-size:.73rem;font-weight:600;font-family:Poppins,sans-serif;display:inline-flex;align-items:center;gap:4px;transition:.2s;text-decoration:none;}
+    .btn:hover{opacity:.85;transform:translateY(-1px);}
+    .btn-primary{background:rgba(139,92,246,.1);color:var(--primary);border:1px solid rgba(139,92,246,.2);}
+    .btn-danger{background:rgba(239,68,68,.1);color:var(--danger);border:1px solid rgba(239,68,68,.2);}
+    .btn-success{background:rgba(34,197,94,.1);color:var(--success);border:1px solid rgba(34,197,94,.2);}
+    .btn-warning{background:rgba(245,158,11,.1);color:var(--warning);border:1px solid rgba(245,158,11,.2);}
+    .btn-view{background:linear-gradient(90deg,var(--primary),var(--secondary));color:#fff;border:none;}
+    .empty{padding:2rem;text-align:center;color:var(--muted);font-size:.875rem;}
+    .toast{position:fixed;bottom:2rem;right:2rem;background:#1e1b4b;color:#fff;padding:12px 20px;border-radius:12px;font-size:.875rem;font-weight:600;z-index:99999;transform:translateY(100px);opacity:0;transition:.3s;display:flex;align-items:center;gap:8px;}
+    .toast.show{transform:translateY(0);opacity:1;}
+    .pending-row td{background:rgba(245,158,11,.03);}
+    /* AI usage mini bar */
+    .ai-mini{display:flex;flex-direction:column;gap:3px;min-width:80px;}
+    .ai-mini-row{display:flex;align-items:center;gap:5px;font-size:.68rem;}
+    .ai-mini-bar{flex:1;height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden;}
+    .ai-mini-fill{height:100%;border-radius:2px;transition:width .3s;}
+    .ai-mini-label{font-size:.65rem;color:var(--muted);white-space:nowrap;}
+    .ai-limit-hit{color:var(--danger);font-weight:700;}
+    body.dark{--bg:#0f0f1a;--text:#e2e8f0;--muted:#94a3b8;--border:#2d2d44;}
+    body.dark .sidebar,body.dark .section,body.dark .stat-card{background:#1a1a2e;border-color:#2d2d44;}
+    body.dark .admin-table th{background:#16162a;}
+    body.dark .admin-table tr:hover td{background:#1e1e32;}
+    body.dark .admin-table td,body.dark .search-wrap,body.dark .tabs{border-color:#2d2d44;}
+    body.dark .ai-mini-bar{background:#2d2d44;}
+
+    /* ── MOBILE SIDEBAR ── */
+    .sb-hamburger-admin {
+        display: none; position: fixed; top: 14px; left: 14px;
+        z-index: 10001; width: 42px; height: 42px; border-radius: 10px;
+        background: linear-gradient(135deg, #8B5CF6, #EC4899);
+        border: none; cursor: pointer; align-items: center; justify-content: center;
+        box-shadow: 0 4px 16px rgba(139,92,246,0.4); color: #fff; font-size: 1rem;
+        transition: transform 0.2s;
+    }
+    .sb-hamburger-admin:hover { transform: scale(1.05); }
+    .sb-overlay-admin {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,0.5); z-index: 10000;
+        backdrop-filter: blur(2px);
+    }
+    .sb-overlay-admin.active { display: block; }
+    .sb-close-admin {
+        display: none; position: absolute; top: 14px; right: 14px;
+        width: 30px; height: 30px; border-radius: 8px; border: none;
+        background: rgba(139,92,246,0.1); color: #8B5CF6;
+        cursor: pointer; align-items: center; justify-content: center;
+        font-size: 0.85rem; z-index: 10;
+    }
+    @media (max-width: 768px) {
+        .sb-hamburger-admin { display: flex; }
+        .sb-close-admin { display: flex; }
+        .sidebar {
+            transform: translateX(-100%) !important;
+            transition: transform 0.3s cubic-bezier(0.4,0,0.2,1) !important;
+            z-index: 10001 !important;
+        }
+        .sidebar.sb-open { transform: translateX(0) !important; }
+        .main {
+            margin-left: 0 !important;
+            width: 100% !important;
+            padding: 1.5rem !important;
+            padding-top: 68px !important;
+        }
+        .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        .admin-table { font-size: 0.75rem !important; }
+        .admin-table th, .admin-table td { padding: 0.5rem 0.6rem !important; }
+    }
+    body.dark .sb-hamburger-admin { box-shadow: 0 4px 16px rgba(139,92,246,0.3); }
+    body.dark .sb-close-admin { background: rgba(139,92,246,0.2); color: #a78bfa; }
+  </style>
+</head>
+<body>
+<!-- Hamburger button — mobile only -->
+<button class="sb-hamburger-admin" onclick="sbAdminOpen()" title="Menu">
+    <i class="fas fa-bars"></i>
+</button>
+<!-- Dark overlay — mobile only -->
+<div class="sb-overlay-admin" id="sb-overlay-admin" onclick="sbAdminClose()"></div>
+
+<div class="layout">
+  <aside class="sidebar" id="admin-sidebar">
+    <button class="sb-close-admin" onclick="sbAdminClose()" title="Close menu" style="position:absolute;top:14px;right:14px;display:none;width:30px;height:30px;border-radius:8px;border:none;background:rgba(139,92,246,0.1);color:#8B5CF6;cursor:pointer;align-items:center;justify-content:center;font-size:0.85rem;z-index:10;">
+        <i class="fas fa-times"></i>
+    </button>
+    <a href="{{ url_for('admin_panel') }}" class="logo">SkillBridge</a>
+    <span class="admin-badge">🛡️ ADMIN PANEL</span>
+    <nav>
+      <a href="#approvals" class="active" onclick="smoothScroll('approvals')">
+        <i class="fas fa-clock"></i> Pending Approvals
+        {% if stats.pending_approvals > 0 %}<span class="badge-count">{{ stats.pending_approvals }}</span>{% endif %}
+      </a>
+      <a href="#users" onclick="smoothScroll('users')"><i class="fas fa-users"></i> Users</a>
+      <a href="#projects" onclick="smoothScroll('projects')"><i class="fas fa-layer-group"></i> Projects</a>
+      <a href="#roadmaps" onclick="smoothScroll('roadmaps')"><i class="fas fa-magic"></i> Roadmaps</a>
+      <a href="#communities" onclick="smoothScroll('communities')"><i class="fas fa-globe"></i> Communities</a>
+    </nav>
+    <div class="back-link"><a href="{{ url_for('main_page') }}"><i class="fas fa-arrow-left"></i> Back to App</a></div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <h1>⚙️ Admin Panel</h1>
+      <p>Full control — click any user to see their complete profile and data.</p>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card c-primary" onclick="smoothScroll('users')"><div class="stat-label">Total Users</div><div class="stat-value">{{ stats.total_users }}</div></div>
+      <div class="stat-card c-primary" onclick="smoothScroll('projects')"><div class="stat-label">Projects</div><div class="stat-value">{{ stats.total_projects }}</div></div>
+      <div class="stat-card c-primary" onclick="smoothScroll('roadmaps')"><div class="stat-label">Roadmaps</div><div class="stat-value">{{ stats.total_roadmaps }}</div></div>
+      <div class="stat-card c-primary" onclick="smoothScroll('communities')"><div class="stat-label">Communities</div><div class="stat-value">{{ stats.total_communities }}</div></div>
+      <div class="stat-card c-warning" onclick="smoothScroll('approvals')"><div class="stat-label">Pending Approvals</div><div class="stat-value">{{ stats.pending_approvals }}</div></div>
+      <div class="stat-card c-danger"><div class="stat-label">Banned Users</div><div class="stat-value">{{ stats.banned_users }}</div></div>
+      <div class="stat-card c-success"><div class="stat-label">Total XP Awarded</div><div class="stat-value">{{ stats.total_xp_awarded }}</div></div>
+    </div>
+
+    <!-- PENDING APPROVALS -->
+    <div class="section" id="approvals">
+      <div class="section-header" onclick="toggleSection('approvals-body','chev-approvals')">
+        <h2><i class="fas fa-clock" style="color:var(--warning)"></i> Pending Upload Approvals <span class="cnt danger">{{ stats.pending_approvals }}</span></h2>
+        <i class="fas fa-chevron-down chevron open" id="chev-approvals"></i>
+      </div>
+      <div class="section-body open" id="approvals-body">
+        {% if pending_commits %}
+        <table class="admin-table">
+          <thead><tr><th>User</th><th>Project</th><th>Message</th><th>Date</th><th>File</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for c in pending_commits %}
+            <tr class="pending-row" id="cr-{{ c._id }}">
+              <td>{{ c.user_name }}{% if c.user_username %}<br><span style="font-size:.7rem;color:var(--primary);font-weight:700;">@{{ c.user_username }}</span>{% endif %}</td><td>{{ c.project_title }}</td><td>{{ c.message }}</td>
+              <td style="font-size:.75rem;color:var(--muted)">{{ c.timestamp.strftime('%b %d, %Y') if c.timestamp else 'N/A' }}</td>
+              <td>{% if c.filename %}<a href="{{ url_for('download_project', filename=c.filename) }}" class="btn btn-primary"><i class="fas fa-download"></i> View</a>{% else %}—{% endif %}</td>
+              <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-success" onclick="approveCommit('{{ c._id }}')"><i class="fas fa-check"></i> Approve +50 XP</button>
+                <button class="btn btn-danger" onclick="rejectCommit('{{ c._id }}')"><i class="fas fa-times"></i> Reject</button>
+              </div></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}<div class="empty">✅ No pending approvals right now.</div>{% endif %}
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="section" id="users">
+      <div class="section-header" onclick="toggleSection('users-body','chev-users')">
+        <h2><i class="fas fa-users" style="color:var(--primary)"></i> Users <span class="cnt">{{ users|length }}</span></h2>
+        <i class="fas fa-chevron-down chevron" id="chev-users"></i>
+      </div>
+      <div class="section-body" id="users-body">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab(event,'users','all')">All ({{ users|length }})</button>
+          <button class="tab-btn" onclick="switchTab(event,'users','active')">Active</button>
+          <button class="tab-btn" onclick="switchTab(event,'users','banned')">Banned ({{ stats.banned_users }})</button>
+          <button class="tab-btn" onclick="switchTab(event,'users','admins')">Admins</button>
+        </div>
+        <div class="search-wrap"><i class="fas fa-search"></i><input type="text" placeholder="Search by name, email or @username..." oninput="filterUsers(this.value)"></div>
+
+        <div class="tab-pane active" id="users-tab-all">
+          <table class="admin-table" id="users-all-table">
+            <thead><tr><th>User</th><th>XP</th><th>Badge</th><th>Streak</th><th>🤖 AI Today</th><th>Status</th><th>💼 Experience</th><th>Actions</th></tr></thead>
+            <tbody>
+              {% for u in users %}
+              <tr data-name="{{ u.name|lower }}" data-email="{{ u.email|lower }}" data-username="{{ u.username|lower if u.username else '' }}">
+                <td><div class="user-info"><img src="{{ u.profile_pic_url }}" class="avatar" alt=""><div><div class="uname">{{ u.name }} {% if u.username %}<span style="font-size:.68rem;color:var(--primary);font-weight:700;">@{{ u.username }}</span>{% endif %}</div><div class="uemail">{{ u.email }}</div></div></div></td>
+                <td><strong>{{ u.xp }}</strong></td>
+                <td style="font-size:.78rem">{{ u.badge or 'Bronze Builder' }}</td>
+                <td>🔥 {{ u.streak_count }}</td>
+                <td>
+                  <div class="ai-mini">
+                    <div class="ai-mini-row">
+                      <span style="font-size:.65rem;color:var(--muted);">💬</span>
+                      <div class="ai-mini-bar"><div class="ai-mini-fill" style="width:{{ [(u.ai_chat_today/50*100)|int,100]|min }}%;background:{% if u.ai_chat_today >= 50 %}var(--danger){% else %}var(--primary){% endif %};"></div></div>
+                      <span class="ai-mini-label {% if u.ai_chat_today >= 50 %}ai-limit-hit{% endif %}">{{ u.ai_chat_today }}/50</span>
+                    </div>
+                    <div class="ai-mini-row">
+                      <span style="font-size:.65rem;color:var(--muted);">🗺️</span>
+                      <div class="ai-mini-bar"><div class="ai-mini-fill" style="width:{{ [(u.ai_roadmap_today/10*100)|int,100]|min }}%;background:{% if u.ai_roadmap_today >= 10 %}var(--danger){% else %}#f59e0b{% endif %};"></div></div>
+                      <span class="ai-mini-label {% if u.ai_roadmap_today >= 10 %}ai-limit-hit{% endif %}">{{ u.ai_roadmap_today }}/10</span>
+                    </div>
+                  </div>
+                </td>
+                <td>{% if u.is_banned %}<span class="pill banned">Banned</span>{% elif u.is_admin %}<span class="pill admin">Admin</span>{% else %}<span class="pill active">Active</span>{% endif %}</td>
+                <td style="font-size:.78rem;">
+                  <div style="font-weight:600;">{{ u.current_status or '—' }}</div>
+                  {% if u.work_experience %}
+                    <div style="color:var(--muted);font-size:.72rem;">{{ u.work_experience|length }} job{% if u.work_experience|length > 1 %}s{% endif %}</div>
+                  {% else %}
+                    <div style="color:var(--muted);font-size:.72rem;">{{ u.experience_years or '0' }} yrs</div>
+                  {% endif %}
+                </td>
+                <td>
+                  <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                    <a href="{{ url_for('admin_user_detail', user_id=u._id) }}" class="btn btn-view"><i class="fas fa-eye"></i> View All</a>
+                    {% if u.is_banned %}<button class="btn btn-success" onclick="unbanUser('{{ u._id }}')"><i class="fas fa-unlock"></i> Unban</button>
+                    {% else %}<button class="btn btn-warning" onclick="banUser('{{ u._id }}')"><i class="fas fa-ban"></i> Ban</button>{% endif %}
+                    <button class="btn btn-danger" onclick="deleteUser('{{ u._id }}','{{ u.name }}')"><i class="fas fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="tab-pane" id="users-tab-active">
+          <table class="admin-table">
+            <thead><tr><th>User</th><th>XP</th><th>Badge</th><th>Streak</th><th>🤖 AI Today</th><th>Actions</th></tr></thead>
+            <tbody>
+              {% for u in users if not u.is_banned %}
+              <tr>
+                <td><div class="user-info"><img src="{{ u.profile_pic_url }}" class="avatar" alt=""><div><div class="uname">{{ u.name }} {% if u.username %}<span style="font-size:.68rem;color:var(--primary);font-weight:700;">@{{ u.username }}</span>{% endif %}</div><div class="uemail">{{ u.email }}</div></div></div></td>
+                <td><strong>{{ u.xp }}</strong></td>
+                <td style="font-size:.78rem">{{ u.badge or 'Bronze Builder' }}</td>
+                <td>🔥 {{ u.streak_count }}</td>
+                <td>
+                  <div class="ai-mini">
+                    <div class="ai-mini-row">
+                      <span style="font-size:.65rem;color:var(--muted);">💬</span>
+                      <div class="ai-mini-bar"><div class="ai-mini-fill" style="width:{{ [(u.ai_chat_today/50*100)|int,100]|min }}%;background:{% if u.ai_chat_today >= 50 %}var(--danger){% else %}var(--primary){% endif %};"></div></div>
+                      <span class="ai-mini-label {% if u.ai_chat_today >= 50 %}ai-limit-hit{% endif %}">{{ u.ai_chat_today }}/50</span>
+                    </div>
+                    <div class="ai-mini-row">
+                      <span style="font-size:.65rem;color:var(--muted);">🗺️</span>
+                      <div class="ai-mini-bar"><div class="ai-mini-fill" style="width:{{ [(u.ai_roadmap_today/10*100)|int,100]|min }}%;background:{% if u.ai_roadmap_today >= 10 %}var(--danger){% else %}#f59e0b{% endif %};"></div></div>
+                      <span class="ai-mini-label {% if u.ai_roadmap_today >= 10 %}ai-limit-hit{% endif %}">{{ u.ai_roadmap_today }}/10</span>
+                    </div>
+                  </div>
+                </td>
+                <td><div style="display:flex;gap:5px;">
+                  <a href="{{ url_for('admin_user_detail', user_id=u._id) }}" class="btn btn-view"><i class="fas fa-eye"></i> View All</a>
+                  <button class="btn btn-warning" onclick="banUser('{{ u._id }}')"><i class="fas fa-ban"></i> Ban</button>
+                  <button class="btn btn-danger" onclick="deleteUser('{{ u._id }}','{{ u.name }}')"><i class="fas fa-trash"></i></button>
+                </div></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="tab-pane" id="users-tab-banned">
+          {% set banned_list = users|selectattr('is_banned')|list %}
+          {% if banned_list %}
+          <table class="admin-table">
+            <thead><tr><th>User</th><th>XP</th><th>Actions</th></tr></thead>
+            <tbody>
+              {% for u in banned_list %}
+              <tr id="banned-row-{{ u._id }}">
+                <td><div class="user-info"><img src="{{ u.profile_pic_url }}" class="avatar" alt=""><div><div class="uname">{{ u.name }} {% if u.username %}<span style="font-size:.68rem;color:var(--primary);font-weight:700;">@{{ u.username }}</span>{% endif %}</div><div class="uemail">{{ u.email }}</div></div></div></td>
+                <td><strong>{{ u.xp }}</strong></td>
+                <td><div style="display:flex;gap:5px;">
+                  <button class="btn btn-success" onclick="unbanUser('{{ u._id }}')"><i class="fas fa-unlock"></i> Unban</button>
+                  <button class="btn btn-danger" onclick="deleteUser('{{ u._id }}','{{ u.name }}')"><i class="fas fa-trash"></i> Delete</button>
+                </div></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}<div class="empty">No banned users. 🎉</div>{% endif %}
+        </div>
+
+        <div class="tab-pane" id="users-tab-admins">
+          <table class="admin-table">
+            <thead><tr><th>User</th><th>XP</th><th>Actions</th></tr></thead>
+            <tbody>
+              {% for u in users if u.is_admin %}
+              <tr>
+                <td><div class="user-info"><img src="{{ u.profile_pic_url }}" class="avatar" alt=""><div><div class="uname">{{ u.name }} {% if u.username %}<span style="font-size:.68rem;color:var(--primary);font-weight:700;">@{{ u.username }}</span>{% endif %}</div><div class="uemail">{{ u.email }}</div></div></div></td>
+                <td><strong>{{ u.xp }}</strong></td>
+                <td><a href="{{ url_for('admin_user_detail', user_id=u._id) }}" class="btn btn-view"><i class="fas fa-eye"></i> View All</a></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROJECTS -->
+    <div class="section" id="projects">
+      <div class="section-header" onclick="toggleSection('projects-body','chev-projects')">
+        <h2><i class="fas fa-layer-group" style="color:var(--secondary)"></i> All Projects <span class="cnt">{{ projects|length }}</span></h2>
+        <i class="fas fa-chevron-down chevron" id="chev-projects"></i>
+      </div>
+      <div class="section-body" id="projects-body">
+        <div class="search-wrap"><i class="fas fa-search"></i><input type="text" placeholder="Search projects..." oninput="filterTable('proj-table',this.value)"></div>
+        <table class="admin-table" id="proj-table">
+          <thead><tr><th>Title</th><th>Creator</th><th>Skills</th><th>👁️ Views</th><th>❤️ Likes</th><th>💬 Comments</th><th>🔖 Saves</th><th>Created</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for p in projects %}
+            <tr id="pr-{{ p._id }}">
+              <td><strong>{{ p.title }}</strong></td>
+              <td>{{ p.created_by_name }}{% if p.created_by_username %}<br><span style="font-size:.7rem;color:var(--primary);font-weight:700;">@{{ p.created_by_username }}</span>{% endif %}</td>
+              <td style="font-size:.75rem;color:var(--muted)">{{ p.skills_needed|join(', ') if p.skills_needed else '—' }}</td>
+              <td><span style="font-weight:700;color:var(--primary)">{{ p.views or 0 }}</span></td>
+              <td><span style="font-weight:700;color:#ef4444">{{ p.like_count or 0 }}</span></td>
+              <td>
+                <button class="btn btn-primary" onclick="openCommentsModal('{{ p._id }}','{{ p.title | e }}')"
+                  style="font-weight:700;color:var(--primary)">
+                  <i class="fas fa-comments"></i>
+                  {{ p.comment_count or 0 }}
+                </button>
+              </td>
+              <td><span style="font-weight:700;color:#f59e0b">{{ p.bookmark_count or 0 }}</span></td>
+              <td style="font-size:.75rem;color:var(--muted)">{{ p.created_at.strftime('%b %d, %Y') if p.created_at else 'N/A' }}</td>
+              <td><button class="btn btn-danger" onclick="deleteProject('{{ p._id }}','{{ p.title }}')"><i class="fas fa-trash"></i> Delete</button></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ROADMAPS -->
+    <div class="section" id="roadmaps">
+      <div class="section-header" onclick="toggleSection('roadmaps-body','chev-roadmaps')">
+        <h2><i class="fas fa-magic" style="color:var(--accent)"></i> All Roadmaps <span class="cnt">{{ roadmaps|length }}</span></h2>
+        <i class="fas fa-chevron-down chevron" id="chev-roadmaps"></i>
+      </div>
+      <div class="section-body" id="roadmaps-body">
+        <table class="admin-table">
+          <thead><tr><th>Goal</th><th>User</th><th>Stages</th><th>Progress</th><th>Created</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for r in roadmaps %}
+            <tr id="rm-{{ r._id }}">
+              <td><strong>{{ r.goal }}</strong></td>
+              <td>{{ r.user_name }}{% if r.username %}<br><span style="font-size:.7rem;color:var(--primary);font-weight:700;">@{{ r.username }}</span>{% endif %}</td>
+              <td>{{ r.stage_count }}</td><td>{{ r.completed_stages }}/{{ r.stage_count }}</td>
+              <td style="font-size:.75rem;color:var(--muted)">{{ r.created_at.strftime('%b %d, %Y') if r.created_at else 'N/A' }}</td>
+              <td><button class="btn btn-danger" onclick="deleteRoadmap('{{ r._id }}','{{ r.goal }}')"><i class="fas fa-trash"></i> Delete</button></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- COMMUNITIES -->
+    <div class="section" id="communities">
+      <div class="section-header" onclick="toggleSection('communities-body','chev-communities')">
+        <h2><i class="fas fa-globe" style="color:var(--success)"></i> All Communities <span class="cnt">{{ communities|length }}</span></h2>
+        <i class="fas fa-chevron-down chevron" id="chev-communities"></i>
+      </div>
+      <div class="section-body" id="communities-body">
+        <table class="admin-table">
+          <thead><tr><th>Community</th><th>Owner</th><th>Members</th><th>Visibility</th><th>Created</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for c in communities %}
+            <tr id="cm-{{ c._id }}">
+              <td><strong>{{ c.project_title }}</strong></td>
+              <td>{{ c.owner_name }}{% if c.owner_username %}<br><span style="font-size:.7rem;color:var(--primary);font-weight:700;">@{{ c.owner_username }}</span>{% endif %}</td>
+              <td>{{ c.member_count }}</td>
+              <td><span style="font-size:.78rem;font-weight:600;color:{{ 'var(--success)' if c.visibility=='public' else 'var(--muted)' }}">{{ c.visibility|capitalize }}</span></td>
+              <td style="font-size:.75rem;color:var(--muted)">{{ c.created_at.strftime('%b %d, %Y') if c.created_at else 'N/A' }}</td>
+              <td><button class="btn btn-danger" onclick="deleteCommunity('{{ c._id }}','{{ c.project_title }}')"><i class="fas fa-trash"></i> Delete</button></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ── COMMENTS MODAL ── -->
+<div id="comments-modal-overlay" onclick="closeCommentsModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99990;backdrop-filter:blur(3px);"></div>
+<div id="comments-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;width:94%;max-width:680px;max-height:80vh;background:var(--surface,#fff);border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,0.25);overflow:hidden;flex-direction:column;">
+  <div style="padding:1.2rem 1.5rem;border-bottom:1px solid var(--border,#e5e7eb);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+    <div>
+      <h3 style="font-size:1rem;font-weight:700;margin:0;" id="modal-project-title">Comments</h3>
+      <p style="font-size:.75rem;color:var(--muted,#64748b);margin:2px 0 0;" id="modal-comment-count"></p>
+    </div>
+    <button onclick="closeCommentsModal()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted,#64748b);padding:4px 8px;border-radius:8px;">&times;</button>
+  </div>
+  <div id="modal-comments-body" style="overflow-y:auto;padding:1rem 1.5rem;flex:1;"></div>
+</div>
+
+<script>
+(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+function toggleSection(b,c){document.getElementById(b).classList.toggle('open');document.getElementById(c).classList.toggle('open');}
+function smoothScroll(id){const el=document.getElementById(id);if(!el)return;el.scrollIntoView({behavior:'smooth',block:'start'});const b=id+'-body',c='chev-'+id,body=document.getElementById(b),chev=document.getElementById(c);if(body&&!body.classList.contains('open')){body.classList.add('open');if(chev)chev.classList.add('open');}}
+function switchTab(e,section,tab){const container=document.getElementById(section+'-body');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));e.target.classList.add('active');document.getElementById(section+'-tab-'+tab).classList.add('active');}
+function filterUsers(q){q=q.toLowerCase().replace(/^@/,'');document.querySelectorAll('#users-all-table tbody tr').forEach(r=>{var m=(r.dataset.name||'').includes(q)||(r.dataset.email||'').includes(q)||(r.dataset.username||'').includes(q);r.style.display=m?'':'none';});}
+function filterTable(id,q){q=q.toLowerCase();document.querySelectorAll('#'+id+' tbody tr').forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q)?'':'none';});}
+function showToast(msg,err=false){const t=document.getElementById('toast');t.innerHTML=(err?'❌ ':'✅ ')+msg;t.style.background=err?'#7f1d1d':'#1e1b4b';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+function approveCommit(id){if(!confirm('Approve and award +50 XP?'))return;fetch('/admin/approve_commit/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){document.getElementById('cr-'+id).remove();showToast('Approved! +50 XP awarded.');}else showToast(d.error,true);});}
+function rejectCommit(id){if(!confirm('Reject this upload?'))return;fetch('/admin/reject_commit/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){document.getElementById('cr-'+id).remove();showToast('Upload rejected.');}else showToast(d.error,true);});}
+function banUser(id){if(!confirm('Ban this user?'))return;fetch('/admin/ban_user/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success)location.reload();else showToast(d.error,true);});}
+function unbanUser(id){if(!confirm('Unban this user?'))return;fetch('/admin/unban_user/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success)location.reload();else showToast(d.error,true);});}
+function deleteUser(id,name){if(!confirm('Permanently delete '+name+' and ALL their data?'))return;fetch('/admin/delete_user/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success)location.reload();else showToast(d.error,true);});}
+function deleteProject(id,title){if(!confirm('Delete project "'+title+'"?'))return;fetch('/admin/delete_project/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){document.getElementById('pr-'+id).remove();showToast('Project deleted.');}else showToast(d.error,true);});}
+function deleteRoadmap(id,goal){if(!confirm('Delete roadmap "'+goal+'"?'))return;fetch('/admin/delete_roadmap/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){document.getElementById('rm-'+id).remove();showToast('Roadmap deleted.');}else showToast(d.error,true);});}
+function deleteCommunity(id,title){if(!confirm('Delete community "'+title+'"?'))return;fetch('/admin/delete_community/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){document.getElementById('cm-'+id).remove();showToast('Community deleted.');}else showToast(d.error,true);});}
+
+// ── COMMENTS MODAL ────────────────────────────────────────
+async function openCommentsModal(projectId, projectTitle) {
+    const overlay = document.getElementById('comments-modal-overlay');
+    const modal   = document.getElementById('comments-modal');
+    const body    = document.getElementById('modal-comments-body');
+    const titleEl = document.getElementById('modal-project-title');
+    const countEl = document.getElementById('modal-comment-count');
+
+    titleEl.textContent = '💬 ' + projectTitle;
+    countEl.textContent = 'Loading…';
+    body.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Loading comments…</div>';
+    overlay.style.display = 'block';
+    modal.style.display = 'flex';
+
+    try {
+        const res  = await fetch(`/admin/project_comments/${projectId}`);
+        const data = await res.json();
+        if (!data.success) { body.innerHTML = '<div style="padding:2rem;color:#ef4444;">Failed to load comments.</div>'; return; }
+
+        const comments = data.comments;
+        countEl.textContent = comments.length + ' comment' + (comments.length !== 1 ? 's' : '');
+
+        if (!comments.length) {
+            body.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;font-size:.9rem;">No comments on this project yet.</div>';
+            return;
+        }
+
+        body.innerHTML = comments.map(c => buildAdminComment(c)).join('');
+    } catch(e) {
+        body.innerHTML = '<div style="padding:2rem;color:#ef4444;">Error loading comments.</div>';
+    }
+}
+
+function buildAdminComment(c) {
+    const isReply   = c.parent_id ? true : false;
+    const indent    = isReply ? 'margin-left:1.5rem;border-left:2px solid #e5e7eb;padding-left:1rem;' : '';
+    const typeLabel = isReply
+        ? '<span style="font-size:.68rem;font-weight:700;color:#22d3ee;background:rgba(34,211,238,.1);padding:1px 7px;border-radius:10px;">↩ Reply</span>'
+        : '<span style="font-size:.68rem;font-weight:700;color:#8B5CF6;background:rgba(139,92,246,.1);padding:1px 7px;border-radius:10px;">Top</span>';
+    const deletedStyle = c.is_deleted ? 'opacity:.5;' : '';
+    const deleteBtn = !c.is_deleted
+        ? `<button onclick="adminDeleteComment('${c._id}')" style="background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2);padding:3px 10px;border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;">
+             <i class="fas fa-trash"></i> Delete
+           </button>`
+        : '<span style="font-size:.72rem;color:#94a3b8;">Deleted</span>';
+
+    return `
+    <div id="acmt-${c._id}" style="${indent}${deletedStyle}background:#fafafa;border:1px solid #f1f5f9;border-radius:12px;padding:.85rem 1rem;margin-bottom:.65rem;">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;flex-wrap:wrap;">
+            <img src="/static/profile_pics/${c.profile_pic||'default.jpg'}"
+                 onerror="this.src='/static/profile_pics/default.jpg'"
+                 style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;">
+            <span style="font-weight:700;font-size:.83rem;">${c.user_name}</span>
+            ${c.username ? `<span style="font-size:.72rem;color:#8B5CF6;font-weight:700;">@${c.username}</span>` : ''}
+            ${typeLabel}
+            <span style="font-size:.72rem;color:#94a3b8;margin-left:auto;">${c.created_at_str}</span>
+        </div>
+        <div style="font-size:.88rem;color:#1f2937;line-height:1.5;margin-bottom:.5rem;word-break:break-word;">
+            ${c.is_deleted ? '<em style="color:#94a3b8">[deleted]</em>' : escapeHtml(c.content)}
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:.75rem;color:#94a3b8;"><i class="fas fa-heart" style="color:#ef4444"></i> ${c.like_count} likes</span>
+            ${deleteBtn}
+        </div>
+    </div>`;
+}
+
+function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function adminDeleteComment(id) {
+    if (!confirm('Delete this comment?')) return;
+    fetch('/api/comment/' + id, {method: 'DELETE'})
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                const el = document.getElementById('acmt-' + id);
+                if (el) {
+                    el.style.opacity = '.45';
+                    const contentDiv = el.querySelectorAll('div')[2];
+                    if (contentDiv) contentDiv.innerHTML = '<em style="color:#94a3b8">[deleted]</em>';
+                    const actionDiv = el.querySelectorAll('div')[3];
+                    if (actionDiv) {
+                        const btn = actionDiv.querySelector('button');
+                        if (btn) btn.outerHTML = '<span style="font-size:.72rem;color:#94a3b8;">Deleted</span>';
+                    }
+                }
+                showToast('Comment deleted.');
+            } else { showToast(d.error, true); }
+        });
+}
+
+function closeCommentsModal() {
+    document.getElementById('comments-modal-overlay').style.display = 'none';
+    document.getElementById('comments-modal').style.display = 'none';
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeCommentsModal();
+});
+
+// ── MOBILE SIDEBAR ────────────────────────────
+function sbAdminOpen() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sb-overlay-admin');
+    const closeBtn = sidebar ? sidebar.querySelector('.sb-close-admin') : null;
+    if (sidebar) sidebar.classList.add('sb-open');
+    if (overlay) overlay.classList.add('active');
+    if (closeBtn) closeBtn.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function sbAdminClose() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sb-overlay-admin');
+    const closeBtn = sidebar ? sidebar.querySelector('.sb-close-admin') : null;
+    if (sidebar) sidebar.classList.remove('sb-open');
+    if (overlay) overlay.classList.remove('active');
+    if (closeBtn) closeBtn.style.display = 'none';
+    document.body.style.overflow = '';
+}
+document.addEventListener('click', function(e) {
+    if (window.innerWidth <= 768) {
+        const link = e.target.closest('.sidebar nav a');
+        if (link) sbAdminClose();
+    }
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') sbAdminClose();
+});
+</script>
+</body>
+</html>

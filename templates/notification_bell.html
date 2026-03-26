@@ -1,0 +1,417 @@
+<!-- ═══════════════════════════════════════════════
+     FLOATING NOTIFICATION BELL + MOBILE SIDEBAR
+     ═══════════════════════════════════════════════ -->
+
+<link rel="stylesheet" href="/static/mobile.css">
+<!-- Mobile sidebar CSS — loaded here so it applies to ALL pages -->
+
+<style>
+/* ── NOTIFICATION BELL ─────────────────────────── */
+.notif-float-btn {
+    position: fixed;
+    top: 20px;
+    right: 24px;
+    z-index: 9998;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8B5CF6, #EC4899);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(139,92,246,0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    color: #fff;
+    font-size: 1.1rem;
+}
+.notif-float-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 28px rgba(139,92,246,0.5);
+}
+.notif-float-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.58rem;
+    font-weight: 800;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    padding: 0 4px;
+}
+.notif-dropdown {
+    position: fixed;
+    top: 76px;
+    right: 24px;
+    width: 340px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    z-index: 9997;
+    overflow: hidden;
+    max-height: 480px;
+    display: none;
+    flex-direction: column;
+}
+.notif-dropdown.open { display: flex; }
+.notif-dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid #e5e7eb;
+    flex-shrink: 0;
+}
+.notif-dropdown-header h4 { font-size: 0.9rem; font-weight: 800; color: #0f172a; margin: 0; }
+.notif-mark-all { font-size: 0.72rem; font-weight: 700; color: #8B5CF6; cursor: pointer; background: none; border: none; font-family: inherit; padding: 0; }
+.notif-mark-all:hover { text-decoration: underline; }
+.notif-list { overflow-y: auto; flex: 1; }
+.notif-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 18px; border-bottom: 1px solid #f1f5f9;
+    cursor: pointer; transition: background 0.15s; text-decoration: none;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: #f8fafc; }
+.notif-item.unread { background: rgba(139,92,246,0.04); }
+.notif-item.unread:hover { background: rgba(139,92,246,0.08); }
+.notif-icon {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; flex-shrink: 0; margin-top: 2px;
+}
+.notif-icon.message  { background: rgba(34,211,238,0.12);  color: #0891b2; }
+.notif-icon.approved { background: rgba(16,185,129,0.12);  color: #059669; }
+.notif-icon.declined { background: rgba(239,68,68,0.12);   color: #dc2626; }
+.notif-icon.removed  { background: rgba(245,158,11,0.12);  color: #d97706; }
+.notif-icon.levelup  { background: rgba(139,92,246,0.12);  color: #8B5CF6; }
+.notif-icon.info     { background: rgba(100,116,139,0.1);  color: #64748b; }
+.notif-body { flex: 1; min-width: 0; }
+.notif-msg { font-size: 0.82rem; font-weight: 600; color: #0f172a; line-height: 1.4; }
+.notif-time { font-size: 0.7rem; color: #94a3b8; margin-top: 3px; font-weight: 500; }
+.notif-unread-dot { width: 7px; height: 7px; border-radius: 50%; background: #8B5CF6; flex-shrink: 0; margin-top: 6px; }
+.notif-empty { padding: 2.5rem 1rem; text-align: center; color: #94a3b8; font-size: 0.85rem; }
+.notif-empty i { font-size: 2rem; display: block; margin-bottom: 8px; opacity: 0.35; }
+
+body.dark .notif-dropdown { background: #1a1a2e !important; border-color: #2d2d44 !important; }
+body.dark .notif-dropdown-header { border-bottom-color: #2d2d44 !important; background: #13131f !important; }
+body.dark .notif-dropdown-header h4 { color: #e2e8f0 !important; }
+body.dark .notif-item { border-bottom-color: #2d2d44 !important; }
+body.dark .notif-item:hover { background: #13131f !important; }
+body.dark .notif-item.unread { background: rgba(139,92,246,0.1) !important; }
+body.dark .notif-msg { color: #e2e8f0 !important; }
+body.dark .notif-float-badge { border-color: #1a1a2e !important; }
+
+/* ── MOBILE SIDEBAR ────────────────────────────── */
+
+/* Hamburger button — hidden on desktop, visible on mobile */
+.sb-hamburger {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 10001;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #8B5CF6, #EC4899);
+    border: none;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(139,92,246,0.4);
+    color: #fff;
+    font-size: 1.1rem;
+    transition: transform 0.2s;
+}
+.sb-hamburger:hover { transform: scale(1.05); }
+
+/* Dark overlay behind open sidebar */
+.sb-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 10000;
+    backdrop-filter: blur(2px);
+}
+.sb-overlay.active { display: block; }
+
+/* Close button inside sidebar on mobile */
+.sb-close-btn {
+    display: none;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(139,92,246,0.1);
+    color: #8B5CF6;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    z-index: 10;
+}
+
+/* On mobile — sidebar slides in from left */
+@media (max-width: 768px) {
+    /* Show hamburger button */
+    .sb-hamburger { display: flex !important; }
+
+    /* Move bell away from hamburger */
+    .notif-float-btn { right: 16px !important; top: 14px !important; }
+    .notif-dropdown  { right: 16px !important; top: 70px !important; width: calc(100vw - 32px) !important; max-width: 340px !important; }
+
+    /* HIDE SIDEBAR — override every template's inline CSS */
+    .sidebar,
+    aside.sidebar {
+        transform: translateX(-280px) !important;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        z-index: 10001 !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        height: 100vh !important;
+        width: 260px !important;
+        overflow-y: auto !important;
+    }
+
+    /* SLIDE IN when open */
+    .sidebar.sb-open,
+    aside.sidebar.sb-open {
+        transform: translateX(0) !important;
+    }
+
+    /* Show close button inside sidebar */
+    .sb-close-btn { display: flex !important; }
+
+    /* MAIN CONTENT — covers all class names used across templates */
+    .main-content,
+    main.main-content,
+    .main,
+    main.main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 1rem !important;
+        padding-top: 70px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Prevent horizontal overflow */
+    body, html { overflow-x: hidden !important; }
+}
+
+/* Dark mode for hamburger */
+body.dark .sb-hamburger { box-shadow: 0 4px 16px rgba(139,92,246,0.3); }
+body.dark .sb-close-btn { background: rgba(139,92,246,0.2); color: #a78bfa; }
+</style>
+
+<!-- Notification Bell Button -->
+<button class="notif-float-btn" id="notif-float-btn" onclick="toggleNotifDropdown(event)" title="Notifications">
+    <i class="fas fa-bell"></i>
+    <span class="notif-float-badge" id="notif-badge"></span>
+</button>
+
+<!-- Notification Dropdown -->
+<div class="notif-dropdown" id="notif-dropdown">
+    <div class="notif-dropdown-header">
+        <h4>🔔 Notifications</h4>
+        <button class="notif-mark-all" onclick="markAllRead()">Mark all read</button>
+    </div>
+    <div class="notif-list" id="notif-list">
+        <div class="notif-empty">
+            <i class="fas fa-bell-slash"></i>
+            No notifications yet
+        </div>
+    </div>
+</div>
+
+<!-- Hamburger Button (mobile only) -->
+<button class="sb-hamburger" id="sb-hamburger" onclick="sbOpenSidebar()" title="Menu">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- Dark Overlay (mobile only) -->
+<div class="sb-overlay" id="sb-overlay" onclick="sbCloseSidebar()"></div>
+
+<script>
+/* ── NOTIFICATION BELL LOGIC ─────────────────── */
+(function() {
+    const ICONS = {
+        message:  { icon: 'fa-comment-dots', cls: 'message'  },
+        approved: { icon: 'fa-check-circle', cls: 'approved' },
+        declined: { icon: 'fa-times-circle', cls: 'declined' },
+        removed:  { icon: 'fa-user-minus',   cls: 'removed'  },
+        levelup:  { icon: 'fa-trophy',       cls: 'levelup'  },
+        info:     { icon: 'fa-info-circle',  cls: 'info'     },
+    };
+    let isOpen = false;
+
+    window.toggleNotifDropdown = function(e) {
+        e.stopPropagation();
+        isOpen = !isOpen;
+        const dd = document.getElementById('notif-dropdown');
+        if (isOpen) { dd.classList.add('open'); loadNotifications(); }
+        else { dd.classList.remove('open'); }
+    };
+
+    document.addEventListener('click', function(e) {
+        const dd = document.getElementById('notif-dropdown');
+        const btn = document.getElementById('notif-float-btn');
+        if (isOpen && dd && !dd.contains(e.target) && btn && !btn.contains(e.target)) {
+            isOpen = false;
+            dd.classList.remove('open');
+        }
+    });
+
+    async function loadNotifications() {
+        try {
+            const res = await fetch('/api/notifications');
+            const data = await res.json();
+            renderNotifications(data.notifications, data.unread_count);
+        } catch(e) {}
+    }
+
+    function renderNotifications(notifs, unreadCount) {
+        const badge = document.getElementById('notif-badge');
+        if (unreadCount > 0) {
+            badge.style.display = 'flex';
+            badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+        } else {
+            badge.style.display = 'none';
+        }
+        const list = document.getElementById('notif-list');
+        if (!notifs || !notifs.length) {
+            list.innerHTML = '<div class="notif-empty"><i class="fas fa-bell-slash"></i>No notifications yet</div>';
+            return;
+        }
+        list.innerHTML = notifs.map(n => {
+            const ic = ICONS[n.type] || ICONS.info;
+            return `<a class="notif-item ${n.is_read ? '' : 'unread'}" href="${n.link}" onclick="markRead('${n.id}', event)">
+                <div class="notif-icon ${ic.cls}"><i class="fas ${ic.icon}"></i></div>
+                <div class="notif-body">
+                    <div class="notif-msg">${n.message}</div>
+                    <div class="notif-time">${n.created_at}</div>
+                </div>
+                ${!n.is_read ? '<div class="notif-unread-dot"></div>' : ''}
+            </a>`;
+        }).join('');
+    }
+
+    window.markRead = async function(id, e) {
+        try {
+            await fetch(`/api/notifications/read/${id}`, { method: 'POST' });
+            const item = e.currentTarget;
+            item.classList.remove('unread');
+            const dot = item.querySelector('.notif-unread-dot');
+            if (dot) dot.remove();
+            updateBadgeCount();
+        } catch(e) {}
+    };
+
+    window.markAllRead = async function() {
+        try {
+            await fetch('/api/notifications/read_all', { method: 'POST' });
+            document.querySelectorAll('.notif-item').forEach(el => {
+                el.classList.remove('unread');
+                const dot = el.querySelector('.notif-unread-dot');
+                if (dot) dot.remove();
+            });
+            const badge = document.getElementById('notif-badge');
+            if (badge) badge.style.display = 'none';
+        } catch(e) {}
+    };
+
+    async function updateBadgeCount() {
+        try {
+            const res = await fetch('/api/notifications');
+            const data = await res.json();
+            const badge = document.getElementById('notif-badge');
+            if (!badge) return;
+            if (data.unread_count > 0) {
+                badge.style.display = 'flex';
+                badge.textContent = data.unread_count > 9 ? '9+' : data.unread_count;
+            } else {
+                badge.style.display = 'none';
+            }
+        } catch(e) {}
+    }
+
+    updateBadgeCount();
+    setInterval(updateBadgeCount, 30000);
+})();
+
+/* ── MOBILE SIDEBAR LOGIC ────────────────────── */
+function sbOpenSidebar() {
+    const sidebar = document.querySelector('.sidebar, aside.sidebar, aside.sb, .sb');
+    const overlay = document.getElementById('sb-overlay');
+    if (sidebar) {
+        sidebar.classList.add('sb-open');
+        // Inject close button if not present
+        if (!sidebar.querySelector('.sb-close-btn')) {
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'sb-close-btn';
+            closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            closeBtn.onclick = sbCloseSidebar;
+            closeBtn.title = 'Close menu';
+            closeBtn.style.cssText = 'display:flex;position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:8px;border:none;background:rgba(139,92,246,0.1);color:#8B5CF6;cursor:pointer;align-items:center;justify-content:center;font-size:0.9rem;z-index:10003;';
+            sidebar.insertBefore(closeBtn, sidebar.firstChild);
+        }
+    }
+    if (overlay) overlay.classList.add('active');
+    // Only lock scroll if sidebar was found
+    if (sidebar) document.body.style.overflow = 'hidden';
+}
+
+function sbCloseSidebar() {
+    // Target both class names used across templates
+    document.querySelectorAll('.sidebar, aside.sb, .sb').forEach(function(el) {
+        el.classList.remove('sb-open');
+    });
+    const overlay = document.getElementById('sb-overlay');
+    if (overlay) overlay.classList.remove('active');
+    // Always reset body overflow — even if sidebar wasn't found
+    document.body.style.overflow = '';
+    document.body.style.overflowX = '';
+    document.documentElement.style.overflow = '';
+}
+
+// On load — hide hamburger if this page has no real nav sidebar
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.innerWidth <= 768) {
+        // Only count ASIDE elements or elements with class 'sidebar' or 'sb'
+        // Ignore div#sidebar (used by community chat for members panel)
+        const sidebar = document.querySelector('aside.sidebar, aside.sb, .sidebar:not(div), .sb:not(div)');
+        const hamburger = document.getElementById('sb-hamburger');
+        if (!sidebar && hamburger) {
+            hamburger.style.display = 'none !important';
+            hamburger.style.setProperty('display', 'none', 'important');
+        }
+    }
+});
+
+// Close sidebar when a nav link is clicked (mobile)
+document.addEventListener('click', function(e) {
+    if (window.innerWidth <= 768) {
+        const link = e.target.closest('.sidebar a, aside.sb a, .sb a');
+        if (link) setTimeout(sbCloseSidebar, 150);
+    }
+});
+
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') sbCloseSidebar();
+});
+</script>

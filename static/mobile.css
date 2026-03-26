@@ -1,0 +1,133 @@
+/* ═══════════════════════════════════════
+   SKILLBRIDGE — MOBILE RESPONSIVE CSS
+   Save as: static/mobile.css
+═══════════════════════════════════════ */
+
+/* ── GLOBAL MOBILE BASE ── */
+@media (max-width: 768px) {
+
+  /* Hide all sidebars */
+  .sidebar,
+  aside.sb,
+  aside.sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  /* Main content full width */
+  .main-content,
+  .main,
+  main.main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 1.2rem !important;
+    padding-top: 64px !important;
+    box-sizing: border-box;
+  }
+
+  /* ── DASHBOARD / GENERAL ── */
+  .dashboard-container {
+    flex-direction: column;
+  }
+
+  /* ── TOPBAR (Resume/Portfolio builders) ── */
+  .topbar {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+  .btns {
+    width: 100% !important;
+    flex-wrap: wrap !important;
+  }
+  .btns .btn {
+    flex: 1 !important;
+    justify-content: center !important;
+    font-size: 0.78rem !important;
+    padding: 8px 10px !important;
+    min-width: 120px;
+  }
+
+  /* ── BUILDER LAYOUT ── */
+  .layout {
+    grid-template-columns: 1fr !important;
+  }
+  .cp {
+    position: static !important;
+  }
+  .preview-wrap {
+    min-height: 400px !important;
+  }
+
+  /* ── PROJECT BOARD HEADER ── */
+  .project-board-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+  .project-board-header .cta-button {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  /* ── PROJECT GRID ── */
+  .project-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── ROADMAP GENERATOR FORM ── */
+  .generator-form {
+    flex-direction: column !important;
+  }
+  .generator-form .cta-button {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  /* ── MODALS ── */
+  .edit-modal,
+  .delete-modal {
+    max-width: 95vw !important;
+    margin: 1rem !important;
+  }
+
+  /* ── STATS GRID (admin) ── */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* ── TABLES ── */
+  .admin-table {
+    font-size: 0.75rem !important;
+  }
+  .admin-table th,
+  .admin-table td {
+    padding: 0.5rem 0.6rem !important;
+  }
+
+  /* ── FLASH MESSAGES ── */
+  .flash-messages {
+    width: calc(100% - 24px) !important;
+    right: 12px !important;
+    top: 12px !important;
+  }
+
+  /* ── PAGINATION ── */
+  .pagination {
+    gap: 4px !important;
+  }
+  .page-btn {
+    padding: 6px 10px !important;
+    font-size: 0.78rem !important;
+  }
+
+  /* ── CARD ACTIONS ── */
+  .card-actions {
+    flex-direction: row !important;
+  }
+
+  /* ── H1 FONT SIZE ── */
+  h1 {
+    font-size: 1.6rem !important;
+  }
+}

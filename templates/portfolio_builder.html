@@ -31,11 +31,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   color:#fff;box-shadow:0 8px 24px rgba(124,58,237,.3);}
 .sb .out{margin-top:auto;padding-top:1rem;}
 .sb .out a{color:#ef4444;}
-.main{margin-left:var(--sw);padding:2rem 2.5rem;}
+.main{margin-left:var(--sw);padding:2rem 2.5rem;transition:padding-right .3s ease;}
+.main.panel-open{padding-right:380px;}
 .topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;}
 .topbar h1{font-family:'Fraunces',serif;font-size:2rem;font-weight:900;}
 .topbar p{color:var(--muted);font-size:.85rem;margin-top:4px;}
 .btns{display:flex;gap:10px;flex-shrink:0;}
+@media(max-width:768px){
+  .sb{display:none!important;}
+  .main{margin-left:0!important;width:100%!important;padding:1rem!important;padding-top:60px!important;}
+  .topbar{flex-direction:column;align-items:flex-start;gap:.75rem;}
+  .btns{width:100%;flex-wrap:wrap;}
+  .btns .btn{flex:1;justify-content:center;font-size:.78rem;padding:8px 10px;}
+  .layout{grid-template-columns:1fr!important;}
+  .cp{position:static!important;}
+  .preview-wrap{min-height:400px;}
+}
 .btn{padding:10px 22px;border-radius:12px;font-family:'DM Sans',sans-serif;
   font-size:.87rem;font-weight:600;cursor:pointer;border:none;
   display:flex;align-items:center;gap:7px;transition:.22s;}
@@ -244,10 +255,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 #p4 .proj-tags{display:flex;flex-wrap:wrap;gap:5px;}
 #p4 .proj-tag{font-size:.65rem;color:#c2440b;background:#fff3ee;padding:2px 8px;border-radius:4px;font-weight:600;}
 #p4 .contact-strip{display:flex;flex-wrap:wrap;gap:0;}
-#p4 .contact-item{flex:1;min-width:160px;padding:20px 0;border-right:1px solid #ecdec8;padding-right:24px;margin-right:24px;}
-#p4 .contact-item:last-child{border-right:none;margin-right:0;}
+#p4 .contact-item{flex:1;min-width:180px;max-width:100%;padding:20px 24px 20px 0;border-right:1px solid #ecdec8;margin-right:0;overflow:hidden;}
+#p4 .contact-item:last-child{border-right:none;}
 #p4 .contact-label{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#b8906e;font-weight:700;margin-bottom:6px;}
-#p4 .contact-val{font-size:.82rem;font-weight:700;color:#1a0f00;text-decoration:none;}
+#p4 .contact-val{font-size:.82rem;font-weight:700;color:#1a0f00;text-decoration:none;word-break:break-all;}
 #p4 .contact-val:hover{color:#c2440b;}
 #p4 footer{padding:20px 52px;font-size:.7rem;color:#b8906e;border-top:1px solid #ecdec8;}
 
@@ -383,12 +394,83 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       <p>6 stunning templates · auto-filled from your profile · one-click export</p>
     </div>
     <div class="btns">
-      <button class="btn btn-o" onclick="copyHTML()"><i class="fas fa-copy"></i> Copy HTML</button>
+      <button class="btn btn-o" onclick="toggleEditPanel()"><i class="fas fa-pen"></i> Edit Content</button>
+      <button class="btn btn-o" id="copy-html-btn" onclick="copyHTML()"><i class="fas fa-copy"></i> Copy HTML</button>
       <button class="btn btn-p" onclick="openPortfolio()"><i class="fas fa-external-link-alt"></i> Open Full Page</button>
     </div>
   </div>
 
-  <div class="layout">
+  <!-- ── EDIT PANEL ── -->
+  <div id="edit-panel" style="display:none;position:fixed;top:0;right:0;width:360px;height:100vh;background:#fff;border-left:1px solid #e2e8f0;z-index:9999;box-shadow:-8px 0 40px rgba(0,0,0,.12);">
+    <!-- TOP: title + buttons — never scrolls -->
+    <div style="padding:1rem 1.5rem;border-bottom:2px solid #e2e8f0;background:#fff;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
+        <strong style="font-size:.95rem;color:#0f172a;">✏️ Edit Portfolio</strong>
+        <button onclick="toggleEditPanel()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#64748b;line-height:1;">✕</button>
+      </div>
+      <button onclick="copyHTML()" style="width:100%;padding:9px;border-radius:10px;border:1.5px solid #7c3aed;background:#fff;color:#7c3aed;font-weight:700;cursor:pointer;font-size:.82rem;font-family:inherit;margin-bottom:.4rem;">
+        📋 Copy HTML
+      </button>
+      <button onclick="openPortfolio()" style="width:100%;padding:9px;border-radius:10px;border:none;background:linear-gradient(90deg,#7c3aed,#ec4899);color:#fff;font-weight:700;cursor:pointer;font-size:.82rem;font-family:inherit;">
+        🔗 Open Full Page
+      </button>
+    </div>
+    <!-- BOTTOM: scrollable fields -->
+    <div style="height:calc(100vh - 145px);overflow-y:auto;padding:1rem 1.5rem;">
+      <p style="font-size:.73rem;color:#94a3b8;margin-bottom:1rem;padding:7px 9px;background:#f8fafc;border-radius:7px;border:1px solid #e2e8f0;">
+        Edits are preview-only. Changes reset when you leave.
+      </p>
+      <div class="ep-group"><label class="ep-lbl">Full Name</label><input class="ep-inp" id="ep-name" oninput="liveUpdate()" placeholder="Your name"></div>
+      <div class="ep-group"><label class="ep-lbl">Job Title / Role</label><input class="ep-inp" id="ep-title" oninput="liveUpdate()" placeholder="e.g. Full Stack Developer"></div>
+      <div class="ep-group"><label class="ep-lbl">Email</label><input class="ep-inp" id="ep-email" oninput="liveUpdate()" placeholder="you@email.com"></div>
+      <div class="ep-group"><label class="ep-lbl">Location</label><input class="ep-inp" id="ep-location" oninput="liveUpdate()" placeholder="City, Country"></div>
+      <div class="ep-group"><label class="ep-lbl">LinkedIn URL</label><input class="ep-inp" id="ep-linkedin" oninput="liveUpdate()" placeholder="https://linkedin.com/in/..."></div>
+      <div class="ep-group"><label class="ep-lbl">GitHub URL</label><input class="ep-inp" id="ep-github" oninput="liveUpdate()" placeholder="https://github.com/..."></div>
+      <div class="ep-group"><label class="ep-lbl">About / Bio</label><textarea class="ep-inp" id="ep-about" oninput="liveUpdate()" rows="4" placeholder="Brief bio..."></textarea></div>
+      <div class="ep-group"><label class="ep-lbl">Known Skills (comma separated)</label><textarea class="ep-inp" id="ep-skills" oninput="liveUpdate()" rows="2" placeholder="Python, Flask, React..."></textarea></div>
+      <div class="ep-group"><label class="ep-lbl">Learning Skills (comma separated)</label><textarea class="ep-inp" id="ep-learning" oninput="liveUpdate()" rows="2" placeholder="Rust, Go..."></textarea></div>
+
+      <!-- Work Experience -->
+      <div style="height:1px;background:#e2e8f0;margin:.5rem 0;"></div>
+      <div style="font-size:.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;">Work Experience (preview only)</div>
+      <div id="ep-exp-list"></div>
+      <button type="button" onclick="addEpExp()" style="width:100%;padding:7px;border-radius:8px;border:1.5px dashed #cbd5e1;background:transparent;color:#64748b;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:.5rem;">
+        + Add Experience Entry
+      </button>
+
+      <!-- Projects -->
+      <div style="margin:1rem 0 .5rem;padding-top:.75rem;border-top:1.5px solid #e2e8f0;">
+        <div class="ep-lbl" style="font-size:.75rem;color:#7c3aed;margin-bottom:.6rem;">⚡ Projects</div>
+      </div>
+      {% for p in projects %}
+      <div class="ep-group" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:.75rem;">
+        <label class="ep-lbl">Project {{ loop.index }} — Title</label>
+        <input class="ep-inp" id="ep-proj-title-{{ loop.index0 }}" oninput="liveUpdate()" placeholder="{{ p.title }}" style="margin-bottom:.4rem;">
+        <label class="ep-lbl" style="margin-top:.3rem;">Description</label>
+        <textarea class="ep-inp" id="ep-proj-desc-{{ loop.index0 }}" oninput="liveUpdate()" rows="3" placeholder="{{ p.description }}"></textarea>
+      </div>
+      {% endfor %}
+
+      <button onclick="resetEdits()" style="width:100%;margin-top:.5rem;padding:9px;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-weight:600;cursor:pointer;font-size:.82rem;font-family:inherit;">
+        ↩ Reset to Original
+      </button>
+    </div>
+  </div>
+
+  <style>
+  .ep-group{margin-bottom:.85rem;}
+  .ep-lbl{display:block;font-size:.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+  .ep-inp{width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-family:'DM Sans',sans-serif;font-size:.85rem;color:#0f172a;resize:vertical;outline:none;transition:border-color .2s;}
+  .ep-inp:focus{border-color:#7c3aed;}
+  body.dark #edit-panel{background:#1a1a2e;border-color:#2d2d44;}
+  body.dark #edit-panel > div:last-child{background:#1a1a2e!important;border-color:#2d2d44!important;}
+  body.dark .ep-inp{background:#13131f;border-color:#2d2d44;color:#e2e8f0;}
+  body.dark .ep-inp:focus{border-color:#a78bfa;}
+  body.dark .ep-lbl{color:#64748b;}
+  </style>
+
+
+  <div class="layout" id="main-layout">
 
     <div class="cp">
       <div class="cp-sec">
@@ -471,7 +553,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="hero-links">
       {% if user.github_url %}<a class="hl" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i> GitHub</a>{% endif %}
       {% if user.linkedin_url %}<a class="hl" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>{% endif %}
-      {% if user.email %}<a class="hl" href="mailto:{{ user.email }}"><i class="fas fa-envelope"></i> Email</a>{% endif %}
+      {% if user.email %}<a class="hl" href="/cdn-cgi/l/email-protection#5b20207b2e283e29753e363a32377b2626"><i class="fas fa-envelope"></i> Email</a>{% endif %}
     </div>
   </div>
   {% if user.known_skills %}
@@ -485,10 +567,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   {% if user.certificates %}
 <div class="section" id="certs">
   <div class="sec-label">CERTIFICATIONS</div>
-  <div class="skills-grid">{% for c in user.certificates %}<span class="cert-tag">{{ c.name }} — {{ c.issuer }}</span>{% endfor %}</div>
+  <div class="certs-grid">{% for c in user.certificates %}<span class="cert-tag">{{ c.name }} — {{ c.issuer }}</span>{% endfor %}</div>
 </div>
 {% endif %}
   {% if projects %}
+  {% if work_experience %}
+  <div class="section" id="experience">
+    <div class="sec-title" style="font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:18px;opacity:.7;">Work Experience</div>
+    {% for e in work_experience %}
+    <div data-jinja-exp="1" style="padding:.85rem 0;border-bottom:1px solid rgba(128,128,128,.15);{% if loop.last %}border-bottom:none;{% endif %}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.25rem;">
+        <div>
+          <div style="font-weight:700;font-size:.92rem;">{{ e.role }}</div>
+          <div style="font-size:.82rem;opacity:.7;margin-top:2px;">{{ e.company }}</div>
+        </div>
+        <div style="font-size:.75rem;opacity:.55;font-weight:600;white-space:nowrap;">
+          {{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
   <div class="section" id="projects">
     <div class="sec-label">SELECTED PROJECTS</div>
     <div class="proj-grid">
@@ -506,7 +606,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   <div class="section" id="contact">
     <div class="sec-label">GET IN TOUCH</div>
     <div class="contact-row">
-      {% if user.email %}<a class="contact-item" href="mailto:{{ user.email }}"><i class="fas fa-envelope"></i>{{ user.email }}</a>{% endif %}
+      {% if user.email %}<a class="contact-item" href="/cdn-cgi/l/email-protection#8bf0f0abfef8eef9a5eee6eae2e7abf6f6"><i class="fas fa-envelope"></i>{{ user.email }}</a>{% endif %}
       {% if user.location %}<span class="contact-item"><i class="fas fa-map-marker-alt"></i>{{ user.location }}</span>{% endif %}
       {% if user.github_url %}<a class="contact-item" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
       {% if user.linkedin_url %}<a class="contact-item" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
@@ -554,6 +654,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 </div>
 {% endif %}
   {% if projects %}
+  {% if work_experience %}
+  <div class="section" id="experience">
+    <div class="sec-title" style="font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:18px;opacity:.7;">Work Experience</div>
+    {% for e in work_experience %}
+    <div data-jinja-exp="1" style="padding:.85rem 0;border-bottom:1px solid rgba(128,128,128,.15);{% if loop.last %}border-bottom:none;{% endif %}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.25rem;">
+        <div>
+          <div style="font-weight:700;font-size:.92rem;">{{ e.role }}</div>
+          <div style="font-size:.82rem;opacity:.7;margin-top:2px;">{{ e.company }}</div>
+        </div>
+        <div style="font-size:.75rem;opacity:.55;font-weight:600;white-space:nowrap;">
+          {{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
   <div class="section" id="projects">
     <div class="sec-head"><div class="sec-title">Selected Projects</div><div class="sec-num">02 /</div></div>
     <div class="proj-list">
@@ -574,7 +692,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   <div class="section" id="contact">
     <div class="sec-head"><div class="sec-title">Contact</div><div class="sec-num">03 /</div></div>
     <div class="contact-grid">
-      {% if user.email %}<div class="contact-item"><div class="contact-label">Email</div><a class="contact-val" href="mailto:{{ user.email }}">{{ user.email }}</a></div>{% endif %}
+      {% if user.email %}<div class="contact-item"><div class="contact-label">Email</div><a class="contact-val" href="/cdn-cgi/l/email-protection#72090952070117005c171f131b1e520f0f">{{ user.email }}</a></div>{% endif %}
       {% if user.location %}<div class="contact-item"><div class="contact-label">Location</div><div class="contact-val">{{ user.location }}</div></div>{% endif %}
       {% if user.github_url %}<div class="contact-item"><div class="contact-label">GitHub</div><a class="contact-val" href="{{ user.github_url }}" target="_blank">View Profile</a></div>{% endif %}
       {% if user.linkedin_url %}<div class="contact-item"><div class="contact-label">LinkedIn</div><a class="contact-val" href="{{ user.linkedin_url }}" target="_blank">Connect</a></div>{% endif %}
@@ -601,7 +719,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       <div class="hero-btns">
         {% if user.github_url %}<a class="hbtn hbtn-p" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i> GitHub</a>{% endif %}
         {% if user.linkedin_url %}<a class="hbtn hbtn-o" href="{{ user.linkedin_url }}" target="_blank">LinkedIn ↗</a>{% endif %}
-        {% if user.email %}<a class="hbtn hbtn-o" href="mailto:{{ user.email }}">Contact Me</a>{% endif %}
+        {% if user.email %}<a class="hbtn hbtn-o" href="/cdn-cgi/l/email-protection#304b4b10454355421e555d51595c104d4d">Contact Me</a>{% endif %}
       </div>
     </div>
   </div>
@@ -618,6 +736,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 </div>
 {% endif %}
   {% if projects %}
+  {% if work_experience %}
+  <div class="section" id="experience">
+    <div class="sec-title" style="font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:18px;opacity:.7;">Work Experience</div>
+    {% for e in work_experience %}
+    <div data-jinja-exp="1" style="padding:.85rem 0;border-bottom:1px solid rgba(128,128,128,.15);{% if loop.last %}border-bottom:none;{% endif %}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.25rem;">
+        <div>
+          <div style="font-weight:700;font-size:.92rem;">{{ e.role }}</div>
+          <div style="font-size:.82rem;opacity:.7;margin-top:2px;">{{ e.company }}</div>
+        </div>
+        <div style="font-size:.75rem;opacity:.55;font-weight:600;white-space:nowrap;">
+          {{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
   <div class="section" id="projects">
     <div class="sec-title">Projects</div>
     <div class="proj-grid">
@@ -635,7 +771,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   <div class="section" id="contact">
     <div class="sec-title">Get in Touch</div>
     <div class="contact-card">
-      {% if user.email %}<a class="contact-item" href="mailto:{{ user.email }}"><i class="fas fa-envelope"></i>{{ user.email }}</a>{% endif %}
+      {% if user.email %}<a class="contact-item" href="/cdn-cgi/l/email-protection#156e6e35606670673b7078747c79356868"><i class="fas fa-envelope"></i>{{ user.email }}</a>{% endif %}
       {% if user.location %}<span class="contact-item"><i class="fas fa-map-marker-alt"></i>{{ user.location }}</span>{% endif %}
       {% if user.github_url %}<a class="contact-item" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
       {% if user.linkedin_url %}<a class="contact-item" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
@@ -680,6 +816,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 </div>
 {% endif %}
   {% if projects %}
+  {% if work_experience %}
+  <div class="section" id="experience">
+    <div class="sec-title" style="font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:18px;opacity:.7;">Work Experience</div>
+    {% for e in work_experience %}
+    <div data-jinja-exp="1" style="padding:.85rem 0;border-bottom:1px solid rgba(128,128,128,.15);{% if loop.last %}border-bottom:none;{% endif %}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.25rem;">
+        <div>
+          <div style="font-weight:700;font-size:.92rem;">{{ e.role }}</div>
+          <div style="font-size:.82rem;opacity:.7;margin-top:2px;">{{ e.company }}</div>
+        </div>
+        <div style="font-size:.75rem;opacity:.55;font-weight:600;white-space:nowrap;">
+          {{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
   <div class="section" id="projects">
     <div class="sec-header"><div class="sec-title">Selected Work</div><div class="sec-line"></div></div>
     <div class="proj-grid">
@@ -699,7 +853,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   <div class="section" id="contact">
     <div class="sec-header"><div class="sec-title">Let's Connect</div><div class="sec-line"></div></div>
     <div class="contact-strip">
-      {% if user.email %}<div class="contact-item"><div class="contact-label">Email</div><a class="contact-val" href="mailto:{{ user.email }}">{{ user.email }}</a></div>{% endif %}
+      {% if user.email %}<div class="contact-item"><div class="contact-label">Email</div><a class="contact-val" href="/cdn-cgi/l/email-protection#295252095c5a4c5b074c44484045095454">{{ user.email }}</a></div>{% endif %}
       {% if user.location %}<div class="contact-item"><div class="contact-label">Location</div><div class="contact-val">{{ user.location }}</div></div>{% endif %}
       {% if user.github_url %}<div class="contact-item"><div class="contact-label">GitHub</div><a class="contact-val" href="{{ user.github_url }}" target="_blank">View Profile</a></div>{% endif %}
       {% if user.linkedin_url %}<div class="contact-item"><div class="contact-label">LinkedIn</div><a class="contact-val" href="{{ user.linkedin_url }}" target="_blank">Connect</a></div>{% endif %}
@@ -725,7 +879,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       <div class="hero-links">
         {% if user.github_url %}<a class="hlink" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i> GitHub</a>{% endif %}
         {% if user.linkedin_url %}<a class="hlink" href="{{ user.linkedin_url }}" target="_blank">LinkedIn</a>{% endif %}
-        {% if user.email %}<a class="hlink" href="mailto:{{ user.email }}">Email</a>{% endif %}
+        {% if user.email %}<a class="hlink" href="/cdn-cgi/l/email-protection#8ff4f4affafceafda1eae2eee6e3aff2f2">Email</a>{% endif %}
       </div>
     </div>
     <div class="hero-right">
@@ -757,6 +911,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   {% endif %}
 
   {% if projects %}
+  {% if work_experience %}
+  <div class="section" id="experience">
+    <div class="sec-sidebar"><div class="sec-label">Experience</div></div>
+    <div class="sec-body">
+      {% for e in work_experience %}
+      <div data-jinja-exp="1" style="padding:.75rem 0;border-bottom:1px solid #eee;{% if loop.last %}border-bottom:none;{% endif %}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.25rem;">
+          <div>
+            <div style="font-weight:700;font-size:.9rem;">{{ e.role }}</div>
+            <div style="font-size:.82rem;color:#aaa;margin-top:2px;">{{ e.company }}</div>
+          </div>
+          <div style="font-size:.75rem;color:#aaa;font-weight:600;white-space:nowrap;">
+            {{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
   <div class="section" id="projects">
     <div class="sec-sidebar"><div class="sec-label">Projects</div></div>
     <div class="sec-body">
@@ -779,7 +953,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="sec-sidebar"><div class="sec-label">Contact</div></div>
     <div class="sec-body">
       <div class="contact-row">
-        {% if user.email %}<a class="contact-item" href="mailto:{{ user.email }}"><i class="fas fa-envelope"></i>{{ user.email }}</a>{% endif %}
+        {% if user.email %}<a class="contact-item" href="/cdn-cgi/l/email-protection#f28989d287819780dc979f939b9ed28f8f"><i class="fas fa-envelope"></i>{{ user.email }}</a>{% endif %}
         {% if user.location %}<span class="contact-item"><i class="fas fa-map-marker-alt"></i>{{ user.location }}</span>{% endif %}
         {% if user.github_url %}<a class="contact-item" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
         {% if user.linkedin_url %}<a class="contact-item" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
@@ -809,7 +983,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
       <div class="hero-btns">
         {% if user.github_url %}<a class="hbtn hbtn-p" href="{{ user.github_url }}" target="_blank">GitHub ↗</a>{% endif %}
         {% if user.linkedin_url %}<a class="hbtn hbtn-o" href="{{ user.linkedin_url }}" target="_blank">LinkedIn</a>{% endif %}
-        {% if user.email %}<a class="hbtn hbtn-o" href="mailto:{{ user.email }}">Contact</a>{% endif %}
+        {% if user.email %}<a class="hbtn hbtn-o" href="/cdn-cgi/l/email-protection#acd7d78cd9dfc9de82c9c1cdc5c08cd1d1">Contact</a>{% endif %}
       </div>
     </div>
   </div>
@@ -822,10 +996,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   {% if user.certificates %}
 <div class="section" id="certs">
   <div class="sec-title">CERTIFICATIONS</div>
-  <div class="skills-grid">{% for c in user.certificates %}<span class="cert-tag">{{ c.name }} · {{ c.issuer }}</span>{% endfor %}</div>
+  <div class="certs-grid">{% for c in user.certificates %}<span class="cert-tag">{{ c.name }} · {{ c.issuer }}</span>{% endfor %}</div>
 </div>
 {% endif %}
   {% if projects %}
+  {% if work_experience %}
+  <div class="section" id="experience">
+    <div class="sec-title" style="font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:18px;opacity:.7;">Work Experience</div>
+    {% for e in work_experience %}
+    <div data-jinja-exp="1" style="padding:.85rem 0;border-bottom:1px solid rgba(128,128,128,.15);{% if loop.last %}border-bottom:none;{% endif %}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.25rem;">
+        <div>
+          <div style="font-weight:700;font-size:.92rem;">{{ e.role }}</div>
+          <div style="font-size:.82rem;opacity:.7;margin-top:2px;">{{ e.company }}</div>
+        </div>
+        <div style="font-size:.75rem;opacity:.55;font-weight:600;white-space:nowrap;">
+          {{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
   <div class="section" id="projects">
     <div class="sec-title">PROJECTS</div>
     <div class="proj-grid">
@@ -842,7 +1034,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   <div class="section" id="contact">
     <div class="sec-title">CONTACT</div>
     <div class="contact-row">
-      {% if user.email %}<a class="contact-item" href="mailto:{{ user.email }}"><i class="fas fa-envelope"></i>{{ user.email }}</a>{% endif %}
+      {% if user.email %}<a class="contact-item" href="/cdn-cgi/l/email-protection#2e55550e5b5d4b5c004b434f47420e5353"><i class="fas fa-envelope"></i>{{ user.email }}</a>{% endif %}
       {% if user.location %}<span class="contact-item"><i class="fas fa-map-marker-alt"></i>{{ user.location }}</span>{% endif %}
       {% if user.github_url %}<a class="contact-item" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
       {% if user.linkedin_url %}<a class="contact-item" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
@@ -853,7 +1045,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 
       </div></div></div></main>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 let cur = 1;
 
 function sw(n, el) {
@@ -878,17 +1070,13 @@ function buildStandaloneHTML(num) {
 <title>{{ user.name or 'Portfolio' }}</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;900&family=Sora:wght@300;400;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{margin:0;padding:0;}
-.pt{display:block!important;}
-</style>
-<style>${allStyles}</style>
-</head>
+<style>*{margin:0;padding:0;box-sizing:border-box;}body{margin:0;padding:0;}.pt{display:block!important;}<\/style>
+<style>${allStyles}<\/style>
+<\/head>
 <body>
 ${html}
-</body>
-</html>`;
+<\/body>
+<\/html>`;
 }
 
 function openPortfolio() {
@@ -906,25 +1094,185 @@ function openPortfolio() {
 function copyHTML() {
   const html = buildStandaloneHTML(cur);
   navigator.clipboard.writeText(html).then(() => {
-    const b = document.querySelector('.btn-o');
+    const b = document.getElementById('copy-html-btn');
     const orig = b.innerHTML;
     b.innerHTML = '<i class="fas fa-check"></i> Copied!';
     setTimeout(() => b.innerHTML = orig, 2000);
   });
 }
 
-setTimeout(() => {
-  document.querySelectorAll('.fb').forEach(f => {
-    f.style.transition = 'opacity .4s';
-    f.style.opacity = '0';
-    setTimeout(() => f.remove(), 400);
+(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+
+// ── ORIGINAL DATA ──
+const ORIG = {
+  name:     {{ (user.name or '')|tojson }},
+  title:    {{ (user.title or '')|tojson }},
+  email:    {{ (user.email or '')|tojson }},
+  location: {{ (user.location or '')|tojson }},
+  linkedin: {{ (user.linkedin_url or '')|tojson }},
+  github:   {{ (user.github_url or '')|tojson }},
+  about:    {{ (user.about_me or '')|tojson }},
+  skills:   {{ (user.known_skills or [])|tojson }},
+  learning: {{ (user.learning_skills or [])|tojson }},
+  projects: {{ projects | map(attribute='title') | list | tojson }},
+  projdescs: {{ projects | map(attribute='description') | list | tojson }},
+  work_experience: {{ (work_experience or [])|tojson }},
+};
+
+// ── Editable experience entries (panel only) ──
+let epExpEntries = JSON.parse(JSON.stringify(ORIG.work_experience || []));
+
+function renderEpExpList() {
+  const list = document.getElementById('ep-exp-list');
+  if (!list) return;
+  if (!epExpEntries.length) { list.innerHTML = ''; return; }
+  list.innerHTML = epExpEntries.map((e, i) => `
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.75rem;margin-bottom:.5rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.4rem;">
+        <input class="ep-inp" placeholder="Role" value="${e.role||''}" oninput="epExpEntries[${i}].role=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+        <input class="ep-inp" placeholder="Company" value="${e.company||''}" oninput="epExpEntries[${i}].company=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+        <input class="ep-inp" placeholder="From" value="${e.from_year||''}" oninput="epExpEntries[${i}].from_year=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+        <input class="ep-inp" placeholder="${e.is_current?'Present':e.to_year||'To'}" value="${e.is_current?'':e.to_year||''}" ${e.is_current?'disabled':''} oninput="epExpEntries[${i}].to_year=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+      </div>
+      <button onclick="epExpEntries.splice(${i},1);renderEpExpList();liveUpdate()" style="padding:2px 10px;border-radius:5px;border:1px solid #ef4444;background:transparent;color:#ef4444;font-size:.72rem;cursor:pointer;font-family:inherit;">Remove</button>
+    </div>
+  `).join('');
+}
+
+function addEpExp() {
+  epExpEntries.push({role:'',company:'',from_year:'',to_year:'',is_current:false});
+  renderEpExpList();
+}
+
+function populatePanel() {
+  document.getElementById('ep-name').value     = ORIG.name;
+  document.getElementById('ep-title').value    = ORIG.title;
+  document.getElementById('ep-email').value    = ORIG.email;
+  document.getElementById('ep-location').value = ORIG.location;
+  document.getElementById('ep-linkedin').value = ORIG.linkedin;
+  document.getElementById('ep-github').value   = ORIG.github;
+  document.getElementById('ep-about').value    = ORIG.about;
+  document.getElementById('ep-skills').value   = (ORIG.skills || []).join(', ');
+  document.getElementById('ep-learning').value = (ORIG.learning || []).join(', ');
+  epExpEntries = JSON.parse(JSON.stringify(ORIG.work_experience || []));
+  renderEpExpList();
+  // Projects
+  (ORIG.projects || []).forEach((title, i) => {
+    const tf = document.getElementById('ep-proj-title-' + i);
+    const df = document.getElementById('ep-proj-desc-' + i);
+    if (tf) tf.value = title || '';
+    if (df) df.value = (ORIG.projdescs || [])[i] || '';
   });
-}, 4000);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  populatePanel();
+  renderEpExpList();
+  liveUpdate();
+});
+
+function toggleEditPanel() {
+  const p = document.getElementById('edit-panel');
+  const mainEl = document.querySelector('.main');
+  const isHidden = p.style.display === 'none' || p.style.display === '';
+  p.style.display = isHidden ? 'block' : 'none';
+  if (isHidden) {
+    mainEl.classList.add('panel-open');
+  } else {
+    mainEl.classList.remove('panel-open');
+  }
+}
+
+function resetEdits() {
+  populatePanel();
+  liveUpdate();
+}
+
+function liveUpdate() {
+  const name     = document.getElementById('ep-name').value;
+  const title    = document.getElementById('ep-title').value;
+  const email    = document.getElementById('ep-email').value;
+  const location = document.getElementById('ep-location').value;
+  const linkedin = document.getElementById('ep-linkedin').value;
+  const github   = document.getElementById('ep-github').value;
+  const about    = document.getElementById('ep-about').value;
+  const skills   = document.getElementById('ep-skills').value.split(',').map(s=>s.trim()).filter(Boolean);
+
+  const t = document.getElementById('p' + cur);
+  if (!t) return;
+
+  // Name
+  t.querySelectorAll('.hero-name,.name,.nm,.port-name').forEach(el => { if(name) el.textContent = name; });
+  // Title/Role
+  t.querySelectorAll('.hero-role,.role,.tagline,.subtitle,.port-role').forEach(el => { if(title) el.textContent = title; });
+  // About
+  t.querySelectorAll('.hero-bio,.about-text,.bio,p.about,.about-body').forEach(el => { if(about) el.textContent = about; });
+  // Email
+  t.querySelectorAll('a').forEach(a => {
+    if (a.querySelector && a.querySelector('.fa-envelope') && email) {
+      a.href = 'mailto:' + email;
+      const nodes = Array.from(a.childNodes).filter(n => n.nodeType === 3);
+      if (nodes.length) nodes[nodes.length-1].textContent = email;
+    }
+    if (a.querySelector && a.querySelector('.fa-linkedin') && linkedin) a.href = linkedin;
+    if (a.querySelector && a.querySelector('.fa-github') && github) a.href = github;
+  });
+  // Location
+  t.querySelectorAll('span,a').forEach(el => {
+    if (el.querySelector && el.querySelector('.fa-map-marker-alt') && location) {
+      const nodes = Array.from(el.childNodes).filter(n => n.nodeType === 3);
+      if (nodes.length) nodes[nodes.length-1].textContent = location;
+    }
+  });
+  // Skills — find container and rebuild
+  t.querySelectorAll('.skills-grid,.skills-wrap,.skills-list,.tech-grid,.skill-tags').forEach(container => {
+    const sample = container.querySelector('[class]');
+    if (!sample) return;
+    const cls = sample.className;
+    container.querySelectorAll('.' + cls.split(' ')[0]).forEach(e => e.remove());
+    skills.forEach(s => {
+      const span = document.createElement('span');
+      span.className = cls;
+      span.textContent = s;
+      container.appendChild(span);
+    });
+  });
+  // Footer
+  t.querySelectorAll('footer').forEach(f => {
+    if (name && f.childNodes[0]) f.childNodes[0].textContent = name + ' ';
+  });
+
+  // Projects — update title and description for each project card
+  const projCards = t.querySelectorAll('.proj-card, .proj-row, .proj-item');
+  projCards.forEach((card, i) => {
+    const titleEl = card.querySelector('.proj-title');
+    const descEl  = card.querySelector('.proj-desc');
+    const titleInp = document.getElementById('ep-proj-title-' + i);
+    const descInp  = document.getElementById('ep-proj-desc-' + i);
+    if (titleInp && titleInp.value && titleEl) titleEl.textContent = titleInp.value;
+    if (descInp  && descInp.value  && descEl)  descEl.textContent  = descInp.value;
+  });
+
+  // Work Experience — rebuild experience section in preview
+  const expSection = t.querySelector('#experience');
+  if (expSection && epExpEntries.length) {
+    const body = expSection.querySelector('.sec-body') || expSection;
+    // Remove ALL existing entries — both Jinja-rendered and JS-added
+    body.querySelectorAll('[data-jinja-exp],[data-ep-exp]').forEach(e => e.remove());
+    epExpEntries.forEach(e => {
+      if (!e.role && !e.company) return;
+      const div = document.createElement('div');
+      div.setAttribute('data-ep-exp', '1');
+      div.style.cssText = 'padding:.75rem 0;border-bottom:1px solid rgba(128,128,128,.12);';
+      div.innerHTML = `<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.2rem;">
+        <div><div style="font-weight:700;font-size:.9rem;">${e.role||''}</div><div style="font-size:.8rem;opacity:.7;margin-top:1px;">${e.company||''}</div></div>
+        <div style="font-size:.74rem;opacity:.5;">${e.from_year||''}${e.from_year?' – ':''}${e.is_current?'Present':e.to_year||''}</div>
+      </div>`;
+      body.appendChild(div);
+    });
+  }
+}
 </script>
+{% include 'notification_bell.html' %}
 {% include 'chatbot_widget.html' %}
-<script>
-applyTheme(localStorage.getItem('sb-theme') || 'light');
-function applyTheme(t){ t==='dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark'); }
-</script>
 </body>
 </html>

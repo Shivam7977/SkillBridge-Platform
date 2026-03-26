@@ -18,6 +18,13 @@ from ai_roadmap_generator import configure_ai, generate_roadmap_with_ai, find_yo
 import regex as re_ext
 from bs4 import BeautifulSoup
 from werkzeug.utils import secure_filename
+from flask_limiter import Limiter                         # ← ADDED
+from flask_limiter.util import get_remote_address         # ← ADDED
+from flask_limiter.errors import RateLimitExceeded        # ← ADDED
+import bleach                                             # ← ADDED: XSS sanitization
+from apscheduler.schedulers.background import BackgroundScheduler  # ← ADDED: weekly XP reset
+from apscheduler.triggers.cron import CronTrigger                  # ← ADDED
+import pytz                                                         # ← ADDED
 
 load_dotenv(override=True)
 try:
@@ -32,9 +39,43 @@ except Exception as e_ai_config:
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'project_uploads')
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024      # ← ADDED: 16MB max upload size
 bcrypt = Bcrypt(app)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))
 s = URLSafeTimedSerializer(app.secret_key)
+
+# ── RATE LIMITER ──────────────────────────────────────────  # ← ADDED
+limiter = Limiter(
+    key_func=get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
+
+# ── SMART RATE LIMIT KEY FUNCTIONS ────────────────────────  # ← ADDED
+def get_login_key():
+    """Rate limit by IP + target email combined.
+    Prevents both credential stuffing (many accounts, one IP)
+    and targeted brute force (one account, one IP).
+    50 students on same WiFi are NOT affected — each has unique ip:email bucket."""
+    email = request.form.get('email', '').strip().lower()
+    ip = get_remote_address()
+    return f"{ip}:{email}"
+
+def get_user_key():
+    """Rate limit by user ID when logged in, fallback to IP.
+    Prevents VPN bypass on AI endpoints — quota is per account, not per IP."""
+    if current_user and current_user.is_authenticated:
+        return f"user:{current_user.id}"
+    return get_remote_address()
+
+def sanitize(text):
+    """Strip ALL HTML tags from user input — prevents XSS attacks.
+    tags=[] means no HTML allowed at all, plain text only."""
+    if not text:
+        return ""
+    return bleach.clean(text.strip(), tags=[], strip=True)
+
 
 if not os.getenv('MAIL_USERNAME') or not os.getenv('MAIL_PASSWORD'):
     print("WARNING: Email credentials not found in .env file. Email features will likely fail.")
@@ -60,9 +101,64 @@ try:
     communities_collection = db["communities"]
     community_messages_collection = db["community_messages"]
     chat_history_collection = db["chat_history"]
+    notifications_collection = db["notifications"]
+    xp_history_collection = db["xp_history"]
+    comments_collection = db["comments"]
+    # Indexes for comments
+    comments_collection.create_index([("project_id", 1), ("created_at", -1)])
+    comments_collection.create_index([("parent_id", 1)])
 except Exception as e:
     print(f"ERROR: Could not connect to MongoDB. Please ensure it's running. Details: {e}")
     exit()
+
+# ════════════════════════════════════════════════════════════
+# WEEKLY XP RESET SCHEDULER
+# ════════════════════════════════════════════════════════════
+
+def reset_weekly_xp():
+    """
+    Runs every Monday at 12:00 AM IST.
+    Resets weekly_xp to 0 for ALL users — clean slate every week.
+    Prevents stale XP data from accumulating in MongoDB.
+    """
+    try:
+        result = users_collection.update_many(
+            {},
+            {'$set': {'weekly_xp': 0, 'weekly_xp_updated': None}}
+        )
+        print(f"✅ Weekly XP Reset complete — {result.modified_count} users reset to 0")
+    except Exception as e:
+        print(f"❌ Weekly XP Reset failed: {e}")
+
+# Start the background scheduler
+IST_TZ = pytz.timezone('Asia/Kolkata')
+scheduler = BackgroundScheduler(timezone=IST_TZ)
+
+# ── IST HELPERS ───────────────────────────────────────────────────────────────
+def now_ist():
+    """Current datetime in IST (naive) — use instead of datetime.utcnow()."""
+    return datetime.now(IST_TZ).replace(tzinfo=None)
+
+def to_ist(dt):
+    """Convert a UTC naive datetime from MongoDB to IST naive for display."""
+    if dt is None or not isinstance(dt, datetime):
+        return now_ist()
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=pytz.utc)
+    return dt.astimezone(IST_TZ).replace(tzinfo=None)
+
+def fmt_ist(dt, fmt='%I:%M %p'):
+    """Convert UTC datetime to IST and format as string."""
+    return to_ist(dt).strftime(fmt)
+# ─────────────────────────────────────────────────────────────────────────────
+scheduler.add_job(
+    reset_weekly_xp,
+    CronTrigger(day_of_week='mon', hour=0, minute=0, timezone=IST_TZ),
+    id='weekly_xp_reset',
+    replace_existing=True
+)
+scheduler.start()
+print("✅ Weekly XP reset scheduler started — resets every Monday 12:00 AM IST")
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -87,6 +183,73 @@ def load_user(user_id):
         print(f"Error loading user {user_id}: {e}")
     return None
 
+def check_ai_daily_limit(user_id, action='chat', limit=50):
+    """
+    Check and increment AI usage for a user per day in IST timezone.
+    action: 'chat' (limit=50) or 'roadmap' (limit=10)
+    Returns True if allowed, False if limit hit.
+    Auto-cleans usage entries older than 7 days.
+    """
+    try:
+        from datetime import timedelta
+        IST = timezone(timedelta(hours=5, minutes=30))
+        today_ist = datetime.now(IST).strftime('%Y-%m-%d')
+        key = f"{action}_{today_ist}"
+
+        user = users_collection.find_one(
+            {'_id': ObjectId(user_id)},
+            {'ai_usage': 1}
+        )
+        if not user:
+            return False, 0, limit
+
+        ai_usage = user.get('ai_usage', {})
+        today_count = ai_usage.get(key, 0)
+
+        if today_count >= limit:
+            return False, today_count, limit # limit hit
+
+        # Increment today's count
+        users_collection.update_one(
+            {'_id': ObjectId(user_id)},
+            {'$inc': {f'ai_usage.{key}': 1}}
+        )
+
+        # Auto-cleanup: remove entries older than 7 days (runs silently)
+        cutoff = (datetime.now(IST) - timedelta(days=7)).strftime('%Y-%m-%d')
+        cleaned = {k: v for k, v in ai_usage.items() if k.split('_')[-1] >= cutoff}
+        if len(cleaned) < len(ai_usage):
+            users_collection.update_one(
+                {'_id': ObjectId(user_id)},
+                {'$set': {'ai_usage': cleaned}}
+            )
+
+        return True, today_count + 1, limit
+
+    except Exception as e:
+        print(f"AI limit check error: {e}")
+        return True, 0, limit  # fail open — don’t block user on DB error
+
+def get_ai_usage_today(user_id):
+    """Returns today's AI usage counts for a user (IST). Used in settings + admin."""
+    try:
+        from datetime import timedelta
+        IST = timezone(timedelta(hours=5, minutes=30))
+        today_ist = datetime.now(IST).strftime('%Y-%m-%d')
+        user = users_collection.find_one({'_id': ObjectId(user_id)}, {'ai_usage': 1})
+        if not user:
+            return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10}
+        ai_usage = user.get('ai_usage', {})
+        return {
+            'chat_used':     ai_usage.get(f'chat_{today_ist}', 0),
+            'chat_limit':    50,
+            'roadmap_used':  ai_usage.get(f'roadmap_{today_ist}', 0),
+            'roadmap_limit': 10,
+        }
+    except Exception as e:
+        print(f"get_ai_usage_today error: {e}")
+        return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10}
+
 def flatten_data(y):
     out = {}
     def flatten(x, name=''):
@@ -107,6 +270,29 @@ TEMPLATE_NAMES = {
     13:"DevOps / Cloud",14:"Freelancer",15:"Executive",16:"Educator",
     17:"Sales Pro",18:"Startup Founder",
 }
+
+# ════════════════════════════════════════════════════════════
+# RATE LIMIT ERROR HANDLER                                    # ← ADDED
+# ════════════════════════════════════════════════════════════
+
+@app.errorhandler(RateLimitExceeded)
+def handle_rate_limit(e):
+    if request.is_json or request.path.startswith('/api/'):
+        return jsonify({'error': 'Too many requests. Please slow down and try again later.'}), 429
+    return render_template('429.html'), 429
+
+@app.errorhandler(413)
+def handle_file_too_large(e):
+    flash('File is too large. Maximum allowed size is 16MB.', 'error')
+    return redirect(request.referrer or url_for('main_page'))
+
+@app.errorhandler(404)
+def not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    return render_template('500.html'), 500
 
 # ════════════════════════════════════════════════════════════
 # GAMIFICATION ENGINE (XP & LEVELS)
@@ -144,17 +330,90 @@ def add_xp(user_id, points, reason="Action"):
         # Track weekly XP for leaderboard
         users_collection.update_one(
             {'_id': ObjectId(user_id)},
-            {'$inc': {'weekly_xp': points}, '$set': {'weekly_xp_updated': datetime.utcnow()}}
+            {'$inc': {'weekly_xp': points}, '$set': {'weekly_xp_updated': now_ist()}}
         )
+        # Log XP history
+        xp_history_collection.insert_one({
+            'user_id': ObjectId(user_id),
+            'points': points,
+            'reason': reason,
+            'type': 'earn',
+            'timestamp': now_ist()
+        })
 
         if new_level_info['level'] > old_level:
             print(f"🎉 LEVEL UP! User {user.get('name')} is now Level {new_level_info['level']} ({new_level_info['badge']})")
-            # Store level-up in DB so next page load can show toast
             users_collection.update_one({'_id': ObjectId(user_id)}, {'$set': {'pending_levelup': new_level_info['badge']}})
+            create_notification(str(user_id), 'levelup', f'🎉 You reached Level {new_level_info["level"]}: {new_level_info["badge"]}!', url_for('settings'))
 
         return True
     except Exception as e:
         print(f"Error adding XP: {e}")
+        return False
+
+
+def recalculate_xp(user_id):
+    """Recalculates XP from scratch based on actual user data in DB.
+    Fixes any double-counting or incorrect XP values."""
+    try:
+        uid = ObjectId(user_id)
+        user = users_collection.find_one({'_id': uid})
+        if not user:
+            return False
+
+        xp = 0
+
+        # 1. GitHub connected — +25 (one-time)
+        if user.get('github_reward_claimed'):
+            xp += 25
+
+        # 2. Profile 100% complete — +30 (one-time)
+        if user.get('profile_complete_reward'):
+            xp += 30
+
+        # 3. Projects created — +10 each
+        project_count = projects_collection.count_documents({'created_by_id': uid})
+        xp += project_count * 10
+
+        # 4. Project versions uploaded — +50 each
+        upload_count = commits_collection.count_documents({'user_id': uid})
+        xp += upload_count * 50
+
+        # 5. Certificates — +15 each
+        cert_count = len(user.get('certificates', []))
+        xp += cert_count * 15
+
+        # 6. Completed roadmap stages — +5 each
+        user_roadmaps = list(roadmaps_collection.find({'user_id': uid}))
+        completed_stages = 0
+        for roadmap in user_roadmaps:
+            content_data = roadmap.get('roadmap_content', {})
+            if isinstance(content_data, str):
+                import json as _json
+                try: content_data = _json.loads(content_data)
+                except: content_data = {}
+            stages = content_data.get('stages', []) if isinstance(content_data, dict) else []
+            completed_stages += sum(1 for s in stages if isinstance(s, dict) and s.get('completed'))
+        xp += completed_stages * 5
+
+        # 7. Streak bonuses already earned — keep them
+        # These are already baked into XP from add_xp calls, but we track separately
+        xp += user.get('streak_bonus_xp', 0)
+
+        # Update DB with correct XP
+        level_info = get_level_info(xp)
+        users_collection.update_one(
+            {'_id': uid},
+            {'$set': {
+                'xp': xp,
+                'level': level_info['level'],
+                'badge': level_info['badge']
+            }}
+        )
+        print(f"✅ Recalculated XP for {user.get('name')}: {xp} XP ({level_info['badge']})")
+        return xp
+    except Exception as e:
+        print(f"Recalculate XP error: {e}")
         return False
 
 def deduct_xp(user_id, points, reason="Action Reversed"):
@@ -172,6 +431,14 @@ def deduct_xp(user_id, points, reason="Action Reversed"):
             {'$set': {'xp': new_xp, 'level': new_level_info['level'], 'badge': new_level_info['badge']}}
         )
         print(f"📉 XP DEDUCTED: -{points} from user {user.get('name')} for: {reason}")
+        # Log XP history
+        xp_history_collection.insert_one({
+            'user_id': ObjectId(user_id),
+            'points': -points,
+            'reason': reason,
+            'type': 'deduct',
+            'timestamp': now_ist()
+        })
         return True
     except Exception as e:
         print(f"Error deducting XP: {e}")
@@ -180,8 +447,10 @@ def deduct_xp(user_id, points, reason="Action Reversed"):
 def update_streak(user_id):
     """Login par activity streak track karne ka function"""
     try:
+        from datetime import timedelta
+        IST = timezone(timedelta(hours=5, minutes=30))
         user = users_collection.find_one({'_id': ObjectId(user_id)})
-        today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        today = datetime.now(IST).replace(hour=0, minute=0, second=0, microsecond=0)
         last_login = user.get('last_activity_date')
         streak = user.get('streak_count', 0)
 
@@ -190,7 +459,8 @@ def update_streak(user_id):
                 last_login = datetime.fromisoformat(last_login.replace("Z", "+00:00"))
             if last_login.tzinfo is None:
                 last_login = last_login.replace(tzinfo=timezone.utc)
-            last_login = last_login.replace(hour=0, minute=0, second=0, microsecond=0)
+            # Convert last_login to IST before comparing
+            last_login = last_login.astimezone(IST).replace(hour=0, minute=0, second=0, microsecond=0)
             diff = (today - last_login).days
 
             if diff == 0:  # Same day login — keep streak, just update timestamp
@@ -199,9 +469,11 @@ def update_streak(user_id):
                 streak += 1
                 if streak == 7:
                     add_xp(user_id, 35, "7-day activity streak")
+                    users_collection.update_one({'_id': ObjectId(user_id)}, {'$inc': {'streak_bonus_xp': 35}})
                     print(f"🔥 7-DAY STREAK! User {user.get('name')} earned 35 XP")
                 if streak == 30:
                     add_xp(user_id, 100, "30-day activity streak")
+                    users_collection.update_one({'_id': ObjectId(user_id)}, {'$inc': {'streak_bonus_xp': 100}})
                     print(f"🔥🔥 30-DAY STREAK! User {user.get('name')} earned 100 XP")
             else:  # Streak broken
                 streak = 1
@@ -210,10 +482,25 @@ def update_streak(user_id):
 
         users_collection.update_one(
             {'_id': ObjectId(user_id)},
-            {'$set': {'streak_count': streak, 'last_activity_date': datetime.utcnow()}}
+            {'$set': {'streak_count': streak, 'last_activity_date': now_ist()}}
         )
     except Exception as e:
         print(f"Streak update error: {e}")
+
+
+def create_notification(user_id, notif_type, message, link="#"):
+    """Create a notification for a user"""
+    try:
+        notifications_collection.insert_one({
+            'user_id': ObjectId(user_id),
+            'type': notif_type,       # 'message', 'approved', 'declined', 'removed', 'levelup'
+            'message': message,
+            'link': link,
+            'is_read': False,
+            'created_at': datetime.now(timezone.utc).replace(tzinfo=None)
+        })
+    except Exception as e:
+        print(f"Notification error: {e}")
 
 def parse_skills(value):
     if not value:
@@ -252,16 +539,25 @@ def index():
         return render_template('index.html',total_users=0,total_projects=0,completed_projects=0,completion_percent=0)
 
 @app.route('/signup', methods=['GET', 'POST'])
+@limiter.limit("10 per hour")                             # ← ADDED
 def signup():
     if current_user.is_authenticated:
         return redirect(url_for('main_page'))
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         email = request.form.get('email', '').strip().lower()
+        username = request.form.get('username', '').strip().lower()
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
-        if not name or not email or not password:
+        if not name or not email or not password or not username:
              flash("All fields are required.", "error"); return redirect(url_for('signup'))
+        import re as _re
+        if not _re.match(r'^[a-z0-9_]{3,20}$', username):
+            flash("Username must be 3-20 characters, letters/numbers/underscores only.", "error")
+            return redirect(url_for('signup'))
+        if users_collection.find_one({'username': username}):
+            flash("That username is already taken. Try another.", "error")
+            return redirect(url_for('signup'))
         if password != confirm_password:
             flash("Passwords do not match.", "error"); return redirect(url_for('signup'))
         password_pattern = re.compile(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
@@ -271,7 +567,7 @@ def signup():
             flash("An account with this email already exists. Try logging in.", "error"); return redirect(url_for('login'))
         otp = random.randint(100000, 999999)
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        session['temp_user_data'] = {'name': name, 'email': email, 'password': hashed_password}
+        session['temp_user_data'] = {'name': name, 'email': email, 'password': hashed_password, 'username': username}
         session['otp'] = otp
         session['otp_timestamp'] = datetime.utcnow().timestamp()
         try:
@@ -287,7 +583,20 @@ def signup():
             return redirect(url_for('signup'))
     return render_template('signup.html')
 
+@app.route('/api/check_username')
+def check_username():
+    """Live username availability check — called as user types in signup"""
+    username = request.args.get('username', '').strip().lower()
+    if not username:
+        return jsonify({'available': False, 'error': 'Empty'})
+    import re as _re
+    if not _re.match(r'^[a-z0-9_]{3,20}$', username):
+        return jsonify({'available': False, 'error': 'Username must be 3-20 chars, letters/numbers/underscores only'})
+    existing = users_collection.find_one({'username': username}, {'_id': 1})
+    return jsonify({'available': existing is None})
+
 @app.route('/verify', methods=['GET', 'POST'])
+@limiter.limit("10 per 15 minutes")                       # ← ADDED
 def verify():
     if 'temp_user_data' not in session or 'otp' not in session or 'otp_timestamp' not in session:
         flash('Verification session expired or invalid. Please sign up again.', 'warning')
@@ -310,7 +619,8 @@ def verify():
                     user_data['github_url'] = ''; user_data['linkedin_url'] = ''
                     user_data['known_skills'] = []; user_data['learning_skills'] = []
                     user_data['xp'] = 0  # INIT XP on account creation
-                    user_data['created_at'] = datetime.utcnow()
+                    user_data['username'] = user_data.get('username', '')
+                    user_data['created_at'] = now_ist()
                     users_collection.insert_one(user_data)
                     flash('Email verified successfully! Please log in.', 'success'); return redirect(url_for('login'))
                 else:
@@ -323,6 +633,7 @@ def verify():
     return render_template('verify.html', remaining_minutes=remaining_time // 60, remaining_seconds=remaining_time % 60)
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("20 per hour", key_func=get_login_key)     # ← UPDATED: IP+email key
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main_page'))
@@ -345,6 +656,7 @@ def login():
     return render_template('login.html')
 
 @app.route('/forgot_password', methods=['GET', 'POST'])
+@limiter.limit("5 per hour")                              # ← ADDED
 def forgot_password():
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
@@ -365,6 +677,7 @@ def forgot_password():
     return render_template('forgot_password.html')
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
+@limiter.limit("5 per hour")                              # ← ADDED
 def reset_password(token):
     try:
         email = s.loads(token, salt='password-reset-salt', max_age=3600)
@@ -385,6 +698,19 @@ def reset_password(token):
         else:
             flash('Could not update password. Please try again.', 'error'); return redirect(url_for('forgot_password'))
     return render_template('reset_password.html', token=token)
+
+@app.before_request
+def auto_update_streak():
+    """Runs before every request — ensures streak is updated even without re-login"""
+    if current_user.is_authenticated:
+        from datetime import timedelta
+        IST = timezone(timedelta(hours=5, minutes=30))
+        today_ist = datetime.now(IST).date()
+        # Store last checked date in session to avoid hitting DB on every single request
+        last_checked = session.get('streak_checked_date')
+        if last_checked != str(today_ist):
+            update_streak(current_user.id)
+            session['streak_checked_date'] = str(today_ist)
 
 @app.route('/mainpage')
 @login_required
@@ -457,6 +783,26 @@ def profile():
             'profile_pic': profile_pic_fn
         }
 
+        # Work experience entries — only save if not Student with 0 years
+        import json as _json
+        exp_entries_raw = request.form.get('work_experience_json', '[]')
+        try:
+            exp_entries = _json.loads(exp_entries_raw)
+            # Sanitize each entry
+            clean_entries = []
+            for e in exp_entries:
+                if e.get('company','').strip() and e.get('role','').strip():
+                    clean_entries.append({
+                        'company': sanitize(e.get('company','')),
+                        'role':    sanitize(e.get('role','')),
+                        'from_year': sanitize(e.get('from_year','')),
+                        'to_year':   sanitize(e.get('to_year','')),
+                        'is_current': bool(e.get('is_current', False))
+                    })
+            update_data['work_experience'] = clean_entries
+        except Exception:
+            pass
+
         # PROFILE 100% COMPLETE REWARD (+30 XP) — only once, loophole-safe
         req_fields = ['about_me', 'location', 'education_college', 'education_degree', 'github_url']
         if all(update_data.get(f) for f in req_fields) and not old_user_data.get('profile_complete_reward'):
@@ -490,6 +836,7 @@ def profile():
         'learning_skills_str': ', '.join(user_data.get('learning_skills', [])),
         'profile_pic_url': profile_pic_url, 'certificates': user_data.get('certificates', []),
         'github_username': user_data.get('github_username', ''), 'github_avatar': user_data.get('github_avatar', ''),
+        'work_experience': user_data.get('work_experience', []),
         'github_repos': user_data.get('github_repos', []), 'github_langs': user_data.get('github_langs', []),
         'github_followers': user_data.get('github_followers', 0), 'github_public_repos': user_data.get('github_public_repos', 0),
         'github_synced_at': str(user_data.get('github_synced_at', ''))
@@ -502,6 +849,7 @@ def profile():
 
 @app.route('/roadmap_generator', methods=['GET', 'POST'])
 @login_required
+@limiter.limit("15 per hour", key_func=get_user_key)      # ← UPDATED: per-account key, VPN-proof
 def roadmap_generator():
     roadmap_data = None
     goal = ""
@@ -510,6 +858,13 @@ def roadmap_generator():
         if not goal:
             flash("Please enter a goal for your roadmap.", "error")
             return render_template('roadmap_generator.html', goal=goal)
+
+        # ── AI DAILY CAP CHECK (IST) ──────────────────────────
+        allowed, used, limit = check_ai_daily_limit(current_user.id, 'roadmap')
+        if not allowed:
+            flash(f'⚠️ You have used all {limit} roadmap generations for today. Resets at midnight IST.', 'error')
+            return render_template('roadmap_generator.html', goal=goal)
+
     else:
         goal_from_url = request.args.get('goal', '').strip()
         if goal_from_url:
@@ -555,7 +910,7 @@ def save_roadmap():
         try:
             roadmap_data = json.loads(roadmap_content_str)
             if isinstance(roadmap_data, dict) and 'stages' in roadmap_data:
-                roadmaps_collection.insert_one({'user_id': ObjectId(current_user.id), 'goal': goal, 'roadmap_content': roadmap_data, 'created_at': datetime.utcnow()})
+                roadmaps_collection.insert_one({'user_id': ObjectId(current_user.id), 'goal': goal, 'roadmap_content': roadmap_data, 'created_at': now_ist()})
                 flash('Roadmap saved successfully!', 'success')
                 return redirect(url_for('my_roadmaps'))
             else:
@@ -598,10 +953,13 @@ def delete_roadmap(roadmap_id):
             except: content = {}
         stages = content.get('stages', []) if isinstance(content, dict) else []
         completed_stages = sum(1 for s in stages if isinstance(s, dict) and s.get('completed'))
+        is_pre = roadmap.get('pre_gamification', False)
         roadmaps_collection.delete_one({'_id': obj_id})
-        if completed_stages > 0:
-            deduct_xp(current_user.id, completed_stages * 20, f"Deleted roadmap ({completed_stages} completed stages)")
-        return jsonify({'success': True, 'deducted': completed_stages * 20})
+        deducted = 0
+        if not is_pre and completed_stages > 0:
+            deduct_xp(current_user.id, completed_stages * 5, f"Deleted roadmap ({completed_stages} completed stages)")
+            deducted = completed_stages * 5
+        return jsonify({'success': True, 'deducted': deducted})
     except Exception as e:
         print(f"Delete roadmap error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -648,8 +1006,8 @@ def complete_stage(roadmap_id, stage_index):
             if not content['stages'][stage_index].get('completed'):
                 content['stages'][stage_index]['completed'] = True
                 roadmaps_collection.update_one({'_id': obj_id}, {'$set': {'roadmap_content': content}})
-                add_xp(current_user.id, 20, "Completed Roadmap Stage")
-                flash('Stage marked as complete! +20 XP 🎉', 'success')
+                add_xp(current_user.id, 5, "Completed Roadmap Stage")
+                flash('Stage marked as complete! +5 XP 🎉', 'success')
             else:
                 roadmaps_collection.update_one({'_id': obj_id}, {'$set': {'roadmap_content': content}})
                 flash('Stage already completed.', 'info')
@@ -662,40 +1020,190 @@ def complete_stage(roadmap_id, stage_index):
 @app.route('/projects')
 def projects():
     try:
-        all_projects_cursor = projects_collection.find().sort('created_at', -1)
-        all_projects = list(all_projects_cursor)
+        PER_PAGE = 10
+        page = request.args.get('page', 1, type=int)
         recommended_projects = []
-        other_projects = []
         profile_incomplete = False
         is_authenticated = current_user.is_authenticated
+
+        # Total count of ALL projects for display
+        total = projects_collection.count_documents({})
+
         if is_authenticated:
             recommended_projects = get_recommended_projects(current_user.id, users_collection, projects_collection)
             rec_ids = [p['_id'] for p in recommended_projects]
-            other_projects = list(projects_collection.find({'_id': {'$nin': rec_ids}}).sort('created_at', -1))
-            user_data = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'known_skills': 1, 'learning_skills': 1})
+
+            # other_projects = all projects NOT in recommended
+            other_query = {'_id': {'$nin': rec_ids}} if rec_ids else {}
+            other_total = projects_collection.count_documents(other_query)
+            other_projects = list(projects_collection.find(other_query)
+                .sort('created_at', -1)
+                .skip((page - 1) * PER_PAGE)
+                .limit(PER_PAGE))
+
+            user_data = users_collection.find_one(
+                {'_id': ObjectId(current_user.id)},
+                {'known_skills': 1, 'learning_skills': 1}
+            )
             if not user_data.get('known_skills') and not user_data.get('learning_skills'):
                 profile_incomplete = True
         else:
-            other_projects = all_projects
-        return render_template('projects.html', recommended_projects=recommended_projects, other_projects=other_projects, profile_incomplete=profile_incomplete, is_authenticated=is_authenticated)
+            other_total = total
+            other_projects = list(projects_collection.find()
+                .sort('created_at', -1)
+                .skip((page - 1) * PER_PAGE)
+                .limit(PER_PAGE))
+
+        total_pages = max(1, (other_total + PER_PAGE - 1) // PER_PAGE)
+        has_more = page < total_pages
+
+        # Pass user's bookmark IDs so template can show filled/empty bookmark icon
+        user_bookmark_ids = set()
+        if is_authenticated:
+            u = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'bookmarks': 1})
+            user_bookmark_ids = {str(b) for b in u.get('bookmarks', [])} if u else set()
+
+        # Attach comment counts — single aggregation for all visible projects
+        all_visible = recommended_projects + other_projects
+        all_visible_ids = [p['_id'] for p in all_visible if '_id' in p]
+        cmt_agg = comments_collection.aggregate([
+            {'$match': {'project_id': {'$in': all_visible_ids}, 'is_deleted': {'$ne': True}}},
+            {'$group': {'_id': '$project_id', 'count': {'$sum': 1}}}
+        ])
+        cmt_counts = {str(doc['_id']): doc['count'] for doc in cmt_agg}
+
+        for p in all_visible:
+            p['comment_count'] = cmt_counts.get(str(p['_id']), 0)
+            p['like_count'] = len(p.get('likes', []))
+            p['view_count'] = p.get('views', 0)
+
+        return render_template('projects.html',
+            recommended_projects=recommended_projects,
+            other_projects=other_projects,
+            profile_incomplete=profile_incomplete,
+            is_authenticated=is_authenticated,
+            page=page,
+            total_pages=total_pages,
+            total=other_total,
+            has_more=has_more,
+            user_bookmark_ids=user_bookmark_ids)
     except Exception as e:
         print(f"Error fetching community projects: {e}")
         flash("Could not load community projects at this time.", "error")
-        return render_template('projects.html', recommended_projects=[], other_projects=[], profile_incomplete=False, is_authenticated=current_user.is_authenticated)
+        return render_template('projects.html', recommended_projects=[], other_projects=[],
+            profile_incomplete=False, is_authenticated=current_user.is_authenticated,
+            page=1, total_pages=1, total=0, has_more=False)
+
+@app.route('/api/projects')
+def api_projects():
+    """JSON endpoint for Load More button on community projects page"""
+    try:
+        PER_PAGE = 10
+        page = request.args.get('page', 1, type=int)
+        is_authenticated = current_user.is_authenticated
+
+        if is_authenticated:
+            recommended_ids = [p['_id'] for p in get_recommended_projects(current_user.id, users_collection, projects_collection)]
+            query = {'_id': {'$nin': recommended_ids}}
+        else:
+            query = {}
+
+        total = projects_collection.count_documents(query)
+        projects_list = list(projects_collection.find(query)
+            .sort('created_at', -1)
+            .skip((page - 1) * PER_PAGE)
+            .limit(PER_PAGE))
+
+        total_pages = max(1, (total + PER_PAGE - 1) // PER_PAGE)
+
+        result = []
+        for p in projects_list:
+            result.append({
+                '_id': str(p['_id']),
+                'title': p.get('title', ''),
+                'description': p.get('description', ''),
+                'created_by_name': p.get('created_by_name', 'Unknown'),
+                'created_by_id': str(p.get('created_by_id', '')),
+                'skills_needed': p.get('skills_needed', []),
+                'views': p.get('views', 0),
+                'like_count': len(p.get('likes', [])),
+            })
+
+        return jsonify({
+            'projects': result,
+            'page': page,
+            'total_pages': total_pages,
+            'has_more': page < total_pages
+        })
+    except Exception as e:
+        print(f"API projects error: {e}")
+        return jsonify({'projects': [], 'has_more': False}), 500
 
 @app.route('/my_projects')
 @login_required
 def my_projects():
     try:
-        my_projects_list = list(projects_collection.find({'created_by_id': ObjectId(current_user.id)}).sort('created_at', -1))
-        return render_template('my_projects.html', projects=my_projects_list)
+        PER_PAGE = 10
+        page = request.args.get('page', 1, type=int)
+        query = {'created_by_id': ObjectId(current_user.id)}
+        total = projects_collection.count_documents(query)
+        my_projects_list = list(projects_collection.find(query)
+            .sort('created_at', -1)
+            .skip((page - 1) * PER_PAGE)
+            .limit(PER_PAGE))
+
+        # Single aggregation — comment counts for all projects at once
+        project_ids = [p['_id'] for p in my_projects_list]
+        comment_agg = comments_collection.aggregate([
+            {'$match': {
+                'project_id': {'$in': project_ids},
+                'is_deleted': {'$ne': True}
+            }},
+            {'$group': {'_id': '$project_id', 'count': {'$sum': 1}}}
+        ])
+        comment_counts = {str(doc['_id']): doc['count'] for doc in comment_agg}
+
+        for p in my_projects_list:
+            pid = str(p['_id'])
+            p['_id'] = pid
+            p['like_count'] = len(p.get('likes', []))
+            p['view_count'] = p.get('views', 0)
+            p['comment_count'] = comment_counts.get(pid, 0)
+
+        total_pages = max(1, (total + PER_PAGE - 1) // PER_PAGE)
+
+        # ── BOOKMARKED PROJECTS ──────────────────────────────
+        user_data = users_collection.find_one(
+            {'_id': ObjectId(current_user.id)}, {'bookmarks': 1}
+        )
+        bookmark_ids = user_data.get('bookmarks', []) if user_data else []
+        bookmarked_projects = []
+        if bookmark_ids:
+            raw_bookmarks = list(projects_collection.find(
+                {'_id': {'$in': bookmark_ids}}
+            ).sort('created_at', -1))
+            for p in raw_bookmarks:
+                p['_id'] = str(p['_id'])
+                p['created_by_id'] = str(p.get('created_by_id', ''))
+                p['like_count'] = len(p.get('likes', []))
+                p['view_count'] = p.get('views', 0)
+                bookmarked_projects.append(p)
+
+        return render_template('my_projects.html',
+            projects=my_projects_list,
+            page=page,
+            total_pages=total_pages,
+            total=total,
+            bookmarked_projects=bookmarked_projects)
     except Exception as e:
-         print(f"Error fetching user projects for {current_user.id}: {e}")
-         flash("Could not load your projects.", "error")
-         return render_template('my_projects.html', projects=[])
+        print(f"Error fetching user projects for {current_user.id}: {e}")
+        flash("Could not load your projects.", "error")
+        return render_template('my_projects.html', projects=[], page=1, total_pages=1, total=0,
+            bookmarked_projects=[])
 
 @app.route('/create_project', methods=['GET', 'POST'])
 @login_required
+@limiter.limit("20 per hour")                             # ← ADDED
 def create_project():
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
@@ -709,7 +1217,7 @@ def create_project():
             "title": title, "description": description, "skills_needed": skills,
             "created_by_id": ObjectId(current_user.id), "created_by_name": current_user.name,
             "is_completed": False,
-            "created_at": datetime.utcnow()
+            "created_at": now_ist()
         }).inserted_id
 
         # XP for creating a project (+10)
@@ -731,7 +1239,7 @@ def create_project():
                 "project_id": project_id, "project_title": title, "skills_required": skills_required,
                 "visibility": visibility, "owner_id": ObjectId(current_user.id), "owner_name": current_user.name,
                 "members": [ObjectId(current_user.id)], "admins": [], "pending_requests": [],
-                "created_at": datetime.utcnow()
+                "created_at": now_ist()
             }).inserted_id
             projects_collection.update_one({"_id": project_id}, {"$set": {"community_id": community_id}})
             flash("Project and community created successfully! +10 XP 🎉", "success")
@@ -778,12 +1286,16 @@ def edit_project(project_id):
 def delete_project(project_id):
     """Delete a project and deduct XP to prevent create-delete abuse"""
     try:
-        result = projects_collection.delete_one(
+        project = projects_collection.find_one(
             {'_id': ObjectId(project_id), 'created_by_id': ObjectId(current_user.id)}
         )
-        if result.deleted_count:
-            deduct_xp(current_user.id, 10, "Project Deleted")
-            flash("Project deleted. -10 XP", "info")
+        if project:
+            projects_collection.delete_one({'_id': ObjectId(project_id)})
+            if not project.get('pre_gamification'):
+                deduct_xp(current_user.id, 10, "Project Deleted")
+                flash("Project deleted. -10 XP", "info")
+            else:
+                flash("Project deleted.", "info")
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -799,17 +1311,387 @@ def view_project(project_id):
         flash('Project not found.', 'error'); return redirect(url_for('projects'))
     is_owner = False
     if current_user.is_authenticated and str(project.get('created_by_id')) == current_user.id:
-         is_owner = True
+        is_owner = True
+
+    # ── TRACK VIEW (only count non-owner views) ──────────
+    if not is_owner:
+        projects_collection.update_one(
+            {'_id': obj_id},
+            {'$inc': {'views': 1}}
+        )
+        project['views'] = project.get('views', 0) + 1
+
+    # ── LIKE STATUS for current user ──────────────────────
+    user_liked = False
+    if current_user.is_authenticated:
+        user_liked = ObjectId(current_user.id) in project.get('likes', [])
+    like_count = len(project.get('likes', []))
+
     try:
         commits = list(commits_collection.find({'project_id': obj_id}).sort('timestamp', -1))
     except Exception as e:
-         print(f"Error fetching commits for project {project_id}: {e}")
-         flash("Could not load project history.", "error"); commits = []
+        print(f"Error fetching commits for project {project_id}: {e}")
+        flash("Could not load project history.", "error"); commits = []
     creator_name = project.get('created_by_name', 'Unknown User')
-    return render_template('project_page.html', project=project, is_owner=is_owner, commits=commits, creator_name=creator_name)
+
+    # ── Stringify project ObjectId fields for template ────────
+    project['_id'] = str(project['_id'])
+    project['created_by_id'] = str(project.get('created_by_id', ''))
+
+    # ── LOAD COMMENTS ────────────────────────────────────────
+    ADMIN_ID = "69a5c635ee9dd5279f0571e2"
+    is_admin = current_user.is_authenticated and current_user.id == ADMIN_ID
+
+    raw_top = list(comments_collection.find(
+        {'project_id': obj_id, 'parent_id': None}
+    ).sort('created_at', -1))
+
+    def fmt_date(dt):
+        if dt and hasattr(dt, 'strftime'):
+            return dt.strftime('%b %d, %Y')
+        return ''
+
+    comments = []
+    for c in raw_top:
+        c_id_obj = c['_id']           # keep ObjectId for reply query below
+        c['_id'] = str(c_id_obj)
+        c['user_id'] = str(c.get('user_id', ''))
+        c['like_count'] = len(c.get('likes', []))
+        c['user_liked'] = (
+            current_user.is_authenticated and
+            ObjectId(current_user.id) in c.get('likes', [])
+        )
+        c['is_owner_comment'] = c['user_id'] == project['created_by_id']
+        c['can_delete'] = (
+            current_user.is_authenticated and
+            (c['user_id'] == current_user.id or is_admin)
+        )
+        c['created_at_str'] = fmt_date(c.get('created_at'))
+        # Fetch replies (1 level only)
+        replies = list(comments_collection.find(
+            {'parent_id': c_id_obj}
+        ).sort('created_at', 1))
+        for r in replies:
+            r['_id'] = str(r['_id'])
+            r['user_id'] = str(r.get('user_id', ''))
+            r['like_count'] = len(r.get('likes', []))
+            r['user_liked'] = (
+                current_user.is_authenticated and
+                ObjectId(current_user.id) in r.get('likes', [])
+            )
+            r['is_owner_comment'] = r['user_id'] == project['created_by_id']
+            r['can_delete'] = (
+                current_user.is_authenticated and
+                (r['user_id'] == current_user.id or is_admin)
+            )
+            r['created_at_str'] = fmt_date(r.get('created_at'))
+        c['replies'] = replies
+        comments.append(c)
+
+    comment_count = comments_collection.count_documents(
+        {'project_id': obj_id, 'is_deleted': {'$ne': True}}
+    )
+
+    # Bookmark status
+    user_bookmarked = False
+    if current_user.is_authenticated:
+        u = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'bookmarks': 1})
+        user_bookmarked = obj_id in u.get('bookmarks', []) if u else False
+    bookmark_count = project.get('bookmark_count', 0)
+
+    return render_template('project_page.html', project=project, is_owner=is_owner,
+        commits=commits, creator_name=creator_name,
+        user_liked=user_liked, like_count=like_count,
+        comments=comments, comment_count=comment_count, is_admin=is_admin,
+        user_bookmarked=user_bookmarked, bookmark_count=bookmark_count)
+
+@app.route('/project/<project_id>/like', methods=['POST'])
+@login_required
+def toggle_like(project_id):
+    """Toggle like on a project — one like per user, stored as array of user IDs"""
+    try:
+        obj_id = ObjectId(project_id)
+        user_id = ObjectId(current_user.id)
+        project = projects_collection.find_one({'_id': obj_id}, {'likes': 1, 'created_by_id': 1})
+        if not project:
+            return jsonify({'success': False, 'error': 'Project not found'}), 404
+
+        likes = project.get('likes', [])
+        already_liked = user_id in likes
+
+        if already_liked:
+            # Unlike
+            projects_collection.update_one({'_id': obj_id}, {'$pull': {'likes': user_id}})
+            new_count = len(likes) - 1
+            liked = False
+        else:
+            # Like — can't like your own project
+            if str(project.get('created_by_id')) == current_user.id:
+                return jsonify({'success': False, 'error': 'Cannot like your own project'}), 400
+            projects_collection.update_one({'_id': obj_id}, {'$addToSet': {'likes': user_id}})
+            new_count = len(likes) + 1
+            liked = True
+
+        return jsonify({'success': True, 'liked': liked, 'count': new_count})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ════════════════════════════════════════════════════════════
+# BOOKMARK ROUTES
+# ════════════════════════════════════════════════════════════
+
+@app.route('/project/<project_id>/bookmark', methods=['POST'])
+@login_required
+@limiter.limit("60 per hour")
+def toggle_bookmark(project_id):
+    """Toggle bookmark on a project — stored in users.bookmarks[]"""
+    try:
+        obj_id = ObjectId(project_id)
+        user_id = ObjectId(current_user.id)
+        user = users_collection.find_one({'_id': user_id}, {'bookmarks': 1})
+        if not user:
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+        bookmarks = user.get('bookmarks', [])
+        if obj_id in bookmarks:
+            users_collection.update_one({'_id': user_id}, {'$pull': {'bookmarks': obj_id}})
+            # Decrement bookmark count on project
+            projects_collection.update_one({'_id': obj_id}, {'$inc': {'bookmark_count': -1}})
+            return jsonify({'success': True, 'bookmarked': False})
+        else:
+            users_collection.update_one({'_id': user_id}, {'$addToSet': {'bookmarks': obj_id}})
+            projects_collection.update_one({'_id': obj_id}, {'$inc': {'bookmark_count': 1}})
+            return jsonify({'success': True, 'bookmarked': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ════════════════════════════════════════════════════════════
+# COMMENT SYSTEM ROUTES
+# ════════════════════════════════════════════════════════════
+
+@app.route('/project/<project_id>/comment', methods=['POST'])
+@login_required
+@limiter.limit("20 per hour")
+def post_comment(project_id):
+    """Post a top-level comment on a project"""
+    try:
+        obj_id = ObjectId(project_id)
+        project = projects_collection.find_one({'_id': obj_id}, {'_id': 1, 'created_by_id': 1})
+        if not project:
+            return jsonify({'success': False, 'error': 'Project not found'}), 404
+        data = request.get_json()
+        content = sanitize(data.get('content', ''))
+        if not content or len(content) < 2:
+            return jsonify({'success': False, 'error': 'Comment is too short'}), 400
+        if len(content) > 500:
+            return jsonify({'success': False, 'error': 'Comment too long (max 500 chars)'}), 400
+        user = users_collection.find_one(
+            {'_id': ObjectId(current_user.id)},
+            {'name': 1, 'username': 1, 'profile_pic': 1}
+        )
+        is_owner_comment = str(ObjectId(current_user.id)) == str(project.get('created_by_id'))
+        comment_id = comments_collection.insert_one({
+            'project_id': obj_id,
+            'user_id': ObjectId(current_user.id),
+            'user_name': user.get('name', current_user.name),
+            'username': user.get('username', ''),
+            'profile_pic': user.get('profile_pic', 'default.jpg'),
+            'content': content,
+            'parent_id': None,
+            'likes': [],
+            'created_at': now_ist(),
+            'is_deleted': False
+        }).inserted_id
+        return jsonify({
+            'success': True,
+            'comment': {
+                '_id': str(comment_id),
+                'user_name': user.get('name', current_user.name),
+                'username': user.get('username', ''),
+                'profile_pic': user.get('profile_pic', 'default.jpg'),
+                'content': content,
+                'created_at': 'Just now',
+                'like_count': 0,
+                'user_liked': False,
+                'is_owner_comment': is_owner_comment,
+                'can_delete': True,
+                'replies': []
+            }
+        })
+    except Exception as e:
+        print(f"Post comment error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/project/<project_id>/comment/<comment_id>/reply', methods=['POST'])
+@login_required
+@limiter.limit("20 per hour")
+def post_reply(project_id, comment_id):
+    """Post a reply to a top-level comment (1 level only)"""
+    try:
+        obj_id = ObjectId(project_id)
+        parent_id = ObjectId(comment_id)
+        parent = comments_collection.find_one({'_id': parent_id, 'parent_id': None})
+        if not parent:
+            return jsonify({'success': False, 'error': 'Parent comment not found'}), 404
+        data = request.get_json()
+        content = sanitize(data.get('content', ''))
+        if not content or len(content) < 2:
+            return jsonify({'success': False, 'error': 'Reply is too short'}), 400
+        if len(content) > 500:
+            return jsonify({'success': False, 'error': 'Reply too long (max 500 chars)'}), 400
+        user = users_collection.find_one(
+            {'_id': ObjectId(current_user.id)},
+            {'name': 1, 'username': 1, 'profile_pic': 1}
+        )
+        project = projects_collection.find_one({'_id': obj_id}, {'created_by_id': 1})
+        is_owner_comment = str(ObjectId(current_user.id)) == str(project.get('created_by_id'))
+        reply_id = comments_collection.insert_one({
+            'project_id': obj_id,
+            'user_id': ObjectId(current_user.id),
+            'user_name': user.get('name', current_user.name),
+            'username': user.get('username', ''),
+            'profile_pic': user.get('profile_pic', 'default.jpg'),
+            'content': content,
+            'parent_id': parent_id,
+            'likes': [],
+            'created_at': now_ist(),
+            'is_deleted': False
+        }).inserted_id
+        return jsonify({
+            'success': True,
+            'reply': {
+                '_id': str(reply_id),
+                'user_name': user.get('name', current_user.name),
+                'username': user.get('username', ''),
+                'profile_pic': user.get('profile_pic', 'default.jpg'),
+                'content': content,
+                'created_at': 'Just now',
+                'like_count': 0,
+                'user_liked': False,
+                'is_owner_comment': is_owner_comment,
+                'can_delete': True
+            }
+        })
+    except Exception as e:
+        print(f"Post reply error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/comment/<comment_id>/like', methods=['POST'])
+@login_required
+@limiter.limit("60 per hour")
+def toggle_comment_like(comment_id):
+    """Toggle like on a comment or reply"""
+    try:
+        cid = ObjectId(comment_id)
+        user_id = ObjectId(current_user.id)
+        comment = comments_collection.find_one({'_id': cid}, {'likes': 1})
+        if not comment:
+            return jsonify({'success': False, 'error': 'Comment not found'}), 404
+        likes = comment.get('likes', [])
+        if user_id in likes:
+            comments_collection.update_one({'_id': cid}, {'$pull': {'likes': user_id}})
+            liked = False
+            count = len(likes) - 1
+        else:
+            comments_collection.update_one({'_id': cid}, {'$addToSet': {'likes': user_id}})
+            liked = True
+            count = len(likes) + 1
+        return jsonify({'success': True, 'liked': liked, 'count': count})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/comment/<comment_id>', methods=['DELETE'])
+@login_required
+def delete_comment(comment_id):
+    """Hard-delete a comment. If it's a top-level comment, also delete all its replies."""
+    try:
+        ADMIN_ID = "69a5c635ee9dd5279f0571e2"
+        cid = ObjectId(comment_id)
+        comment = comments_collection.find_one({'_id': cid})
+        if not comment:
+            return jsonify({'success': False, 'error': 'Comment not found'}), 404
+        is_own = str(comment.get('user_id')) == current_user.id
+        is_admin = current_user.id == ADMIN_ID
+        if not is_own and not is_admin:
+            return jsonify({'success': False, 'error': 'Not authorized'}), 403
+
+        is_top_level = comment.get('parent_id') is None
+
+        if is_top_level:
+            # Delete all replies first, then the comment itself
+            replies_deleted = comments_collection.delete_many({'parent_id': cid}).deleted_count
+            comments_collection.delete_one({'_id': cid})
+            return jsonify({'success': True, 'is_top_level': True, 'replies_deleted': replies_deleted})
+        else:
+            # Just delete the reply itself
+            comments_collection.delete_one({'_id': cid})
+            return jsonify({'success': True, 'is_top_level': False})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/project/<project_id>/comments', methods=['GET'])
+@login_required
+def get_comments_sorted(project_id):
+    """Return comments re-sorted — called by JS sort toggle (top/recent)"""
+    try:
+        obj_id = ObjectId(project_id)
+        sort_by = request.args.get('sort', 'recent')
+        ADMIN_ID = "69a5c635ee9dd5279f0571e2"
+        is_admin = current_user.id == ADMIN_ID
+        project = projects_collection.find_one({'_id': obj_id}, {'created_by_id': 1})
+        if not project:
+            return jsonify({'success': False}), 404
+        raw_top = list(comments_collection.find({'project_id': obj_id, 'parent_id': None}))
+        if sort_by == 'top':
+            raw_top.sort(key=lambda c: len(c.get('likes', [])), reverse=True)
+        else:
+            raw_top.sort(key=lambda c: c.get('created_at', datetime.min), reverse=True)
+        result = []
+        for c in raw_top:
+            replies = list(comments_collection.find({'parent_id': c['_id']}).sort('created_at', 1))
+            reply_list = []
+            for r in replies:
+                reply_list.append({
+                    '_id': str(r['_id']),
+                    'user_name': r.get('user_name', ''),
+                    'username': r.get('username', ''),
+                    'profile_pic': r.get('profile_pic', 'default.jpg'),
+                    'content': r.get('content', ''),
+                    'created_at': fmt_ist(r.get('created_at'), '%b %d, %Y'),
+                    'like_count': len(r.get('likes', [])),
+                    'user_liked': ObjectId(current_user.id) in r.get('likes', []),
+                    'is_owner_comment': str(r.get('user_id')) == str(project.get('created_by_id')),
+                    'can_delete': str(r.get('user_id')) == current_user.id or is_admin,
+                    'is_deleted': r.get('is_deleted', False)
+                })
+            result.append({
+                '_id': str(c['_id']),
+                'user_name': c.get('user_name', ''),
+                'username': c.get('username', ''),
+                'profile_pic': c.get('profile_pic', 'default.jpg'),
+                'content': c.get('content', ''),
+                'created_at': fmt_ist(c.get('created_at'), '%b %d, %Y'),
+                'like_count': len(c.get('likes', [])),
+                'user_liked': ObjectId(current_user.id) in c.get('likes', []),
+                'is_owner_comment': str(c.get('user_id')) == str(project.get('created_by_id')),
+                'can_delete': str(c.get('user_id')) == current_user.id or is_admin,
+                'is_deleted': c.get('is_deleted', False),
+                'replies': reply_list
+            })
+        return jsonify({'success': True, 'comments': result})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 
 @app.route('/project/<project_id>/upload', methods=['GET', 'POST'])
 @login_required
+@limiter.limit("10 per hour")                             # ← ADDED
 def upload_version(project_id):
     try:
         obj_id = ObjectId(project_id)
@@ -839,9 +1721,8 @@ def upload_version(project_id):
         try:
             os.makedirs(upload_dir, exist_ok=True)
             file.save(file_path)
-            commits_collection.insert_one({'project_id': obj_id, 'user_id': ObjectId(current_user.id), 'user_name': current_user.name, 'timestamp': datetime.utcnow(), 'message': commit_message, 'filename': project_filename})
-            add_xp(current_user.id, 50, "Uploaded a Project Version")
-            flash('New project version uploaded successfully! +50 XP 🎉', 'success')
+            commits_collection.insert_one({'project_id': obj_id, 'user_id': ObjectId(current_user.id), 'user_name': current_user.name, 'timestamp': now_ist(), 'message': commit_message, 'filename': project_filename, 'xp_status': 'pending'})
+            flash('Version uploaded! ⏳ Waiting for admin approval to earn +50 XP.', 'success')
             return redirect(url_for('view_project', project_id=project_id))
         except Exception as e:
             print(f"Error saving file or commit for project {project_id}: {e}")
@@ -886,7 +1767,8 @@ def resume_builder():
         certificates = user_data.get("certificates", []) if user_data else []
         github_repos = user_data.get("github_repos", []) if user_data else []
         github_langs = user_data.get("github_langs", []) if user_data else []
-        return render_template("resume_builder.html", user=user_data, projects=user_projects, certificates=certificates, github_repos=github_repos, github_langs=github_langs)
+        work_experience = user_data.get('work_experience', [])
+        return render_template("resume_builder.html", user=user_data, projects=user_projects, certificates=certificates, github_repos=github_repos, github_langs=github_langs, work_experience=work_experience)
     except Exception as e:
         print(f"Error loading resume builder: {e}")
         flash("Could not load your resume data.", "error")
@@ -914,6 +1796,7 @@ def resume_pdf():
 
 @app.route('/api/chatbot', methods=['POST'])
 @login_required
+@limiter.limit("30 per hour", key_func=get_user_key)      # ← UPDATED: per-account key, VPN-proof
 def chatbot():
     try:
         import google.generativeai as genai
@@ -926,6 +1809,12 @@ def chatbot():
         user_message = data.get('message', '').strip()
         if not user_message:
             return jsonify({'reply': 'Please type a message!'}), 400
+
+        # ── AI DAILY CAP CHECK (IST) ──────────────────────────
+        allowed, used, limit = check_ai_daily_limit(current_user.id, 'chat')
+        if not allowed:
+            return jsonify({'reply': f'⚠️ You have used all {limit} AI messages for today. Your limit resets at midnight IST. Come back tomorrow!'}), 429
+
         uid = ObjectId(current_user.id)
         chat_doc = chat_history_collection.find_one({'user_id': uid})
         db_history = chat_doc.get('messages', []) if chat_doc else []
@@ -935,12 +1824,12 @@ def chatbot():
         user_roadmaps = list(roadmaps_collection.find({'user_id': uid}).sort('created_at', -1))
         known_skills = parse_skills(user_data.get('known_skills'))
         learning_skills = parse_skills(user_data.get('learning_skills'))
-        proj_summary = '\n'.join([f"  - {p.get('title','Untitled')}: {p.get('description','')[:120]}" for p in user_projects]) or '  (No projects yet)'
+        proj_summary = '\n'.join([f"  - {p.get('title','Untitled')}: {p.get('description', '')[:120]}" for p in user_projects]) or '  (No projects yet)'
         roadmap_summary = '\n'.join([f"  - {r.get('goal','Unknown goal')}" for r in user_roadmaps]) or '  (No roadmaps yet)'
         history_text = ""
         for turn in recent_history:
             label = "User" if turn.get('role') == 'user' else "Assistant"
-            history_text += f"{label}: {turn.get('content','')}\n"
+            history_text += f"{label}: {turn.get('content', '')}\n"
         full_prompt = f"""You are the SkillBridge AI Assistant — a friendly career mentor for the SkillBridge platform.
 
 USER PROFILE:
@@ -1024,7 +1913,8 @@ def portfolio_builder():
         certificates = user_data.get('certificates', [])
         github_repos = user_data.get('github_repos', [])
         github_langs = user_data.get('github_langs', [])
-        return render_template('portfolio_builder.html', user=user_data, projects=user_projects, certificates=certificates, github_repos=github_repos, github_langs=github_langs)
+        work_experience = user_data.get('work_experience', [])
+        return render_template('portfolio_builder.html', user=user_data, projects=user_projects, certificates=certificates, github_repos=github_repos, github_langs=github_langs, work_experience=work_experience)
     except Exception as e:
         print(f"Error loading portfolio builder: {e}")
         flash("Could not load your portfolio data.", "error")
@@ -1064,7 +1954,7 @@ def list_templates():
     try:
         for filename in os.listdir(template_html_dir):
             if filename.endswith(".html"):
-                template_id = filename.replace('.html', '')
+                template_id = filename.replace('.html', '$set')
                 safe_template_id = secure_filename(template_id)
                 thumb_filename = f"{safe_template_id}_thumb.png"
                 thumb_path = os.path.join(static_img_dir, thumb_filename)
@@ -1145,6 +2035,7 @@ def view_user_profile(user_id):
         profile_pic_url = url_for('static', filename='profile_pics/' + profile_pic_filename)
         user_profile = {
             'id': str(user_data['_id']), 'name': user_data.get('name', 'Builder'),
+            'username': user_data.get('username', ''),
             'title': user_data.get('title', 'Developer'), 'about_me': user_data.get('about_me', ''),
             'experience_years': user_data.get('experience_years', '0'), 'current_status': user_data.get('current_status', 'Available'),
             'location': user_data.get('location', 'Remote'), 'education_college': user_data.get('education_college', 'N/A'),
@@ -1152,7 +2043,9 @@ def view_user_profile(user_id):
             'github_url': user_data.get('github_url', ''), 'linkedin_url': user_data.get('linkedin_url', ''),
             'instagram_url': user_data.get('instagram_url', ''), 'facebook_url': user_data.get('facebook_url', ''),
             'portfolio_url': user_data.get('portfolio_url', ''), 'profile_pic_url': profile_pic_url,
-            'known_skills': user_data.get('known_skills', []), 'learning_skills': user_data.get('learning_skills', [])
+            'known_skills': user_data.get('known_skills', []), 'learning_skills': user_data.get('learning_skills', []),
+            'work_experience': user_data.get('work_experience', []),
+            'availability': user_data.get('availability', ''),
         }
         xp = user_data.get('xp', 0)
         level_info = get_level_info(xp)
@@ -1187,13 +2080,14 @@ def messages_list():
                 sender_user = users_collection.find_one({"_id": res["last_sender"]})
                 sender_name = sender_user.get("name", "User") if sender_user else "User"
             is_unread = (not res["is_read"]) and (not sent_by_me)
-            conversations.append({"user_id": str(other_user["_id"]), "user_name": other_user.get("name", "Unknown"), "profile_pic": other_user.get("profile_pic", "default.jpg"), "last_message": res.get("last_message", ""), "timestamp": res["timestamp"].strftime("%b %d, %I:%M %p"), "is_unread": is_unread, "sent_by_me": sent_by_me, "sender_name": sender_name})
+            conversations.append({"user_id": str(other_user["_id"]), "user_name": other_user.get("name", "Unknown"), "username": other_user.get("username", ""), "profile_pic": other_user.get("profile_pic", "default.jpg"), "last_message": res.get("last_message", ""), "timestamp": fmt_ist(res["timestamp"], "%b %d, %I:%M %p"), "is_unread": is_unread, "sent_by_me": sent_by_me, "sender_name": sender_name})
         return render_template("messages_list.html", conversations=conversations)
     except Exception as e:
         print(f"Inbox error: {e}"); return redirect(url_for("main_page"))
 
 @app.route('/chat/<receiver_id>', methods=['GET', 'POST'])
 @login_required
+@limiter.limit("60 per minute")                           # ← ADDED
 def chat(receiver_id):
     try:
         r_id = ObjectId(receiver_id)
@@ -1202,9 +2096,11 @@ def chat(receiver_id):
         if not rec:
             flash("User not found.", "error"); return redirect(url_for('messages_list'))
         if request.method == 'POST':
-            msg = request.form.get('content', '').strip()
+            msg = sanitize(request.form.get('content', ''))  # ← XSS fix
             if msg:
-                messages_collection.insert_one({"sender_id": u_id, "receiver_id": r_id, "content": msg, "timestamp": datetime.utcnow(), "is_read": False})
+                messages_collection.insert_one({"sender_id": u_id, "receiver_id": r_id, "content": msg, "timestamp": now_ist(), "is_read": False})
+                sender_name = current_user.name
+                create_notification(str(r_id), 'message', f'{sender_name} sent you a message', url_for('chat', receiver_id=current_user.id))
             return redirect(url_for('chat', receiver_id=receiver_id))
         messages_collection.update_many({"sender_id": r_id, "receiver_id": u_id, "is_read": False}, {"$set": {"is_read": True}})
         history = list(messages_collection.find({"$or": [{"sender_id": u_id, "receiver_id": r_id}, {"sender_id": r_id, "receiver_id": u_id}]}).sort("timestamp", 1))
@@ -1215,30 +2111,73 @@ def chat(receiver_id):
 @app.route('/community/<community_id>')
 @login_required
 def view_community(community_id):
-    community = communities_collection.find_one({"_id": ObjectId(community_id)})
+    try:
+        community = communities_collection.find_one({"_id": ObjectId(community_id)})
+    except Exception:
+        flash("Invalid community.", "error"); return redirect(url_for("find_communities"))
     if not community:
         flash("Community not found", "error"); return redirect(url_for("find_communities"))
-    user_id = ObjectId(current_user.id)
-    is_owner = community["owner_id"] == user_id
-    is_admin = user_id in community.get("admins", [])
-    is_member = user_id in community.get("members", [])
-    member_users = list(users_collection.find({"_id": {"$in": community.get("members", [])}}, {"name": 1}))
-    members_data = []
-    for user in member_users:
-        role = "member"
-        if user["_id"] == community["owner_id"]: role = "owner"
-        elif user["_id"] in community.get("admins", []): role = "admin"
-        members_data.append({"_id": str(user["_id"]), "name": user.get("name", "User"), "role": role})
-    messages = list(community_messages_collection.find({"community_id": ObjectId(community_id)}).sort("timestamp", 1))
-    return render_template("community_chat.html", community=community, messages=messages, members_data=members_data, is_owner=is_owner, is_admin=is_admin, is_member=is_member)
 
-@app.route('/community/<community_id>/send', methods=['POST'])
-@login_required
-def send_community_message(community_id):
-    msg = request.form.get("message", "").strip()
-    if msg:
-        community_messages_collection.insert_one({"community_id": ObjectId(community_id), "sender_id": ObjectId(current_user.id), "sender_name": current_user.name, "message": msg, "timestamp": datetime.utcnow(), "reactions": {}})
-    return redirect(url_for("view_community", community_id=community_id))
+    user_id   = ObjectId(current_user.id)
+    is_owner  = community.get("owner_id") == user_id
+    is_admin  = user_id in community.get("admins", [])
+    is_member = user_id in community.get("members", [])
+    is_public = community.get("visibility") == "public"
+
+    member_users = list(users_collection.find(
+        {"_id": {"$in": community.get("members", [])}}, {"name": 1, "username": 1}
+    ))
+    members_data = []
+    for u in member_users:
+        role = "member"
+        if u["_id"] == community.get("owner_id"):     role = "owner"
+        elif u["_id"] in community.get("admins", []): role = "admin"
+        members_data.append({
+            "_id": str(u["_id"]), "name": u.get("name", "User"),
+            "username": u.get("username", ""), "role": role
+        })
+
+    messages = []
+    if is_member or is_public:
+        raw_msgs = list(community_messages_collection.find(
+            {"community_id": ObjectId(community_id)}
+        ).sort("timestamp", 1))
+        for m in raw_msgs:
+            # now_ist() stores naive IST already. to_ist() would add 5:30 again - use directly.
+            ts = m.get("timestamp")
+            if not ts or not isinstance(ts, datetime):
+                ts = now_ist()
+            m["timestamp"] = ts
+            m["timestamp_iso"] = ts.strftime('%Y-%m-%dT%H:%M:%S.') + f'{ts.microsecond:06d}'
+            messages.append(m)
+
+    pending_ids   = community.get("pending_requests", [])
+    pending_users = []
+    if (is_owner or is_admin) and pending_ids:
+        for u in users_collection.find({"_id": {"$in": pending_ids}}, {"name": 1, "username": 1}):
+            pending_users.append({
+                "_id": str(u["_id"]), "name": u.get("name", "User"),
+                "username": u.get("username", "")
+            })
+
+    user_request_pending = user_id in pending_ids
+
+    return render_template("community_chat.html",
+        community            = community,
+        messages             = messages,
+        members_data         = members_data,
+        is_owner             = is_owner,
+        is_admin             = is_admin,
+        is_member            = is_member,
+        is_public            = is_public,
+        pending_requests     = pending_ids,
+        pending_users        = pending_users,
+        user_request_pending = user_request_pending
+    )
+
+# NOTE: The old form-based /community/<id>/send route has been removed.
+# The chat frontend uses the JSON API at /api/community/<id>/send (see below).
+# Keeping this route would create a duplicate path that bypasses rate limiting.
 
 @app.route('/community/<community_id>/react/<message_id>/<emoji>')
 @login_required
@@ -1296,12 +2235,22 @@ def approve_member(community_id, user_id):
     community = communities_collection.find_one({"_id": ObjectId(community_id)})
     if not community:
         flash("Community not found.", "error"); return redirect(url_for("find_communities"))
-    is_allowed = False
-    for member in community.get("members", []):
-        if member["user_id"] == ObjectId(current_user.id) and member["role"] in ["owner", "admin"]: is_allowed = True
-    if not is_allowed:
+    # FIX: members are stored as plain ObjectIds, not dicts — check owner/admin arrays directly
+    is_owner = community["owner_id"] == ObjectId(current_user.id)
+    is_admin = ObjectId(current_user.id) in community.get("admins", [])
+    if not is_owner and not is_admin:
         flash("Unauthorized action.", "error"); return redirect(url_for("view_community", community_id=community_id))
-    communities_collection.update_one({"_id": ObjectId(community_id)}, {"$pull": {"pending_requests": ObjectId(user_id)}, "$push": {"members": {"user_id": ObjectId(user_id), "role": "member"}}})
+    # FIX: store member as plain ObjectId (consistent with rest of codebase), not as a dict
+    communities_collection.update_one(
+        {"_id": ObjectId(community_id)},
+        {
+            "$pull": {"pending_requests": ObjectId(user_id)},
+            "$addToSet": {"members": ObjectId(user_id)}
+        }
+    )
+    community = communities_collection.find_one({"_id": ObjectId(community_id)})
+    comm_title = community.get('project_title', 'a community') if community else 'a community'
+    create_notification(user_id, 'approved', f'Your request to join "{comm_title}" was approved! 🎉', url_for('view_community', community_id=community_id))
     flash("Member approved!", "success")
     return redirect(url_for("view_community", community_id=community_id))
 
@@ -1324,8 +2273,10 @@ def decline_member(community_id, user_id):
     if community["owner_id"] != ObjectId(current_user.id):
         flash("Unauthorized.", "error"); return redirect(url_for("view_community", community_id=community_id))
     communities_collection.update_one({"_id": obj_id}, {"$pull": {"pending_requests": user_obj}, "$addToSet": {"rejected_requests": user_obj}})
-    # Declined user should also lose the XP they gained from requesting
     deduct_xp(str(user_obj), 10, "Community request declined")
+    comm = communities_collection.find_one({"_id": obj_id})
+    comm_title = comm.get('project_title', 'a community') if comm else 'a community'
+    create_notification(str(user_obj), 'declined', f'Your request to join "{comm_title}" was declined.', url_for('find_communities'))
     flash("Request declined.", "info")
     return redirect(url_for("view_community", community_id=community_id))
 
@@ -1340,6 +2291,9 @@ def remove_member(community_id, user_id):
         flash("Unauthorized action.", "error"); return redirect(url_for("view_community", community_id=community_id))
     communities_collection.update_one({"_id": ObjectId(community_id)}, {"$pull": {"members": ObjectId(user_id), "admins": ObjectId(user_id)}})
     deduct_xp(user_id, 10, "Removed from Community")
+    comm_r = communities_collection.find_one({"_id": ObjectId(community_id)})
+    comm_title_r = comm_r.get('project_title', 'a community') if comm_r else 'a community'
+    create_notification(user_id, 'removed', f'You were removed from "{comm_title_r}".', url_for('find_communities'))
     flash("Member removed.", "info")
     return redirect(url_for("view_community", community_id=community_id))
 
@@ -1357,35 +2311,107 @@ def remove_admin(community_id, user_id):
 @login_required
 def find_communities():
     user_id = ObjectId(current_user.id)
-    communities = list(communities_collection.find().sort("created_at", -1))
-    for c in communities:
-        c["is_owner"] = c.get("owner_id") == user_id
-        c["is_member"] = user_id in c.get("members", [])
-        c["is_other"] = not c["is_owner"] and not c["is_member"]
-    return render_template("find_communities.html", communities=communities)
 
-@app.route('/debug/communities')
+    # My communities (owned) — load all, usually very few
+    my_communities = list(communities_collection.find(
+        {"owner_id": user_id}
+    ).sort("created_at", -1))
+    # Get current user's username for owned communities
+    current_user_data = users_collection.find_one({'_id': user_id}, {'username': 1})
+    current_username = current_user_data.get('username', '') if current_user_data else ''
+    for c in my_communities:
+        c["is_owner"] = True
+        c["is_member"] = True
+        c["is_other"] = False
+        c["owner_username"] = current_username
+
+    # Joined communities (member but not owner) — load all, usually few
+    joined_communities = list(communities_collection.find(
+        {"members": user_id, "owner_id": {"$ne": user_id}}
+    ).sort("created_at", -1))
+    for c in joined_communities:
+        c["is_owner"] = False
+        c["is_member"] = True
+        c["is_other"] = False
+        # Get owner username
+        owner_data = users_collection.find_one({'_id': c.get('owner_id')}, {'username': 1, 'name': 1})
+        c["owner_username"] = owner_data.get('username', '') if owner_data else ''
+        c["owner_name"] = owner_data.get('name', '') if owner_data else ''
+
+    # Explore — paginated with Load More
+    PER_PAGE = 9
+    page = request.args.get('page', 1, type=int)
+    exclude_ids = [c["_id"] for c in my_communities + joined_communities]
+    other_query = {"_id": {"$nin": exclude_ids}}
+    other_total = communities_collection.count_documents(other_query)
+    other_communities = list(communities_collection.find(other_query)
+        .sort("created_at", -1)
+        .skip((page - 1) * PER_PAGE)
+        .limit(PER_PAGE))
+    for c in other_communities:
+        c["is_owner"] = False
+        c["is_member"] = False
+        c["is_other"] = True
+        c["member_count"] = len(c.get("members", []))
+        owner_data = users_collection.find_one({'_id': c.get('owner_id')}, {'username': 1, 'name': 1})
+        c["owner_username"] = owner_data.get('username', '') if owner_data else ''
+        c["owner_name"] = owner_data.get('name', '') if owner_data else ''
+
+    total_pages = max(1, (other_total + PER_PAGE - 1) // PER_PAGE)
+    has_more = page < total_pages
+
+    return render_template("find_communities.html",
+        my_communities=my_communities,
+        joined_communities=joined_communities,
+        other_communities=other_communities,
+        other_total=other_total,
+        page=page,
+        total_pages=total_pages,
+        has_more=has_more)
+
+@app.route('/api/communities')
 @login_required
-def debug_communities():
-    data = list(communities_collection.find({}))
-    return {"count": len(data), "data": [str(d) for d in data]}
+def api_communities():
+    """JSON endpoint for Load More on find_communities page"""
+    try:
+        PER_PAGE = 9
+        page = request.args.get('page', 1, type=int)
+        user_id = ObjectId(current_user.id)
 
-print("CONNECTED DB NAME:", db.name)
-print("COMMUNITIES COLLECTION:", communities_collection.full_name)
+        # Exclude user's own and joined communities
+        exclude_ids = [c["_id"] for c in communities_collection.find(
+            {"$or": [{"owner_id": user_id}, {"members": user_id}]},
+            {"_id": 1}
+        )]
+        query = {"_id": {"$nin": exclude_ids}}
+        total = communities_collection.count_documents(query)
+        comms = list(communities_collection.find(query)
+            .sort("created_at", -1)
+            .skip((page - 1) * PER_PAGE)
+            .limit(PER_PAGE))
 
-@app.route('/db-test-communities')
-@login_required
-def db_test_communities():
-    before = communities_collection.count_documents({})
-    communities_collection.insert_one({"test": "db_integration_check"})
-    after = communities_collection.count_documents({})
-    return {"before_insert": before, "after_insert": after, "collection": communities_collection.full_name}
+        result = []
+        for c in comms:
+            owner_data = users_collection.find_one({'_id': c.get('owner_id')}, {'username': 1})
+            result.append({
+                '_id': str(c['_id']),
+                'project_title': c.get('project_title', 'Untitled'),
+                'visibility': c.get('visibility', 'public'),
+                'skills_required': c.get('skills_required', []),
+                'member_count': len(c.get('members', [])),
+                'owner_username': owner_data.get('username', '') if owner_data else '',
+            })
 
-@app.route('/force-community')
-@login_required
-def force_community():
-    result = communities_collection.insert_one({"project_title": "FORCED COMMUNITY TEST", "skills_required": ["Python"], "visibility": "public", "owner_id": ObjectId(current_user.id), "owner_name": current_user.name, "members": [ObjectId(current_user.id)], "created_at": datetime.utcnow()})
-    return f"Inserted community with id: {result.inserted_id}"
+        return jsonify({
+            'communities': result,
+            'page': page,
+            'total_pages': max(1, (total + PER_PAGE - 1) // PER_PAGE),
+            'has_more': page < max(1, (total + PER_PAGE - 1) // PER_PAGE)
+        })
+    except Exception as e:
+        print(f"API communities error: {e}")
+        return jsonify({'communities': [], 'has_more': False}), 500
+
 
 # ════════════════════════════════════════════════════════════
 # CERTIFICATES ROUTES
@@ -1393,10 +2419,11 @@ def force_community():
 
 @app.route('/certificates/add', methods=['POST'])
 @login_required
+@limiter.limit("20 per hour", key_func=get_user_key)      # ← UPDATED: per-account key
 def add_certificate():
     try:
         data = request.get_json()
-        cert = {'_id': ObjectId(), 'name': data.get('name', '').strip(), 'issuer': data.get('issuer', '').strip(), 'issue_date': data.get('issue_date', '').strip(), 'expiry_date': data.get('expiry_date', '').strip(), 'credential_id': data.get('credential_id', '').strip(), 'cert_url': data.get('cert_url', '').strip(), 'added_at': datetime.utcnow()}
+        cert = {'_id': ObjectId(), 'name': data.get('name', '').strip(), 'issuer': data.get('issuer', '').strip(), 'issue_date': data.get('issue_date', '').strip(), 'expiry_date': data.get('expiry_date', '').strip(), 'credential_id': data.get('credential_id', '').strip(), 'cert_url': data.get('cert_url', '').strip(), 'added_at': now_ist()}
         if not cert['name'] or not cert['issuer']:
             return jsonify({'success': False, 'error': 'Name and issuer are required'}), 400
         users_collection.update_one({'_id': ObjectId(current_user.id)}, {'$push': {'certificates': cert}})
@@ -1410,9 +2437,11 @@ def add_certificate():
 @login_required
 def delete_certificate(cert_id):
     try:
+        user = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'pre_gamification_certs': 1})
         result = users_collection.update_one({'_id': ObjectId(current_user.id)}, {'$pull': {'certificates': {'_id': ObjectId(cert_id)}}})
         if result.modified_count:
-            deduct_xp(current_user.id, 15, "Deleted a Certificate")
+            if not user.get('pre_gamification_certs'):
+                deduct_xp(current_user.id, 15, "Deleted a Certificate")
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1436,6 +2465,7 @@ def edit_certificate(cert_id):
 
 @app.route('/api/github/fetch', methods=['POST'])
 @login_required
+@limiter.limit("10 per hour")                             # ← ADDED
 def github_fetch():
     try:
         import urllib.request
@@ -1461,8 +2491,8 @@ def github_fetch():
             lang = r.get('language')
             if lang: lang_count[lang] = lang_count.get(lang, 0) + 1
         top_langs = sorted(lang_count, key=lang_count.get, reverse=True)[:8]
-        repos_out = [{'id': r['id'], 'name': r['name'], 'description': r.get('description') or '', 'url': r['html_url'], 'stars': r.get('stargazers_count', 0), 'forks': r.get('forks_count', 0), 'language': r.get('language') or '', 'updated': (r.get('pushed_at') or '')[:10]} for r in top_repos]
-        result = {'username': profile.get('login', ''), 'name': profile.get('name') or '', 'bio': profile.get('bio') or '', 'avatar': profile.get('avatar_url', ''), 'location': profile.get('location') or '', 'blog': profile.get('blog') or '', 'followers': profile.get('followers', 0), 'following': profile.get('following', 0), 'public_repos': profile.get('public_repos', 0), 'github_url': profile.get('html_url', ''), 'repos': repos_out, 'top_languages': top_langs}
+        repos_out = [{'id': r['id'], 'name': r['name'], 'description': r.get('description') or '$set', 'url': r['html_url'], 'stars': r.get('stargazers_count', 0), 'forks': r.get('forks_count', 0), 'language': r.get('language') or '$set', 'updated': (r.get('pushed_at') or '$set')[:10]} for r in top_repos]
+        result = {'username': profile.get('login', ''), 'name': profile.get('name') or '$set', 'bio': profile.get('bio') or '$set', 'avatar': profile.get('avatar_url', ''), 'location': profile.get('location') or '$set', 'blog': profile.get('blog') or '$set', 'followers': profile.get('followers', 0), 'following': profile.get('following', 0), 'public_repos': profile.get('public_repos', 0), 'github_url': profile.get('html_url', ''), 'repos': repos_out, 'top_languages': top_langs}
         return jsonify({'success': True, 'data': result})
     except Exception as e:
         print(f"GitHub fetch error: {e}"); return jsonify({'success': False, 'error': str(e)}), 500
@@ -1480,7 +2510,7 @@ def github_sync():
             'github_username': username, 'github_avatar': gh_data.get('avatar', ''),
             'github_repos': gh_data.get('repos', []), 'github_langs': gh_data.get('top_languages', []),
             'github_followers': gh_data.get('followers', 0), 'github_public_repos': gh_data.get('public_repos', 0),
-            'github_synced_at': datetime.utcnow(),
+            'github_synced_at': now_ist(),
         }
         user_data = users_collection.find_one({'_id': ObjectId(current_user.id)}) or {}
 
@@ -1518,8 +2548,9 @@ def github_sync():
                         'stars':           repo.get('stars', 0),
                         'is_completed':    True,
                         'source':          'github',
-                        'created_at':      datetime.utcnow(),
+                        'created_at':      now_ist(),
                     })
+                    add_xp(current_user.id, 10, f"GitHub repo imported: {repo['name']}")
         return jsonify({'success': True})
     except Exception as e:
         print(f"GitHub sync error: {e}"); return jsonify({'success': False, 'error': str(e)}), 500
@@ -1532,7 +2563,7 @@ def github_disconnect():
         # This prevents the disconnect-reconnect XP farming loop.
         users_collection.update_one(
             {'_id': ObjectId(current_user.id)},
-            {'$unset': {'github_username': '', 'github_avatar': '', 'github_repos': '', 'github_langs': '', 'github_followers': '', 'github_public_repos': '', 'github_synced_at': ''}}
+            {'$unset': {'github_username': '$set', 'github_avatar': '$set', 'github_repos': '$set', 'github_langs': '$set', 'github_followers': '$set', 'github_public_repos': '$set', 'github_synced_at': '$set'}}
         )
         return jsonify({'success': True})
     except Exception as e:
@@ -1558,8 +2589,11 @@ def settings():
         progress_pct = int((xp / level_info['next_xp']) * 100)
 
     # Member since
-    member_since = user_data.get('created_at', datetime.utcnow()).strftime("%B %Y")
+    member_since = to_ist(user_data.get('created_at')).strftime('%B %Y')
     streak = user_data.get('streak_count', 1)
+
+    ai_usage = get_ai_usage_today(current_user.id)  # ← AI daily cap data
+
     return render_template(
         'settings.html',
         user=user_data,
@@ -1567,11 +2601,14 @@ def settings():
         level_info=level_info,
         progress_pct=progress_pct,
         member_since=member_since,
-        streak=streak
+        streak=streak,
+        ai_usage=ai_usage,
+        username=user_data.get('username', '')
     )
 
 @app.route('/change_password', methods=['POST'])
 @login_required
+@limiter.limit("5 per hour")                              # ← ADDED
 def change_password():
     current_password = request.form.get('current_password')
     new_password = request.form.get('new_password')
@@ -1613,7 +2650,11 @@ def delete_account():
     # Delete all user data
     projects_collection.delete_many({'created_by_id': user_id})
     roadmaps_collection.delete_many({'user_id': user_id})
+    commits_collection.delete_many({'user_id': user_id})
     chat_history_collection.delete_one({'user_id': user_id})
+    notifications_collection.delete_many({'user_id': user_id})
+    xp_history_collection.delete_many({'user_id': user_id})
+    comments_collection.delete_many({'user_id': user_id})
     users_collection.delete_one({'_id': user_id})
 
     logout_user()
@@ -1692,6 +2733,242 @@ def leaderboard():
         streak=streak
     )
 
+
+@app.route('/api/recalculate_xp')
+@login_required
+def api_recalculate_xp():
+    """Recalculates current user XP from scratch — fixes any double counting"""
+    new_xp = recalculate_xp(current_user.id)
+    if new_xp is not False:
+        level_info = get_level_info(new_xp)
+        return jsonify({'success': True, 'xp': new_xp, 'badge': level_info['badge']})
+    return jsonify({'success': False}), 500
+
+
+
+@app.route('/api/xp_history')
+@login_required
+def xp_history():
+    """Returns full XP transaction history for current user"""
+    history = list(xp_history_collection.find(
+        {'user_id': ObjectId(current_user.id)}
+    ).sort('timestamp', -1))
+
+    result = []
+    for h in history:
+        result.append({
+            'points': h.get('points', 0),
+            'reason': h.get('reason', 'Unknown'),
+            'type': h.get('type', 'earn'),
+            'timestamp': fmt_ist(h.get('timestamp'), '%Y-%m-%d %H:%M'),
+            'date_only': fmt_ist(h.get('timestamp'), '%b %d, %Y'),
+            'day_key': fmt_ist(h.get('timestamp'), '%Y-%m-%d'),
+        })
+
+    # Build daily chart data (last 30 days)
+    from collections import defaultdict
+    daily = defaultdict(int)
+    for h in result:
+        if h['type'] == 'earn':
+            daily[h['day_key']] += h['points']
+
+    # Sort by date
+    daily_sorted = sorted(daily.items())
+    chart_data = [{'date': d, 'xp': x} for d, x in daily_sorted]
+
+    return jsonify({
+        'history': result,
+        'chart_data': chart_data,
+        'total_earned': sum(h['points'] for h in result if h['type'] == 'earn'),
+        'total_deducted': abs(sum(h['points'] for h in result if h['type'] == 'deduct')),
+        'total_transactions': len(result)
+    })
+
+
+@app.route('/api/community/<community_id>/messages')
+@login_required
+def get_community_messages(community_id):
+    """Returns messages since a given timestamp for real-time polling"""
+    since = request.args.get('since', None)
+    query = {"community_id": ObjectId(community_id)}
+    if since:
+        try:
+            since_dt = datetime.fromisoformat(since.replace("Z", "+00:00"))
+            if since_dt.tzinfo is not None:
+                since_dt = since_dt.replace(tzinfo=None)
+            query["timestamp"] = {"$gt": since_dt}
+        except Exception as e:
+            print(f"Since parse error: {e}")
+
+    messages = list(community_messages_collection.find(query).sort("timestamp", 1))
+    result = []
+    for msg in messages:
+        ts = msg.get('timestamp')
+        if not ts or not isinstance(ts, datetime):
+            ts = now_ist()
+        reactions_raw = msg.get('reactions', {})
+        reactions = {k: (len(v) if isinstance(v, list) else int(v)) for k, v in reactions_raw.items()}
+        result.append({
+            'id':            str(msg['_id']),
+            'sender_id':     str(msg.get('sender_id', '')),
+            'sender_name':   msg.get('sender_name', 'Unknown'),
+            'message':       msg.get('message', ''),
+            # ts is already IST naive (saved by now_ist()) - strftime directly.
+            'timestamp':     ts.strftime('%I:%M %p') + ' IST',
+            'timestamp_iso': ts.strftime('%Y-%m-%dT%H:%M:%S.') + f'{ts.microsecond:06d}',
+            'reactions':     reactions,
+            'is_me':         str(msg.get('sender_id', '')) == current_user.id
+        })
+    return jsonify({'messages': result, 'current_user_id': current_user.id})
+
+@app.route('/api/community/<community_id>/send', methods=['POST'])
+@login_required
+@limiter.limit("30 per minute", key_func=get_user_key)    # ← UPDATED: per-account key
+def send_community_message_api(community_id):
+    """Send a message via JSON API (used by real-time chat)"""
+    data = request.get_json()
+    msg = sanitize(data.get('message', '')) if data else ''  # ← XSS fix
+    if msg:
+        community_messages_collection.insert_one({
+            "community_id": ObjectId(community_id),
+            "sender_id": ObjectId(current_user.id),
+            "sender_name": current_user.name,
+            "message": msg,
+            "timestamp": now_ist(),
+            "reactions": {}
+        })
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'error': 'Empty message'}), 400
+
+
+# ════════════════════════════════════════════════════════════
+# ONBOARDING ROUTES
+# ════════════════════════════════════════════════════════════
+
+@app.route('/api/onboarding/status')
+@login_required
+def onboarding_status():
+    """Returns onboarding checklist status for current user"""
+    user = users_collection.find_one({'_id': ObjectId(current_user.id)})
+
+    # If already completed, return immediately
+    if user.get('onboarding_complete'):
+        return jsonify({'show': False})
+
+    uid = ObjectId(current_user.id)
+
+    # Check each step
+    profile_fields = ['about_me', 'location', 'education_college', 'education_degree', 'github_url']
+    profile_done = all(user.get(f) for f in profile_fields)
+
+    project_done = projects_collection.count_documents({'created_by_id': uid}) > 0
+    roadmap_done = roadmaps_collection.count_documents({'user_id': uid}) > 0
+
+    from bson.objectid import ObjectId as OID
+    community_done = communities_collection.count_documents({'members': uid}) > 0
+
+    steps = [
+        {
+            'id': 'profile',
+            'title': 'Complete your profile',
+            'desc': 'Add bio, location, education & GitHub URL',
+            'xp': '+30 XP',
+            'done': profile_done,
+            'link': '/profile',
+            'icon': 'fa-user-circle'
+        },
+        {
+            'id': 'project',
+            'title': 'Create your first project',
+            'desc': 'Share what you are building with the community',
+            'xp': '+10 XP',
+            'done': project_done,
+            'link': '/create_project',
+            'icon': 'fa-layer-group'
+        },
+        {
+            'id': 'roadmap',
+            'title': 'Generate a learning roadmap',
+            'desc': 'Use AI to map out your learning path',
+            'xp': '+5 XP per stage',
+            'done': roadmap_done,
+            'link': '/roadmap_generator',
+            'icon': 'fa-magic'
+        },
+        {
+            'id': 'community',
+            'title': 'Join a community',
+            'desc': 'Connect with builders who share your interests',
+            'xp': '+10 XP',
+            'done': community_done,
+            'link': '/communities',
+            'icon': 'fa-users'
+        },
+    ]
+
+    all_done = all(s['done'] for s in steps)
+    if all_done:
+        users_collection.update_one({'_id': uid}, {'$set': {'onboarding_complete': True}})
+        return jsonify({'show': False})
+
+    return jsonify({'show': True, 'steps': steps})
+
+@app.route('/api/onboarding/dismiss', methods=['POST'])
+@login_required
+def onboarding_dismiss():
+    """Mark onboarding as complete (dismissed by user)"""
+    users_collection.update_one(
+        {'_id': ObjectId(current_user.id)},
+        {'$set': {'onboarding_complete': True}}
+    )
+    return jsonify({'success': True})
+
+# ════════════════════════════════════════════════════════════
+# NOTIFICATION ROUTES
+# ════════════════════════════════════════════════════════════
+
+@app.route('/api/notifications')
+@login_required
+def get_notifications():
+    """Get all notifications for current user"""
+    notifs = list(notifications_collection.find(
+        {'user_id': ObjectId(current_user.id)}
+    ).sort('created_at', -1).limit(20))
+    result = []
+    for n in notifs:
+        result.append({
+            'id': str(n['_id']),
+            'type': n.get('type', 'info'),
+            'message': n.get('message', ''),
+            'link': n.get('link', '#'),
+            'is_read': n.get('is_read', False),
+            'created_at': fmt_ist(n.get('created_at'), '%b %d, %I:%M %p')
+        })
+    unread_count = notifications_collection.count_documents(
+        {'user_id': ObjectId(current_user.id), 'is_read': False}
+    )
+    return jsonify({'notifications': result, 'unread_count': unread_count})
+
+@app.route('/api/notifications/read/<notif_id>', methods=['POST'])
+@login_required
+def mark_notification_read(notif_id):
+    """Mark a single notification as read"""
+    notifications_collection.update_one(
+        {'_id': ObjectId(notif_id), 'user_id': ObjectId(current_user.id)},
+        {'$set': {'is_read': True}}
+    )
+    return jsonify({'success': True})
+
+@app.route('/api/notifications/read_all', methods=['POST'])
+@login_required
+def mark_all_read():
+    """Mark all notifications as read"""
+    notifications_collection.update_many(
+        {'user_id': ObjectId(current_user.id), 'is_read': False},
+        {'$set': {'is_read': True}}
+    )
+    return jsonify({'success': True})
+
 # ════════════════════════════════════════════════════════════
 # GAMIFICATION API ROUTES
 # ════════════════════════════════════════════════════════════
@@ -1703,9 +2980,75 @@ def check_levelup():
     user_data = users_collection.find_one({'_id': ObjectId(current_user.id)})
     pending = user_data.get('pending_levelup')
     if pending:
-        users_collection.update_one({'_id': ObjectId(current_user.id)}, {'$unset': {'pending_levelup': ''}})
+        users_collection.update_one({'_id': ObjectId(current_user.id)}, {'$unset': {'pending_levelup': '$set'}})
         return jsonify({'levelup': True, 'badge': pending})
     return jsonify({'levelup': False})
+
+@app.route('/search')
+@login_required
+def search():
+    """Search users by name or @username"""
+    query = request.args.get('q', '').strip()
+    results = []
+    if query:
+        search_query = query.lstrip('@')
+        users = list(users_collection.find(
+            {'$or': [
+                {'name': {'$regex': search_query, '$options': 'i'}},
+                {'username': {'$regex': search_query, '$options': 'i'}},
+            ]},
+            {'name': 1, 'username': 1, 'title': 1, 'profile_pic': 1,
+             'xp': 1, 'badge': 1, 'level': 1, 'known_skills': 1}
+        ).limit(20))
+        for u in users:
+            if str(u['_id']) != current_user.id:  # exclude self
+                results.append({
+                    '_id': str(u['_id']),
+                    'name': u.get('name', 'User'),
+                    'username': u.get('username', ''),
+                    'title': u.get('title', 'SkillBridge Member'),
+                    'profile_pic': u.get('profile_pic', 'default.jpg'),
+                    'xp': u.get('xp', 0),
+                    'badge': u.get('badge', 'Bronze Builder'),
+                    'known_skills': u.get('known_skills', [])[:4],
+                })
+    return render_template('search.html', results=results, query=query)
+
+@app.route('/api/search_users')
+@login_required
+def api_search_users():
+    """Live search API — called by dashboard search bar dropdown"""
+    query = request.args.get('q', '').strip()
+    if not query or len(query) < 2:
+        return jsonify({'results': []})
+    search_q = query.lstrip('@')
+    users = list(users_collection.find(
+        {'$or': [
+            {'name': {'$regex': search_q, '$options': 'i'}},
+            {'username': {'$regex': search_q, '$options': 'i'}},
+        ]},
+        {'name': 1, 'username': 1, 'title': 1, 'profile_pic': 1, 'badge': 1, 'xp': 1}
+    ).limit(8))
+    results = []
+    for u in users:
+        if str(u['_id']) != current_user.id:
+            results.append({
+                '_id': str(u['_id']),
+                'name': u.get('name', 'User'),
+                'username': u.get('username', ''),
+                'title': u.get('title', 'SkillBridge Member'),
+                'profile_pic': u.get('profile_pic', 'default.jpg'),
+                'badge': u.get('badge', 'Bronze Builder'),
+                'xp': u.get('xp', 0),
+            })
+    return jsonify({'results': results})
+
+@app.route('/api/ai_usage')
+@login_required
+def api_ai_usage():
+    """Returns today's AI usage for the current user (IST)"""
+    usage = get_ai_usage_today(current_user.id)
+    return jsonify(usage)
 
 @app.route('/api/xp_status')
 @login_required
@@ -1726,6 +3069,431 @@ def xp_status():
         'streak': streak
     })
 
+# ════════════════════════════════════════════════════════════
+# ADMIN PANEL ROUTES
+# ════════════════════════════════════════════════════════════
+
+from functools import wraps
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            flash("Please log in.", "error")
+            return redirect(url_for('login'))
+        user_data = users_collection.find_one({'_id': ObjectId(current_user.id)})
+        if not user_data or not user_data.get('is_admin'):
+            flash("Access denied. Admins only.", "error")
+            return redirect(url_for('main_page'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@app.route('/admin')
+@login_required
+@admin_required
+def admin_panel():
+    # Users
+    from datetime import timedelta
+    IST = timezone(timedelta(hours=5, minutes=30))
+    today_ist = datetime.now(IST).strftime('%Y-%m-%d')
+
+    users = list(users_collection.find({}, {
+        'name': 1, 'email': 1, 'xp': 1, 'level': 1, 'badge': 1,
+        'streak_count': 1, 'is_admin': 1, 'is_banned': 1,
+        'created_at': 1, 'profile_pic': 1, 'ai_usage': 1, 'username': 1,
+        'current_status': 1, 'work_experience': 1, 'experience_years': 1
+    }).sort('xp', -1))
+    from datetime import timedelta
+    IST = timezone(timedelta(hours=5, minutes=30))
+    today_ist = datetime.now(IST).strftime('%Y-%m-%d')
+
+    for u in users:
+        u['_id'] = str(u['_id'])
+        u['xp'] = u.get('xp', 0)
+        u['streak_count'] = u.get('streak_count', 0)
+        u['username'] = u.get('username', '')
+        pic = u.get('profile_pic', 'default.jpg')
+        u['profile_pic_url'] = f"/static/profile_pics/{pic}"
+        ai = u.get('ai_usage', {})
+        u['ai_chat_today'] = ai.get(f'chat_{today_ist}', 0)
+        u['ai_roadmap_today'] = ai.get(f'roadmap_{today_ist}', 0)
+        ai = u.get('ai_usage', {})
+        u['ai_chat_today'] = ai.get(f'chat_{today_ist}', 0)
+        u['ai_roadmap_today'] = ai.get(f'roadmap_{today_ist}', 0)
+
+    # Projects — include views, likes, and comment counts
+    projects = list(projects_collection.find().sort('created_at', -1))
+    all_project_ids = [p['_id'] for p in projects]
+
+    # Single aggregation for comment counts across all projects
+    cmt_agg = comments_collection.aggregate([
+        {'$match': {'project_id': {'$in': all_project_ids}, 'is_deleted': {'$ne': True}}},
+        {'$group': {'_id': '$project_id', 'count': {'$sum': 1}}}
+    ])
+    cmt_counts = {str(doc['_id']): doc['count'] for doc in cmt_agg}
+
+    for p in projects:
+        p['_id'] = str(p['_id'])
+        # Fetch username BEFORE converting created_by_id to string
+        _creator_oid = p.get('created_by_id')
+        creator = users_collection.find_one({'_id': _creator_oid}, {'username': 1}) if _creator_oid else None
+        p['created_by_username'] = creator.get('username', '') if creator else ''
+        p['created_by_id'] = str(_creator_oid or '')
+        p['views'] = p.get('views', 0)
+        p['like_count'] = len(p.get('likes', []))
+        p['comment_count'] = cmt_counts.get(p['_id'], 0)
+        p['bookmark_count'] = p.get('bookmark_count', 0)
+
+    # Pending version approvals
+    pending_commits = list(commits_collection.find({'xp_status': 'pending'}).sort('timestamp', -1))
+    for c in pending_commits:
+        c['_id'] = str(c['_id'])
+        _proj_oid = c.get('project_id')
+        _user_oid = c.get('user_id')
+        c['project_id'] = str(_proj_oid or '')
+        c['user_id'] = str(_user_oid or '')
+        proj = projects_collection.find_one({'_id': _proj_oid}) if _proj_oid else None
+        c['project_title'] = proj.get('title', 'Unknown') if proj else 'Unknown'
+        # Add username to pending approval
+        uploader = users_collection.find_one({'_id': _user_oid}, {'username': 1}) if _user_oid else None
+        c['user_username'] = uploader.get('username', '') if uploader else ''
+
+    # Communities
+    communities = list(communities_collection.find().sort('created_at', -1))
+    for c in communities:
+        c['_id'] = str(c['_id'])
+        c['owner_id'] = str(c.get('owner_id', ''))
+        c['member_count'] = len(c.get('members', []))
+        _owner = users_collection.find_one({'_id': c.get('owner_id') if not isinstance(c.get('owner_id'), str) else ObjectId(c['owner_id'])}, {'username': 1}) if c.get('owner_id') else None
+        c['owner_username'] = _owner.get('username', '') if _owner else ''
+
+    # Roadmaps
+    roadmaps = list(roadmaps_collection.find().sort('created_at', -1))
+    for r in roadmaps:
+        r['_id'] = str(r['_id'])
+        r['user_id'] = str(r.get('user_id', ''))
+        # Get user name
+        user = users_collection.find_one({'_id': ObjectId(r['user_id'])}, {'name': 1, 'username': 1}) if r['user_id'] else None
+        r['user_name'] = user.get('name', 'Unknown') if user else 'Unknown'
+        r['username'] = user.get('username', '') if user else ''
+        content = r.get('roadmap_content', {})
+        if isinstance(content, str):
+            try:
+                import json as _json
+                content = _json.loads(content)
+            except:
+                content = {}
+        stages = content.get('stages', []) if isinstance(content, dict) else []
+        r['stage_count'] = len(stages)
+        r['completed_stages'] = sum(1 for s in stages if isinstance(s, dict) and s.get('completed'))
+
+    # Comments — fetch all, enrich with project title and user info
+    raw_comments = list(comments_collection.find().sort('created_at', -1))
+    # Build project_id -> title map for all referenced projects
+    comment_project_ids = list({c.get('project_id') for c in raw_comments if c.get('project_id')})
+    proj_map = {str(p['_id']): p.get('title', '—') for p in projects_collection.find({'_id': {'$in': comment_project_ids}}, {'title': 1})}
+
+    all_comments = []
+    for c in raw_comments:
+        c['_id'] = str(c['_id'])
+        c['project_id'] = str(c.get('project_id', ''))
+        c['user_id'] = str(c.get('user_id', ''))
+        c['parent_id'] = str(c.get('parent_id', '')) if c.get('parent_id') else None
+        c['like_count'] = len(c.get('likes', []))
+        c['project_title'] = proj_map.get(c['project_id'], '—')
+        dt = c.get('created_at')
+        c['created_at_str'] = dt.strftime('%b %d, %Y') if dt and hasattr(dt, 'strftime') else '—'
+        all_comments.append(c)
+
+    total_comments = comments_collection.count_documents({})
+
+    # Stats
+    all_projects_stats = list(projects_collection.find({}, {'views': 1, 'likes': 1}))
+    stats = {
+        'total_users': users_collection.count_documents({}),
+        'total_projects': projects_collection.count_documents({}),
+        'total_roadmaps': roadmaps_collection.count_documents({}),
+        'total_communities': communities_collection.count_documents({}),
+        'pending_approvals': commits_collection.count_documents({'xp_status': 'pending'}),
+        'banned_users': users_collection.count_documents({'is_banned': True}),
+        'total_xp_awarded': sum(u.get('xp', 0) for u in users_collection.find({}, {'xp': 1})),
+        'total_views': sum(p.get('views', 0) for p in all_projects_stats),
+        'total_likes': sum(len(p.get('likes', [])) for p in all_projects_stats),
+        'total_comments': total_comments,
+    }
+
+    return render_template('admin.html',
+        users=users,
+        projects=projects,
+        pending_commits=pending_commits,
+        communities=communities,
+        roadmaps=roadmaps,
+        all_comments=all_comments,
+        stats=stats
+    )
+
+
+@app.route('/admin/approve_commit/<commit_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_approve_commit(commit_id):
+    """Admin approves a project version upload — user gets +50 XP"""
+    commit = commits_collection.find_one({'_id': ObjectId(commit_id)})
+    if not commit:
+        return jsonify({'success': False, 'error': 'Commit not found'}), 404
+    if commit.get('xp_status') == 'approved':
+        return jsonify({'success': False, 'error': 'Already approved'}), 400
+    commits_collection.update_one({'_id': ObjectId(commit_id)}, {'$set': {'xp_status': 'approved'}})
+    add_xp(str(commit['user_id']), 50, "Project version approved by admin")
+    create_notification(
+        str(commit['user_id']), 'approved',
+        f'Your project upload "{commit.get("message", "version")}" was approved! +50 XP 🎉',
+        url_for('view_project', project_id=str(commit['project_id']))
+    )
+    return jsonify({'success': True})
+
+
+@app.route('/admin/reject_commit/<commit_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_reject_commit(commit_id):
+    """Admin rejects a project version upload — no XP awarded"""
+    commit = commits_collection.find_one({'_id': ObjectId(commit_id)})
+    if not commit:
+        return jsonify({'success': False, 'error': 'Commit not found'}), 404
+    commits_collection.update_one({'_id': ObjectId(commit_id)}, {'$set': {'xp_status': 'rejected'}})
+    create_notification(
+        str(commit['user_id']), 'declined',
+        f'Your project upload "{commit.get("message", "version")}" was rejected. No XP awarded.',
+        url_for('view_project', project_id=str(commit['project_id']))
+    )
+    return jsonify({'success': True})
+
+
+@app.route('/admin/adjust_xp/<user_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_adjust_xp(user_id):
+    """Admin manually adjusts a user's XP"""
+    data = request.get_json()
+    points = int(data.get('points', 0))
+    reason = data.get('reason', 'Admin adjustment').strip() or 'Admin adjustment'
+    if points == 0:
+        return jsonify({'success': False, 'error': 'Points cannot be 0'}), 400
+    if points > 0:
+        add_xp(user_id, points, f"Admin: {reason}")
+    else:
+        deduct_xp(user_id, abs(points), f"Admin: {reason}")
+    action = f"+{points}" if points > 0 else str(points)
+    create_notification(
+        user_id,
+        'approved' if points > 0 else 'declined',
+        f'An admin adjusted your XP: {action} XP. Reason: {reason}',
+        url_for('settings')
+    )
+    user = users_collection.find_one({'_id': ObjectId(user_id)}, {'xp': 1, 'badge': 1})
+    return jsonify({'success': True, 'new_xp': user.get('xp', 0), 'badge': user.get('badge', '')})
+
+
+@app.route('/admin/ban_user/<user_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_ban_user(user_id):
+    users_collection.update_one({'_id': ObjectId(user_id)}, {'$set': {'is_banned': True}})
+    create_notification(
+        user_id, 'declined',
+        'Your account has been suspended by an admin. Contact support if you think this is a mistake.',
+        '#'
+    )
+    return jsonify({'success': True})
+
+
+@app.route('/admin/unban_user/<user_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_unban_user(user_id):
+    """Unban a user"""
+    users_collection.update_one({'_id': ObjectId(user_id)}, {'$unset': {'is_banned': '$set'}})
+    return jsonify({'success': True})
+
+
+@app.route('/admin/delete_user/<user_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_delete_user(user_id):
+    """Admin deletes a user and all their data"""
+    uid = ObjectId(user_id)
+    projects_collection.delete_many({'created_by_id': uid})
+    roadmaps_collection.delete_many({'user_id': uid})
+    commits_collection.delete_many({'user_id': uid})
+    chat_history_collection.delete_one({'user_id': uid})
+    notifications_collection.delete_many({'user_id': uid})
+    xp_history_collection.delete_many({'user_id': uid})
+    comments_collection.delete_many({'user_id': uid})  # delete all comments & replies
+    users_collection.delete_one({'_id': uid})
+    return jsonify({'success': True})
+
+
+@app.route('/admin/delete_project/<project_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_delete_project(project_id):
+    project = projects_collection.find_one({'_id': ObjectId(project_id)})
+    if project:
+        create_notification(
+            str(project['created_by_id']), 'declined',
+            f'Your project "{project.get("title", "Untitled")}" was removed by an admin.',
+            url_for('my_projects')
+        )
+    projects_collection.delete_one({'_id': ObjectId(project_id)})
+    commits_collection.delete_many({'project_id': ObjectId(project_id)})
+    return jsonify({'success': True})
+
+
+@app.route('/admin/delete_roadmap/<roadmap_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_delete_roadmap(roadmap_id):
+    roadmap = roadmaps_collection.find_one({'_id': ObjectId(roadmap_id)})
+    if roadmap:
+        create_notification(
+            str(roadmap['user_id']), 'declined',
+            f'Your roadmap "{roadmap.get("goal", "Untitled")}" was removed by an admin.',
+            url_for('my_roadmaps')
+        )
+    roadmaps_collection.delete_one({'_id': ObjectId(roadmap_id)})
+    return jsonify({'success': True})
+
+
+@app.route('/admin/delete_community/<community_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_delete_community(community_id):
+    """Admin deletes a community and its messages"""
+    community = communities_collection.find_one({'_id': ObjectId(community_id)})
+    if community:
+        title = community.get('project_title', 'a community')
+        # Notify owner
+        create_notification(
+            str(community['owner_id']), 'declined',
+            f'Your community "{title}" was removed by an admin.',
+            url_for('find_communities')
+        )
+        # Notify all members
+        for member_id in community.get('members', []):
+            if member_id != community['owner_id']:
+                create_notification(
+                    str(member_id), 'declined',
+                    f'The community "{title}" was removed by an admin.',
+                    url_for('find_communities')
+                )
+    communities_collection.delete_one({'_id': ObjectId(community_id)})
+    community_messages_collection.delete_many({'community_id': ObjectId(community_id)})
+    return jsonify({'success': True})
+
+@app.route('/admin/project_comments/<project_id>')
+@login_required
+@admin_required
+def admin_project_comments(project_id):
+    """Return all comments for a project — used by admin modal"""
+    try:
+        obj_id = ObjectId(project_id)
+        raw = list(comments_collection.find({'project_id': obj_id}).sort('created_at', 1))
+        result = []
+        for c in raw:
+            dt = c.get('created_at')
+            result.append({
+                '_id': str(c['_id']),
+                'user_name': c.get('user_name', ''),
+                'username': c.get('username', ''),
+                'profile_pic': c.get('profile_pic', 'default.jpg'),
+                'content': c.get('content', ''),
+                'parent_id': str(c['parent_id']) if c.get('parent_id') else None,
+                'like_count': len(c.get('likes', [])),
+                'is_deleted': c.get('is_deleted', False),
+                'created_at_str': dt.strftime('%b %d, %Y at %I:%M %p') if dt and hasattr(dt, 'strftime') else '—',
+            })
+        return jsonify({'success': True, 'comments': result})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/admin/user/<user_id>')
+@login_required
+@admin_required
+def admin_user_detail(user_id):
+    """Full detail view for a single user"""
+    uid = ObjectId(user_id)
+    user = users_collection.find_one({'_id': uid})
+    if not user:
+        flash("User not found.", "error")
+        return redirect(url_for('admin_panel'))
+
+    # Profile pic
+    pic = user.get('profile_pic', 'default.jpg')
+    user['profile_pic_url'] = f"/static/profile_pics/{pic}"
+    user['_id'] = str(user['_id'])
+
+    # XP info
+    xp = user.get('xp', 0)
+    level_info = get_level_info(xp)
+    progress_pct = int((xp / level_info['next_xp']) * 100) if level_info['next_xp'] != 'Max' else 100
+    user['xp'] = xp
+    user['level_info'] = level_info
+    user['progress_pct'] = progress_pct
+    user['streak_count'] = user.get('streak_count', 0)
+    user['member_since'] = to_ist(user.get('created_at')).strftime('%B %Y')
+
+    # Projects
+    projects = list(projects_collection.find({'created_by_id': uid}).sort('created_at', -1))
+    for p in projects:
+        p['_id'] = str(p['_id'])
+
+    # Roadmaps
+    roadmaps = list(roadmaps_collection.find({'user_id': uid}).sort('created_at', -1))
+    for r in roadmaps:
+        r['_id'] = str(r['_id'])
+        content = r.get('roadmap_content', {})
+        if isinstance(content, str):
+            try:
+                import json as _json
+                content = _json.loads(content)
+            except:
+                content = {}
+        stages = content.get('stages', []) if isinstance(content, dict) else []
+        r['stage_count'] = len(stages)
+        r['completed_stages'] = sum(1 for s in stages if isinstance(s, dict) and s.get('completed'))
+
+    # Certificates
+    certificates = user.get('certificates', [])
+
+    # Work Experience
+    work_experience = user.get('work_experience', [])
+
+    # Communities
+    user_communities = list(communities_collection.find({'members': uid}))
+    for c in user_communities:
+        c['_id'] = str(c['_id'])
+        c['is_owner'] = c.get('owner_id') == uid
+        c['member_count'] = len(c.get('members', []))
+
+    # XP History
+    xp_history = list(xp_history_collection.find(
+        {'user_id': uid}
+    ).sort('timestamp', -1).limit(50))
+
+    return render_template('admin_user.html',
+        user=user,
+        projects=projects,
+        roadmaps=roadmaps,
+        certificates=certificates,
+        communities=user_communities,
+        xp_history=xp_history,
+        work_experience=work_experience
+    )
+
+    
 # --- Main Execution ---
 if __name__ == '__main__':
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -1733,4 +3501,8 @@ if __name__ == '__main__':
     os.makedirs(os.path.join(app.root_path, 'static', 'portfolio_img'), exist_ok=True)
     os.makedirs(os.path.join(app.root_path, 'static', 'portfolio_assets'), exist_ok=True)
     print(f"Ensured upload folder exists at: {app.config['UPLOAD_FOLDER']}")
-    app.run(debug=True)
+    try:
+        app.run(debug=False)
+    finally:
+        scheduler.shutdown()
+        print("Scheduler shut down cleanly.")

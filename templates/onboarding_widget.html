@@ -1,0 +1,242 @@
+<!-- ONBOARDING WIDGET — include on mainpage.html only -->
+
+<style>
+.onb-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.6);
+    z-index: 99990;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+.onb-overlay.open { display: flex; }
+
+.onb-modal {
+    background: #fff;
+    border-radius: 28px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 520px;
+    margin: 1rem;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.2);
+    animation: onbIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes onbIn {
+    from { transform: scale(0.88) translateY(20px); opacity: 0; }
+    to   { transform: none; opacity: 1; }
+}
+
+/* HEADER */
+.onb-header { text-align: center; margin-bottom: 2rem; }
+.onb-wave { font-size: 3rem; display: block; margin-bottom: 12px; }
+.onb-header h2 { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+.onb-header p { font-size: 0.88rem; color: #64748b; line-height: 1.5; }
+
+/* PROGRESS BAR */
+.onb-progress-wrap { margin-bottom: 1.5rem; }
+.onb-progress-top { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 6px; }
+.onb-progress-bar { height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden; }
+.onb-progress-fill { height: 100%; background: linear-gradient(90deg, #8B5CF6, #EC4899); border-radius: 4px; transition: width 0.6s ease; }
+
+/* STEPS */
+.onb-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
+.onb-step {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    border: 1.5px solid #e5e7eb;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.onb-step:hover { border-color: #8B5CF6; background: rgba(139,92,246,0.03); transform: translateX(3px); }
+.onb-step.done { border-color: #10b981; background: rgba(16,185,129,0.04); }
+.onb-step.done:hover { border-color: #059669; background: rgba(16,185,129,0.08); }
+
+.onb-step-icon {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    background: rgba(139,92,246,0.1);
+    color: #8B5CF6;
+}
+.onb-step.done .onb-step-icon { background: rgba(16,185,129,0.1); color: #10b981; }
+
+.onb-step-body { flex: 1; min-width: 0; }
+.onb-step-title { font-size: 0.88rem; font-weight: 800; color: #0f172a; }
+.onb-step-desc { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+.onb-step.done .onb-step-title { color: #059669; }
+
+.onb-step-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.onb-xp-badge {
+    font-size: 0.68rem; font-weight: 800;
+    background: rgba(139,92,246,0.1);
+    color: #8B5CF6;
+    padding: 2px 8px; border-radius: 20px;
+}
+.onb-step.done .onb-xp-badge { background: rgba(16,185,129,0.1); color: #10b981; }
+.onb-check { font-size: 1rem; color: #10b981; display: none; }
+.onb-step.done .onb-check { display: block; }
+.onb-arrow { font-size: 0.75rem; color: #94a3b8; }
+.onb-step.done .onb-arrow { display: none; }
+
+/* FOOTER BUTTONS */
+.onb-footer { display: flex; gap: 10px; }
+.onb-skip {
+    flex: 1; padding: 12px;
+    border-radius: 12px; border: 1.5px solid #e5e7eb;
+    background: #fff; color: #64748b;
+    font-weight: 700; font-size: 0.88rem;
+    cursor: pointer; font-family: inherit;
+    transition: 0.2s;
+}
+.onb-skip:hover { background: #f8fafc; border-color: #94a3b8; }
+.onb-cta {
+    flex: 2; padding: 12px;
+    border-radius: 12px; border: none;
+    background: linear-gradient(90deg, #8B5CF6, #EC4899);
+    color: #fff; font-weight: 800; font-size: 0.88rem;
+    cursor: pointer; font-family: inherit;
+    transition: 0.2s;
+}
+.onb-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139,92,246,0.35); }
+
+/* DARK MODE */
+body.dark .onb-modal { background: #1a1a2e !important; }
+body.dark .onb-header h2 { color: #e2e8f0 !important; }
+body.dark .onb-step { border-color: #2d2d44 !important; background: #13131f !important; }
+body.dark .onb-step:hover { border-color: #a78bfa !important; background: rgba(139,92,246,0.08) !important; }
+body.dark .onb-step.done { border-color: #059669 !important; background: rgba(16,185,129,0.06) !important; }
+body.dark .onb-step-title { color: #e2e8f0 !important; }
+body.dark .onb-progress-bar { background: #2d2d44 !important; }
+body.dark .onb-skip { background: #13131f !important; border-color: #2d2d44 !important; color: #94a3b8 !important; }
+body.dark .onb-skip:hover { background: #0f0f1a !important; }
+</style>
+
+<div class="onb-overlay" id="onb-overlay">
+    <div class="onb-modal">
+        <div class="onb-header">
+            <span class="onb-wave">👋</span>
+            <h2>Welcome to SkillBridge!</h2>
+            <p>Complete these steps to set up your account and start earning XP.</p>
+        </div>
+
+        <div class="onb-progress-wrap">
+            <div class="onb-progress-top">
+                <span id="onb-progress-text">0 of 4 completed</span>
+                <span id="onb-progress-pct">0%</span>
+            </div>
+            <div class="onb-progress-bar">
+                <div class="onb-progress-fill" id="onb-progress-fill" style="width:0%"></div>
+            </div>
+        </div>
+
+        <div class="onb-steps" id="onb-steps">
+            <!-- Populated by JS -->
+        </div>
+
+        <div class="onb-footer">
+            <button class="onb-skip" onclick="dismissOnboarding()">Skip for now</button>
+            <button class="onb-cta" id="onb-cta-btn" onclick="goToFirstStep()">
+                <i class="fas fa-rocket"></i> Let's Go!
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const ICONS = {
+        'fa-user-circle': 'fa-user-circle',
+        'fa-layer-group': 'fa-layer-group',
+        'fa-magic': 'fa-magic',
+        'fa-users': 'fa-users'
+    };
+
+    let firstUndonStep = null;
+
+    async function loadOnboarding() {
+        try {
+            const res = await fetch('/api/onboarding/status');
+            const data = await res.json();
+            if (!data.show) return;
+
+            renderSteps(data.steps);
+            document.getElementById('onb-overlay').classList.add('open');
+        } catch(e) {}
+    }
+
+    function renderSteps(steps) {
+        const container = document.getElementById('onb-steps');
+        const doneCount = steps.filter(s => s.done).length;
+        const pct = Math.round((doneCount / steps.length) * 100);
+
+        document.getElementById('onb-progress-text').textContent = `${doneCount} of ${steps.length} completed`;
+        document.getElementById('onb-progress-pct').textContent = pct + '%';
+        document.getElementById('onb-progress-fill').style.width = pct + '%';
+
+        firstUndonStep = steps.find(s => !s.done);
+        if (firstUndonStep) {
+            document.getElementById('onb-cta-btn').onclick = () => {
+                dismissOnboarding();
+                window.location.href = firstUndonStep.link;
+            };
+        } else {
+            document.getElementById('onb-cta-btn').textContent = '✅ All done!';
+            document.getElementById('onb-cta-btn').onclick = dismissOnboarding;
+        }
+
+        container.innerHTML = steps.map(step => `
+            <a class="onb-step ${step.done ? 'done' : ''}"
+               href="${step.link}"
+               onclick="handleStepClick(event, '${step.link}')">
+                <div class="onb-step-icon">
+                    <i class="fas ${step.icon}"></i>
+                </div>
+                <div class="onb-step-body">
+                    <div class="onb-step-title">${step.title}</div>
+                    <div class="onb-step-desc">${step.desc}</div>
+                </div>
+                <div class="onb-step-right">
+                    <span class="onb-xp-badge">${step.xp}</span>
+                    <i class="fas fa-check-circle onb-check"></i>
+                    <i class="fas fa-chevron-right onb-arrow"></i>
+                </div>
+            </a>`).join('');
+    }
+
+    window.handleStepClick = function(e, link) {
+        e.preventDefault();
+        dismissOnboarding();
+        window.location.href = link;
+    };
+
+    window.dismissOnboarding = async function() {
+        document.getElementById('onb-overlay').classList.remove('open');
+        try {
+            await fetch('/api/onboarding/dismiss', { method: 'POST' });
+        } catch(e) {}
+    };
+
+    window.goToFirstStep = function() {
+        if (firstUndonStep) {
+            dismissOnboarding();
+            window.location.href = firstUndonStep.link;
+        }
+    };
+
+    // Close on backdrop click
+    document.getElementById('onb-overlay').addEventListener('click', function(e) {
+        if (e.target === this) dismissOnboarding();
+    });
+
+    // Load after a short delay so page renders first
+    setTimeout(loadOnboarding, 800);
+})();
+</script>

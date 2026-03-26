@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ user.name }} — Admin Detail</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root{--bg:#f5f6fb;--surface:#fff;--primary:#8B5CF6;--secondary:#EC4899;--accent:#22d3ee;--text:#0f172a;--muted:#64748b;--border:#e5e7eb;--danger:#ef4444;--success:#22c55e;--warning:#f59e0b;--radius:16px;--shadow:0 4px 24px rgba(0,0,0,.08);}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:Poppins,sans-serif;background:var(--bg);color:var(--text);}
+    .layout{display:flex;min-height:100vh;}
+    .sidebar{width:230px;background:#fff;border-right:1px solid var(--border);padding:1.5rem 1rem;position:fixed;height:100vh;overflow-y:auto;display:flex;flex-direction:column;z-index:10;}
+    .logo{font-size:1.4rem;font-weight:800;background:linear-gradient(90deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.3rem;display:block;text-decoration:none;}
+    .admin-badge{font-size:.65rem;font-weight:700;color:var(--danger);background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:1.5rem;}
+    .sidebar nav a{display:flex;align-items:center;gap:10px;padding:.7rem 1rem;border-radius:12px;color:var(--muted);text-decoration:none;margin-bottom:.25rem;font-weight:500;font-size:.875rem;transition:.2s;}
+    .sidebar nav a:hover,.sidebar nav a.active{background:linear-gradient(90deg,var(--primary),var(--secondary));color:#fff;}
+    .back-link{margin-top:auto;padding-top:1rem;border-top:1px solid var(--border);}
+    .back-link a{display:flex;align-items:center;gap:8px;color:var(--muted);text-decoration:none;font-size:.875rem;font-weight:500;padding:.6rem 1rem;border-radius:10px;}
+    .back-link a:hover{background:#f1f5f9;color:var(--primary);}
+    .main{margin-left:230px;padding:2rem 2.5rem;width:calc(100% - 230px);}
+
+    /* HERO CARD */
+    .hero-card{background:#fff;border-radius:24px;padding:2rem;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:1.5rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap;}
+    .hero-avatar{width:90px;height:90px;border-radius:50%;object-fit:cover;border:4px solid var(--border);}
+    .hero-info{flex:1;}
+    .hero-name{font-size:1.5rem;font-weight:800;}
+    .hero-title{color:var(--muted);font-size:.875rem;margin-top:2px;}
+    .hero-meta{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.75rem;}
+    .hero-meta span{font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:5px;}
+    .hero-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:1rem;}
+
+    /* XP BAR */
+    .xp-card{background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:20px;padding:1.5rem 2rem;color:#fff;margin-bottom:1.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1.5rem;}
+    .xp-stat .label{font-size:.72rem;opacity:.8;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+    .xp-stat .value{font-size:1.8rem;font-weight:800;margin-top:2px;}
+    .xp-bar-wrap{grid-column:1/-1;}
+    .xp-bar-label{font-size:.78rem;opacity:.8;margin-bottom:6px;display:flex;justify-content:space-between;}
+    .xp-bar{height:8px;background:rgba(255,255,255,.25);border-radius:4px;overflow:hidden;}
+    .xp-bar-fill{height:100%;background:#fff;border-radius:4px;transition:width .6s ease;}
+
+    /* GRID */
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+    @media(max-width:900px){.info-grid{grid-template-columns:1fr;}}
+
+    /* CARD */
+    .card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;}
+    .card-header{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .card-header h3{font-size:.9rem;font-weight:700;display:flex;align-items:center;gap:8px;}
+    .card-body{padding:1.25rem 1.5rem;}
+    .info-row{display:flex;justify-content:space-between;align-items:center;padding:.55rem 0;border-bottom:1px solid #f8f9fa;font-size:.85rem;}
+    .info-row:last-child{border-bottom:none;}
+    .info-label{color:var(--muted);font-weight:500;}
+    .info-value{font-weight:600;text-align:right;word-break:break-all;}
+    .info-value a{color:var(--primary);text-decoration:none;}
+    .info-value a:hover{text-decoration:underline;}
+
+    /* TABLE */
+    .admin-table{width:100%;border-collapse:collapse;font-size:.83rem;}
+    .admin-table th{padding:.65rem 1rem;text-align:left;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:#fafafa;border-bottom:1px solid var(--border);}
+    .admin-table td{padding:.75rem 1rem;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
+    .admin-table tr:last-child td{border-bottom:none;}
+    .admin-table tr:hover td{background:#fafbff;}
+
+    /* XP TIMELINE */
+    .timeline{padding:1rem 1.5rem;}
+    .tl-item{display:flex;gap:12px;margin-bottom:1rem;align-items:flex-start;}
+    .tl-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;}
+    .tl-dot.earn{background:rgba(34,197,94,.1);color:var(--success);border:1.5px solid rgba(34,197,94,.2);}
+    .tl-dot.deduct{background:rgba(239,68,68,.1);color:var(--danger);border:1.5px solid rgba(239,68,68,.2);}
+    .tl-content{flex:1;}
+    .tl-reason{font-size:.85rem;font-weight:600;}
+    .tl-time{font-size:.73rem;color:var(--muted);margin-top:2px;}
+    .tl-points{font-weight:700;font-size:.9rem;margin-left:auto;white-space:nowrap;}
+    .tl-points.earn{color:var(--success);}
+    .tl-points.deduct{color:var(--danger);}
+
+    /* CERTS */
+    .cert-item{padding:.7rem 0;border-bottom:1px solid #f1f5f9;font-size:.85rem;}
+    .cert-item:last-child{border-bottom:none;}
+    .cert-name{font-weight:600;}
+    .cert-meta{font-size:.75rem;color:var(--muted);margin-top:2px;}
+
+    /* BTNS */
+    .btn{padding:6px 14px;border-radius:8px;border:none;cursor:pointer;font-size:.78rem;font-weight:600;font-family:Poppins,sans-serif;display:inline-flex;align-items:center;gap:5px;transition:.2s;text-decoration:none;}
+    .btn:hover{opacity:.85;transform:translateY(-1px);}
+    .btn-primary{background:rgba(139,92,246,.1);color:var(--primary);border:1px solid rgba(139,92,246,.2);}
+    .btn-danger{background:rgba(239,68,68,.1);color:var(--danger);border:1px solid rgba(239,68,68,.2);}
+    .btn-success{background:rgba(34,197,94,.1);color:var(--success);border:1px solid rgba(34,197,94,.2);}
+    .btn-warning{background:rgba(245,158,11,.1);color:var(--warning);border:1px solid rgba(245,158,11,.2);}
+    .btn-grad{background:linear-gradient(90deg,var(--primary),var(--secondary));color:#fff;border:none;}
+
+    /* XP MODAL */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;}
+    .modal-overlay.active{display:flex;}
+    .modal-box{background:#fff;border-radius:20px;padding:2rem;width:90%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+    .modal-box h3{font-size:1rem;font-weight:700;margin-bottom:1rem;}
+    .modal-box input{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);font-family:Poppins,sans-serif;font-size:.88rem;margin-bottom:10px;outline:none;}
+    .modal-box input:focus{border-color:var(--primary);}
+    .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;}
+    .m-cancel{padding:9px 18px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-weight:600;cursor:pointer;font-family:Poppins,sans-serif;color:var(--muted);}
+    .m-confirm{padding:9px 18px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--primary),var(--secondary));color:#fff;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;}
+
+    .toast{position:fixed;bottom:2rem;right:2rem;background:#1e1b4b;color:#fff;padding:12px 20px;border-radius:12px;font-size:.875rem;font-weight:600;z-index:99999;transform:translateY(100px);opacity:0;transition:.3s;display:flex;align-items:center;gap:8px;}
+    .toast.show{transform:translateY(0);opacity:1;}
+    .pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:700;}
+    .pill.banned{background:rgba(239,68,68,.1);color:var(--danger);border:1px solid rgba(239,68,68,.2);}
+    .pill.admin{background:rgba(139,92,246,.1);color:var(--primary);border:1px solid rgba(139,92,246,.2);}
+    .empty{padding:1.5rem;text-align:center;color:var(--muted);font-size:.85rem;}
+
+    body.dark{--bg:#0f0f1a;--text:#e2e8f0;--muted:#94a3b8;--border:#2d2d44;}
+    body.dark .sidebar,body.dark .card,body.dark .hero-card,body.dark .modal-box{background:#1a1a2e;border-color:#2d2d44;}
+    body.dark .admin-table th{background:#16162a;}
+    body.dark .admin-table tr:hover td{background:#1e1e32;}
+    body.dark .admin-table td,body.dark .info-row{border-color:#2d2d44;}
+    body.dark .m-cancel{background:#16162a;border-color:#2d2d44;color:#94a3b8;}
+    body.dark .modal-box input{background:#16162a;border-color:#2d2d44;color:#e2e8f0;}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a href="{{ url_for('admin_panel') }}" class="logo">SkillBridge</a>
+    <span class="admin-badge">🛡️ ADMIN PANEL</span>
+    <nav>
+      <a href="{{ url_for('admin_panel') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+      <a href="{{ url_for('admin_panel') }}#users" class="active"><i class="fas fa-users"></i> Users</a>
+    </nav>
+    <div class="back-link">
+      <a href="{{ url_for('admin_panel') }}"><i class="fas fa-arrow-left"></i> Back to Admin</a>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- HERO -->
+    <div class="hero-card">
+      <img src="{{ user.profile_pic_url }}" class="hero-avatar" alt="">
+      <div class="hero-info">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div class="hero-name">{{ user.name }}</div>
+          {% if user.is_admin %}<span class="pill admin">Admin</span>{% endif %}
+          {% if user.is_banned %}<span class="pill banned">Banned</span>{% endif %}
+        </div>
+        <div class="hero-title">{{ user.title or 'No title set' }}</div>
+        <div class="hero-meta">
+          <span><i class="fas fa-envelope"></i> {{ user.email }}</span>
+          {% if user.location %}<span><i class="fas fa-map-marker-alt"></i> {{ user.location }}</span>{% endif %}
+          {% if user.experience_years %}<span><i class="fas fa-briefcase"></i> {{ user.experience_years }} yrs exp</span>{% endif %}
+          <span><i class="fas fa-calendar"></i> Joined {{ user.member_since }}</span>
+        </div>
+        <div class="hero-actions">
+          <button class="btn btn-primary" onclick="openXpModal()"><i class="fas fa-coins"></i> Adjust XP</button>
+          {% if user.is_banned %}
+          <button class="btn btn-success" onclick="unbanUser()"><i class="fas fa-unlock"></i> Unban User</button>
+          {% else %}
+          <button class="btn btn-warning" onclick="banUser()"><i class="fas fa-ban"></i> Ban User</button>
+          {% endif %}
+          <button class="btn btn-danger" onclick="deleteUser()"><i class="fas fa-trash"></i> Delete Account</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- XP CARD -->
+    <div class="xp-card">
+      <div class="xp-stat"><div class="label">Total XP</div><div class="value">{{ user.xp }}</div></div>
+      <div class="xp-stat"><div class="label">Level</div><div class="value">{{ user.level_info.icon }} {{ user.level_info.level }}</div></div>
+      <div class="xp-stat"><div class="label">Badge</div><div class="value" style="font-size:1rem;padding-top:.5rem;">{{ user.level_info.badge }}</div></div>
+      <div class="xp-stat"><div class="label">Streak</div><div class="value">🔥 {{ user.streak_count }}</div></div>
+      <div class="xp-bar-wrap">
+        <div class="xp-bar-label">
+          <span>Progress to next level</span>
+          <span>{{ user.xp }} / {{ user.level_info.next_xp }} XP</span>
+        </div>
+        <div class="xp-bar"><div class="xp-bar-fill" style="width:{{ user.progress_pct }}%"></div></div>
+      </div>
+    </div>
+
+    <!-- INFO GRID -->
+    <div class="info-grid">
+
+      <!-- PROFILE INFO -->
+      <div class="card">
+        <div class="card-header"><h3><i class="fas fa-user" style="color:var(--primary)"></i> Profile Info</h3></div>
+        <div class="card-body">
+          <div class="info-row"><span class="info-label">Email</span><span class="info-value">{{ user.email }}</span></div>
+          <div class="info-row"><span class="info-label">Location</span><span class="info-value">{{ user.location or '—' }}</span></div>
+          <div class="info-row"><span class="info-label">Education</span><span class="info-value">{{ user.education_degree or '—' }}, {{ user.education_college or '—' }}</span></div>
+          <div class="info-row"><span class="info-label">Experience</span><span class="info-value">{{ user.experience_years or '0' }} years</span></div>
+          <div class="info-row"><span class="info-label">Status</span><span class="info-value">{{ user.current_status or '—' }}</span></div>
+          <div class="info-row"><span class="info-label">Career Goal</span><span class="info-value">{{ user.career_goal or '—' }}</span></div>
+          {% if user.github_url %}<div class="info-row"><span class="info-label">GitHub</span><span class="info-value"><a href="{{ user.github_url }}" target="_blank">{{ user.github_url[:35] }}...</a></span></div>{% endif %}
+          {% if user.linkedin_url %}<div class="info-row"><span class="info-label">LinkedIn</span><span class="info-value"><a href="{{ user.linkedin_url }}" target="_blank">View Profile</a></span></div>{% endif %}
+          {% if user.instagram_url %}<div class="info-row"><span class="info-label">Instagram</span><span class="info-value"><a href="{{ user.instagram_url }}" target="_blank">View</a></span></div>{% endif %}
+        </div>
+      </div>
+
+      <!-- SKILLS -->
+      <div class="card">
+        <div class="card-header"><h3><i class="fas fa-code" style="color:var(--secondary)"></i> Skills & About</h3></div>
+        <div class="card-body">
+          <div class="info-row"><span class="info-label">About</span><span class="info-value" style="font-size:.8rem;max-width:200px;">{{ user.about_me or '—' }}</span></div>
+          <div class="info-row">
+            <span class="info-label">Known Skills</span>
+            <span class="info-value" style="font-size:.78rem">{{ user.known_skills|join(', ') if user.known_skills else '—' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Learning</span>
+            <span class="info-value" style="font-size:.78rem">{{ user.learning_skills|join(', ') if user.learning_skills else '—' }}</span>
+          </div>
+          <div class="info-row"><span class="info-label">Projects</span><span class="info-value">{{ projects|length }}</span></div>
+          <div class="info-row"><span class="info-label">Roadmaps</span><span class="info-value">{{ roadmaps|length }}</span></div>
+          <div class="info-row"><span class="info-label">Certificates</span><span class="info-value">{{ certificates|length }}</span></div>
+          <div class="info-row"><span class="info-label">Communities</span><span class="info-value">{{ communities|length }}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROJECTS -->
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-header">
+        <h3><i class="fas fa-layer-group" style="color:var(--secondary)"></i> Projects ({{ projects|length }})</h3>
+      </div>
+      {% if projects %}
+      <table class="admin-table">
+        <thead><tr><th>Title</th><th>Skills</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for p in projects %}
+          <tr id="pr-{{ p._id }}">
+            <td><strong>{{ p.title }}</strong></td>
+            <td style="font-size:.75rem;color:var(--muted)">{{ p.skills_needed|join(', ') if p.skills_needed else '—' }}</td>
+            <td style="font-size:.75rem;color:var(--muted)">{{ p.created_at.strftime('%b %d, %Y') if p.created_at else 'N/A' }}</td>
+            <td><button class="btn btn-danger" onclick="deleteProject('{{ p._id }}','{{ p.title }}')"><i class="fas fa-trash"></i> Delete</button></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<div class="empty">No projects yet.</div>{% endif %}
+    </div>
+
+    <!-- ROADMAPS -->
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-header">
+        <h3><i class="fas fa-magic" style="color:var(--accent)"></i> Roadmaps ({{ roadmaps|length }})</h3>
+      </div>
+      {% if roadmaps %}
+      <table class="admin-table">
+        <thead><tr><th>Goal</th><th>Stages</th><th>Progress</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for r in roadmaps %}
+          <tr id="rm-{{ r._id }}">
+            <td><strong>{{ r.goal }}</strong></td>
+            <td>{{ r.stage_count }}</td>
+            <td>{{ r.completed_stages }}/{{ r.stage_count }}</td>
+            <td style="font-size:.75rem;color:var(--muted)">{{ r.created_at.strftime('%b %d, %Y') if r.created_at else 'N/A' }}</td>
+            <td><button class="btn btn-danger" onclick="deleteRoadmap('{{ r._id }}','{{ r.goal }}')"><i class="fas fa-trash"></i> Delete</button></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<div class="empty">No roadmaps yet.</div>{% endif %}
+    </div>
+
+    <!-- CERTIFICATES -->
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-header"><h3><i class="fas fa-certificate" style="color:var(--warning)"></i> Certificates ({{ certificates|length }})</h3></div>
+      <div class="card-body">
+        {% if certificates %}
+          {% for c in certificates %}
+          <div class="cert-item">
+            <div class="cert-name">{{ c.name }}</div>
+            <div class="cert-meta">{{ c.issuer }} {% if c.issue_date %}· {{ c.issue_date }}{% endif %} {% if c.cert_url %}<a href="{{ c.cert_url }}" target="_blank" style="color:var(--primary)">View</a>{% endif %}</div>
+          </div>
+          {% endfor %}
+        {% else %}<div class="empty">No certificates.</div>{% endif %}
+      </div>
+    </div>
+
+    <!-- COMMUNITIES -->
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-header"><h3><i class="fas fa-globe" style="color:var(--success)"></i> Communities ({{ communities|length }})</h3></div>
+      {% if communities %}
+      <table class="admin-table">
+        <thead><tr><th>Community</th><th>Role</th><th>Members</th></tr></thead>
+        <tbody>
+          {% for c in communities %}
+          <tr>
+            <td><strong>{{ c.project_title }}</strong></td>
+            <td><span style="font-size:.78rem;font-weight:600;color:{{ 'var(--primary)' if c.is_owner else 'var(--muted)' }}">{{ 'Owner' if c.is_owner else 'Member' }}</span></td>
+            <td>{{ c.member_count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<div class="empty">Not in any communities.</div>{% endif %}
+    </div>
+
+    <!-- XP HISTORY -->
+    <div class="card" style="margin-bottom:2rem;">
+      <div class="card-header"><h3><i class="fas fa-history" style="color:var(--primary)"></i> XP History ({{ xp_history|length }} transactions)</h3></div>
+      {% if xp_history %}
+      <div class="timeline">
+        {% for h in xp_history %}
+        <div class="tl-item">
+          <div class="tl-dot {{ h.type }}">{{ '+' if h.type == 'earn' else '-' }}</div>
+          <div class="tl-content">
+            <div class="tl-reason">{{ h.reason }}</div>
+            <div class="tl-time">{{ h.timestamp.strftime('%b %d, %Y at %I:%M %p') if h.timestamp else 'N/A' }}</div>
+          </div>
+          <div class="tl-points {{ h.type }}">{{ '+' if h.points > 0 else '' }}{{ h.points }} XP</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}<div class="empty">No XP history yet.</div>{% endif %}
+    </div>
+
+  </main>
+</div>
+
+<!-- XP MODAL -->
+<div class="modal-overlay" id="xp-modal" onclick="if(event.target===this)closeXpModal()">
+  <div class="modal-box">
+    <h3>⚡ Adjust XP — {{ user.name }}</h3>
+    <input type="number" id="xp-points" placeholder="Points (negative to deduct, e.g. -50)">
+    <input type="text" id="xp-reason" placeholder="Reason (e.g. Bug bounty reward)">
+    <div class="modal-actions">
+      <button class="m-cancel" onclick="closeXpModal()">Cancel</button>
+      <button class="m-confirm" onclick="submitXp()">Apply XP</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+const USER_ID = '{{ user._id }}';
+function showToast(msg,err=false){const t=document.getElementById('toast');t.innerHTML=(err?'❌ ':'✅ ')+msg;t.style.background=err?'#7f1d1d':'#1e1b4b';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+function openXpModal(){document.getElementById('xp-points').value='';document.getElementById('xp-reason').value='';document.getElementById('xp-modal').classList.add('active');}
+function closeXpModal(){document.getElementById('xp-modal').classList.remove('active');}
+function submitXp(){
+  const points=parseInt(document.getElementById('xp-points').value);
+  const reason=document.getElementById('xp-reason').value.trim();
+  if(!points||isNaN(points)){showToast('Enter valid points',true);return;}
+  fetch('/admin/adjust_xp/'+USER_ID,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({points,reason})})
+  .then(r=>r.json()).then(d=>{
+    if(d.success){closeXpModal();showToast('XP updated! New total: '+d.new_xp+' ('+d.badge+')');setTimeout(()=>location.reload(),1500);}
+    else showToast(d.error,true);
+  });
+}
+function banUser(){
+  if(!confirm('Ban {{ user.name }}?'))return;
+  fetch('/admin/ban_user/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('User banned.');setTimeout(()=>location.reload(),1200);}else showToast(d.error,true);});
+}
+function unbanUser(){
+  fetch('/admin/unban_user/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('User unbanned.');setTimeout(()=>location.reload(),1200);}else showToast(d.error,true);});
+}
+function deleteUser(){
+  if(!confirm('Permanently delete {{ user.name }} and ALL their data? This cannot be undone.'))return;
+  fetch('/admin/delete_user/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('User deleted.');setTimeout(()=>window.location.href='{{ url_for("admin_panel") }}',1500);}else showToast(d.error,true);});
+}
+function deleteProject(id,title){
+  if(!confirm('Delete project "'+title+'"?'))return;
+  fetch('/admin/delete_project/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){document.getElementById('pr-'+id).remove();showToast('Project deleted.');}else showToast(d.error,true);});
+}
+function deleteRoadmap(id,goal){
+  if(!confirm('Delete roadmap "'+goal+'"?'))return;
+  fetch('/admin/delete_roadmap/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){document.getElementById('rm-'+id).remove();showToast('Roadmap deleted.');}else showToast(d.error,true);});
+}
+</script>
+</body>
+</html>

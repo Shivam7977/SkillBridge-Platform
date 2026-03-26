@@ -5,9 +5,9 @@ import os
 
 def configure_ai():
     """Configures the Gemini AI model."""
-    api_key = os.getenv("GOOGLE_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     if not api_key:
-        raise ValueError("GOOGLE_API_KEY not found. Make sure it's in your .env file.")
+        raise ValueError("GEMINI_API_KEY not found. Make sure it's in your .env file.")
     genai.configure(api_key=api_key)
 
 def get_youtube_service():
@@ -22,16 +22,22 @@ def find_youtube_playlist(query):
     """Searches YouTube for a playlist and returns the top result."""
     youtube = get_youtube_service()
     if not youtube:
+        print("❌ YouTube service is None — API key missing or build() failed")
         return "#", "YouTube API Key Not Configured"
     try:
+        print(f"🔍 Searching YouTube for: {query}")
         request = youtube.search().list(part="snippet", q=query, type="playlist", maxResults=1)
         response = request.execute()
+        print(f"📺 YouTube response items: {len(response.get('items', []))}")
         if response.get('items'):
             playlist_id = response['items'][0]['id']['playlistId']
             title = response['items'][0]['snippet']['title']
+            print(f"✅ Found playlist: {title}")
             return f"https://www.youtube.com/playlist?list={playlist_id}", title
+        else:
+            print("⚠️ YouTube returned 0 items for this query")
     except Exception as e:
-        print(f"   -> YouTube playlist search failed: {e}")
+        print(f"❌ YouTube playlist search failed: {type(e).__name__}: {e}")
     return "#", "No playlist found"
 
 def generate_roadmap_with_ai(skill_to_learn):

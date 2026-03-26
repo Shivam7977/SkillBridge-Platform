@@ -140,6 +140,22 @@ body {
 }
 .send-btn:hover { background: var(--secondary); }
 
+
+/* ── Fix overlapping widgets in chat layout ── */
+#sb-bubble {
+    bottom: 90px !important;  /* above the send button */
+}
+#sb-window {
+    bottom: 148px !important;
+}
+.notif-float-btn {
+    top: 14px !important;
+    right: 70px !important;  /* shift left — away from browser edge buttons */
+}
+.notif-dropdown {
+    top: 70px !important;
+    right: 70px !important;
+}
 </style>
 </head>
 
@@ -170,7 +186,7 @@ body {
         </div>
 
         {{ msg.content }}
-        <span class="timestamp">{{ msg.timestamp.strftime('%I:%M %p') }}</span>
+        <span class="timestamp">{{ msg.timestamp_ist.strftime('%I:%M %p') + ' IST' if msg.timestamp_ist else msg.timestamp.strftime('%I:%M %p') }}</span>
       </div>
     {% endfor %}
   </div>
@@ -192,6 +208,8 @@ body {
 </script>
 
 </body>
+{% include 'notification_bell.html' %}
+{% include 'chatbot_widget.html' %}
 <script>
 (function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
 </script>

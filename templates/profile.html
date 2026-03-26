@@ -57,9 +57,18 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg)
 .gh-mini-stat .n { font-weight: 800; font-size: 0.85rem; color: var(--primary); }
 .gh-mini-stat .l { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; font-weight: 600; }
 .form-card { background: var(--surface); border-radius: 24px; padding: 3.5rem; border: 1px solid var(--border); }
-.form-section { margin-bottom: 3.5rem; }
-.section-title { font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin-bottom: 2rem; display: flex; align-items: center; gap: 15px; }
-.section-title span.bar { width: 35px; height: 4px; background: var(--primary); border-radius: 10px; flex-shrink: 0; }
+.form-section { margin-bottom: 1rem; border: 1.5px solid var(--border); border-radius: 16px; overflow: hidden; }
+.section-title { font-size: 1rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 12px; padding: 1.1rem 1.5rem; cursor: pointer; user-select: none; background: var(--surface); transition: background .2s; margin-bottom: 0; }
+.section-title:hover { background: rgba(139,92,246,.04); }
+.section-title span.bar { width: 28px; height: 4px; background: var(--primary); border-radius: 10px; flex-shrink: 0; }
+.section-title .sec-chevron { margin-left: auto; color: var(--text-dim); font-size: .85rem; transition: transform .3s; }
+.section-title.open .sec-chevron { transform: rotate(180deg); }
+.section-body { padding: 1.25rem 1.5rem 1.5rem; border-top: 1.5px solid var(--border); display: none; }
+.section-body.open { display: block; }
+body.dark .form-section { border-color: #2d2d44; }
+body.dark .section-title { background: #13131f; }
+body.dark .section-title:hover { background: rgba(139,92,246,.08); }
+body.dark .section-body { border-top-color: #2d2d44; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
 .full { grid-column: span 2; }
 label { font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; display: block; color: var(--text-main); }
@@ -296,7 +305,8 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
         <form action="{{ url_for('profile') }}" method="POST" enctype="multipart/form-data">
 
           <div class="form-section">
-            <div class="section-title"><span class="bar"></span> Core Identity</div>
+            <div class="section-title open" onclick="toggleSection('core-identity')"><span class="bar"></span> Core Identity <i class="fas fa-chevron-down sec-chevron"></i></div>
+            <div class="section-body open" id="core-identity">
             <div class="form-grid">
               <div><label>Full Name</label><input type="text" name="name" id="in-name" value="{{ user.name }}" onkeyup="sync()"></div>
               <div><label>Job Title</label><input type="text" name="title" id="in-title" value="{{ user.title }}" onkeyup="sync()"></div>
@@ -304,46 +314,91 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
               <div><label>Location</label><input type="text" name="location" id="in-loc" value="{{ user.location }}" onkeyup="sync()"></div>
               <div><label>Profile Image</label><input type="file" name="profile_pic"></div>
             </div>
-          </div>
-
-          <div class="form-section">
-            <div class="section-title"><span class="bar"></span> Mastery & Learning</div>
-            <div class="form-grid">
-              <div class="full"><label>Skills You Know (comma separated)</label><textarea name="known_skills" id="in-known" rows="2" placeholder="Python, Flask, CSS..." onkeyup="sync()">{{ user.known_skills_str }}</textarea></div>
-              <div class="full"><label>Skills You Want to Know (comma separated)</label><textarea name="learning_skills" id="in-learning" rows="2" placeholder="AI, Docker, React..." onkeyup="sync()">{{ user.learning_skills_str }}</textarea></div>
             </div>
           </div>
 
           <div class="form-section">
-            <div class="section-title"><span class="bar"></span> Career Parameters</div>
+            <div class="section-title" onclick="toggleSection('mastery-learning')"><span class="bar"></span> Mastery & Learning <i class="fas fa-chevron-down sec-chevron"></i></div>
+            <div class="section-body" id="mastery-learning">
+            <div class="form-grid">
+              <div class="full"><label>Skills You Know (comma separated)</label><textarea name="known_skills" id="in-known" rows="2" placeholder="Python, Flask, CSS..." onkeyup="sync()">{{ user.known_skills_str }}</textarea></div>
+              <div class="full"><label>Skills You Want to Know (comma separated)</label><textarea name="learning_skills" id="in-learning" rows="2" placeholder="AI, Docker, React..." onkeyup="sync()">{{ user.learning_skills_str }}</textarea></div>
+            </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="section-title" onclick="toggleSection('career-params')"><span class="bar"></span> Career Parameters <i class="fas fa-chevron-down sec-chevron"></i></div>
+            <div class="section-body" id="career-params">
             <div class="form-grid">
               <div><label>Exp (Years)</label><input type="number" name="experience_years" id="in-exp" value="{{ user.experience_years }}" min="0" max="50" onkeyup="sync()"></div>
               <div><label>University</label><input type="text" name="education_college" id="in-college" value="{{ user.education_college }}" onkeyup="sync()"></div>
               <div class="full"><label>Current Status</label>
-                <select name="current_status" id="in-status" onchange="sync()">
+                <select name="current_status" id="in-status" onchange="sync(); toggleExpSection()">
                   <option value="Student"  {% if user.current_status == 'Student'  %}selected{% endif %}>Student</option>
                   <option value="Working"  {% if user.current_status == 'Working'  %}selected{% endif %}>Working Professional</option>
                   <option value="Fresher"  {% if user.current_status == 'Fresher'  %}selected{% endif %}>Fresher</option>
                 </select>
               </div>
             </div>
+            </div>
+          </div>
+
+          <!-- Work Experience Section — hidden for Students with 0 years -->
+          <div class="form-section" id="work-exp-section" style="display:{% if user.current_status == 'Student' %}none{% else %}block{% endif %}">
+            <div class="section-title" onclick="toggleSection('work-exp-body')"><span class="bar"></span> Work Experience
+              <button type="button" onclick="event.stopPropagation();addExpEntry()" style="margin-left:auto;padding:5px 14px;border-radius:8px;border:1.5px solid var(--primary);background:transparent;color:var(--primary);font-weight:700;font-size:.78rem;cursor:pointer;font-family:inherit;">
+                + Add Entry
+              </button>
+              <i class="fas fa-chevron-down sec-chevron" style="margin-left:.5rem;"></i>
+            </div>
+            <div class="section-body" id="work-exp-body">
+            <input type="hidden" name="work_experience_json" id="work-exp-json">
+            <div id="exp-entries-list">
+              {% for exp in user.work_experience %}
+              <div class="exp-entry" data-index="{{ loop.index0 }}">
+                <div class="form-grid" style="margin-bottom:.5rem;">
+                  <div><label>Company</label><input type="text" class="exp-company" value="{{ exp.company }}" placeholder="e.g. Google" oninput="serializeExp()"></div>
+                  <div><label>Role / Position</label><input type="text" class="exp-role" value="{{ exp.role }}" placeholder="e.g. Software Engineer" oninput="serializeExp()"></div>
+                  <div><label>From Year</label><input type="number" class="exp-from" value="{{ exp.from_year }}" placeholder="2020" min="1980" max="2030" oninput="serializeExp(); autoCalcYears()"></div>
+                  <div>
+                    <label>To Year</label>
+                    <input type="number" class="exp-to" value="{{ exp.to_year if not exp.is_current else '' }}" placeholder="{{ now().year if now else 2025 }}" min="1980" max="2030" oninput="serializeExp(); autoCalcYears()" {% if exp.is_current %}disabled{% endif %}>
+                    <label style="font-size:.78rem;margin-top:4px;display:flex;align-items:center;gap:5px;cursor:pointer;">
+                      <input type="checkbox" class="exp-current" onchange="handleCurrentToggle(this)" {% if exp.is_current %}checked{% endif %}> Currently working here
+                    </label>
+                  </div>
+                </div>
+                <button type="button" onclick="removeExpEntry(this)" style="padding:4px 12px;border-radius:6px;border:1px solid #ef4444;background:transparent;color:#ef4444;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:.75rem;">
+                  🗑 Remove
+                </button>
+                <hr style="border:none;border-top:1px solid var(--border);margin-bottom:.75rem;">
+              </div>
+              {% else %}
+              <p id="no-exp-msg" style="font-size:.83rem;color:var(--text-dim);margin-bottom:.5rem;">No experience entries yet. Click "+ Add Entry" to add one.</p>
+              {% endfor %}
+            </div>
+            </div>
           </div>
 
           <div class="form-section">
-            <div class="section-title"><span class="bar"></span> Social Links</div>
+            <div class="section-title" onclick="toggleSection('social-links')"><span class="bar"></span> Social Links <i class="fas fa-chevron-down sec-chevron"></i></div>
+            <div class="section-body" id="social-links">
             <div class="form-grid">
               <div><label>LinkedIn URL</label><input type="url" name="linkedin_url" id="in-linkedin" value="{{ user.linkedin_url }}" onkeyup="sync()"></div>
               <div><label>GitHub URL</label><input type="url" name="github_url" id="in-github" value="{{ user.github_url }}" onkeyup="sync()"></div>
               <div><label>Instagram URL</label><input type="url" name="instagram_url" id="in-instagram" value="{{ user.instagram_url }}" onkeyup="sync()"></div>
               <div><label>Facebook URL</label><input type="url" name="facebook_url" id="in-facebook" value="{{ user.facebook_url }}" onkeyup="sync()"></div>
             </div>
+            </div>
           </div>
 
           <button type="submit" class="update-btn">Commit Architecture &amp; Update</button>
         </form>
 
-        <div class="form-section" style="margin-top:3.5rem">
-          <div class="section-title"><span class="bar"></span> <i class="fas fa-certificate" style="color:var(--primary)"></i>&nbsp; Certificates &amp; Credentials</div>
+        <div class="form-section" style="margin-top:1rem">
+          <div class="section-title" onclick="toggleSection('certs-body')"><span class="bar"></span> <i class="fas fa-certificate" style="color:var(--primary)"></i>&nbsp; Certificates &amp; Credentials <i class="fas fa-chevron-down sec-chevron"></i></div>
+          <div class="section-body" id="certs-body">
           <div class="cert-list" id="cert-list">
             {% if user.certificates %}
               {% for cert in user.certificates %}
@@ -371,11 +426,12 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
             {% endif %}
           </div>
           <button class="add-cert-btn" onclick="openAddCert()"><i class="fas fa-plus-circle"></i> Add Certificate</button>
+          </div>
         </div>
 
-        <div class="form-section" style="margin-top:0;margin-bottom:0">
-          <div class="section-title"><span class="bar"></span> <i class="fab fa-github"></i>&nbsp; GitHub Integration</div>
-
+        <div class="form-section" style="margin-top:1rem;margin-bottom:0">
+          <div class="section-title" onclick="toggleSection('github-body')"><span class="bar"></span> <i class="fab fa-github"></i>&nbsp; GitHub Integration <i class="fas fa-chevron-down sec-chevron"></i></div>
+          <div class="section-body" id="github-body">
           {% if user.github_username %}
           <div class="github-connected-box">
             <div class="gh-conn-header">
@@ -451,6 +507,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
               <button class="gh-sync-btn" onclick="syncGithub()"><i class="fas fa-cloud-download-alt"></i> Save to My Profile</button>
             </div>
           </div>
+          </div><!-- end section-body github -->
 
         </div>
       </div>
@@ -478,6 +535,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--primary); backgr
 </div>
 
 <div class="toast" id="toast"></div>
+{% include 'notification_bell.html' %}
 {% include 'chatbot_widget.html' %}
 
 <script>
@@ -716,6 +774,130 @@ async function disconnectGithub() {
   if (d.success) { showToast('GitHub disconnected'); setTimeout(() => location.reload(), 1000); }
   else showToast('Failed to disconnect', 'error');
 }
+
+// ── COLLAPSIBLE SECTIONS ──────────────────────────────────
+function toggleSection(id) {
+  const body = document.getElementById(id);
+  if (!body) return;
+  const title = body.previousElementSibling;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  if (title && title.classList.contains('section-title')) {
+    title.classList.toggle('open', !isOpen);
+  }
+}
+
+// ── WORK EXPERIENCE ──────────────────────────────────────
+function toggleExpSection() {
+  const status = document.getElementById('in-status').value;
+  const section = document.getElementById('work-exp-section');
+  if (section) section.style.display = (status === 'Student') ? 'none' : 'block';
+}
+
+function addExpEntry() {
+  const noMsg = document.getElementById('no-exp-msg');
+  if (noMsg) noMsg.remove();
+  const list = document.getElementById('exp-entries-list');
+  const div = document.createElement('div');
+  div.className = 'exp-entry';
+  div.innerHTML = `
+    <div class="form-grid" style="margin-bottom:.5rem;">
+      <div><label>Company</label><input type="text" class="exp-company" placeholder="e.g. Google" oninput="serializeExp()"></div>
+      <div><label>Role / Position</label><input type="text" class="exp-role" placeholder="e.g. Software Engineer" oninput="serializeExp()"></div>
+      <div><label>From Year</label><input type="number" class="exp-from" placeholder="2020" min="1980" max="2030" oninput="serializeExp(); autoCalcYears()"></div>
+      <div>
+        <label>To Year</label>
+        <input type="number" class="exp-to" placeholder="${new Date().getFullYear()}" min="1980" max="2030" oninput="serializeExp(); autoCalcYears()">
+        <label style="font-size:.78rem;margin-top:4px;display:flex;align-items:center;gap:5px;cursor:pointer;">
+          <input type="checkbox" class="exp-current" onchange="handleCurrentToggle(this)"> Currently working here
+        </label>
+      </div>
+    </div>
+    <button type="button" onclick="removeExpEntry(this)" style="padding:4px 12px;border-radius:6px;border:1px solid #ef4444;background:transparent;color:#ef4444;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:.75rem;">
+      🗑 Remove
+    </button>
+    <hr style="border:none;border-top:1px solid var(--border);margin-bottom:.75rem;">
+  `;
+  list.appendChild(div);
+  serializeExp();
+}
+
+function removeExpEntry(btn) {
+  btn.closest('.exp-entry').remove();
+  serializeExp();
+  autoCalcYears();
+  const list = document.getElementById('exp-entries-list');
+  if (!list.querySelector('.exp-entry')) {
+    list.innerHTML = '<p id="no-exp-msg" style="font-size:.83rem;color:var(--text-dim);margin-bottom:.5rem;">No experience entries yet. Click "+ Add Entry" to add one.</p>';
+  }
+}
+
+function handleCurrentToggle(checkbox) {
+  const currentYear = new Date().getFullYear();
+  const entry = checkbox.closest('.exp-entry');
+  const toInput = entry.querySelector('.exp-to');
+
+  if (checkbox.checked) {
+    // Uncheck all other "currently working" checkboxes
+    document.querySelectorAll('.exp-current').forEach(cb => {
+      if (cb !== checkbox && cb.checked) {
+        cb.checked = false;
+        const otherTo = cb.closest('.exp-entry').querySelector('.exp-to');
+        if (otherTo) { otherTo.disabled = false; }
+      }
+    });
+    // Set to year = current year and disable
+    if (toInput) { toInput.value = currentYear; toInput.disabled = true; }
+  } else {
+    if (toInput) { toInput.disabled = false; toInput.value = ''; }
+  }
+  serializeExp();
+  autoCalcYears();
+}
+
+function autoCalcYears() {
+  // Auto-calculate total experience years from all entries
+  const currentYear = new Date().getFullYear();
+  let totalMonths = 0;
+  document.querySelectorAll('.exp-entry').forEach(entry => {
+    const from = parseInt(entry.querySelector('.exp-from')?.value) || 0;
+    const isCurrent = entry.querySelector('.exp-current')?.checked || false;
+    const to = isCurrent ? currentYear : (parseInt(entry.querySelector('.exp-to')?.value) || 0);
+    if (from > 0 && to >= from) {
+      totalMonths += (to - from) * 12;
+    }
+  });
+  const totalYears = Math.round(totalMonths / 12);
+  const expInput = document.getElementById('in-exp');
+  if (expInput && totalYears > 0) expInput.value = totalYears;
+}
+
+function serializeExp() {
+  const entries = [];
+  document.querySelectorAll('.exp-entry').forEach(entry => {
+    const company   = entry.querySelector('.exp-company')?.value.trim() || '';
+    const role      = entry.querySelector('.exp-role')?.value.trim() || '';
+    const fromYear  = entry.querySelector('.exp-from')?.value.trim() || '';
+    const toYear    = entry.querySelector('.exp-to')?.value.trim() || '';
+    const isCurrent = entry.querySelector('.exp-current')?.checked || false;
+    if (company || role) {
+      entries.push({ company, role, from_year: fromYear, to_year: isCurrent ? String(new Date().getFullYear()) : toYear, is_current: isCurrent });
+    }
+  });
+  const jsonField = document.getElementById('work-exp-json');
+  if (jsonField) jsonField.value = JSON.stringify(entries);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  serializeExp();
+  toggleExpSection();
+  // Set disabled state for existing current entries
+  document.querySelectorAll('.exp-current:checked').forEach(cb => {
+    const toInput = cb.closest('.exp-entry')?.querySelector('.exp-to');
+    if (toInput) toInput.disabled = true;
+  });
+});
 </script>
 <script>
 applyTheme(localStorage.getItem('sb-theme') || 'light');
