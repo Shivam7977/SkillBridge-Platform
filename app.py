@@ -25,6 +25,8 @@ import bleach                                             # ← ADDED: XSS sanit
 from apscheduler.schedulers.background import BackgroundScheduler  # ← ADDED: weekly XP reset
 from apscheduler.triggers.cron import CronTrigger                  # ← ADDED
 import pytz                                                         # ← ADDED
+import os
+from dotenv import load_dotenv
 
 load_dotenv(override=True)
 try:
@@ -88,8 +90,10 @@ app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
 mail = Mail(app)
 
 try:
-    mongo_uri = "mongodb://127.0.0.1:27017/skillbridge_db"
-    client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
+    # This looks for MONGO_URI in your .env file. 
+    # If it's not there, it falls back to your local computer.
+    mongo_uri = os.getenv("MONGO_URI", "mongodb://127.0.0.1:27017/skillbridge_db")
+    client = MongoClient(mongo_uri)
     db = client.get_database()
     client.admin.command('ismaster')
     print(f"MongoDB connection successful.")
@@ -327,11 +331,27 @@ def add_xp(user_id, points, reason="Action"):
         update_data = {'xp': new_xp, 'level': new_level_info['level'], 'badge': new_level_info['badge']}
 
         users_collection.update_one({'_id': ObjectId(user_id)}, {'$set': update_data})
-        # Track weekly XP for leaderboard
-        users_collection.update_one(
-            {'_id': ObjectId(user_id)},
-            {'$inc': {'weekly_xp': points}, '$set': {'weekly_xp_updated': now_ist()}}
-        )
+        
+        # --- BULLETPROOF WEEKLY RESET LOGIC ---
+        last_updated = user.get('weekly_xp_updated')
+        from datetime import timedelta
+        now_time = now_ist()
+        days_since_monday = now_time.weekday()
+        week_start = (now_time - timedelta(days=days_since_monday)).replace(hour=0, minute=0, second=0, microsecond=0)
+
+        # If last updated is older than this week's Monday, reset to 0 before adding new points
+        if not last_updated or last_updated < week_start:
+            users_collection.update_one(
+                {'_id': ObjectId(user_id)},
+                {'$set': {'weekly_xp': points, 'weekly_xp_updated': now_time}}
+            )
+        else:
+            users_collection.update_one(
+                {'_id': ObjectId(user_id)},
+                {'$inc': {'weekly_xp': points}, '$set': {'weekly_xp_updated': now_time}}
+            )
+        # --------------------------------------
+
         # Log XP history
         xp_history_collection.insert_one({
             'user_id': ObjectId(user_id),
@@ -423,12 +443,21 @@ def deduct_xp(user_id, points, reason="Action Reversed"):
         if not user: return False
 
         current_xp = user.get('xp', 0)
+        current_weekly_xp = user.get('weekly_xp', 0)
+
         new_xp = max(0, current_xp - points)  # XP kabhi 0 se neeche nahi jayega
+        new_weekly_xp = max(0, current_weekly_xp - points) # Weekly XP bhi 0 se neeche nahi jayega
+        
         new_level_info = get_level_info(new_xp)
 
         users_collection.update_one(
             {'_id': ObjectId(user_id)},
-            {'$set': {'xp': new_xp, 'level': new_level_info['level'], 'badge': new_level_info['badge']}}
+            {'$set': {
+                'xp': new_xp, 
+                'weekly_xp': new_weekly_xp, 
+                'level': new_level_info['level'], 
+                'badge': new_level_info['badge']
+            }}
         )
         print(f"📉 XP DEDUCTED: -{points} from user {user.get('name')} for: {reason}")
         # Log XP history
@@ -458,7 +487,7 @@ def update_streak(user_id):
             if isinstance(last_login, str):
                 last_login = datetime.fromisoformat(last_login.replace("Z", "+00:00"))
             if last_login.tzinfo is None:
-                last_login = last_login.replace(tzinfo=timezone.utc)
+                last_login = last_login.replace(tzinfo=IST)
             # Convert last_login to IST before comparing
             last_login = last_login.astimezone(IST).replace(hour=0, minute=0, second=0, microsecond=0)
             diff = (today - last_login).days
@@ -644,7 +673,7 @@ def login():
         if not email or not password:
              flash("Email and password are required.", "error"); return redirect(url_for('login'))
         user_data = users_collection.find_one({'email': email})
-        if user_data and bcrypt.check_password_hash(user_data.get('password', ''), password):
+        if user_data and not user_data.get('is_banned') and bcrypt.check_password_hash(user_data.get('password', ''), password):
             user = User(user_data)
             login_user(user, remember=remember)
             update_streak(str(user_data['_id']))  # STREAK TRACKING on every login
@@ -1339,8 +1368,10 @@ def view_project(project_id):
     project['created_by_id'] = str(project.get('created_by_id', ''))
 
     # ── LOAD COMMENTS ────────────────────────────────────────
-    ADMIN_ID = "69a5c635ee9dd5279f0571e2"
-    is_admin = current_user.is_authenticated and current_user.id == ADMIN_ID
+    is_admin = False
+    if current_user.is_authenticated:
+        user_doc = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'is_admin': 1})
+        is_admin = user_doc.get('is_admin', False) if user_doc else False
 
     raw_top = list(comments_collection.find(
         {'project_id': obj_id, 'parent_id': None}
@@ -1609,13 +1640,16 @@ def toggle_comment_like(comment_id):
 def delete_comment(comment_id):
     """Hard-delete a comment. If it's a top-level comment, also delete all its replies."""
     try:
-        ADMIN_ID = "69a5c635ee9dd5279f0571e2"
         cid = ObjectId(comment_id)
         comment = comments_collection.find_one({'_id': cid})
         if not comment:
             return jsonify({'success': False, 'error': 'Comment not found'}), 404
         is_own = str(comment.get('user_id')) == current_user.id
-        is_admin = current_user.id == ADMIN_ID
+        
+        is_admin = False
+        user_doc = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'is_admin': 1})
+        if user_doc and user_doc.get('is_admin'):
+            is_admin = True
         if not is_own and not is_admin:
             return jsonify({'success': False, 'error': 'Not authorized'}), 403
 
@@ -1642,8 +1676,11 @@ def get_comments_sorted(project_id):
     try:
         obj_id = ObjectId(project_id)
         sort_by = request.args.get('sort', 'recent')
-        ADMIN_ID = "69a5c635ee9dd5279f0571e2"
-        is_admin = current_user.id == ADMIN_ID
+        
+        is_admin = False
+        user_doc = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'is_admin': 1})
+        if user_doc and user_doc.get('is_admin'):
+            is_admin = True
         project = projects_collection.find_one({'_id': obj_id}, {'created_by_id': 1})
         if not project:
             return jsonify({'success': False}), 404
@@ -1865,7 +1902,7 @@ Assistant:"""
         ]
         chat_history_collection.update_one(
             {'user_id': uid},
-            {'$push': {'messages': {'$each': new_turns}}, '$set': {'last_updated': datetime.now(timezone.utc)}, '$setOnInsert': {'user_id': uid, 'created_at': datetime.now(timezone.utc)}},
+            {'$push': {'messages': {'$each': new_turns, '$slice': -50}}, '$set': {'last_updated': datetime.now(timezone.utc)}, '$setOnInsert': {'user_id': uid, 'created_at': datetime.now(timezone.utc)}},
             upsert=True
         )
         return jsonify({'reply': reply})
@@ -2677,7 +2714,7 @@ def leaderboard():
     ).sort('xp', -1).limit(50))
 
     # ── WEEKLY: top 50 by weekly_xp, reset every Monday ──
-    now = datetime.utcnow()
+    now = now_ist()
     # Days since last Monday
     days_since_monday = now.weekday()  # Monday=0
     week_start = (now - timedelta(days=days_since_monday)).replace(hour=0, minute=0, second=0, microsecond=0)
