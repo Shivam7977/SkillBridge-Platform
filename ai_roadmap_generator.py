@@ -1,18 +1,18 @@
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from googleapiclient.discovery import build
 import json
 import os
 
-_configured = False
+client = None
 
 def configure_ai():
-    """Configures the Gemini AI client."""
-    global _configured
+    """Configures the new Gemini Client."""
+    global client
     api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     if not api_key:
         raise ValueError("GEMINI_API_KEY not found. Make sure it's in your Render environment variables.")
-    genai.configure(api_key=api_key)
-    _configured = True
+    client = genai.Client(api_key=api_key)
 
 def get_youtube_service():
     """Initializes the YouTube Data API service."""
@@ -46,8 +46,8 @@ def find_youtube_playlist(query):
 
 def generate_roadmap_with_ai(skill_to_learn):
     """Generates a learning roadmap structure with search queries."""
-    global _configured
-    if not _configured:
+    global client
+    if client is None:
         configure_ai()
 
     prompt = f"""
@@ -79,14 +79,14 @@ def generate_roadmap_with_ai(skill_to_learn):
 
     print(f"\n🤖 Calling Gemini AI for '{skill_to_learn}'...")
     try:
-        model = genai.GenerativeModel(
-            model_name='gemini-2.0-flash',
-            generation_config=genai.types.GenerationConfig(
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
                 max_output_tokens=8192,
                 temperature=0.7
             )
         )
-        response = model.generate_content(prompt)
 
         print("\n--- RAW AI RESPONSE ---")
         print(response.text)

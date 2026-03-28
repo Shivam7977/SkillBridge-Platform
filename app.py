@@ -1834,15 +1834,17 @@ def resume_pdf():
 
 @app.route('/api/chatbot', methods=['POST'])
 @login_required
-@limiter.limit("30 per hour", key_func=get_user_key)      # ← UPDATED: per-account key, VPN-proof
+@limiter.limit("30 per hour", key_func=get_user_key)
 def chatbot():
     try:
-        import google.generativeai as genai
-        import traceback
+        from google import genai as genai_client
+        from google.genai import types as genai_types
         _api_key = os.getenv("GEMINI_API_KEY")
         if not _api_key:
             return jsonify({"reply": "AI not configured. Please set GEMINI_API_KEY in your .env file."}), 500
-        genai.configure(api_key=_api_key)
+
+        _client = genai_client.Client(api_key=_api_key)
+
         data = request.get_json()
         user_message = data.get('message', '').strip()
         if not user_message:
@@ -1868,6 +1870,7 @@ def chatbot():
         for turn in recent_history:
             label = "User" if turn.get('role') == 'user' else "Assistant"
             history_text += f"{label}: {turn.get('content', '')}\n"
+
         full_prompt = f"""You are the SkillBridge AI Assistant — a friendly career mentor for the SkillBridge platform.
 
 USER PROFILE:
@@ -1894,24 +1897,38 @@ CONVERSATION HISTORY:
 {history_text}
 User: {user_message}
 Assistant:"""
-        model = genai.GenerativeModel(model_name='gemini-2.5-flash')
-        response = model.generate_content(full_prompt)
+
+        response = _client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=full_prompt,
+            config=genai_types.GenerateContentConfig(
+                max_output_tokens=1024,
+                temperature=0.7
+            )
+        )
         reply = response.text.strip()
+
         new_turns = [
             {'role': 'user', 'content': user_message, 'timestamp': datetime.now(timezone.utc)},
             {'role': 'assistant', 'content': reply, 'timestamp': datetime.now(timezone.utc)},
         ]
         chat_history_collection.update_one(
             {'user_id': uid},
-            {'$push': {'messages': {'$each': new_turns, '$slice': -50}}, '$set': {'last_updated': datetime.now(timezone.utc)}, '$setOnInsert': {'user_id': uid, 'created_at': datetime.now(timezone.utc)}},
+            {
+                '$push': {'messages': {'$each': new_turns, '$slice': -50}},
+                '$set': {'last_updated': datetime.now(timezone.utc)},
+                '$setOnInsert': {'user_id': uid, 'created_at': datetime.now(timezone.utc)}
+            },
             upsert=True
         )
         return jsonify({'reply': reply})
+
     except Exception as e:
         import traceback
         traceback.print_exc()
         print(f"Chatbot error: {type(e).__name__}: {e}")
         return jsonify({'reply': f"Error: {type(e).__name__}: {str(e)}"}), 500
+
 
 @app.route('/api/chatbot/history', methods=['GET'])
 @login_required
@@ -1924,6 +1941,7 @@ def chatbot_history():
         return jsonify({'messages': result})
     except Exception as e:
         return jsonify({'messages': []}), 500
+
 
 @app.route('/api/chatbot/clear', methods=['POST'])
 @login_required
