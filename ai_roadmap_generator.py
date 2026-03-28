@@ -1,14 +1,17 @@
-import google.generativeai as genai
+from google import genai
 from googleapiclient.discovery import build
 import json
 import os
 
+client = None 
+
 def configure_ai():
-    """Configures the Gemini AI model."""
+    """Configures the new Gemini 2.0 Client."""
+    global client
     api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     if not api_key:
-        raise ValueError("GEMINI_API_KEY not found. Make sure it's in your .env file.")
-    genai.configure(api_key=api_key)
+        raise ValueError("GEMINI_API_KEY not found. Make sure it's in your Render environment variables.")
+    client = genai.Client(api_key=api_key)
 
 def get_youtube_service():
     """Initializes the YouTube Data API service."""
@@ -70,15 +73,15 @@ def generate_roadmap_with_ai(skill_to_learn):
     """
     print(f"\n🤖 Calling Gemini AI with FINAL prompt for '{skill_to_learn}'...")
     try:
-        # --- NEW: Added generation_config to control creativity ---
-        generation_config = genai.GenerationConfig(
-            temperature=0.2  # Lower temperature = less creative, more rule-following
+        global client
+        if client is None:
+            configure_ai()
+
+        # Naya syntax Gemini 2.0 ke liye
+        response = client.models.generate_content(
+            model="gemini-2.0-flash", 
+            contents=prompt
         )
-        
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        
-        # Pass the new config to the model
-        response = model.generate_content(prompt, generation_config=generation_config)
 
         # --- DEBUGGING to see the raw response ---
         print("\n--- RAW AI RESPONSE ---")
