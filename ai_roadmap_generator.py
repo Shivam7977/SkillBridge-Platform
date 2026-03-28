@@ -4,15 +4,33 @@ from googleapiclient.discovery import build
 import json
 import os
 
-client = None
+
+def get_api_keys():
+    """Get all available Gemini API keys for rotation."""
+    keys = [
+        os.getenv("GEMINI_API_KEY_1"),
+        os.getenv("GEMINI_API_KEY_2"),
+        os.getenv("GEMINI_API_KEY_3"),
+    ]
+    keys = [k for k in keys if k]  # remove None/empty
+
+    # Fallback to single key if rotation keys not set
+    if not keys:
+        single = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        if single:
+            keys = [single]
+
+    if not keys:
+        raise ValueError("No GEMINI_API_KEY found in environment variables.")
+
+    return keys
+
 
 def configure_ai():
-    """Configures the new Gemini Client."""
-    global client
-    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-    if not api_key:
-        raise ValueError("GEMINI_API_KEY not found. Make sure it's in your Render environment variables.")
-    client = genai.Client(api_key=api_key)
+    """Validates at least one API key exists on startup."""
+    keys = get_api_keys()
+    print(f"✅ Gemini AI configured with {len(keys)} API key(s).")
+
 
 def get_youtube_service():
     """Initializes the YouTube Data API service."""
@@ -21,6 +39,7 @@ def get_youtube_service():
         print("Warning: YOUTUBE_API_KEY not found in .env file.")
         return None
     return build('youtube', 'v3', developerKey=api_key)
+
 
 def find_youtube_playlist(query):
     """Searches YouTube for a playlist and returns the top result."""
@@ -44,11 +63,10 @@ def find_youtube_playlist(query):
         print(f"❌ YouTube playlist search failed: {type(e).__name__}: {e}")
     return "#", "No playlist found"
 
+
 def generate_roadmap_with_ai(skill_to_learn):
-    """Generates a learning roadmap structure with search queries."""
-    global client
-    if client is None:
-        configure_ai()
+    """Generates a learning roadmap, rotating API keys on quota errors."""
+    keys = get_api_keys()
 
     prompt = f"""
     As a world-class expert in curriculum design and project-based learning, your task is to generate a hyper-detailed, logically structured learning roadmap for a user wanting to learn: "{skill_to_learn}".
@@ -77,59 +95,72 @@ def generate_roadmap_with_ai(skill_to_learn):
         }}
     """
 
-    print(f"\n🤖 Calling Gemini AI for '{skill_to_learn}'...")
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                max_output_tokens=8192,
-                temperature=0.7
+    # Try each key in rotation until one works
+    for i, key in enumerate(keys):
+        try:
+            print(f"\n🤖 Trying API key {i+1}/{len(keys)} for '{skill_to_learn}'...")
+            _client = genai.Client(api_key=key)
+
+            response = _client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    max_output_tokens=8192,
+                    temperature=0.7
+                )
             )
-        )
 
-        print("\n--- RAW AI RESPONSE ---")
-        print(response.text)
-        print("-----------------------\n")
+            print("\n--- RAW AI RESPONSE ---")
+            print(response.text)
+            print("-----------------------\n")
 
-        response_text = response.text.strip()
+            response_text = response.text.strip()
 
-        # Strip markdown code fences if present
-        if response_text.startswith("```"):
-            parts = response_text.split("```")
-            if len(parts) >= 2:
-                response_text = parts[1]
-                if response_text.startswith("json"):
-                    response_text = response_text[4:]
-                response_text = response_text.strip()
+            # Strip markdown code fences if present
+            if response_text.startswith("```"):
+                parts = response_text.split("```")
+                if len(parts) >= 2:
+                    response_text = parts[1]
+                    if response_text.startswith("json"):
+                        response_text = response_text[4:]
+                    response_text = response_text.strip()
 
-        # Extract JSON
-        start_index = response_text.find('{')
-        end_index = response_text.rfind('}')
+            # Extract JSON
+            start_index = response_text.find('{')
+            end_index = response_text.rfind('}')
 
-        if start_index != -1 and end_index != -1 and end_index > start_index:
-            json_str = response_text[start_index:end_index+1]
-            roadmap_data = json.loads(json_str)
+            if start_index != -1 and end_index != -1 and end_index > start_index:
+                json_str = response_text[start_index:end_index+1]
+                roadmap_data = json.loads(json_str)
 
-            if not isinstance(roadmap_data, dict):
-                print("❌ Parsed data is not a dictionary.")
+                if not isinstance(roadmap_data, dict):
+                    print("❌ Parsed data is not a dictionary.")
+                    return None
+                if not isinstance(roadmap_data.get('stages'), list):
+                    print("❌ Parsed data missing 'stages' list.")
+                    return None
+                if len(roadmap_data.get('stages', [])) == 0:
+                    print("❌ Stages list is empty.")
+                    return None
+
+                print(f"✅ Successfully parsed roadmap with {len(roadmap_data['stages'])} stages using key {i+1}.")
+                return roadmap_data
+            else:
+                print("❌ Could not find valid JSON in response.")
                 return None
-            if not isinstance(roadmap_data.get('stages'), list):
-                print("❌ Parsed data missing 'stages' list.")
-                return None
-            if len(roadmap_data.get('stages', [])) == 0:
-                print("❌ Stages list is empty.")
-                return None
 
-            print(f"✅ Successfully parsed roadmap with {len(roadmap_data['stages'])} stages.")
-            return roadmap_data
-        else:
-            print("❌ Could not find a valid JSON object in the AI's response.")
+        except json.JSONDecodeError as e:
+            print(f"❌ JSON decode error with key {i+1}: {e}")
             return None
 
-    except json.JSONDecodeError as e:
-        print(f"❌ JSON decode error: {e}")
-        return None
-    except Exception as e:
-        print(f"❌ Error generating roadmap: {e}")
-        return None
+        except Exception as e:
+            error_str = str(e)
+            if '429' in error_str or 'RESOURCE_EXHAUSTED' in error_str or 'quota' in error_str.lower():
+                print(f"⚠️ Key {i+1} quota exhausted — trying next key...")
+                continue
+            else:
+                print(f"❌ Error with key {i+1}: {e}")
+                return None
+
+    print("❌ All API keys exhausted or failed.")
+    return None

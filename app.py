@@ -1831,7 +1831,6 @@ def resume_pdf():
     return render_template('resume_pdf.html', user=user_data, projects=user_projects, template_num=template_num, template_name=template_name)
 
 # --- SKILLBRIDGE AI CHATBOT ---
-
 @app.route('/api/chatbot', methods=['POST'])
 @login_required
 @limiter.limit("30 per hour", key_func=get_user_key)
@@ -1839,11 +1838,17 @@ def chatbot():
     try:
         from google import genai as genai_client
         from google.genai import types as genai_types
-        _api_key = os.getenv("GEMINI_API_KEY")
-        if not _api_key:
-            return jsonify({"reply": "AI not configured. Please set GEMINI_API_KEY in your .env file."}), 500
 
-        _client = genai_client.Client(api_key=_api_key)
+        # API key rotation
+        keys = [
+            os.getenv("GEMINI_API_KEY_1"),
+            os.getenv("GEMINI_API_KEY_2"),
+            os.getenv("GEMINI_API_KEY_3"),
+            os.getenv("GEMINI_API_KEY"),
+        ]
+        keys = [k for k in keys if k]
+        if not keys:
+            return jsonify({"reply": "AI not configured. Please set GEMINI_API_KEY in your .env file."}), 500
 
         data = request.get_json()
         user_message = data.get('message', '').strip()
@@ -1898,15 +1903,33 @@ CONVERSATION HISTORY:
 User: {user_message}
 Assistant:"""
 
-        response = _client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=full_prompt,
-            config=genai_types.GenerateContentConfig(
-                max_output_tokens=1024,
-                temperature=0.7
-            )
-        )
-        reply = response.text.strip()
+        # Try each key in rotation until one works
+        reply = None
+        for i, key in enumerate(keys):
+            try:
+                print(f"🤖 Chatbot trying API key {i+1}/{len(keys)}...")
+                _client = genai_client.Client(api_key=key)
+                response = _client.models.generate_content(
+                    model="gemini-1.5-flash",
+                    contents=full_prompt,
+                    config=genai_types.GenerateContentConfig(
+                        max_output_tokens=1024,
+                        temperature=0.7
+                    )
+                )
+                reply = response.text.strip()
+                print(f"✅ Chatbot response received using key {i+1}.")
+                break  # success — stop trying more keys
+            except Exception as key_err:
+                err_str = str(key_err)
+                if '429' in err_str or 'RESOURCE_EXHAUSTED' in err_str or 'quota' in err_str.lower():
+                    print(f"⚠️ Chatbot key {i+1} quota exhausted — trying next key...")
+                    continue
+                else:
+                    raise key_err  # non-quota error, raise immediately
+
+        if not reply:
+            return jsonify({'reply': '⚠️ All AI keys are currently quota-limited. Please try again in a few minutes.'}), 429
 
         new_turns = [
             {'role': 'user', 'content': user_message, 'timestamp': datetime.now(timezone.utc)},
@@ -1927,7 +1950,7 @@ Assistant:"""
         import traceback
         traceback.print_exc()
         print(f"Chatbot error: {type(e).__name__}: {e}")
-        return jsonify({'reply': f"Error: {type(e).__name__}: {str(e)}"}), 500
+        return jsonify({'reply': f"Sorry, something went wrong. Please try again!"}), 500
 
 
 @app.route('/api/chatbot/history', methods=['GET'])
