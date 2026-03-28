@@ -27,6 +27,7 @@ from apscheduler.triggers.cron import CronTrigger                  # ← ADDED
 import pytz                                                         # ← ADDED
 import os
 from dotenv import load_dotenv
+import requests
 
 load_dotenv(override=True)
 try:
@@ -2502,108 +2503,68 @@ def edit_certificate(cert_id):
 
 @app.route('/api/github/fetch', methods=['POST'])
 @login_required
-@limiter.limit("10 per hour")                             # ← ADDED
+@limiter.limit("10 per hour")
 def github_fetch():
     try:
-        import urllib.request
-        import urllib.error
+        import requests 
         data = request.get_json()
         username = data.get('username', '').strip().lstrip('@')
+        
         if not username:
             return jsonify({'success': False, 'error': 'Username is required'}), 400
+
+        # Ye Render se Token uthayega
+        token = os.getenv("GITHUB_TOKEN")
         headers = {'User-Agent': 'SkillBridge-App/1.0'}
-        def gh_get(url):
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=8) as r:
-                return json.loads(r.read().decode())
-        profile = gh_get(f'https://api.github.com/users/{username}')
-        if 'message' in profile and profile['message'] == 'Not Found':
+        
+        # Agar Token hai, toh GitHub ko batao hum "Shivam" hain
+        if token:
+            headers['Authorization'] = f'token {token}'
+
+        profile_res = requests.get(f'https://api.github.com/users/{username}', headers=headers, timeout=10)
+        
+        if profile_res.status_code == 404:
             return jsonify({'success': False, 'error': f'GitHub user "{username}" not found'}), 404
-        repos_raw = gh_get(f'https://api.github.com/users/{username}/repos?per_page=100&sort=pushed')
+            
+        profile = profile_res.json()
+        
+        # Baaki ka logic (Repos fetch)
+        repos_res = requests.get(f'https://api.github.com/users/{username}/repos?per_page=100&sort=pushed', headers=headers, timeout=10)
+        repos_raw = repos_res.json()
+
         repos_raw = [r for r in repos_raw if not r.get('fork')]
         repos_raw.sort(key=lambda r: r.get('stargazers_count', 0), reverse=True)
         top_repos = repos_raw[:6]
+
         lang_count = {}
         for r in repos_raw[:20]:
             lang = r.get('language')
             if lang: lang_count[lang] = lang_count.get(lang, 0) + 1
+        
         top_langs = sorted(lang_count, key=lang_count.get, reverse=True)[:8]
-        repos_out = [{'id': r['id'], 'name': r['name'], 'description': r.get('description') or '$set', 'url': r['html_url'], 'stars': r.get('stargazers_count', 0), 'forks': r.get('forks_count', 0), 'language': r.get('language') or '$set', 'updated': (r.get('pushed_at') or '$set')[:10]} for r in top_repos]
-        result = {'username': profile.get('login', ''), 'name': profile.get('name') or '$set', 'bio': profile.get('bio') or '$set', 'avatar': profile.get('avatar_url', ''), 'location': profile.get('location') or '$set', 'blog': profile.get('blog') or '$set', 'followers': profile.get('followers', 0), 'following': profile.get('following', 0), 'public_repos': profile.get('public_repos', 0), 'github_url': profile.get('html_url', ''), 'repos': repos_out, 'top_languages': top_langs}
-        return jsonify({'success': True, 'data': result})
-    except Exception as e:
-        print(f"GitHub fetch error: {e}"); return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/github/sync', methods=['POST'])
-@login_required
-def github_sync():
-    try:
-        data = request.get_json()
-        username = data.get('username', '').strip()
-        gh_data = data.get('github_data', {})
-        merge_skills = data.get('merge_skills', False)
-        import_repos = data.get('import_repos', False)
-        update = {
-            'github_username': username, 'github_avatar': gh_data.get('avatar', ''),
-            'github_repos': gh_data.get('repos', []), 'github_langs': gh_data.get('top_languages', []),
-            'github_followers': gh_data.get('followers', 0), 'github_public_repos': gh_data.get('public_repos', 0),
-            'github_synced_at': now_ist(),
+        repos_out = [{
+            'id': r['id'], 
+            'name': r['name'], 
+            'description': r.get('description') or 'No description', 
+            'url': r['html_url'], 
+            'stars': r.get('stargazers_count', 0), 
+            'language': r.get('language') or 'Mixed', 
+            'updated': (r.get('pushed_at') or 'Unknown')[:10]
+        } for r in top_repos]
+
+        result = {
+            'username': profile.get('login', ''),
+            'name': profile.get('name') or username,
+            'avatar': profile.get('avatar_url', ''),
+            'github_url': profile.get('html_url', ''),
+            'repos': repos_out,
+            'top_languages': top_langs
         }
-        user_data = users_collection.find_one({'_id': ObjectId(current_user.id)}) or {}
+        return jsonify({'success': True, 'data': result})
 
-        # GITHUB XP: Only award once, lifetime — loophole-safe flag
-        if not user_data.get('github_reward_claimed'):
-            add_xp(current_user.id, 25, "Connected GitHub")
-            update['github_reward_claimed'] = True
-
-        if not user_data.get('github_url') and gh_data.get('github_url'): update['github_url'] = gh_data['github_url']
-        if not user_data.get('location') and gh_data.get('location'): update['location'] = gh_data['location']
-        if not user_data.get('about_me') and gh_data.get('bio'): update['about_me'] = gh_data['bio']
-        if merge_skills and gh_data.get('top_languages'):
-            existing = set(parse_skills(user_data.get('known_skills')))
-            merged = list(existing | set(gh_data['top_languages']))
-            update['known_skills'] = merged
-        users_collection.update_one({'_id': ObjectId(current_user.id)}, {'$set': update})
-
-        # FIX: Import GitHub repos as projects with correct field names
-        if import_repos and gh_data.get('repos'):
-            for repo in gh_data['repos']:
-                existing = projects_collection.find_one({
-                    'created_by_id': ObjectId(current_user.id),
-                    'github_repo_id': repo.get('id')
-                })
-                if not existing:
-                    skills = [repo['language']] if repo.get('language') else []
-                    projects_collection.insert_one({
-                        'created_by_id':   ObjectId(current_user.id),
-                        'created_by_name': current_user.name,
-                        'title':           repo['name'].replace('-', ' ').replace('_', ' ').title(),
-                        'description':     repo.get('description') or f"A {repo.get('language') or 'code'} project on GitHub.",
-                        'skills_needed':   skills,
-                        'github_url':      repo['url'],
-                        'github_repo_id':  repo.get('id'),
-                        'stars':           repo.get('stars', 0),
-                        'is_completed':    True,
-                        'source':          'github',
-                        'created_at':      now_ist(),
-                    })
-                    add_xp(current_user.id, 10, f"GitHub repo imported: {repo['name']}")
-        return jsonify({'success': True})
     except Exception as e:
-        print(f"GitHub sync error: {e}"); return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/github/disconnect', methods=['POST'])
-@login_required
-def github_disconnect():
-    try:
-        # NOTE: github_reward_claimed is NOT unset on disconnect.
-        # This prevents the disconnect-reconnect XP farming loop.
-        users_collection.update_one(
-            {'_id': ObjectId(current_user.id)},
-            {'$unset': {'github_username': '$set', 'github_avatar': '$set', 'github_repos': '$set', 'github_langs': '$set', 'github_followers': '$set', 'github_public_repos': '$set', 'github_synced_at': '$set'}}
-        )
-        return jsonify({'success': True})
-    except Exception as e:
+        print(f"GitHub fetch error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ════════════════════════════════════════════════════════════
