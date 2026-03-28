@@ -2501,70 +2501,42 @@ def edit_certificate(cert_id):
 # GITHUB INTEGRATION ROUTES
 # ════════════════════════════════════════════════════════════
 
-@app.route('/api/github/fetch', methods=['POST'])
+@app.route('/api/github/save', methods=['POST'])
 @login_required
-@limiter.limit("10 per hour")
-def github_fetch():
+def github_save():
     try:
-        import requests 
         data = request.get_json()
-        username = data.get('username', '').strip().lstrip('@')
-        
+        github_data = data.get('github_data', {})
+        username = github_data.get('username', '')
         if not username:
-            return jsonify({'success': False, 'error': 'Username is required'}), 400
+            return jsonify({'success': False, 'error': 'No GitHub data to save'}), 400
 
-        # Ye Render se Token uthayega
-        token = os.getenv("GITHUB_TOKEN")
-        headers = {'User-Agent': 'SkillBridge-App/1.0'}
-        
-        # Agar Token hai, toh GitHub ko batao hum "Shivam" hain
-        if token:
-            headers['Authorization'] = f'token {token}'
+        users_collection.update_one(
+            {'_id': ObjectId(current_user.id)},
+            {'$set': {
+                'github_username': username,
+                'github_avatar': github_data.get('avatar', ''),
+                'github_url': github_data.get('github_url', ''),
+                'github_repos': github_data.get('repos', []),
+                'github_langs': github_data.get('top_languages', []),
+                'github_followers': github_data.get('followers', 0),
+                'github_public_repos': github_data.get('public_repos', 0),
+                'github_synced_at': now_ist()
+            }}
+        )
 
-        profile_res = requests.get(f'https://api.github.com/users/{username}', headers=headers, timeout=10)
-        
-        if profile_res.status_code == 404:
-            return jsonify({'success': False, 'error': f'GitHub user "{username}" not found'}), 404
-            
-        profile = profile_res.json()
-        
-        # Baaki ka logic (Repos fetch)
-        repos_res = requests.get(f'https://api.github.com/users/{username}/repos?per_page=100&sort=pushed', headers=headers, timeout=10)
-        repos_raw = repos_res.json()
+        # One-time XP reward for connecting GitHub
+        user = users_collection.find_one({'_id': ObjectId(current_user.id)})
+        if not user.get('github_reward_claimed'):
+            add_xp(current_user.id, 25, "Connected GitHub profile")
+            users_collection.update_one(
+                {'_id': ObjectId(current_user.id)},
+                {'$set': {'github_reward_claimed': True}}
+            )
 
-        repos_raw = [r for r in repos_raw if not r.get('fork')]
-        repos_raw.sort(key=lambda r: r.get('stargazers_count', 0), reverse=True)
-        top_repos = repos_raw[:6]
-
-        lang_count = {}
-        for r in repos_raw[:20]:
-            lang = r.get('language')
-            if lang: lang_count[lang] = lang_count.get(lang, 0) + 1
-        
-        top_langs = sorted(lang_count, key=lang_count.get, reverse=True)[:8]
-
-        repos_out = [{
-            'id': r['id'], 
-            'name': r['name'], 
-            'description': r.get('description') or 'No description', 
-            'url': r['html_url'], 
-            'stars': r.get('stargazers_count', 0), 
-            'language': r.get('language') or 'Mixed', 
-            'updated': (r.get('pushed_at') or 'Unknown')[:10]
-        } for r in top_repos]
-
-        result = {
-            'username': profile.get('login', ''),
-            'name': profile.get('name') or username,
-            'avatar': profile.get('avatar_url', ''),
-            'github_url': profile.get('html_url', ''),
-            'repos': repos_out,
-            'top_languages': top_langs
-        }
-        return jsonify({'success': True, 'data': result})
-
+        return jsonify({'success': True, 'message': 'GitHub profile saved!'})
     except Exception as e:
-        print(f"GitHub fetch error: {e}")
+        print(f"GitHub save error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ════════════════════════════════════════════════════════════
