@@ -2500,29 +2500,129 @@ def edit_certificate(cert_id):
 # ════════════════════════════════════════════════════════════
 # GITHUB INTEGRATION ROUTES
 # ════════════════════════════════════════════════════════════
-
-@app.route('/api/github/save', methods=['POST'])
+@app.route('/api/github/fetch', methods=['POST'])
 @login_required
-def github_save():
+@limiter.limit("10 per hour")
+def github_fetch():
+    try:
+        data = request.get_json()
+        username = data.get('username', '').strip().lstrip('@')
+
+        if not username:
+            return jsonify({'success': False, 'error': 'Username is required'}), 400
+
+        token = os.getenv("GITHUB_TOKEN")
+        headers = {'User-Agent': 'SkillBridge-App/1.0'}
+        if token:
+            headers['Authorization'] = f'token {token}'
+
+        profile_res = requests.get(f'https://api.github.com/users/{username}', headers=headers, timeout=10)
+
+        if profile_res.status_code == 404:
+            return jsonify({'success': False, 'error': f'GitHub user "{username}" not found'}), 404
+
+        profile = profile_res.json()
+
+        repos_res = requests.get(f'https://api.github.com/users/{username}/repos?per_page=100&sort=pushed', headers=headers, timeout=10)
+        repos_raw = repos_res.json()
+
+        repos_raw = [r for r in repos_raw if not r.get('fork')]
+        repos_raw.sort(key=lambda r: r.get('stargazers_count', 0), reverse=True)
+        top_repos = repos_raw[:6]
+
+        lang_count = {}
+        for r in repos_raw[:20]:
+            lang = r.get('language')
+            if lang:
+                lang_count[lang] = lang_count.get(lang, 0) + 1
+
+        top_langs = sorted(lang_count, key=lang_count.get, reverse=True)[:8]
+
+        repos_out = [{
+            'id':          r['id'],
+            'name':        r['name'],
+            'description': r.get('description') or 'No description',
+            'url':         r['html_url'],
+            'stars':       r.get('stargazers_count', 0),
+            'forks':       r.get('forks_count', 0),
+            'language':    r.get('language') or 'Mixed',
+            'updated':     (r.get('pushed_at') or 'Unknown')[:10]
+        } for r in top_repos]
+
+        result = {
+            'username':     profile.get('login', ''),
+            'name':         profile.get('name') or username,
+            'avatar':       profile.get('avatar_url', ''),
+            'bio':          profile.get('bio', ''),
+            'github_url':   profile.get('html_url', ''),
+            'followers':    profile.get('followers', 0),
+            'following':    profile.get('following', 0),
+            'public_repos': profile.get('public_repos', 0),
+            'repos':        repos_out,
+            'top_languages': top_langs
+        }
+        return jsonify({'success': True, 'data': result})
+
+    except Exception as e:
+        print(f"GitHub fetch error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+@app.route('/api/github/sync', methods=['POST'])
+@login_required
+def github_sync():
     try:
         data = request.get_json()
         github_data = data.get('github_data', {})
+        merge_skills = data.get('merge_skills', False)
+        import_repos = data.get('import_repos', False)
         username = github_data.get('username', '')
+
         if not username:
             return jsonify({'success': False, 'error': 'No GitHub data to save'}), 400
 
+        update_fields = {
+            'github_username':    username,
+            'github_avatar':      github_data.get('avatar', ''),
+            'github_url':         github_data.get('github_url', ''),
+            'github_repos':       github_data.get('repos', []),
+            'github_langs':       github_data.get('top_languages', []),
+            'github_followers':   github_data.get('followers', 0),
+            'github_public_repos': github_data.get('public_repos', 0),
+            'github_synced_at':   now_ist()
+        }
+
+        # Merge languages into skills if checkbox checked
+        if merge_skills:
+            langs = github_data.get('top_languages', [])
+            if langs:
+                user = users_collection.find_one({'_id': ObjectId(current_user.id)})
+                existing = user.get('skills_known', '')
+                existing_list = [s.strip() for s in existing.split(',') if s.strip()]
+                merged = list(dict.fromkeys(existing_list + langs))  # no duplicates
+                update_fields['skills_known'] = ', '.join(merged)
+
+        # Import top repos as projects if checkbox checked
+        if import_repos:
+            repos = github_data.get('repos', [])
+            for repo in repos[:6]:
+                existing = projects_collection.find_one({
+                    'created_by_id': ObjectId(current_user.id),
+                    'github_repo_id': repo.get('id')
+                })
+                if not existing:
+                    projects_collection.insert_one({
+                        'created_by_id': ObjectId(current_user.id),
+                        'title': repo.get('name', 'Untitled'),
+                        'description': repo.get('description', 'Imported from GitHub'),
+                        'tech_stack': repo.get('language', ''),
+                        'github_link': repo.get('url', ''),
+                        'github_repo_id': repo.get('id'),
+                        'status': 'completed',
+                        'created_at': now_ist()
+                    })
+
         users_collection.update_one(
             {'_id': ObjectId(current_user.id)},
-            {'$set': {
-                'github_username': username,
-                'github_avatar': github_data.get('avatar', ''),
-                'github_url': github_data.get('github_url', ''),
-                'github_repos': github_data.get('repos', []),
-                'github_langs': github_data.get('top_languages', []),
-                'github_followers': github_data.get('followers', 0),
-                'github_public_repos': github_data.get('public_repos', 0),
-                'github_synced_at': now_ist()
-            }}
+            {'$set': update_fields}
         )
 
         # One-time XP reward for connecting GitHub
@@ -2534,9 +2634,30 @@ def github_save():
                 {'$set': {'github_reward_claimed': True}}
             )
 
-        return jsonify({'success': True, 'message': 'GitHub profile saved!'})
+        return jsonify({'success': True})
     except Exception as e:
-        print(f"GitHub save error: {e}")
+        print(f"GitHub sync error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/github/disconnect', methods=['POST'])
+@login_required
+def github_disconnect():
+    try:
+        users_collection.update_one(
+            {'_id': ObjectId(current_user.id)},
+            {'$unset': {
+                'github_username': '',
+                'github_avatar': '',
+                'github_repos': '',
+                'github_langs': '',
+                'github_followers': '',
+                'github_public_repos': '',
+                'github_synced_at': ''
+            }}
+        )
+        return jsonify({'success': True})
+    except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ════════════════════════════════════════════════════════════

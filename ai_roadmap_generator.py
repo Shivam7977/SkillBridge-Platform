@@ -1,17 +1,18 @@
-from google import genai
+import google.generativeai as genai
 from googleapiclient.discovery import build
 import json
 import os
 
-client = None 
+_configured = False
 
 def configure_ai():
-    """Configures the new Gemini 2.0 Client."""
-    global client
+    """Configures the Gemini AI client."""
+    global _configured
     api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     if not api_key:
         raise ValueError("GEMINI_API_KEY not found. Make sure it's in your Render environment variables.")
-    client = genai.Client(api_key=api_key)
+    genai.configure(api_key=api_key)
+    _configured = True
 
 def get_youtube_service():
     """Initializes the YouTube Data API service."""
@@ -45,6 +46,10 @@ def find_youtube_playlist(query):
 
 def generate_roadmap_with_ai(skill_to_learn):
     """Generates a learning roadmap structure with search queries."""
+    global _configured
+    if not _configured:
+        configure_ai()
+
     prompt = f"""
     As a world-class expert in curriculum design and project-based learning, your task is to generate a hyper-detailed, logically structured learning roadmap for a user wanting to learn: "{skill_to_learn}".
     **CRITICAL INSTRUCTIONS:**
@@ -71,44 +76,41 @@ def generate_roadmap_with_ai(skill_to_learn):
           "capstone_project": {{ "title": "Final Capstone Project Title", "description": "A description...", "core_features": ["Core feature 1", "Core feature 2"] }}
         }}
     """
+
     print(f"\n🤖 Calling Gemini AI for '{skill_to_learn}'...")
     try:
-        global client
-        if client is None:
-            configure_ai()
-
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt,
-            config={"max_output_tokens": 8192}
+        model = genai.GenerativeModel(
+            model_name='gemini-2.0-flash',
+            generation_config=genai.types.GenerationConfig(
+                max_output_tokens=8192,
+                temperature=0.7
+            )
         )
+        response = model.generate_content(prompt)
 
-        # --- DEBUGGING: see the raw response ---
         print("\n--- RAW AI RESPONSE ---")
         print(response.text)
         print("-----------------------\n")
 
         response_text = response.text.strip()
 
-        # Strip markdown code fences if Gemini wraps response in them
+        # Strip markdown code fences if present
         if response_text.startswith("```"):
             parts = response_text.split("```")
-            # parts[1] will be like "json\n{...}" or just "{...}"
             if len(parts) >= 2:
                 response_text = parts[1]
                 if response_text.startswith("json"):
                     response_text = response_text[4:]
                 response_text = response_text.strip()
 
-        # Extract JSON object from response
+        # Extract JSON
         start_index = response_text.find('{')
         end_index = response_text.rfind('}')
 
         if start_index != -1 and end_index != -1 and end_index > start_index:
             json_str = response_text[start_index:end_index+1]
             roadmap_data = json.loads(json_str)
-            
-            # Validate the parsed data has required fields
+
             if not isinstance(roadmap_data, dict):
                 print("❌ Parsed data is not a dictionary.")
                 return None
@@ -118,7 +120,7 @@ def generate_roadmap_with_ai(skill_to_learn):
             if len(roadmap_data.get('stages', [])) == 0:
                 print("❌ Stages list is empty.")
                 return None
-                
+
             print(f"✅ Successfully parsed roadmap with {len(roadmap_data['stages'])} stages.")
             return roadmap_data
         else:
@@ -126,9 +128,8 @@ def generate_roadmap_with_ai(skill_to_learn):
             return None
 
     except json.JSONDecodeError as e:
-        print(f"❌ Error decoding JSON: {e}")
-        print(f"❌ Attempted to parse: {json_str[:500] if 'json_str' in locals() else 'N/A'}")
+        print(f"❌ JSON decode error: {e}")
         return None
     except Exception as e:
-        print(f"❌ An error occurred while processing the AI response: {e}")
+        print(f"❌ Error generating roadmap: {e}")
         return None
