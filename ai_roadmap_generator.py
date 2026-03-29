@@ -1,27 +1,19 @@
-from google import genai
-from google.genai import types
+import requests as http_requests
 from googleapiclient.discovery import build
 import json
 import os
 
 
 def get_api_keys():
-    """Get all available Gemini API keys for rotation."""
+    """Get all available Mistral API keys for rotation."""
     keys = [
-        os.getenv("GEMINI_API_KEY_1"),
-        os.getenv("GEMINI_API_KEY_2"),
-        os.getenv("GEMINI_API_KEY_3"),
+        os.getenv("MISTRAL_API_KEY_1"),
+        os.getenv("MISTRAL_API_KEY_2"),
     ]
     keys = [k for k in keys if k]  # remove None/empty
 
-    # Fallback to single key if rotation keys not set
     if not keys:
-        single = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-        if single:
-            keys = [single]
-
-    if not keys:
-        raise ValueError("No GEMINI_API_KEY found in environment variables.")
+        raise ValueError("No MISTRAL_API_KEY found in environment variables.")
 
     return keys
 
@@ -29,7 +21,7 @@ def get_api_keys():
 def configure_ai():
     """Validates at least one API key exists on startup."""
     keys = get_api_keys()
-    print(f"✅ Gemini AI configured with {len(keys)} API key(s).")
+    print(f"✅ Mistral AI configured with {len(keys)} API key(s).")
 
 
 def get_youtube_service():
@@ -64,8 +56,30 @@ def find_youtube_playlist(query):
     return "#", "No playlist found"
 
 
+def call_mistral(prompt, api_key):
+    """Call Mistral API and return response text."""
+    response = http_requests.post(
+        "https://api.mistral.ai/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        },
+        json={
+            "model": "mistral-small-latest",
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 8192,
+            "temperature": 0.7
+        },
+        timeout=60
+    )
+    if response.status_code == 429:
+        raise Exception("429 quota exhausted")
+    response.raise_for_status()
+    return response.json()['choices'][0]['message']['content']
+
+
 def generate_roadmap_with_ai(skill_to_learn):
-    """Generates a learning roadmap, rotating API keys on quota errors."""
+    """Generates a learning roadmap, rotating Mistral API keys on quota errors."""
     keys = get_api_keys()
 
     prompt = f"""
@@ -74,7 +88,7 @@ def generate_roadmap_with_ai(skill_to_learn):
     1.  **Project-Based Learning:** The roadmap MUST be centered around practical projects. Every stage MUST include a "project_idea" and the roadmap MUST conclude with a final "capstone_project". For each project, include a "core_features" list.
     2.  **Autonomous Structure:** You MUST independently determine the most logical number of stages.
     3.  **Resource Rules:** For free resources, provide a "youtube_search_query" to find a relevant YouTube Playlist. At the end of each stage, include a "Paid Course" resource.
-    4.  **VALID JSON OUTPUT ONLY:** Your entire response MUST be a single, perfectly structured JSON object. Do NOT wrap it in markdown code fences. Do NOT include any text before or after the JSON.
+    4.  **VALID JSON OUTPUT ONLY:** Your entire response MUST be a single, perfectly structured JSON object. Do NOT wrap it in markdown code fences. Do NOT include any text before or after the JSON. Every key MUST be in double quotes. Every string value MUST be in double quotes. No trailing commas. No single quotes anywhere.
     5.  **JSON Structure Requirements:**
         {{
           "title": "A Project-Based Roadmap for Learning {skill_to_learn}",
@@ -98,23 +112,14 @@ def generate_roadmap_with_ai(skill_to_learn):
     # Try each key in rotation until one works
     for i, key in enumerate(keys):
         try:
-            print(f"\n🤖 Trying API key {i+1}/{len(keys)} for '{skill_to_learn}'...")
-            _client = genai.Client(api_key=key)
-
-            response = _client.models.generate_content(
-                model="gemini-1.5-flash",
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    max_output_tokens=8192,
-                    temperature=0.7
-                )
-            )
+            print(f"\n🤖 Trying Mistral key {i+1}/{len(keys)} for '{skill_to_learn}'...")
+            response_text = call_mistral(prompt, key)
 
             print("\n--- RAW AI RESPONSE ---")
-            print(response.text)
+            print(response_text)
             print("-----------------------\n")
 
-            response_text = response.text.strip()
+            response_text = response_text.strip()
 
             # Strip markdown code fences if present
             if response_text.startswith("```"):
@@ -143,7 +148,7 @@ def generate_roadmap_with_ai(skill_to_learn):
                     print("❌ Stages list is empty.")
                     return None
 
-                print(f"✅ Successfully parsed roadmap with {len(roadmap_data['stages'])} stages using key {i+1}.")
+                print(f"✅ Roadmap parsed with {len(roadmap_data['stages'])} stages using key {i+1}.")
                 return roadmap_data
             else:
                 print("❌ Could not find valid JSON in response.")
@@ -151,16 +156,17 @@ def generate_roadmap_with_ai(skill_to_learn):
 
         except json.JSONDecodeError as e:
             print(f"❌ JSON decode error with key {i+1}: {e}")
-            return None
+            print(f"⚠️ Retrying with next key...")
+            continue
 
         except Exception as e:
             error_str = str(e)
-            if '429' in error_str or 'RESOURCE_EXHAUSTED' in error_str or 'quota' in error_str.lower():
-                print(f"⚠️ Key {i+1} quota exhausted — trying next key...")
+            if '429' in error_str or 'quota' in error_str.lower() or 'rate' in error_str.lower():
+                print(f"⚠️ Mistral key {i+1} quota exhausted — trying next key...")
                 continue
             else:
                 print(f"❌ Error with key {i+1}: {e}")
                 return None
 
-    print("❌ All API keys exhausted or failed.")
+    print("❌ All Mistral keys exhausted or failed.")
     return None

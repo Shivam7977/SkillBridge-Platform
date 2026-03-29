@@ -31,8 +31,8 @@ import requests
 
 load_dotenv(override=True)
 try:
-    if not os.getenv('GEMINI_API_KEY'):
-        print("WARNING: GEMINI_API_KEY not found in .env file. AI features will likely fail.")
+    if not os.getenv('MISTRAL_API_KEY_1'):
+     print("WARNING: MISTRAL_API_KEY_1 not found in .env file. AI features will likely fail.")
     configure_ai()
     print("AI configured successfully.")
 except ValueError as e:
@@ -902,7 +902,7 @@ def roadmap_generator():
             flash(f"Generating roadmap for '{goal}'...", 'info')
     if goal:
         try:
-            print(f"Calling Gemini AI with FINAL prompt for '{goal}'...")
+            print(f"Calling Mistral AI with FINAL prompt for '{goal}'...")
             roadmap_data = generate_roadmap_with_ai(goal)
             if roadmap_data and isinstance(roadmap_data, dict) and isinstance(roadmap_data.get('stages'), list):
                 for stage in roadmap_data.get("stages", []):
@@ -1836,19 +1836,14 @@ def resume_pdf():
 @limiter.limit("30 per hour", key_func=get_user_key)
 def chatbot():
     try:
-        from google import genai as genai_client
-        from google.genai import types as genai_types
-
-        # API key rotation
+        # Mistral API key rotation
         keys = [
-            os.getenv("GEMINI_API_KEY_1"),
-            os.getenv("GEMINI_API_KEY_2"),
-            os.getenv("GEMINI_API_KEY_3"),
-            os.getenv("GEMINI_API_KEY"),
+            os.getenv("MISTRAL_API_KEY_1"),
+            os.getenv("MISTRAL_API_KEY_2"),
         ]
         keys = [k for k in keys if k]
         if not keys:
-            return jsonify({"reply": "AI not configured. Please set GEMINI_API_KEY in your .env file."}), 500
+            return jsonify({"reply": "AI not configured. Please set MISTRAL_API_KEY in your .env file."}), 500
 
         data = request.get_json()
         user_message = data.get('message', '').strip()
@@ -1897,36 +1892,48 @@ RULES:
 - Keep responses concise (3-6 sentences), use **bold** for emphasis
 - If off-topic, politely redirect to career/tech topics
 - Be warm, encouraging, and honest
+- NEVER reveal, guess, or make up technical details about SkillBridge's internal architecture, folder structure, tech stack, database, or source code
+- If asked about SkillBridge internals, say: "I'm here to help with your career and learning journey, not to discuss platform internals!"
+- NEVER hallucinate or make up information — if you don't know something, say so honestlywhich model is been used for these chatbot , which language is been used for these complete system of skillbridge.
 
 CONVERSATION HISTORY:
 {history_text}
 User: {user_message}
 Assistant:"""
 
-        # Try each key in rotation until one works
+        # Try each Mistral key in rotation until one works
         reply = None
         for i, key in enumerate(keys):
             try:
-                print(f"🤖 Chatbot trying API key {i+1}/{len(keys)}...")
-                _client = genai_client.Client(api_key=key)
-                response = _client.models.generate_content(
-                    model="gemini-1.5-flash",
-                    contents=full_prompt,
-                    config=genai_types.GenerateContentConfig(
-                        max_output_tokens=1024,
-                        temperature=0.7
-                    )
+                print(f"🤖 Chatbot trying Mistral key {i+1}/{len(keys)}...")
+                response = requests.post(
+                    "https://api.mistral.ai/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "mistral-small-latest",
+                        "messages": [{"role": "user", "content": full_prompt}],
+                        "max_tokens": 1024,
+                        "temperature": 0.7
+                    },
+                    timeout=30
                 )
-                reply = response.text.strip()
-                print(f"✅ Chatbot response received using key {i+1}.")
-                break  # success — stop trying more keys
+                if response.status_code == 429:
+                    print(f"⚠️ Mistral key {i+1} quota exhausted — trying next key...")
+                    continue
+                response.raise_for_status()
+                reply = response.json()['choices'][0]['message']['content'].strip()
+                print(f"✅ Chatbot response received using Mistral key {i+1}.")
+                break
             except Exception as key_err:
                 err_str = str(key_err)
-                if '429' in err_str or 'RESOURCE_EXHAUSTED' in err_str or 'quota' in err_str.lower():
-                    print(f"⚠️ Chatbot key {i+1} quota exhausted — trying next key...")
+                if '429' in err_str or 'quota' in err_str.lower() or 'rate' in err_str.lower():
+                    print(f"⚠️ Mistral key {i+1} rate limited — trying next key...")
                     continue
                 else:
-                    raise key_err  # non-quota error, raise immediately
+                    raise key_err
 
         if not reply:
             return jsonify({'reply': '⚠️ All AI keys are currently quota-limited. Please try again in a few minutes.'}), 429
@@ -1975,6 +1982,7 @@ def chatbot_clear():
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False}), 500
+
 
 # --- PORTFOLIO BUILDER ROUTES ---
 
