@@ -2,6 +2,7 @@ import requests as http_requests
 from googleapiclient.discovery import build
 import json
 import os
+import httplib2
 
 
 def get_api_keys():
@@ -25,12 +26,18 @@ def configure_ai():
 
 
 def get_youtube_service():
-    """Initializes the YouTube Data API service."""
+    """Initializes the YouTube Data API service with a 10s timeout.
+    
+    httplib2 is what googleapiclient uses internally — setting timeout here
+    is the only reliable way to prevent it from blocking Gunicorn workers.
+    Without this, a slow YouTube response kills the entire worker process.
+    """
     api_key = os.getenv("YOUTUBE_API_KEY")
     if not api_key:
         print("Warning: YOUTUBE_API_KEY not found in .env file.")
         return None
-    return build('youtube', 'v3', developerKey=api_key)
+    http = httplib2.Http(timeout=10)  # 10s hard cap — well within Gunicorn's 30s
+    return build('youtube', 'v3', developerKey=api_key, http=http)
 
 
 def find_youtube_playlist(query):
@@ -42,7 +49,8 @@ def find_youtube_playlist(query):
     try:
         print(f"🔍 Searching YouTube for: {query}")
         request = youtube.search().list(part="snippet", q=query, type="playlist", maxResults=1)
-        response = request.execute()
+        # num_retries=0 prevents silent retries that eat into Gunicorn's 30s window
+        response = request.execute(num_retries=0)
         print(f"📺 YouTube response items: {len(response.get('items', []))}")
         if response.get('items'):
             playlist_id = response['items'][0]['id']['playlistId']
