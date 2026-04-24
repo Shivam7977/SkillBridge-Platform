@@ -575,7 +575,7 @@ def index():
         return render_template('index.html',total_users=0,total_projects=0,completed_projects=0,completion_percent=0)
 
 @app.route('/signup', methods=['GET', 'POST'])
-@limiter.limit("10 per hour")                             # ← ADDED
+@limiter.limit("10 per hour")
 def signup():
     if current_user.is_authenticated:
         return redirect(url_for('main_page'))
@@ -586,7 +586,8 @@ def signup():
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
         if not name or not email or not password or not username:
-             flash("All fields are required.", "error"); return redirect(url_for('signup'))
+            flash("All fields are required.", "error")
+            return redirect(url_for('signup'))
         import re as _re
         if not _re.match(r'^[a-z0-9_]{3,20}$', username):
             flash("Username must be 3-20 characters, letters/numbers/underscores only.", "error")
@@ -595,29 +596,34 @@ def signup():
             flash("That username is already taken. Try another.", "error")
             return redirect(url_for('signup'))
         if password != confirm_password:
-            flash("Passwords do not match.", "error"); return redirect(url_for('signup'))
+            flash("Passwords do not match.", "error")
+            return redirect(url_for('signup'))
         password_pattern = re.compile(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
         if not password_pattern.match(password):
-            flash("Password must be at least 8 characters and include uppercase, lowercase, number, and special symbol (@$!%*?&).", "error"); return redirect(url_for('signup'))
-    if users_collection.find_one({'email': email}):
-        flash("An account with this email already exists. Try logging in.", "error"); return redirect(url_for('login'))
-    otp = random.randint(100000, 999999)
-    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-    session['temp_user_data'] = {'name': name, 'email': email, 'password': hashed_password, 'username': username}
-    session['otp'] = otp
-    session['otp_timestamp'] = datetime.utcnow().timestamp()
-    success = send_email(
-        email,
-        'Your SkillBridge OTP Code',
-        f'Your One-Time Password (OTP) for SkillBridge is: {otp}. It expires in 10 minutes.'
-    )
-    if success:
-        flash('An OTP has been sent to your email. Please check your inbox (and spam folder).', 'success')
-        return redirect(url_for('verify'))
-    else:
-        flash('Failed to send verification email. Please try again later.', 'error')
-        session.pop('temp_user_data', None); session.pop('otp', None); session.pop('otp_timestamp', None)
-        return redirect(url_for('signup'))
+            flash("Password must be at least 8 characters and include uppercase, lowercase, number, and special symbol (@$!%*?&).", "error")
+            return redirect(url_for('signup'))
+        if users_collection.find_one({'email': email}):          # ← now correctly indented inside POST
+            flash("An account with this email already exists. Try logging in.", "error")
+            return redirect(url_for('login'))
+        otp = random.randint(100000, 999999)
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        session['temp_user_data'] = {'name': name, 'email': email, 'password': hashed_password, 'username': username}
+        session['otp'] = otp
+        session['otp_timestamp'] = datetime.utcnow().timestamp()
+        success = send_email(
+            email,
+            'Your SkillBridge OTP Code',
+            f'Your One-Time Password (OTP) for SkillBridge is: {otp}. It expires in 10 minutes.'
+        )
+        if success:
+            flash('An OTP has been sent to your email. Please check your inbox (and spam folder).', 'success')
+            return redirect(url_for('verify'))
+        else:
+            flash('Failed to send verification email. Please try again later.', 'error')
+            session.pop('temp_user_data', None)
+            session.pop('otp', None)
+            session.pop('otp_timestamp', None)
+            return redirect(url_for('signup'))
     return render_template('signup.html')
 
 @app.route('/api/check_username')
