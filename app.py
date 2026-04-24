@@ -10,7 +10,6 @@ from pymongo import MongoClient
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from bson.objectid import ObjectId
-from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
 from dotenv import load_dotenv
 from markupsafe import Markup
@@ -28,7 +27,7 @@ import pytz                                                         # ← ADDED
 import os
 from dotenv import load_dotenv
 import requests
-
+import resend
 load_dotenv(override=True)
 try:
     if not os.getenv('MISTRAL_API_KEY_1'):
@@ -80,15 +79,22 @@ def sanitize(text):
     return bleach.clean(text.strip(), tags=[], strip=True)
 
 
-if not os.getenv('MAIL_USERNAME') or not os.getenv('MAIL_PASSWORD'):
-    print("WARNING: Email credentials not found in .env file. Email features will likely fail.")
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
-mail = Mail(app)
+
+resend.api_key = os.getenv("RESEND_API_KEY")
+
+def send_email(to_email, subject, body):
+    """Send email via Resend API (works on Render — uses HTTPS not SMTP)."""
+    try:
+        resend.Emails.send({
+            "from": "SkillBridge <otp@skillbridge-ai.tech>",
+            "to": [to_email],
+            "subject": subject,
+            "text": body,
+        })
+        return True
+    except Exception as e:
+        print(f"❌ Resend email failed: {e}")
+        return False
 
 try:
     # This looks for MONGO_URI in your .env file. 
@@ -593,24 +599,25 @@ def signup():
         password_pattern = re.compile(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
         if not password_pattern.match(password):
             flash("Password must be at least 8 characters and include uppercase, lowercase, number, and special symbol (@$!%*?&).", "error"); return redirect(url_for('signup'))
-        if users_collection.find_one({'email': email}):
-            flash("An account with this email already exists. Try logging in.", "error"); return redirect(url_for('login'))
-        otp = random.randint(100000, 999999)
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        session['temp_user_data'] = {'name': name, 'email': email, 'password': hashed_password, 'username': username}
-        session['otp'] = otp
-        session['otp_timestamp'] = datetime.utcnow().timestamp()
-        try:
-            msg = Message('Your SkillBridge OTP Code', recipients=[email])
-            msg.body = f'Your One-Time Password (OTP) for SkillBridge is: {otp}. It expires in 10 minutes.'
-            mail.send(msg)
-            flash('An OTP has been sent to your email. Please check your inbox (and spam folder).', 'success')
-            return redirect(url_for('verify'))
-        except Exception as e:
-            print(f"Failed to send OTP email to {email}: {e}")
-            flash(f'Failed to send verification email. Please try again later or contact support.', 'error')
-            session.pop('temp_user_data', None); session.pop('otp', None); session.pop('otp_timestamp', None)
-            return redirect(url_for('signup'))
+    if users_collection.find_one({'email': email}):
+        flash("An account with this email already exists. Try logging in.", "error"); return redirect(url_for('login'))
+    otp = random.randint(100000, 999999)
+    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+    session['temp_user_data'] = {'name': name, 'email': email, 'password': hashed_password, 'username': username}
+    session['otp'] = otp
+    session['otp_timestamp'] = datetime.utcnow().timestamp()
+    success = send_email(
+        email,
+        'Your SkillBridge OTP Code',
+        f'Your One-Time Password (OTP) for SkillBridge is: {otp}. It expires in 10 minutes.'
+    )
+    if success:
+        flash('An OTP has been sent to your email. Please check your inbox (and spam folder).', 'success')
+        return redirect(url_for('verify'))
+    else:
+        flash('Failed to send verification email. Please try again later.', 'error')
+        session.pop('temp_user_data', None); session.pop('otp', None); session.pop('otp_timestamp', None)
+        return redirect(url_for('signup'))
     return render_template('signup.html')
 
 @app.route('/api/check_username')
@@ -686,26 +693,26 @@ def login():
     return render_template('login.html')
 
 @app.route('/forgot_password', methods=['GET', 'POST'])
-@limiter.limit("5 per hour")                              # ← ADDED
+@limiter.limit("5 per hour")
 def forgot_password():
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         if email and users_collection.find_one({'email': email}, {'_id': 1}):
             token = s.dumps(email, salt='password-reset-salt')
             reset_url = url_for('reset_password', token=token, _external=True)
-            try:
-                msg = Message('Password Reset Request for SkillBridge', recipients=[email])
-                msg.body = f'Click the following link to reset your password: {reset_url}\n\nThis link will expire in 1 hour.'
-                mail.send(msg)
+            success = send_email(
+                email,
+                'Password Reset Request for SkillBridge',
+                f'Click the following link to reset your password: {reset_url}\n\nThis link will expire in 1 hour.'
+            )
+            if success:
                 flash('A password reset link has been sent to your email.', 'success')
-            except Exception as e:
-                print(f"Failed to send password reset email to {email}: {e}")
+            else:
                 flash('Could not send email. Please check your email address or try again later.', 'error')
             return redirect(url_for('login'))
         flash('If an account exists for that email, a password reset link has been sent.', 'info')
         return redirect(url_for('login'))
     return render_template('forgot_password.html')
-
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
 @limiter.limit("5 per hour")                              # ← ADDED
 def reset_password(token):
