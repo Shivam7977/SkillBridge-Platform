@@ -151,11 +151,11 @@ def now_ist():
     return datetime.now(IST_TZ).replace(tzinfo=None)
 
 def to_ist(dt):
-    """Convert a UTC naive datetime from MongoDB to IST naive for display."""
+    """Datetime already stored as IST naive — return as-is for display."""
     if dt is None or not isinstance(dt, datetime):
         return now_ist()
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=pytz.utc)
+        return dt  # Already IST naive — no conversion needed
     return dt.astimezone(IST_TZ).replace(tzinfo=None)
 
 def fmt_ist(dt, fmt='%I:%M %p'):
@@ -1212,6 +1212,7 @@ def my_projects():
             p['like_count'] = len(p.get('likes', []))
             p['view_count'] = p.get('views', 0)
             p['comment_count'] = comment_counts.get(pid, 0)
+            p['skills_needed'] = p.get('skills_needed', [])
 
         total_pages = max(1, (total + PER_PAGE - 1) // PER_PAGE)
 
@@ -1230,6 +1231,7 @@ def my_projects():
                 p['created_by_id'] = str(p.get('created_by_id', ''))
                 p['like_count'] = len(p.get('likes', []))
                 p['view_count'] = p.get('views', 0)
+                p['skills_needed'] = p.get('skills_needed', [])
                 bookmarked_projects.append(p)
 
         return render_template('my_projects.html',
@@ -2151,7 +2153,11 @@ def view_user_profile(user_id):
         level_info = get_level_info(xp)
         streak = user_data.get('streak_count', 1)
         progress_pct = int((xp / level_info['next_xp']) * 100) if level_info['next_xp'] != "Max" else 100
-        return render_template('view_profile.html', profile=user_profile, xp=xp, level_info=level_info, streak=streak, progress_pct=progress_pct)
+        user_projects = list(projects_collection.find({'created_by_id': obj_id}).sort('created_at', -1))
+        for p in user_projects:
+            p['_id'] = str(p['_id'])
+            p['created_by_id'] = str(p.get('created_by_id', ''))
+        return render_template('view_profile.html', profile=user_profile, xp=xp, level_info=level_info, streak=streak, progress_pct=progress_pct, projects=user_projects)
     except Exception as e:
         print(f"Error viewing profile: {e}"); return redirect(url_for('projects'))
 
@@ -2668,7 +2674,10 @@ def github_sync():
             for repo in repos[:6]:
                 existing = projects_collection.find_one({
                     'created_by_id': ObjectId(current_user.id),
-                    'github_repo_id': repo.get('id')
+                    '$or': [
+                        {'github_repo_id': repo.get('id')},
+                        {'title': repo.get('name', ''), 'source': 'github'}
+                    ]
                 })
                 if not existing:
                     projects_collection.insert_one({
@@ -2678,9 +2687,11 @@ def github_sync():
                         'tech_stack': repo.get('language', ''),
                         'github_link': repo.get('url', ''),
                         'github_repo_id': repo.get('id'),
+                        'source': 'github',
                         'status': 'completed',
                         'created_at': now_ist()
                     })
+                    add_xp(current_user.id, 10, "Project imported from GitHub")
 
         users_collection.update_one(
             {'_id': ObjectId(current_user.id)},
