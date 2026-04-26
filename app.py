@@ -1232,6 +1232,7 @@ def my_projects():
                 p['like_count'] = len(p.get('likes', []))
                 p['view_count'] = p.get('views', 0)
                 p['skills_needed'] = p.get('skills_needed', [])
+                p['comment_count'] = p.get('comment_count', 0)
                 bookmarked_projects.append(p)
 
         return render_template('my_projects.html',
