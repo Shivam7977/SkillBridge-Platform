@@ -1,744 +1,630 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Settings — SkillBridge</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Tailwind CSS Integration -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Premium Fonts Architecture -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Playfair Display', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
+      },
+      colors: {
+        cream: { 50:'#fdfcf8', 100:'#f8f4ec', 200:'#f0e9d8', 300:'#e5d9c0', 400:'#d4c4a0', 500:'#b8a07a' },
+        ink:   { 900:'#1a1714', 800:'#2c2820', 700:'#3d3830', 600:'#5c5548', 500:'#7a7268', 400:'#9c9488' },
+        gold:  '#c4973a',
+      }
+    }
+  }
+}
+</script>
+
 <style>
-:root {
-  --bg: #f5f6fb; --surface: #ffffff; --primary: #8B5CF6; --secondary: #EC4899;
-  --text-main: #0f172a; --text-dim: #64748b; --border: #e5e7eb; --radius: 20px;
-  --shadow: 0 20px 50px rgba(0,0,0,0.07);
+body { font-family: 'DM Sans', sans-serif; }
+
+.grain-bg {
+  background-color: #f8f4ec;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
 }
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-main); }
-.dashboard-container { display: flex; }
 
-/* SIDEBAR */
-.sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 2.5rem 1.5rem; position: fixed; height: 100vh; z-index: 100; display: flex; flex-direction: column; overflow-y: auto; }
-.sidebar .logo { font-size: 1.8rem; font-weight: 800; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.5rem; text-decoration: none; display: block; }
-.sidebar a { display: flex; align-items: center; gap: 12px; padding: .8rem 1rem; border-radius: 14px; color: var(--text-dim); text-decoration: none; margin-bottom: .4rem; font-size: 0.88rem; font-weight: 600; transition: 0.2s; }
-.sidebar a:hover { background: #f1f5f9; color: var(--primary); }
-.sidebar a.active { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; box-shadow: 0 8px 24px rgba(139,92,246,.3); }
-.sidebar .sidebar-bottom { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border); }
+.custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #d4c4a0; border-radius: 10px; }
 
-/* SIDEBAR XP WIDGET */
-.sb-xp-widget {
-  background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(236,72,153,0.05));
-  border: 1px solid rgba(139,92,246,0.18); border-radius: 16px;
-  padding: 14px 16px; margin-bottom: 1.5rem;
-}
-.sb-xp-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.sb-xp-icon { font-size: 1.5rem; line-height: 1; }
-.sb-xp-info { flex: 1; min-width: 0; }
-.sb-xp-badge { font-size: 0.72rem; font-weight: 700; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sb-xp-num { font-size: 1.05rem; font-weight: 800; color: var(--text-main); line-height: 1.2; }
-.sb-xp-num span { font-size: 0.68rem; font-weight: 600; color: var(--text-dim); }
-.sb-bar-bg { width: 100%; height: 6px; background: rgba(139,92,246,0.12); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
-.sb-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 4px; transition: width 1s ease; }
-.sb-bar-labels { display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--text-dim); font-weight: 700; margin-bottom: 8px; }
-.sb-streak { display: inline-flex; align-items: center; gap: 5px; font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.18); color: #dc2626; }
-.sb-streak.cold { background: rgba(100,116,139,0.08); border-color: rgba(100,116,139,0.18); color: var(--text-dim); }
+.hover-line { position: relative; }
+.hover-line::after { content:''; position:absolute; bottom:-1px; left:0; width:0; height:1px; background:currentColor; transition:width .3s ease; }
+.hover-line:hover::after { width:100%; }
 
-/* MAIN */
-.main-content { margin-left: 260px; padding: 3rem 4rem; width: calc(100% - 260px); }
-.page-header { margin-bottom: 2.5rem; }
-.page-header h1 { font-size: 1.9rem; font-weight: 800; }
-.page-header p { color: var(--text-dim); font-size: 0.95rem; margin-top: 4px; }
-.settings-grid { display: flex; flex-direction: column; gap: 2rem; max-width: 780px; }
-
-/* CARD */
-.settings-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
-.card-header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
-.card-header-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
-.card-header h2 { font-size: 1rem; font-weight: 800; color: var(--text-main); }
-.card-header p { font-size: 0.78rem; color: var(--text-dim); margin-top: 2px; }
-.card-body { padding: 1.8rem 2rem; }
-
-/* PROGRESSION CARD */
-.xp-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 12px; }
-.level-tag { display: flex; align-items: center; gap: 10px; }
-.lvl-ico { font-size: 2.2rem; background: #f8fafc; padding: 10px; border-radius: 12px; border: 1px solid var(--border); }
-.xp-val { font-size: 1.8rem; font-weight: 900; color: var(--primary); }
-.bar-outer { width: 100%; height: 10px; background: #f1f5f9; border-radius: 10px; overflow: hidden; }
-.bar-inner { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); transition: width 1s ease; }
-.bar-text { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.8rem; font-weight: 700; color: var(--text-dim); }
-
-/* STREAK ROW in progression card */
-.streak-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); flex-wrap: wrap; }
-.streak-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 800; }
-.streak-badge.hot { background: rgba(239,68,68,0.1); border: 1.5px solid rgba(239,68,68,0.2); color: #dc2626; }
-.streak-badge.warm { background: rgba(245,158,11,0.1); border: 1.5px solid rgba(245,158,11,0.2); color: #d97706; }
-.streak-badge.cold { background: rgba(100,116,139,0.08); border: 1.5px solid var(--border); color: var(--text-dim); }
-.streak-hint { font-size: 0.75rem; color: var(--text-dim); font-weight: 600; }
-
-/* APPEARANCE */
-.theme-options { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.theme-option { border: 2px solid var(--border); border-radius: 14px; padding: 1.2rem; cursor: pointer; transition: 0.2s; position: relative; }
-.theme-option:hover { border-color: var(--primary); }
-.theme-option.active { border-color: var(--primary); background: rgba(139,92,246,0.04); }
-.theme-option .check { position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; border-radius: 50%; background: var(--primary); color: #fff; display: none; align-items: center; justify-content: center; font-size: 0.65rem; }
-.theme-option.active .check { display: flex; }
-.theme-preview { height: 80px; border-radius: 8px; margin-bottom: 10px; overflow: hidden; position: relative; }
-.theme-preview.light-prev { background: #f5f6fb; border: 1px solid #e5e7eb; }
-.theme-preview.dark-prev { background: #0f0f1a; border: 1px solid #2d2d44; }
-.preview-sidebar { position: absolute; left: 0; top: 0; bottom: 0; width: 28%; }
-.light-prev .preview-sidebar { background: #fff; border-right: 1px solid #e5e7eb; }
-.dark-prev .preview-sidebar { background: #13131f; border-right: 1px solid #2d2d44; }
-.preview-dots { padding: 8px 6px; display: flex; flex-direction: column; gap: 4px; }
-.preview-dot { height: 5px; border-radius: 3px; }
-.light-prev .preview-dot { background: #e5e7eb; }
-.dark-prev .preview-dot { background: #2d2d44; }
-.preview-dot.active { background: linear-gradient(90deg, #8B5CF6, #EC4899) !important; }
-.preview-main { position: absolute; left: 28%; right: 0; top: 0; bottom: 0; padding: 8px; }
-.preview-card-mini { border-radius: 5px; height: 28px; margin-bottom: 5px; }
-.light-prev .preview-card-mini { background: #fff; border: 1px solid #e5e7eb; }
-.dark-prev .preview-card-mini { background: #1a1a2e; border: 1px solid #2d2d44; }
-.theme-label { font-size: 0.82rem; font-weight: 700; color: var(--text-main); }
-.theme-sub { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
-
-/* ACCOUNT INFO */
-.info-row { display: flex; align-items: center; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid var(--border); }
-.info-row:last-child { border-bottom: none; padding-bottom: 0; }
-.info-row:first-child { padding-top: 0; }
-.info-label { font-size: 0.78rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
-.info-value { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
-.info-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(139,92,246,0.1); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
-
-/* PASSWORD */
-.form-group { margin-bottom: 1.2rem; }
-.form-group:last-child { margin-bottom: 0; }
-.form-group label { font-size: 0.83rem; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 6px; }
-.form-group input { width: 100%; background: #f8fafc; border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 16px; font-family: inherit; font-size: 0.9rem; outline: none; transition: 0.2s; color: var(--text-main); }
-.form-group input:focus { border-color: var(--primary); background: #fff; }
-.save-btn { padding: 12px 28px; border-radius: 12px; border: none; background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; font-weight: 700; font-size: 0.88rem; cursor: pointer; font-family: inherit; transition: 0.2s; margin-top: 0.5rem; }
-.save-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139,92,246,0.3); }
-
-/* XP TABLE */
-.xp-section-title { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 10px; margin-top: 1.2rem; }
-.xp-section-title:first-child { margin-top: 0; }
-.xp-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
-.xp-table th { font-size: 0.72rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 12px; text-align: left; background: #f8fafc; border-radius: 6px; }
-.xp-table td { padding: 9px 12px; font-size: 0.85rem; border-bottom: 1px solid var(--border); }
-.xp-table tr:last-child td { border-bottom: none; }
-.xp-table td:first-child { font-weight: 600; color: var(--text-main); }
-.xp-table td:last-child { font-weight: 800; color: var(--primary); text-align: right; }
-.xp-badge-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 8px; transition: 0.2s; }
-.xp-badge-row:hover { border-color: var(--primary); background: rgba(139,92,246,0.03); }
-.xp-badge-row.current-level { border-color: var(--primary); background: rgba(139,92,246,0.05); box-shadow: 0 0 0 3px rgba(139,92,246,0.1); }
-.badge-emoji { font-size: 1.5rem; flex-shrink: 0; }
-.badge-info { flex: 1; }
-.badge-name { font-size: 0.88rem; font-weight: 800; color: var(--text-main); }
-.badge-xp { font-size: 0.75rem; color: var(--text-dim); margin-top: 1px; }
-.badge-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 6px; overflow: hidden; }
-.badge-bar-fill { height: 100%; border-radius: 2px; }
-.current-badge-tag { font-size: 0.62rem; font-weight: 800; padding: 2px 8px; border-radius: 20px; background: rgba(139,92,246,0.12); color: var(--primary); margin-left: 8px; }
-
-/* DANGER */
-.danger-zone { border-color: #fecaca !important; }
-.danger-zone .card-header { border-bottom-color: #fecaca; background: #fff5f5; }
-.danger-zone .card-header h2 { color: #dc2626; }
-.danger-warning { background: #fff5f5; border: 1px solid #fecaca; border-radius: 12px; padding: 14px 16px; margin-bottom: 1.2rem; font-size: 0.83rem; color: #991b1b; line-height: 1.6; }
-.danger-warning i { margin-right: 6px; }
-.logout-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 20px; border-radius: 12px; border: 1.5px solid var(--border); background: #fff; color: var(--text-main); font-weight: 700; font-size: 0.88rem; cursor: pointer; font-family: inherit; transition: 0.2s; margin-bottom: 10px; text-decoration: none; }
-.logout-btn:hover { background: #f8fafc; border-color: var(--primary); color: var(--primary); }
-.delete-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 20px; border-radius: 12px; border: 1.5px solid #fecaca; background: #fff; color: #dc2626; font-weight: 700; font-size: 0.88rem; cursor: pointer; font-family: inherit; transition: 0.2s; }
-.delete-btn:hover { background: #fef2f2; border-color: #dc2626; }
-
-/* TOAST */
-.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: #0f172a; color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; z-index: 99999; transition: 0.35s cubic-bezier(.34,1.56,.64,1); opacity: 0; pointer-events: none; }
-.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-.toast.success { background: linear-gradient(90deg, #059669, #10b981); }
-.toast.error   { background: linear-gradient(90deg, #dc2626, #ef4444); }
-
-/* DARK MODE */
-body.dark .settings-card { background: #1a1a2e !important; border-color: #2d2d44 !important; }
-body.dark .card-header { background: #13131f !important; border-bottom-color: #2d2d44 !important; }
-body.dark .card-header h2 { color: #e2e8f0 !important; }
-body.dark .card-header p { color: #94a3b8 !important; }
-body.dark .lvl-ico { background: #13131f !important; border-color: #2d2d44 !important; }
-body.dark .bar-outer { background: #2d2d44 !important; }
-body.dark .streak-row { border-top-color: #2d2d44 !important; }
-body.dark .streak-badge.cold { background: rgba(100,116,139,0.15) !important; border-color: #2d2d44 !important; }
-body.dark .theme-option { border-color: #2d2d44 !important; }
-body.dark .theme-option.active { background: rgba(167,139,250,0.08) !important; }
-body.dark .theme-label { color: #e2e8f0 !important; }
-body.dark .info-row { border-bottom-color: #2d2d44 !important; }
-body.dark .info-label { color: #64748b !important; }
-body.dark .info-value { color: #e2e8f0 !important; }
-body.dark .form-group label { color: #e2e8f0 !important; }
-body.dark .form-group input { background: #0f0f1a !important; border-color: #2d2d44 !important; color: #e2e8f0 !important; }
-body.dark .form-group input:focus { border-color: #a78bfa !important; background: #13131f !important; }
-body.dark .xp-table th { background: #13131f !important; color: #64748b !important; }
-body.dark .xp-table td { border-bottom-color: #2d2d44 !important; }
-body.dark .xp-table td:first-child { color: #e2e8f0 !important; }
-body.dark .xp-badge-row { border-color: #2d2d44 !important; }
-body.dark .xp-badge-row.current-level { border-color: #a78bfa !important; background: rgba(167,139,250,0.08) !important; }
-body.dark .badge-name { color: #e2e8f0 !important; }
-body.dark .badge-bar { background: #2d2d44 !important; }
-body.dark .danger-zone { border-color: #7f1d1d !important; }
-body.dark .danger-zone .card-header { background: #1a0a0a !important; border-bottom-color: #7f1d1d !important; }
-body.dark .danger-warning { background: #1a0a0a !important; border-color: #7f1d1d !important; color: #fca5a5 !important; }
-body.dark .logout-btn { background: #0f0f1a !important; border-color: #2d2d44 !important; color: #e2e8f0 !important; }
-body.dark .logout-btn:hover { border-color: #a78bfa !important; color: #a78bfa !important; }
-body.dark .delete-btn { background: #0f0f1a !important; border-color: #7f1d1d !important; }
-body.dark .xp-section-title { color: #64748b !important; }
-body.dark .sb-xp-widget { background: linear-gradient(135deg,rgba(139,92,246,0.12),rgba(236,72,153,0.08)) !important; border-color: rgba(139,92,246,0.25) !important; }
-body.dark .sb-xp-num { color: #e2e8f0 !important; }
-body.dark .sb-bar-bg { background: rgba(139,92,246,0.18) !important; }
-
-
-/* XP ANALYTICS */
-.xp-bar-item { display:flex; flex-direction:column; align-items:center; flex-shrink:0; }
-.xp-bar-item .bar { width:20px; border-radius:4px 4px 0 0; background:linear-gradient(180deg,var(--primary),var(--secondary)); transition:height 0.6s ease; min-height:2px; }
-.xp-bar-item .bar-label { font-size:0.55rem; color:var(--text-dim); font-weight:600; margin-top:4px; transform:rotate(-45deg); white-space:nowrap; }
-.xp-bar-item:hover .bar { opacity:0.75; }
-.xp-timeline-item { display:flex; align-items:center; gap:12px; padding:10px 2rem; border-bottom:1px solid var(--border); }
-.xp-timeline-item:last-child { border-bottom:none; }
-.xp-tl-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.78rem; flex-shrink:0; }
-.xp-tl-icon.earn   { background:rgba(139,92,246,0.1); color:var(--primary); }
-.xp-tl-icon.deduct { background:rgba(239,68,68,0.1);  color:#ef4444; }
-.xp-tl-reason { flex:1; font-size:0.82rem; font-weight:600; color:var(--text-main); }
-.xp-tl-date   { font-size:0.7rem; color:var(--text-dim); margin-top:2px; }
-.xp-tl-points { font-size:0.9rem; font-weight:900; flex-shrink:0; }
-.xp-tl-points.earn   { color:var(--primary); }
-.xp-tl-points.deduct { color:#ef4444; }
-body.dark .xp-timeline-item { border-bottom-color:#2d2d44 !important; }
-body.dark .xp-tl-reason { color:#e2e8f0 !important; }
-
-/* COLLAPSIBLE CARDS */
-.card-header.collapsible { cursor: pointer; user-select: none; }
-.card-header.collapsible:hover { background: #fafbfc; }
-.card-chevron { color: var(--text-dim); transition: transform 0.3s; font-size: 0.85rem; margin-left: auto; flex-shrink: 0; }
-.card-chevron.open { transform: rotate(180deg); }
+/* Dynamic Card State Transitions */
 .collapsible-body { display: none; }
 .collapsible-body.open { display: block; }
-body.dark .card-header.collapsible:hover { background: #0f0f1a !important; }
-@media (max-width: 1100px) { .main-content { margin-left: 0; padding: 2rem; } .sidebar { display: none; } }
+.card-chevron { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.card-chevron.open { transform: rotate(180deg); }
 
-/* ===== AI USAGE CARD ===== */
-.ai-usage-row { padding: 0.3rem 0 0.5rem; }
-.ai-usage-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 12px; flex-wrap: wrap; }
-.ai-usage-label { display: flex; align-items: center; gap: 12px; }
-.ai-usage-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0; }
-.ai-usage-title { font-size: 0.9rem; font-weight: 800; color: var(--text-main); }
-.ai-usage-sub { font-size: 0.72rem; color: var(--text-dim); font-weight: 600; margin-top: 1px; }
-.ai-usage-count { display: flex; align-items: baseline; gap: 3px; flex-shrink: 0; }
-.ai-used { font-size: 1.55rem; font-weight: 900; color: var(--primary); line-height: 1; }
-.ai-sep { font-size: 1rem; font-weight: 700; color: var(--text-dim); }
-.ai-limit { font-size: 1rem; font-weight: 800; color: var(--text-main); }
-.ai-unit { font-size: 0.7rem; font-weight: 700; color: var(--text-dim); margin-left: 4px; align-self: center; }
-.ai-bar-wrap { margin-bottom: 6px; }
-.ai-bar-track { width: 100%; height: 9px; background: #f1f5f9; border-radius: 10px; overflow: hidden; }
-.ai-bar-fill { height: 100%; border-radius: 10px; transition: width 1s cubic-bezier(.4,0,.2,1); }
-.ai-bar-ok { background: linear-gradient(90deg, var(--primary), var(--secondary)); }
-.ai-bar-warn { background: linear-gradient(90deg, #f59e0b, #fb923c); }
-.ai-bar-full { background: linear-gradient(90deg, #ef4444, #dc2626); }
-.ai-bar-label { display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.7rem; font-weight: 700; color: var(--text-dim); }
-.ai-limit-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 700; padding: 5px 12px; border-radius: 20px; margin-top: 8px; }
-.ai-limit-hit { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #dc2626; }
-.ai-limit-warn { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #d97706; }
-.ai-divider { border: none; border-top: 1px solid var(--border); margin: 1.2rem 0; }
-.ai-info-footer { font-size: 0.75rem; color: var(--text-dim); background: rgba(139,92,246,0.05); border: 1px solid rgba(139,92,246,0.12); border-radius: 10px; padding: 10px 14px; margin-top: 1.2rem; display: flex; align-items: flex-start; gap: 8px; line-height: 1.6; }
-.ai-info-footer i { color: var(--primary); margin-top: 2px; flex-shrink: 0; }
+/* Analytical Component Rendering Overrides */
+.xp-bar-item .bar { transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
 
-/* Dark mode overrides for AI Usage */
-body.dark .ai-bar-track { background: #1e1e30 !important; }
-body.dark .ai-usage-title { color: #e2e8f0 !important; }
-body.dark .ai-limit { color: #e2e8f0 !important; }
-body.dark .ai-info-footer { background: rgba(139,92,246,0.08) !important; border-color: rgba(139,92,246,0.2) !important; color: #94a3b8 !important; }
-body.dark .ai-limit-hit { background: rgba(239,68,68,0.15) !important; border-color: rgba(239,68,68,0.3) !important; }
-body.dark .ai-limit-warn { background: rgba(245,158,11,0.12) !important; border-color: rgba(245,158,11,0.25) !important; }
+/* Dark mode overrides architectures */
+.dark body, .dark .grain-bg { background-color: #1a1714; background-image: none; color: #f8f4ec; }
+.dark aside { background: #2c2820 !important; border-color: #3d3830 !important; }
+.dark .editorial-card { background: #2c2820 !important; border-color: #3d3830 !important; color: #f0e9d8; }
+.dark .nav-item-active { background: #1a1714 !important; color: #c4973a !important; }
 </style>
 </head>
-<body>
-<div class="dashboard-container">
-  <aside class="sidebar">
-    <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
+<body class="grain-bg text-ink-900 min-h-screen custom-scroll antialiased transition-colors duration-300">
 
-    <!-- ── SIDEBAR XP WIDGET ── -->
-    <div class="sb-xp-widget">
-      <div class="sb-xp-top">
-        <div class="sb-xp-icon">{{ level_info.icon }}</div>
-        <div class="sb-xp-info">
-          <div class="sb-xp-badge">Lv.{{ level_info.level }} · {{ level_info.badge }}</div>
-          <div class="sb-xp-num">{{ xp }} <span>XP</span></div>
+<div class="min-h-screen flex flex-col lg:flex-row relative">
+
+  <!-- ══ MOBILE HEADER & MENU ACTION BAR ══ -->
+  <header class="lg:hidden bg-cream-100 dark:bg-ink-800 border-b border-cream-200 dark:border-ink-700 px-6 py-4 flex items-center justify-between sticky top-0 z-50 transition-colors">
+    <a href="{{ url_for('main_page') }}" class="font-display text-2xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+    <button onclick="toggleSidebarMenu()" class="text-ink-900 dark:text-cream-50 text-xl p-2 focus:outline-none transition-transform active:scale-95">
+      <i class="fas fa-bars" id="menu-icon"></i>
+    </button>
+  </header>
+
+  <!-- ══ NAVIGATION SIDEBAR ══ -->
+  <aside id="app-sidebar" class="hidden lg:flex fixed lg:sticky top-[65px] lg:top-0 left-0 w-full lg:w-64 bg-white border-r border-cream-200 p-6 flex-col h-[calc(100vh-65px)] lg:h-screen z-40 overflow-y-auto custom-scroll transition-all duration-300">
+    <a href="{{ url_for('main_page') }}" class="hidden lg:block font-display text-3xl font-black text-ink-900 dark:text-cream-50 mb-8 tracking-tight">SkillBridge</a>
+
+    <!-- ── SIDEBAR METRIC TRANSITS (XP WIDGET) ── -->
+    <div class="bg-cream-100/60 dark:bg-ink-900/40 border border-cream-300/50 dark:border-ink-700 rounded-2xl p-4 mb-6 space-y-3 shadow-inner">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl leading-none select-none">{{ level_info.icon }}</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-[9px] font-bold tracking-widest uppercase text-gold">Lv.{{ level_info.level }} · {{ level_info.badge }}</div>
+          <div class="text-lg font-black text-ink-900 dark:text-cream-100 leading-tight mt-0.5">
+            {{ xp }} <span class="text-xs font-semibold text-ink-400 dark:text-ink-500">XP</span>
+          </div>
         </div>
       </div>
-      <div class="sb-bar-bg">
-        <div class="sb-bar-fill" style="width:{{ progress_pct }}%"></div>
+      <div>
+        <div class="w-full h-1.5 bg-cream-200 dark:bg-ink-700 rounded-full overflow-hidden mb-1.5">
+          <div class="h-full bg-ink-900 dark:bg-gold rounded-full transition-all duration-1000" style="width: {{ progress_pct }}%"></div>
+        </div>
+        <div class="flex justify-between text-[10px] font-bold text-ink-500 dark:text-ink-400">
+          <span>{{ xp }} XP</span>
+          <span>{% if level_info.next_xp == 'Max' %}🏆 Max{% else %}{{ level_info.next_xp }} XP{% endif %}</span>
+        </div>
       </div>
-      <div class="sb-bar-labels">
-        <span>{{ xp }} XP</span>
-        <span>{% if level_info.next_xp == 'Max' %}🏆 Max{% else %}{{ level_info.next_xp }} XP{% endif %}</span>
+      <div class="pt-0.5">
+        {% if user.streak_count and user.streak_count >= 1 %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 text-xs font-bold text-rose-700 dark:text-rose-400">
+            <span>🔥</span> {{ user.streak_count }} day streak
+          </div>
+        {% else %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cream-200 border border-cream-300/40 dark:bg-ink-800 dark:border-ink-700 text-xs font-bold text-ink-400 dark:text-ink-500">
+            <span>❄️</span> No active streak
+          </div>
+        {% endif %}
       </div>
-      {% if user.streak_count and user.streak_count >= 1 %}
-        <div class="sb-streak">🔥 {{ user.streak_count }} day streak</div>
-      {% else %}
-        <div class="sb-streak cold">❄️ No active streak</div>
-      {% endif %}
     </div>
-    <!-- ── END SIDEBAR XP WIDGET ── -->
 
-    <a href="{{ url_for('main_page') }}"><i class="fas fa-home"></i> Dashboard</a>
-    <a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a>
-    <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
-    <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
-    <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a>
-    <a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> Roadmap AI</a>
-    <a href="{{ url_for('portfolio_builder') }}"><i class="fas fa-briefcase"></i> Portfolio Builder</a>
-    <a href="{{ url_for('resume_builder') }}"><i class="fas fa-file-alt"></i> Resume Builder</a>
-    <a href="{{ url_for('find_communities') }}"><i class="fas fa-users"></i> All Communities</a>
-    <div class="sidebar-bottom">
-      <a href="{{ url_for('settings') }}" class="active"><i class="fas fa-cog"></i> Settings</a>
-    </div>
+    <!-- ── NAVIGATION SYSTEM LINKS ── -->
+    <nav class="space-y-1 flex-1 font-body">
+      <a href="{{ url_for('main_page') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-home w-4 text-center"></i> Dashboard</a>
+      <a href="{{ url_for('messages_list') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-comment-dots w-4 text-center"></i> Messages</a>
+      <a href="{{ url_for('projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-globe w-4 text-center"></i> Community</a>
+      <a href="{{ url_for('my_projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-layer-group w-4 text-center"></i> My Projects</a>
+      <a href="{{ url_for('profile') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-user-circle w-4 text-center"></i> My Profile</a>
+      <a href="{{ url_for('roadmap_generator') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-magic w-4 text-center"></i> Roadmap AI</a>
+      <a href="{{ url_for('portfolio_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-briefcase w-4 text-center"></i> Portfolio Builder</a>
+      <a href="{{ url_for('resume_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-file-alt w-4 text-center"></i> Resume Builder</a>
+      <a href="{{ url_for('find_communities') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-users w-4 text-center"></i> All Communities</a>
+      
+      <div class="pt-4 mt-4 border-t border-cream-200 dark:border-ink-800">
+        <a href="{{ url_for('settings') }}" class="nav-item-active flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 shadow-sm transition-all"><i class="fas fa-cog w-4 text-center"></i> Settings</a>
+      </div>
+    </nav>
   </aside>
 
-  <main class="main-content">
-    <div class="page-header">
-      <h1>⚙️ Settings</h1>
-      <p>Manage your account, appearance, and preferences.</p>
+  <!-- ══ MAIN INTERACTIVE HUB CONTENT ══ -->
+  <main class="flex-1 px-4 sm:px-8 py-8 lg:py-12 max-w-4xl mx-auto w-full space-y-8 overflow-x-hidden">
+    
+    <div class="space-y-1.5">
+      <h1 class="font-display text-4xl font-black tracking-tight text-ink-900 dark:text-cream-100">⚙️ Settings</h1>
+      <p class="text-ink-500 dark:text-ink-400 text-sm font-body">Manage your account, appearance, and preferences.</p>
     </div>
 
-    <div class="settings-grid">
+    <div class="space-y-6 max-w-3xl">
 
-      <!-- PROGRESSION CARD -->
-      <div class="settings-card">
-        <div class="card-header collapsible" onclick="toggleCard('progression')">
-          <div class="card-header-icon" style="background:rgba(251,191,36,0.15);color:#f59e0b"><i class="fas fa-trophy"></i></div>
-          <div><h2>Your Progression</h2><p>Track your rank, XP and daily streak</p></div>
-          <i class="fas fa-chevron-down card-chevron open" id="chev-progression"></i>
+      <!-- ── PROGRESSION CARD ── -->
+      <div class="editorial-card bg-white border border-cream-200 rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
+        <div class="px-6 py-5 border-b border-cream-200 dark:border-ink-700 flex items-center gap-4 cursor-pointer select-none hover:bg-cream-50/50 dark:hover:bg-ink-800/50 transition-colors" onclick="toggleCard('progression')">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm bg-amber-50 dark:bg-amber-950/20 text-amber-500"><i class="fas fa-trophy"></i></div>
+          <div class="flex-1">
+            <h2 class="font-display text-lg font-bold text-ink-900 dark:text-cream-50">Your Progression</h2>
+            <p class="text-xs text-ink-400 dark:text-ink-500">Track your rank, XP and daily streak</p>
+          </div>
+          <i class="fas fa-chevron-down text-ink-400 card-chevron open" id="chev-progression"></i>
         </div>
+        
         <div class="collapsible-body open" id="body-progression">
-        <div class="card-body">
-          <div class="xp-row">
-            <div class="level-tag">
-              <div class="lvl-ico">{{ level_info.icon }}</div>
-              <div>
-                <div style="font-weight:800;font-size:1.1rem;">Level {{ level_info.level }}: {{ level_info.badge }}</div>
-                <div style="font-size:0.8rem;color:var(--text-dim);font-weight:600;">SkillBridge Rank</div>
+          <div class="p-6 space-y-6 font-body">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-cream-50/50 dark:bg-ink-900/30 p-4 rounded-xl border border-cream-200/60 dark:border-ink-800">
+              <div class="flex items-center gap-4">
+                <div class="text-3xl bg-white dark:bg-ink-800 p-3 rounded-xl border border-cream-200 dark:border-ink-700 shadow-sm">{{ level_info.icon }}</div>
+                <div>
+                  <div class="font-bold text-base text-ink-900 dark:text-cream-100">Level {{ level_info.level }}: {{ level_info.badge }}</div>
+                  <div class="text-xs text-ink-400 dark:text-ink-500 font-semibold tracking-wider uppercase mt-0.5">SkillBridge Rank</div>
+                </div>
+              </div>
+              <div class="sm:text-right">
+                <div class="text-2xl font-black text-ink-900 dark:text-gold">{{ xp }} <span class="text-xs font-semibold text-ink-400">XP</span></div>
+                <div class="text-[10px] font-bold text-ink-400 uppercase tracking-widest mt-0.5">TOTAL EARNED</div>
               </div>
             </div>
-            <div>
-              <div class="xp-val">{{ xp }} XP</div>
-              <div style="font-size:0.7rem;font-weight:800;color:var(--text-dim);text-align:right;">TOTAL EARNED</div>
-            </div>
-          </div>
 
-          <div class="bar-outer">
-            <div class="bar-inner" style="width:{{ progress_pct }}%"></div>
-          </div>
-          <div class="bar-text">
-            <span>{{ xp }} XP</span>
-            <span>{% if level_info.next_xp == 'Max' %}🏆 Max Level!{% else %}Goal: {{ level_info.next_xp }} XP{% endif %}</span>
-          </div>
-
-          <!-- STREAK ROW — NEW -->
-          <div class="streak-row">
-            {% set streak = user.streak_count if user.streak_count else 0 %}
-            {% if streak >= 30 %}
-              <span class="streak-badge hot">🔥 {{ streak }} day streak</span>
-              <span class="streak-hint">Legendary! Keep it going.</span>
-            {% elif streak >= 7 %}
-              <span class="streak-badge warm">🔥 {{ streak }} day streak</span>
-              <span class="streak-hint">On fire! Don't break the chain.</span>
-            {% elif streak >= 2 %}
-              <span class="streak-badge warm">🔥 {{ streak }} day streak</span>
-              <span class="streak-hint">Good start — log in tomorrow to keep it!</span>
-            {% else %}
-              <span class="streak-badge cold">❄️ No active streak</span>
-              <span class="streak-hint">Log in every day to build your streak and earn bonus XP.</span>
-            {% endif %}
-          </div>
-
-        </div>
-      </div>
-        </div>
-
-      <!-- APPEARANCE -->
-      <div class="settings-card">
-        <div class="card-header collapsible" onclick="toggleCard('appearance')">
-          <div class="card-header-icon" style="background:rgba(139,92,246,0.1);color:var(--primary)"><i class="fas fa-palette"></i></div>
-          <div><h2>Appearance</h2><p>Choose your preferred theme</p></div>
-          <i class="fas fa-chevron-down card-chevron" id="chev-appearance"></i>
-        </div>
-        <div class="collapsible-body" id="body-appearance">
-        <div class="card-body">
-          <div class="theme-options">
-            <div class="theme-option" id="light-option" onclick="setTheme('light')">
-              <div class="check"><i class="fas fa-check"></i></div>
-              <div class="theme-preview light-prev">
-                <div class="preview-sidebar"><div class="preview-dots"><div class="preview-dot active"></div><div class="preview-dot"></div><div class="preview-dot"></div></div></div>
-                <div class="preview-main"><div class="preview-card-mini"></div><div class="preview-card-mini"></div></div>
+            <div class="space-y-2">
+              <div class="w-full h-2.5 bg-cream-200 dark:bg-ink-700 rounded-full overflow-hidden">
+                <div class="h-full bg-ink-900 dark:bg-gold rounded-full transition-all duration-1000" style="width:{{ progress_pct }}%"></div>
               </div>
-              <div class="theme-label">☀️ Light Mode</div>
-              <div class="theme-sub">Clean & bright</div>
-            </div>
-            <div class="theme-option" id="dark-option" onclick="setTheme('dark')">
-              <div class="check"><i class="fas fa-check"></i></div>
-              <div class="theme-preview dark-prev">
-                <div class="preview-sidebar"><div class="preview-dots"><div class="preview-dot active"></div><div class="preview-dot"></div><div class="preview-dot"></div></div></div>
-                <div class="preview-main"><div class="preview-card-mini"></div><div class="preview-card-mini"></div></div>
+              <div class="flex justify-between text-xs font-bold text-ink-500 dark:text-ink-400">
+                <span>{{ xp }} XP</span>
+                <span>{% if level_info.next_xp == 'Max' %}🏆 Max Level!{% else %}Goal: {{ level_info.next_xp }} XP{% endif %}</span>
               </div>
-              <div class="theme-label">🌙 Dark Mode</div>
-              <div class="theme-sub">Easy on the eyes</div>
             </div>
-          </div>
-        </div>
-      </div>
-        </div>
 
-      <!-- ACCOUNT INFO -->
-      <div class="settings-card">
-        <div class="card-header collapsible" onclick="toggleCard('account')">
-          <div class="card-header-icon" style="background:rgba(236,72,153,0.1);color:var(--secondary)"><i class="fas fa-user-circle"></i></div>
-          <div><h2>Account Information</h2><p>Your profile details</p></div>
-          <i class="fas fa-chevron-down card-chevron" id="chev-account"></i>
-        </div>
-        <div class="collapsible-body" id="body-account">
-        <div class="card-body">
-          <div class="info-row">
-            <div class="info-label">Full Name</div>
-            <div class="info-value">{{ current_user.name }}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Username</div>
-            <div class="info-value" style="color:#8B5CF6;font-weight:700;">
-                {% if username %}@{{ username }}{% else %}<span style="color:#94a3b8;font-style:italic;">Not assigned yet</span>{% endif %}
-            </div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Email Address</div>
-            <div class="info-value">{{ current_user.email }}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Account Status</div>
-            <div class="info-value"><span class="info-badge"><i class="fas fa-check-circle"></i> Active</span></div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Member Since</div>
-            <div class="info-value">{{ member_since }}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Current Level</div>
-            <div class="info-value"><span class="info-badge">{{ level_info.icon }} {{ level_info.badge }}</span></div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Login Streak</div>
-            <div class="info-value">
+            <div class="pt-4 border-t border-cream-100 dark:border-ink-800 flex items-center gap-3">
               {% set streak = user.streak_count if user.streak_count else 0 %}
-              {% if streak >= 1 %}🔥 {{ streak }} days{% else %}❄️ None{% endif %}
+              {% if streak >= 30 %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-xs font-bold text-rose-700 dark:bg-rose-950/20 dark:border-rose-900/40 dark:text-rose-400">🔥 {{ streak }} day streak</span>
+                <span class="text-xs text-ink-500 dark:text-ink-400 font-medium">Legendary! Keep it going.</span>
+              {% elif streak >= 7 %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-xs font-bold text-amber-700 dark:bg-amber-950/20 dark:border-rose-900/40 dark:text-rose-400">🔥 {{ streak }} day streak</span>
+                <span class="text-xs text-ink-500 dark:text-ink-400 font-medium">On fire! Don't break the chain.</span>
+              {% elif streak >= 2 %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-xs font-bold text-amber-700 dark:bg-amber-950/20 dark:border-rose-900/40 dark:text-rose-400">🔥 {{ streak }} day streak</span>
+                <span class="text-xs text-ink-500 dark:text-ink-400 font-medium">Good start — log in tomorrow to keep it!</span>
+              {% else %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cream-200 border border-cream-300 text-xs font-bold text-ink-400 dark:bg-ink-800 dark:border-ink-700 dark:text-ink-500">❄️ No active streak</span>
+                <span class="text-xs text-ink-400 dark:text-ink-500 font-medium">Log in every day to build your streak and earn bonus XP.</span>
+              {% endif %}
             </div>
           </div>
         </div>
       </div>
-        </div>
 
-      <!-- WORK EXPERIENCE -->
-      <div class="settings-card">
-        <div class="card-header collapsible" onclick="toggleCard('workexp')">
-          <div class="card-header-icon" style="background:rgba(139,92,246,0.1);color:var(--primary)"><i class="fas fa-briefcase"></i></div>
-          <div><h2>Work Experience</h2><p>Your career history — shown in Resume & Portfolio</p></div>
-          <i class="fas fa-chevron-down card-chevron" id="chev-workexp"></i>
+      <!-- ── APPEARANCE MODE ── -->
+      <div class="editorial-card bg-white border border-cream-200 rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
+        <div class="px-6 py-5 border-b border-cream-200 dark:border-ink-700 flex items-center gap-4 cursor-pointer select-none hover:bg-cream-50/50 dark:hover:bg-ink-800/50 transition-colors" onclick="toggleCard('appearance')">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm bg-violet-50 dark:bg-violet-950/20 text-ink-900 dark:text-cream-100"><i class="fas fa-palette"></i></div>
+          <div class="flex-1">
+            <h2 class="font-display text-lg font-bold text-ink-900 dark:text-cream-50">Appearance</h2>
+            <p class="text-xs text-ink-400 dark:text-ink-500">Choose your preferred theme</p>
+          </div>
+          <i class="fas fa-chevron-down text-ink-400 card-chevron" id="chev-appearance"></i>
         </div>
+        
+        <div class="collapsible-body" id="body-appearance">
+          <div class="p-6 font-body">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              
+              <!-- Light Mode Toggle Variant -->
+              <div class="group border-2 border-cream-200 dark:border-ink-700 rounded-xl p-4 cursor-pointer transition-all duration-300 relative hover:border-ink-900 dark:hover:border-gold" id="light-option" onclick="setTheme('light')">
+                <div class="absolute top-3 right-3 w-5 h-5 rounded-full bg-ink-900 text-white text-[10px] hidden items-center justify-center check shadow-md"><i class="fas fa-check"></i></div>
+                <div class="w-full h-20 bg-cream-100 border border-cream-200 rounded-lg mb-3 overflow-hidden relative shadow-inner">
+                  <div class="absolute left-0 top-0 bottom-0 w-1/4 bg-white border-r border-cream-200 p-1.5 flex flex-col gap-1">
+                    <div class="h-1 bg-ink-900 rounded-full w-2/3"></div><div class="h-1 bg-cream-300 rounded-full w-full"></div>
+                  </div>
+                  <div class="absolute left-[30%] right-2 top-2 bottom-2 bg-white rounded border border-cream-200 p-1 space-y-1">
+                    <div class="h-2 bg-cream-100 rounded-md"></div><div class="h-2 bg-cream-100 rounded-md"></div>
+                  </div>
+                </div>
+                <div class="text-xs font-bold text-ink-900 dark:text-cream-100">☀️ Light Mode</div>
+                <div class="text-[11px] text-ink-400 dark:text-ink-500 mt-0.5">Clean & bright</div>
+              </div>
+
+              <!-- Dark Mode Toggle Variant -->
+              <div class="group border-2 border-cream-200 dark:border-ink-700 rounded-xl p-4 cursor-pointer transition-all duration-300 relative hover:border-ink-900 dark:hover:border-gold" id="dark-option" onclick="setTheme('dark')">
+                <div class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gold text-ink-900 text-[10px] hidden items-center justify-center check shadow-md"><i class="fas fa-check"></i></div>
+                <div class="w-full h-20 bg-[#13131f] border border-ink-800 rounded-lg mb-3 overflow-hidden relative shadow-inner">
+                  <div class="absolute left-0 top-0 bottom-0 w-1/4 bg-[#1a1a2e] border-r border-ink-800 p-1.5 flex flex-col gap-1">
+                    <div class="h-1 bg-gold rounded-full w-2/3"></div><div class="h-1 bg-ink-700 rounded-full w-full"></div>
+                  </div>
+                  <div class="absolute left-[30%] right-2 top-2 bottom-2 bg-[#1a1a2e] rounded border border-ink-800 p-1 space-y-1">
+                    <div class="h-2 bg-ink-900 rounded-md"></div><div class="h-2 bg-ink-900 rounded-md"></div>
+                  </div>
+                </div>
+                <div class="text-xs font-bold text-ink-900 dark:text-cream-100">🌙 Dark Mode</div>
+                <div class="text-[11px] text-ink-400 dark:text-ink-500 mt-0.5">Easy on the eyes</div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ACCOUNT DETAILS INFORMATION ── -->
+      <div class="editorial-card bg-white border border-cream-200 rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
+        <div class="px-6 py-5 border-b border-cream-200 dark:border-ink-700 flex items-center gap-4 cursor-pointer select-none hover:bg-cream-50/50 dark:hover:bg-ink-800/50 transition-colors" onclick="toggleCard('account')">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm bg-pink-50 dark:bg-pink-950/20 text-pink-500"><i class="fas fa-user-circle"></i></div>
+          <div class="flex-1">
+            <h2 class="font-display text-lg font-bold text-ink-900 dark:text-cream-50">Account Information</h2>
+            <p class="text-xs text-ink-400 dark:text-ink-500">Your profile details</p>
+          </div>
+          <i class="fas fa-chevron-down text-ink-400 card-chevron" id="chev-account"></i>
+        </div>
+        
+        <div class="collapsible-body" id="body-account">
+          <div class="p-6 divide-y divide-cream-100 dark:divide-ink-800 font-body text-sm">
+            <div class="flex justify-between items-center py-3.5 first:pt-0">
+              <span class="text-xs font-bold tracking-wider text-ink-400 uppercase">Full Name</span>
+              <span class="font-semibold text-ink-900 dark:text-cream-100">{{ current_user.name }}</span>
+            </div>
+            <div class="flex justify-between items-center py-3.5">
+              <span class="text-xs font-bold tracking-wider text-ink-400 uppercase">Username</span>
+              <span class="font-bold text-ink-900 dark:text-gold">
+                {% if username %}@{{ username }}{% else %}<span class="text-ink-400 italic font-normal">Not assigned yet</span>{% endif %}
+              </span>
+            </div>
+            <div class="flex justify-between items-center py-3.5">
+              <span class="text-xs font-bold tracking-wider text-ink-400 uppercase">Email Address</span>
+              <span class="font-semibold text-ink-600 dark:text-ink-400 select-all">{{ current_user.email }}</span>
+            </div>
+            <div class="flex justify-between items-center py-3.5">
+              <span class="text-xs font-bold tracking-wider text-ink-400 uppercase">Account Status</span>
+              <span><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40 text-xs font-bold text-emerald-700 dark:text-emerald-400"><i class="fas fa-check-circle text-[10px]"></i> Active</span></span>
+            </div>
+            <div class="flex justify-between items-center py-3.5">
+              <span class="text-xs font-bold tracking-wider text-ink-400 uppercase">Member Since</span>
+              <span class="font-semibold text-ink-500 dark:text-ink-400">{{ member_since }}</span>
+            </div>
+            <div class="flex justify-between items-center py-3.5">
+              <span class="text-xs font-bold tracking-wider text-ink-400 uppercase">Current Level</span>
+              <span class="font-semibold text-ink-500 dark:text-ink-400">{{ level_info.icon }} {{ level_info.badge }}</span>
+            </div>
+            <div class="flex justify-between items-center py-3.5">
+              <span class="text-xs font-bold tracking-wider text-ink-400 uppercase">Login Streak</span>
+              <span class="font-semibold text-ink-500 dark:text-ink-400">
+                {% set streak = user.streak_count if user.streak_count else 0 %}
+                {% if streak >= 1 %}🔥 {{ streak }} days{% else %}❄️ None{% endif %}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── WORK EXPERIENCE PROFILE DATA ── -->
+      <div class="editorial-card bg-white border border-cream-200 rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
+        <div class="px-6 py-5 border-b border-cream-200 dark:border-ink-700 flex items-center gap-4 cursor-pointer select-none hover:bg-cream-50/50 dark:hover:bg-ink-800/50 transition-colors" onclick="toggleCard('workexp')">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm bg-amber-50 dark:bg-amber-950/20 text-ink-900 dark:text-cream-100"><i class="fas fa-briefcase"></i></div>
+          <div class="flex-1">
+            <h2 class="font-display text-lg font-bold text-ink-900 dark:text-cream-50">Work Experience</h2>
+            <p class="text-xs text-ink-400 dark:text-ink-500">Your career history — shown in Resume & Portfolio</p>
+          </div>
+          <i class="fas fa-chevron-down text-ink-400 card-chevron" id="chev-workexp"></i>
+        </div>
+        
         <div class="collapsible-body" id="body-workexp">
-          <div class="card-body">
+          <div class="p-6 font-body text-sm">
             {% if user.current_status == 'Student' %}
-              <div style="text-align:center;padding:1rem;color:var(--text-dim);font-size:.88rem;">
-                <i class="fas fa-user-graduate" style="font-size:1.5rem;margin-bottom:.5rem;display:block;color:#8B5CF6;"></i>
-                You're set as a <strong>Student</strong>. Change your status to <strong>Working</strong> or <strong>Fresher</strong> in <a href="{{ url_for('profile') }}" style="color:var(--primary);font-weight:700;">My Profile</a> to add work experience.
+              <div class="text-center py-6 space-y-3">
+                <i class="fas fa-user-graduate text-3xl text-ink-400 dark:text-gold block mx-auto"></i>
+                <p class="text-ink-500 dark:text-ink-400 max-w-sm mx-auto leading-relaxed">You're set as a <strong>Student</strong>. Change your status to <strong>Working</strong> or <strong>Fresher</strong> in <a href="{{ url_for('profile') }}" class="text-gold font-bold">My Profile</a> to add work experience.</p>
               </div>
             {% elif user.work_experience %}
-              {% for exp in user.work_experience %}
-              <div class="info-row" style="flex-direction:column;align-items:flex-start;gap:.2rem;padding:.85rem 0;">
-                <div style="display:flex;justify-content:space-between;width:100%;flex-wrap:wrap;gap:.3rem;">
+              <div class="divide-y divide-cream-100 dark:divide-ink-800 mb-6">
+                {% for exp in user.work_experience %}
+                <div class="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row justify-between items-start gap-2">
                   <div>
-                    <div class="info-value">{{ exp.role }}</div>
-                    <div style="font-size:.82rem;color:var(--primary);font-weight:600;">{{ exp.company }}</div>
+                    <div class="font-bold text-ink-900 dark:text-cream-50 text-base leading-snug">{{ exp.role }}</div>
+                    <div class="text-sm text-gold font-semibold mt-0.5">{{ exp.company }}</div>
                   </div>
-                  <div style="font-size:.78rem;color:var(--text-dim);font-weight:600;">
+                  <div class="text-xs font-bold text-ink-400 tracking-wider dark:text-ink-500 bg-cream-100 dark:bg-ink-900 px-2.5 py-1 rounded-md border border-cream-200 dark:border-ink-800">
                     {{ exp.from_year }}{% if exp.from_year %} — {% endif %}{% if exp.is_current %}Present{% else %}{{ exp.to_year }}{% endif %}
                   </div>
                 </div>
+                {% endfor %}
               </div>
-              {% endfor %}
-              <a href="{{ url_for('profile') }}" class="save-btn" style="display:inline-flex;align-items:center;gap:8px;margin-top:.5rem;text-decoration:none;">
-                <i class="fas fa-pen"></i> Edit Experience
+              <a href="{{ url_for('profile') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-semibold text-xs rounded-xl tracking-wider uppercase transition-all hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95">
+                <i class="fas fa-pen text-[10px]"></i> Edit Experience
               </a>
             {% else %}
-              <div style="text-align:center;padding:1rem;color:var(--text-dim);font-size:.88rem;">
-                <i class="fas fa-briefcase" style="font-size:1.5rem;margin-bottom:.5rem;display:block;color:#8B5CF6;"></i>
-                No work experience added yet.
-              </div>
-              <div style="text-align:center;">
-                <a href="{{ url_for('profile') }}" class="save-btn" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;">
-                  <i class="fas fa-plus"></i> Add Experience
-                </a>
+              <div class="text-center py-6 space-y-4">
+                <i class="fas fa-briefcase text-3xl text-ink-400 block mx-auto"></i>
+                <p class="text-ink-500 dark:text-ink-400 text-xs">No work experience added yet.</p>
+                <div class="pt-2">
+                  <a href="{{ url_for('profile') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-semibold text-xs rounded-xl tracking-wider uppercase transition-all hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95">
+                    <i class="fas fa-plus text-[10px]"></i> Add Experience
+                  </a>
+                </div>
               </div>
             {% endif %}
           </div>
         </div>
       </div>
 
-      <!-- CHANGE PASSWORD -->
-      <div class="settings-card">
-        <div class="card-header collapsible" onclick="toggleCard('password')">
-          <div class="card-header-icon" style="background:rgba(34,211,238,0.1);color:#22d3ee"><i class="fas fa-lock"></i></div>
-          <div><h2>Change Password</h2><p>Update your account password</p></div>
-          <i class="fas fa-chevron-down card-chevron" id="chev-password"></i>
+      <!-- ── CRYPTOGRAPHIC PASSWORD CONFIGURATION ── -->
+      <div class="editorial-card bg-white border border-cream-200 rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
+        <div class="px-6 py-5 border-b border-cream-200 dark:border-ink-700 flex items-center gap-4 cursor-pointer select-none hover:bg-cream-50/50 dark:hover:bg-ink-800/50 transition-colors" onclick="toggleCard('password')">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm bg-cyan-50 dark:bg-cyan-950/20 text-cyan-500"><i class="fas fa-lock"></i></div>
+          <div class="flex-1">
+            <h2 class="font-display text-lg font-bold text-ink-900 dark:text-cream-50">Change Password</h2>
+            <p class="text-xs text-ink-400 dark:text-ink-500">Update your account password</p>
+          </div>
+          <i class="fas fa-chevron-down text-ink-400 card-chevron" id="chev-password"></i>
         </div>
+        
         <div class="collapsible-body" id="body-password">
-        <div class="card-body">
-          <form action="{{ url_for('change_password') }}" method="POST">
-            <div class="form-group">
-              <label>Current Password</label>
-              <input type="password" name="current_password" placeholder="Enter current password" required>
-            </div>
-            <div class="form-group">
-              <label>New Password</label>
-              <input type="password" name="new_password" placeholder="Min 8 chars, uppercase, number, symbol" required>
-            </div>
-            <div class="form-group">
-              <label>Confirm New Password</label>
-              <input type="password" name="confirm_password" placeholder="Re-enter new password" required>
-            </div>
-            <button type="submit" class="save-btn"><i class="fas fa-save" style="margin-right:8px"></i>Update Password</button>
-          </form>
+          <div class="p-6 font-body">
+            <form action="{{ url_for('change_password') }}" method="POST" class="space-y-4 max-w-xl">
+              <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-ink-600 dark:text-cream-400">Current Password</label>
+                <input type="password" name="current_password" placeholder="Enter current password" required
+                  class="w-full px-4 py-3 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200 text-sm">
+              </div>
+              <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-ink-600 dark:text-cream-400">New Password</label>
+                <input type="password" name="new_password" placeholder="Min 8 chars, uppercase, number, symbol" required
+                  class="w-full px-4 py-3 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200 text-sm">
+              </div>
+              <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-ink-600 dark:text-cream-400">Confirm New Password</label>
+                <input type="password" name="confirm_password" placeholder="Re-enter new password" required
+                  class="w-full px-4 py-3 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200 text-sm">
+              </div>
+              <div class="pt-2">
+                <button type="submit" class="inline-flex items-center gap-2 px-6 py-3 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-semibold text-sm rounded-xl tracking-wide transition-all hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95">
+                  <i class="fas fa-save text-xs opacity-80"></i> Update Password
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-        </div>
 
-      <!-- XP & BADGES GUIDE -->
-      <div class="settings-card">
-        <div class="card-header collapsible" onclick="toggleCard('xpguide')">
-          <div class="card-header-icon" style="background:rgba(251,191,36,0.15);color:#f59e0b"><i class="fas fa-star"></i></div>
-          <div><h2>XP & Badges Guide</h2><p>Learn how to earn XP and unlock badges</p></div>
-          <i class="fas fa-chevron-down card-chevron" id="chev-xpguide"></i>
+      <!-- ── XP MATRIX & BADGE LEVELS LOGS ── -->
+      <div class="editorial-card bg-white border border-cream-200 rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
+        <div class="px-6 py-5 border-b border-cream-200 dark:border-ink-700 flex items-center gap-4 cursor-pointer select-none hover:bg-cream-50/50 dark:hover:bg-ink-800/50 transition-colors" onclick="toggleCard('xpguide')">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm bg-amber-50 dark:bg-amber-950/20 text-amber-500"><i class="fas fa-star"></i></div>
+          <div class="flex-1">
+            <h2 class="font-display text-lg font-bold text-ink-900 dark:text-cream-50">XP & Badges Guide</h2>
+            <p class="text-xs text-ink-400 dark:text-ink-500">Learn how to earn XP and unlock badges</p>
+          </div>
+          <i class="fas fa-chevron-down text-ink-400 card-chevron" id="chev-xpguide"></i>
         </div>
+        
         <div class="collapsible-body" id="body-xpguide">
-        <div class="card-body">
-          <div class="xp-section-title">How to Earn XP</div>
-          <table class="xp-table">
-            <thead><tr><th>Action</th><th>XP Reward</th></tr></thead>
-            <tbody>
-              <tr><td><i class="fas fa-upload" style="color:var(--primary);margin-right:8px"></i>Upload a project version</td><td>+50 XP</td></tr>
-              <tr><td><i class="fas fa-check-circle" style="color:#10b981;margin-right:8px"></i>Complete a roadmap stage</td><td>+5 XP</td></tr>
-              <tr><td><i class="fas fa-user-circle" style="color:var(--secondary);margin-right:8px"></i>Complete your profile 100%</td><td>+30 XP</td></tr>
-              <tr><td><i class="fas fa-certificate" style="color:#f59e0b;margin-right:8px"></i>Add a certificate</td><td>+15 XP</td></tr>
-              <tr><td><i class="fas fa-users" style="color:#22d3ee;margin-right:8px"></i>Join a community</td><td>+10 XP</td></tr>
-              <tr><td><i class="fab fa-github" style="color:var(--text-main);margin-right:8px"></i>Connect GitHub (one-time)</td><td>+25 XP</td></tr>
-              <tr><td><i class="fas fa-fire" style="color:#ef4444;margin-right:8px"></i>7-day login streak</td><td>+35 XP</td></tr>
-              <tr><td><i class="fas fa-fire" style="color:#f97316;margin-right:8px"></i>30-day login streak</td><td>+100 XP</td></tr>
-              <tr><td><i class="fas fa-layer-group" style="color:var(--primary);margin-right:8px"></i>Create a project</td><td>+10 XP</td></tr>
-            </tbody>
-          </table>
-
-          <div class="xp-section-title" style="margin-top:1.5rem">Badge Levels</div>
-          {% set badges = [
-            ('🥉','Bronze Builder','0 – 200 XP · Getting started!','linear-gradient(90deg,#cd7f32,#a0522d)',1),
-            ('🥈','Silver Coder','201 – 500 XP · Building momentum','linear-gradient(90deg,#94a3b8,#64748b)',2),
-            ('🥇','Gold Developer','501 – 1000 XP · Serious builder','linear-gradient(90deg,#f59e0b,#d97706)',3),
-            ('💎','Platinum Architect','1001 – 2000 XP · Elite tier','linear-gradient(90deg,#22d3ee,#6366f1)',4),
-            ('🚀','Diamond Founder','2000+ XP · Legendary status','linear-gradient(90deg,var(--primary),var(--secondary))',5)
-          ] %}
-          {% for emoji, name, xp_range, color, lvl in badges %}
-          <div class="xp-badge-row {% if level_info.level == lvl %}current-level{% endif %}">
-            <div class="badge-emoji">{{ emoji }}</div>
-            <div class="badge-info">
-              <div class="badge-name">
-                {{ name }}
-                {% if level_info.level == lvl %}<span class="current-badge-tag">YOUR RANK</span>{% endif %}
-              </div>
-              <div class="badge-xp">{{ xp_range }}</div>
-              <div class="badge-bar"><div class="badge-bar-fill" style="width:100%;background:{{ color }}"></div></div>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-
-        </div>
-
-      <!-- XP ANALYTICS CARD -->
-      <div class="settings-card">
-        <div class="card-header" style="cursor:pointer;" onclick="toggleAnalytics()">
-          <div class="card-header-icon" style="background:rgba(139,92,246,0.1);color:var(--primary)"><i class="fas fa-chart-line"></i></div>
-          <div style="flex:1">
-            <h2>XP Analytics</h2>
-            <p>See exactly how you earned your XP over time</p>
-          </div>
-          <div id="analytics-chevron" style="color:var(--text-dim);transition:transform 0.3s;font-size:0.9rem;">
-            <i class="fas fa-chevron-down"></i>
-          </div>
-        </div>
-        <div id="analytics-panel" style="display:none;">
-          <div class="card-body" style="padding-bottom:0">
-
-            <!-- SUMMARY STATS -->
-            <div id="analytics-summary" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1.5rem;">
-              <div style="background:#f8fafc;border-radius:12px;padding:14px;text-align:center;border:1px solid var(--border);">
-                <div style="font-size:1.4rem;font-weight:900;color:var(--primary);" id="stat-earned">—</div>
-                <div style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;margin-top:3px;">Total Earned</div>
-              </div>
-              <div style="background:#f8fafc;border-radius:12px;padding:14px;text-align:center;border:1px solid var(--border);">
-                <div style="font-size:1.4rem;font-weight:900;color:#ef4444;" id="stat-deducted">—</div>
-                <div style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;margin-top:3px;">Total Deducted</div>
-              </div>
-              <div style="background:#f8fafc;border-radius:12px;padding:14px;text-align:center;border:1px solid var(--border);">
-                <div style="font-size:1.4rem;font-weight:900;color:var(--text-main);" id="stat-txns">—</div>
-                <div style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;margin-top:3px;">Transactions</div>
+          <div class="p-6 space-y-6 font-body text-sm">
+            <div class="space-y-2">
+              <div class="text-[10px] font-bold tracking-widest text-ink-400 uppercase">How to Earn XP</div>
+              <div class="overflow-x-auto border border-cream-200 dark:border-ink-800 rounded-xl bg-cream-50/20 dark:bg-ink-900/10 shadow-inner">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="bg-cream-100/60 dark:bg-ink-800/60 text-[10px] font-bold tracking-wider text-ink-500 uppercase border-b border-cream-200 dark:border-ink-800">
+                      <th class="px-4 py-3">Action</th>
+                      <th class="px-4 py-3 text-right">XP Reward</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-cream-100 dark:divide-ink-800 text-xs font-semibold text-ink-700 dark:text-cream-100">
+                    <tr><td class="px-4 py-3 flex items-center gap-2"><i class="fas fa-upload text-ink-900 dark:text-gold w-4 text-center"></i> Upload a project version</td><td class="px-4 py-3 text-right text-ink-900 dark:text-gold font-bold">+50 XP</td></tr>
+                    <tr><td class="px-4 py-3 flex items-center gap-2"><i class="fas fa-check-circle text-emerald-500 w-4 text-center"></i> Complete a roadmap stage</td><td class="px-4 py-3 text-right text-emerald-600 dark:text-emerald-400 font-bold">+5 XP</td></tr>
+                    <tr><td class="px-4 py-3 flex items-center gap-2"><i class="fas fa-user-circle text-pink-500 w-4 text-center"></i> Complete your profile 100%</td><td class="px-4 py-3 text-right text-pink-600 dark:text-pink-400 font-bold">+30 XP</td></tr>
+                    <tr><td class="px-4 py-3 flex items-center gap-2"><i class="fas fa-certificate text-amber-500 w-4 text-center"></i> Add a certificate</td><td class="px-4 py-3 text-right text-amber-600 dark:text-amber-400 font-bold">+15 XP</td></tr>
+                    <tr><td class="px-4 py-3 flex items-center gap-2"><i class="fas fa-users text-cyan-500 w-4 text-center"></i> Join a community</td><td class="px-4 py-3 text-right text-cyan-600 dark:text-cyan-400 font-bold">+10 XP</td></tr>
+                    <tr><td class="px-4 py-3 flex items-center gap-2"><i class="fab fa-github text-ink-900 dark:text-cream-50 w-4 text-center"></i> Connect GitHub (one-time)</td><td class="px-4 py-3 text-right text-ink-900 dark:text-cream-50 font-bold">+25 XP</td></tr>
+                    <tr><td class="px-4 py-3 flex items-center gap-2"><i class="fas fa-fire text-rose-500 w-4 text-center"></i> 7-day login streak</td><td class="px-4 py-3 text-right text-rose-600 dark:text-rose-400 font-bold">+35 XP</td></tr>
+                    <tr><td class="px-4 py-3 flex items-center gap-2"><i class="fas fa-fire text-orange-500 w-4 text-center"></i> 30-day login streak</td><td class="px-4 py-3 text-right text-orange-600 dark:text-orange-400 font-bold">+100 XP</td></tr>
+                    <tr><td class="px-4 py-3 flex items-center gap-2"><i class="fas fa-layer-group text-ink-900 dark:text-gold w-4 text-center"></i> Create a project</td><td class="px-4 py-3 text-right text-ink-900 dark:text-gold font-bold">+10 XP</td></tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            <!-- BAR CHART -->
-            <div style="margin-bottom:1.5rem;">
-              <div style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:12px;">XP Earned Per Day</div>
-              <div id="xp-chart-wrap" style="position:relative;height:120px;display:flex;align-items:flex-end;gap:4px;overflow-x:auto;padding-bottom:24px;">
-                <div style="color:var(--text-dim);font-size:0.8rem;width:100%;text-align:center;padding-top:40px;">Loading chart...</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- TIMELINE -->
-          <div style="border-top:1px solid var(--border);">
-            <div style="padding:1rem 2rem 0.5rem;display:flex;justify-content:space-between;align-items:center;">
-              <div style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);">Transaction History</div>
-              <div style="font-size:0.72rem;color:var(--text-dim);" id="txn-count"></div>
-            </div>
-            <div id="xp-timeline" style="max-height:360px;overflow-y:auto;">
-              <div style="padding:2rem;text-align:center;color:var(--text-dim);font-size:0.85rem;">Loading...</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- AI USAGE CARD -->
-      <div class="settings-card" id="ai-usage-card">
-        <div class="card-header collapsible" onclick="toggleCard('aiusage')">
-          <div class="card-header-icon" style="background:linear-gradient(135deg,rgba(139,92,246,0.15),rgba(236,72,153,0.1));color:var(--primary)">
-            <i class="fas fa-robot"></i>
-          </div>
-          <div style="flex:1">
-            <h2>AI Usage Today</h2>
-            <p>Your daily AI credits reset at midnight IST</p>
-          </div>
-          <i class="fas fa-chevron-down card-chevron open" id="chev-aiusage"></i>
-        </div>
-        <div class="collapsible-body" id="body-aiusage">
-          <div class="card-body">
-
-            <!-- ROADMAP GENERATOR -->
-            <div class="ai-usage-row" id="ai-roadmap-row">
-              <div class="ai-usage-meta">
-                <div class="ai-usage-label">
-                  <span class="ai-usage-icon" style="background:rgba(139,92,246,0.12);color:var(--primary)">
-                    <i class="fas fa-map-signs"></i>
-                  </span>
-                  <div>
-                    <div class="ai-usage-title">Roadmap Generator</div>
-                    <div class="ai-usage-sub">AI-powered learning path creation</div>
+            <div class="space-y-3">
+              <div class="text-[10px] font-bold tracking-widest text-ink-400 uppercase">Badge Levels</div>
+              <div class="space-y-2">
+                {% set badges = [
+                  ('🥉','Bronze Builder','0 – 200 XP · Getting started!','linear-gradient(90deg,#cd7f32,#a0522d)',1),
+                  ('🥈','Silver Coder','201 – 500 XP · Building momentum','linear-gradient(90deg,#94a3b8,#64748b)',2),
+                  ('🥇','Gold Developer','501 – 1000 XP · Serious builder','linear-gradient(90deg,#f59e0b,#d97706)',3),
+                  ('💎','Platinum Architect','1001 – 2000 XP · Elite tier','linear-gradient(90deg,#22d3ee,#6366f1)',4),
+                  ('🚀','Diamond Founder','2000+ XP · Legendary status','linear-gradient(90deg,var(--primary),var(--secondary))',5)
+                ] %}
+                {% for emoji, name, xp_range, color, lvl in badges %}
+                <div class="flex items-center gap-4 p-3 rounded-xl border transition-all duration-300 bg-white dark:bg-ink-800 {% if level_info.level == lvl %} border-ink-900 ring-4 ring-ink-900/5 dark:border-gold dark:ring-gold/10 font-bold {% else %} border-cream-200 dark:border-ink-800 opacity-80 {% endif %}">
+                  <div class="text-2xl select-none">{{ emoji }}</div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm text-ink-900 dark:text-cream-50 font-bold">{{ name }}</span>
+                      {% if level_info.level == lvl %}<span class="text-[8px] font-extrabold px-1.5 py-0.5 rounded-md bg-ink-900 text-cream-100 dark:bg-gold dark:text-ink-900 tracking-wider uppercase">YOUR RANK</span>{% endif %}
+                    </div>
+                    <div class="text-[11px] text-ink-400 dark:text-ink-500 mt-0.5">{{ xp_range }}</div>
                   </div>
                 </div>
-                <div class="ai-usage-count" id="roadmap-count-display">
-                  <span class="ai-used" id="roadmap-used">{{ ai_usage.roadmap_used }}</span>
-                  <span class="ai-sep">/</span>
-                  <span class="ai-limit">{{ ai_usage.roadmap_limit }}</span>
-                  <span class="ai-unit">used</span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ANALYTICS RUNTIME CHARTS LAYER ── -->
+      <div class="editorial-card bg-white border border-cream-200 rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
+        <div class="px-6 py-5 border-b border-cream-200 dark:border-ink-700 flex items-center gap-4 cursor-pointer select-none hover:bg-cream-50/50 dark:hover:bg-ink-800/50 transition-colors" onclick="toggleAnalytics()">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm bg-indigo-50 dark:bg-indigo-950/20 text-indigo-500"><i class="fas fa-chart-line"></i></div>
+          <div class="flex-1">
+            <h2 class="font-display text-lg font-bold text-ink-900 dark:text-cream-50">XP Analytics</h2>
+            <p class="text-xs text-ink-400 dark:text-ink-500">See exactly how you earned your XP over time</p>
+          </div>
+          <div id="analytics-chevron" class="text-ink-400 transition-transform duration-300 text-xs"><i class="fas fa-chevron-down"></i></div>
+        </div>
+        
+        <div id="analytics-panel" style="display:none;">
+          <div class="p-6 space-y-6 font-body">
+            
+            <!-- SUMMARY GRID -->
+            <div id="analytics-summary" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="bg-cream-50/50 dark:bg-ink-900/30 rounded-xl p-4 text-center border border-cream-200/60 dark:border-ink-800">
+                <div class="text-xl font-black text-ink-900 dark:text-gold" id="stat-earned">—</div>
+                <div class="text-[9px] font-bold text-ink-400 uppercase tracking-widest mt-1">Total Earned</div>
+              </div>
+              <div class="bg-cream-50/50 dark:bg-ink-900/30 rounded-xl p-4 text-center border border-cream-200/60 dark:border-ink-800">
+                <div class="text-xl font-black text-rose-600 dark:text-rose-400" id="stat-deducted">—</div>
+                <div class="text-[9px] font-bold text-ink-400 uppercase tracking-widest mt-1">Total Deducted</div>
+              </div>
+              <div class="bg-cream-50/50 dark:bg-ink-900/30 rounded-xl p-4 text-center border border-cream-200/60 dark:border-ink-800">
+                <div class="text-xl font-black text-ink-900 dark:text-cream-100" id="stat-txns">—</div>
+                <div class="text-[9px] font-bold text-ink-400 uppercase tracking-widest mt-1">Transactions</div>
+              </div>
+            </div>
+
+            <!-- ASYMMETRIC CHART DISPLAY CONTAINER -->
+            <div class="space-y-3">
+              <div class="text-[10px] font-bold tracking-widest text-ink-400 uppercase">XP Earned Per Day</div>
+              <div class="border border-cream-200 dark:border-ink-800 rounded-xl bg-cream-50/20 dark:bg-ink-900/20 p-4">
+                <div id="xp-chart-wrap" class="relative h-28 flex items-end gap-1.5 overflow-x-auto pb-6 custom-scroll">
+                  <div class="text-xs font-semibold text-ink-400 w-full text-center pt-8">Loading chart...</div>
                 </div>
               </div>
-              <div class="ai-bar-wrap">
-                {% set roadmap_pct = ((ai_usage.roadmap_used / ai_usage.roadmap_limit) * 100) | int %}
-                <div class="ai-bar-track">
-                  <div class="ai-bar-fill {% if roadmap_pct >= 100 %}ai-bar-full{% elif roadmap_pct >= 70 %}ai-bar-warn{% else %}ai-bar-ok{% endif %}"
-                       style="width: {{ [roadmap_pct, 100] | min }}%"
-                       id="roadmap-bar"></div>
+            </div>
+          </div>
+
+          <!-- HISTORICAL TIMELINE STREAM -->
+          <div class="border-t border-cream-200 dark:border-ink-700">
+            <div class="px-6 py-4 bg-cream-50/30 dark:bg-ink-900/10 flex justify-between items-center border-b border-cream-100 dark:border-ink-800">
+              <div class="text-[10px] font-bold tracking-widest text-ink-400 uppercase">Transaction History</div>
+              <div class="text-xs font-bold text-gold" id="txn-count"></div>
+            </div>
+            <div id="xp-timeline" class="max-h-80 overflow-y-auto custom-scroll divide-y divide-cream-100 dark:divide-ink-800">
+              <div class="p-8 text-center text-ink-400 text-xs font-semibold">Loading...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── AI CREDITS CONTEXT SYSTEM TODAY ── -->
+      <div class="editorial-card bg-white border border-cream-200 rounded-2xl shadow-sm overflow-hidden transition-all duration-300" id="ai-usage-card">
+        <div class="px-6 py-5 border-b border-cream-200 dark:border-ink-700 flex items-center gap-4 cursor-pointer select-none hover:bg-cream-50/50 dark:hover:bg-ink-800/50 transition-colors" onclick="toggleCard('aiusage')">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm bg-gradient-to-br from-ink-900 to-ink-700 text-cream-100 dark:from-gold dark:to-amber-600 dark:text-ink-900 shadow-sm"><i class="fas fa-robot"></i></div>
+          <div class="flex-1">
+            <h2 class="font-display text-lg font-bold text-ink-900 dark:text-cream-50">AI Usage Today</h2>
+            <p class="text-xs text-ink-400 dark:text-ink-500">Your daily AI credits reset at midnight IST</p>
+          </div>
+          <i class="fas fa-chevron-down text-ink-400 card-chevron open" id="chev-aiusage"></i>
+        </div>
+        
+        <div class="collapsible-body open" id="body-aiusage">
+          <div class="p-6 space-y-6 font-body text-sm">
+
+            <!-- ROADMAP COMPONENT ENGINE CREDITS TRACK -->
+            <div class="space-y-3" id="ai-roadmap-row">
+              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div class="flex items-center gap-3">
+                  <span class="w-8 h-8 rounded-lg flex items-center justify-center bg-cream-100 border border-cream-200 text-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-gold text-xs"><i class="fas fa-map-signs"></i></span>
+                  <div>
+                    <div class="font-bold text-ink-900 dark:text-cream-50">Roadmap Generator</div>
+                    <div class="text-[11px] text-ink-400 dark:text-ink-500">AI-powered learning path creation</div>
+                  </div>
                 </div>
-                <div class="ai-bar-label">
+                <div class="font-black text-base text-ink-500 tracking-tight" id="roadmap-count-display">
+                  <span class="text-xl text-ink-900 dark:text-gold" id="roadmap-used">{{ ai_usage.roadmap_used }}</span> / <span class="text-ink-900 dark:text-cream-100">{{ ai_usage.roadmap_limit }}</span> <span class="text-[10px] font-bold text-ink-400 uppercase tracking-widest ml-1">used</span>
+                </div>
+              </div>
+              <div class="space-y-1.5">
+                {% set roadmap_pct = ((ai_usage.roadmap_used / ai_usage.roadmap_limit) * 100) | int %}
+                <div class="w-full h-2 bg-cream-200 dark:bg-ink-800 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-700 {% if roadmap_pct >= 100 %} bg-rose-600 {% elif roadmap_pct >= 70 %} bg-amber-500 {% else %} bg-ink-900 dark:bg-gold {% endif %}"
+                       style="width: {{ [roadmap_pct, 100] | min }}%" id="roadmap-bar"></div>
+                </div>
+                <div class="flex justify-between text-[11px] font-bold text-ink-400 dark:text-ink-500">
                   <span>{{ ai_usage.roadmap_limit - ai_usage.roadmap_used }} remaining</span>
                   <span>{{ roadmap_pct }}%</span>
                 </div>
               </div>
               {% if ai_usage.roadmap_used >= ai_usage.roadmap_limit %}
-              <div class="ai-limit-badge ai-limit-hit"><i class="fas fa-ban"></i> Daily limit reached &mdash; resets at midnight IST</div>
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-50 border border-rose-200 text-xs font-bold text-rose-700 dark:bg-rose-950/20 dark:border-rose-900/40 dark:text-rose-400"><i class="fas fa-ban"></i> Daily limit reached &mdash; resets at midnight IST</div>
               {% elif roadmap_pct >= 70 %}
-              <div class="ai-limit-badge ai-limit-warn"><i class="fas fa-exclamation-triangle"></i> Running low on roadmap credits</div>
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50 border border-amber-200 text-xs font-bold text-amber-700 dark:bg-amber-950/20 dark:border-rose-900/40 dark:text-amber-400"><i class="fas fa-exclamation-triangle"></i> Running low on roadmap credits</div>
               {% endif %}
             </div>
 
-            <div class="ai-divider"></div>
+            <div class="border-t border-cream-100 dark:border-ink-800"></div>
 
-            <!-- CHATBOT -->
-            <div class="ai-usage-row" id="ai-chat-row">
-              <div class="ai-usage-meta">
-                <div class="ai-usage-label">
-                  <span class="ai-usage-icon" style="background:rgba(236,72,153,0.12);color:var(--secondary)">
-                    <i class="fas fa-comments"></i>
-                  </span>
+            <!-- CHATBOT ANALYSIS CHANNELS INTERACTIVE CREDITS TRACK -->
+            <div class="space-y-3" id="ai-chat-row">
+              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div class="flex items-center gap-3">
+                  <span class="w-8 h-8 rounded-lg flex items-center justify-center bg-cream-100 border border-cream-200 text-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-gold text-xs"><i class="fas fa-comments"></i></span>
                   <div>
-                    <div class="ai-usage-title">AI Chat Assistant</div>
-                    <div class="ai-usage-sub">Career advice &amp; skill gap analysis</div>
+                    <div class="font-bold text-ink-900 dark:text-cream-50">AI Chat Assistant</div>
+                    <div class="text-[11px] text-ink-400 dark:text-ink-500">Career advice &amp; skill gap analysis</div>
                   </div>
                 </div>
-                <div class="ai-usage-count" id="chat-count-display">
-                  <span class="ai-used" id="chat-used">{{ ai_usage.chat_used }}</span>
-                  <span class="ai-sep">/</span>
-                  <span class="ai-limit">{{ ai_usage.chat_limit }}</span>
-                  <span class="ai-unit">used</span>
+                <div class="font-black text-base text-ink-500 tracking-tight" id="chat-count-display">
+                  <span class="text-xl text-ink-900 dark:text-gold" id="chat-used">{{ ai_usage.chat_used }}</span> / <span class="text-ink-900 dark:text-cream-100">{{ ai_usage.chat_limit }}</span> <span class="text-[10px] font-bold text-ink-400 uppercase tracking-widest ml-1">used</span>
                 </div>
               </div>
-              <div class="ai-bar-wrap">
+              <div class="space-y-1.5">
                 {% set chat_pct = ((ai_usage.chat_used / ai_usage.chat_limit) * 100) | int %}
-                <div class="ai-bar-track">
-                  <div class="ai-bar-fill {% if chat_pct >= 100 %}ai-bar-full{% elif chat_pct >= 70 %}ai-bar-warn{% else %}ai-bar-ok{% endif %}"
-                       style="width: {{ [chat_pct, 100] | min }}%"
-                       id="chat-bar"></div>
+                <div class="w-full h-2 bg-cream-200 dark:bg-ink-800 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-700 {% if chat_pct >= 100 %} bg-rose-600 {% elif chat_pct >= 70 %} bg-amber-500 {% else %} bg-ink-900 dark:bg-gold {% endif %}"
+                       style="width: {{ [chat_pct, 100] | min }}%" id="chat-bar"></div>
                 </div>
-                <div class="ai-bar-label">
+                <div class="flex justify-between text-[11px] font-bold text-ink-400 dark:text-ink-500">
                   <span>{{ ai_usage.chat_limit - ai_usage.chat_used }} remaining</span>
                   <span>{{ chat_pct }}%</span>
                 </div>
               </div>
               {% if ai_usage.chat_used >= ai_usage.chat_limit %}
-              <div class="ai-limit-badge ai-limit-hit"><i class="fas fa-ban"></i> Daily limit reached &mdash; resets at midnight IST</div>
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-50 border border-rose-200 text-xs font-bold text-rose-700 dark:bg-rose-950/20 dark:border-rose-900/40 dark:text-rose-400"><i class="fas fa-ban"></i> Daily limit reached &mdash; resets at midnight IST</div>
               {% elif chat_pct >= 70 %}
-              <div class="ai-limit-badge ai-limit-warn"><i class="fas fa-exclamation-triangle"></i> Running low on chat credits</div>
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50 border border-amber-200 text-xs font-bold text-amber-700 dark:bg-amber-950/20 dark:border-rose-900/40 dark:text-amber-400"><i class="fas fa-exclamation-triangle"></i> Running low on chat credits</div>
               {% endif %}
             </div>
 
-            <!-- INFO FOOTER -->
-            <div class="ai-info-footer">
-              <i class="fas fa-info-circle"></i>
-              Limits reset daily at <strong>12:00 AM IST</strong>. Credits are per-account and cannot be transferred.
-              <a href="{{ url_for('roadmap_generator') }}" style="color:var(--primary);font-weight:700;text-decoration:none;margin-left:6px;">Generate a Roadmap &rarr;</a>
+            <!-- INFO FOOTER DATA CONTAINER MODULE -->
+            <div class="p-4 bg-cream-100/60 border border-cream-200 dark:bg-ink-900/40 dark:border-ink-800 rounded-xl text-xs text-ink-500 dark:text-ink-400 flex gap-3 line-relaxed">
+              <i class="fas fa-info-circle text-ink-900 dark:text-gold mt-0.5 flex-shrink-0"></i>
+              <div>
+                Limits reset daily at <strong>12:00 AM IST</strong>. Credits are per-account and cannot be transferred.
+                <a href="{{ url_for('roadmap_generator') }}" class="text-ink-900 font-bold dark:text-gold hover:underline ml-1">Generate a Roadmap &rarr;</a>
+              </div>
             </div>
 
           </div>
         </div>
       </div>
 
-      <!-- DANGER ZONE -->
-      <div class="settings-card danger-zone">
-        <div class="card-header collapsible" onclick="toggleCard('danger')" style="background:#fff5f5;">
-          <div class="card-header-icon" style="background:rgba(220,38,38,0.1);color:#dc2626"><i class="fas fa-exclamation-triangle"></i></div>
-          <div><h2>Danger Zone</h2><p>Irreversible actions — proceed carefully</p></div>
-          <i class="fas fa-chevron-down card-chevron" id="chev-danger" style="color:#dc2626;"></i>
-        </div>
-        <div class="collapsible-body" id="body-danger">
-        <div class="card-body">
-          <div class="danger-warning">
-            <i class="fas fa-exclamation-circle"></i>
-            Logging out will end your current session. Deleting your account is permanent and cannot be undone — all your data, projects, and roadmaps will be lost forever.
+      <!-- ── CRITICAL DESTRUCTIVE IRREVERSIBLE ACTION ZONE ── -->
+      <div class="border border-rose-300 dark:border-rose-950 bg-white rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
+        <div class="px-6 py-5 border-b border-rose-100 dark:border-rose-950 bg-rose-50/40 dark:bg-rose-950/10 flex items-center gap-4 cursor-pointer select-none" onclick="toggleCard('danger')">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm bg-rose-100 dark:bg-rose-950/40 text-rose-600"><i class="fas fa-exclamation-triangle"></i></div>
+          <div class="flex-1">
+            <h2 class="font-display text-lg font-bold text-rose-700 dark:text-rose-400">Danger Zone</h2>
+            <p class="text-xs text-rose-600/80 dark:text-rose-500/80">Irreversible actions — proceed carefully</p>
           </div>
-          <a href="{{ url_for('logout') }}" class="logout-btn">
-            <i class="fas fa-sign-out-alt"></i> Logout from SkillBridge
-          </a>
-          <button class="delete-btn" onclick="confirmDelete()">
-            <i class="fas fa-trash-alt"></i> Delete My Account Permanently
-          </button>
+          <i class="fas fa-chevron-down text-rose-500 card-chevron" id="chev-danger"></i>
         </div>
+        
+        <div class="collapsible-body" id="body-danger">
+          <div class="p-6 font-body text-sm space-y-4">
+            <div class="p-4 bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 rounded-xl text-xs text-rose-800 dark:text-rose-300 flex gap-3 leading-relaxed">
+              <i class="fas fa-exclamation-circle mt-0.5 text-base flex-shrink-0"></i>
+              <div>Logging out will end your current session. Deleting your account is permanent and cannot be undone — all your data, projects, and roadmaps will be lost forever.</div>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <a href="{{ url_for('logout') }}" class="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border-2 border-cream-200 font-bold text-ink-900 dark:border-ink-800 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-ink-800 text-xs tracking-wider uppercase transition-all active:scale-95 text-center decoration-none">
+                <i class="fas fa-sign-out-alt opacity-80"></i> Logout from SkillBridge
+              </a>
+              <button class="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border-2 border-rose-200 font-bold bg-white dark:bg-ink-900 text-rose-600 hover:bg-rose-50 dark:border-rose-950 dark:hover:bg-rose-950/30 text-xs tracking-wider uppercase transition-all active:scale-95" onclick="confirmDelete()">
+                <i class="fas fa-trash-alt opacity-80"></i> Delete My Account Permanently
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -746,12 +632,33 @@ body.dark .ai-limit-warn { background: rgba(245,158,11,0.12) !important; border-
   </main>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- Global System Notifications Overlay Floating Anchor Toast -->
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3.5 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 text-xs font-bold rounded-xl border border-cream-300 dark:border-ink-800 shadow-2xl transition-all duration-500 pointer-events-none transform translate-y-24 opacity-0 z-[9999]" id="toast"></div>
+
 {% include 'chatbot_widget.html' %}
 
 <script>
+// Toggle sidebar menu visibility parameters drawer safe constraints context
+function toggleSidebarMenu() {
+  const sidebar = document.getElementById('app-sidebar');
+  const icon = document.getElementById('menu-icon');
+  
+  if(sidebar.classList.contains('hidden')) {
+    sidebar.classList.remove('hidden');
+    sidebar.classList.add('block', 'w-full');
+    icon.classList.remove('fa-bars');
+    icon.classList.add('fa-times');
+    document.body.classList.add('overflow-hidden', 'lg:overflow-auto');
+  } else {
+    sidebar.classList.add('hidden');
+    sidebar.classList.remove('block', 'w-full');
+    icon.classList.remove('fa-times');
+    icon.classList.add('fa-bars');
+    document.body.classList.remove('overflow-hidden', 'lg:overflow-auto');
+  }
+}
 
-// ── COLLAPSIBLE CARDS ────────────────────────────────────
+// Collapsible block rendering visibility managers
 function toggleCard(id) {
     const body = document.getElementById('body-' + id);
     const chev = document.getElementById('chev-' + id);
@@ -761,17 +668,29 @@ function toggleCard(id) {
     if (chev) chev.classList.toggle('open', !isOpen);
 }
 
+// Themes architecture engine configurations mutations triggers
 function applyTheme(t) {
   if (t === 'dark') {
-    document.body.classList.add('dark');
-    document.getElementById('dark-option').classList.add('active');
-    document.getElementById('light-option').classList.remove('active');
+    document.documentElement.classList.add('dark');
+    document.getElementById('dark-option')?.classList.add('border-gold', 'ring-4', 'ring-gold/10');
+    document.getElementById('dark-option')?.querySelector('.check')?.classList.remove('hidden');
+    document.getElementById('dark-option')?.querySelector('.check')?.classList.add('flex');
+    
+    document.getElementById('light-option')?.classList.remove('border-ink-900', 'ring-4', 'ring-ink-900/5');
+    document.getElementById('light-option')?.querySelector('.check')?.classList.add('hidden');
+    document.getElementById('light-option')?.querySelector('.check')?.classList.remove('flex');
   } else {
-    document.body.classList.remove('dark');
-    document.getElementById('light-option').classList.add('active');
-    document.getElementById('dark-option').classList.remove('active');
+    document.documentElement.classList.remove('dark');
+    document.getElementById('light-option')?.classList.add('border-ink-900', 'ring-4', 'ring-ink-900/5');
+    document.getElementById('light-option')?.querySelector('.check')?.classList.remove('hidden');
+    document.getElementById('light-option')?.querySelector('.check')?.classList.add('flex');
+    
+    document.getElementById('dark-option')?.classList.remove('border-gold', 'ring-4', 'ring-gold/10');
+    document.getElementById('dark-option')?.querySelector('.check')?.classList.add('hidden');
+    document.getElementById('dark-option')?.querySelector('.check')?.classList.remove('flex');
   }
 }
+
 function setTheme(t) {
   localStorage.setItem('sb-theme', t);
   applyTheme(t);
@@ -781,9 +700,9 @@ applyTheme(localStorage.getItem('sb-theme') || 'light');
 
 function showToast(msg, type = 'success') {
   const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.className = `toast ${type} show`;
-  setTimeout(() => toast.className = 'toast', 3000);
+  toast.innerHTML = msg;
+  toast.classList.remove('translate-y-24', 'opacity-0');
+  setTimeout(() => toast.classList.add('translate-y-24', 'opacity-0'), 3500);
 }
 
 function confirmDelete() {
@@ -795,8 +714,7 @@ function confirmDelete() {
   }
 }
 
-
-// ── XP ANALYTICS ────────────────────────────────────────
+// Asynchronous background telemetry parsing trackers for structural historical matrix data layer graph
 let analyticsLoaded = false;
 let analyticsOpen = false;
 
@@ -817,38 +735,34 @@ async function loadAnalytics() {
         const res = await fetch('/api/xp_history');
         const data = await res.json();
 
-        // Summary stats
         document.getElementById('stat-earned').textContent = '+' + data.total_earned + ' XP';
         document.getElementById('stat-deducted').textContent = '-' + data.total_deducted + ' XP';
         document.getElementById('stat-txns').textContent = data.total_transactions;
         document.getElementById('txn-count').textContent = data.total_transactions + ' total';
 
-        // Bar chart
         renderChart(data.chart_data);
-
-        // Timeline
         renderTimeline(data.history);
 
     } catch(e) {
-        document.getElementById('xp-chart-wrap').innerHTML = '<div style="color:var(--text-dim);font-size:0.8rem;padding:20px;text-align:center">No XP history yet — start earning!</div>';
-        document.getElementById('xp-timeline').innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-dim);font-size:0.85rem;">No transactions yet.</div>';
+        document.getElementById('xp-chart-wrap').innerHTML = '<div class="text-xs font-semibold text-ink-400 w-full text-center pt-8">No XP history yet — start earning!</div>';
+        document.getElementById('xp-timeline').innerHTML = '<div class="p-8 text-center text-ink-400 text-xs font-semibold">No transactions yet.</div>';
     }
 }
 
 function renderChart(chartData) {
     const wrap = document.getElementById('xp-chart-wrap');
     if (!chartData || !chartData.length) {
-        wrap.innerHTML = '<div style="color:var(--text-dim);font-size:0.8rem;width:100%;text-align:center;padding-top:40px;">No data yet — earn some XP first!</div>';
+        wrap.innerHTML = '<div class="text-xs font-semibold text-ink-400 w-full text-center pt-8">No data yet — earn some XP first!</div>';
         return;
     }
     const maxXP = Math.max(...chartData.map(d => d.xp), 1);
-    const maxH = 90;
+    const maxH = 80;
     wrap.innerHTML = chartData.map(d => {
-        const h = Math.max(2, Math.round((d.xp / maxXP) * maxH));
-        const label = d.date.slice(5); // MM-DD
-        return `<div class="xp-bar-item" title="${d.date}: +${d.xp} XP">
-            <div class="bar" style="height:${h}px"></div>
-            <div class="bar-label">${label}</div>
+        const h = Math.max(4, Math.round((d.xp / maxXP) * maxH));
+        const label = d.date.slice(5); 
+        return `<div class="xp-bar-item flex flex-col items-center flex-shrink-0 group cursor-default" title="${d.date}: +${d.xp} XP">
+            <div class="bar w-5 rounded-t bg-ink-900 group-hover:bg-gold dark:bg-gold dark:group-hover:bg-cream-100" style="height:${h}px"></div>
+            <div class="text-[9px] font-bold text-ink-400 group-hover:text-ink-900 dark:group-hover:text-cream-50 transition-colors mt-2 transform -rotate-45 whitespace-nowrap">${label}</div>
         </div>`;
     }).join('');
 }
@@ -856,21 +770,21 @@ function renderChart(chartData) {
 function renderTimeline(history) {
     const tl = document.getElementById('xp-timeline');
     if (!history || !history.length) {
-        tl.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-dim);font-size:0.85rem;">No transactions yet.</div>';
+        tl.innerHTML = '<div class="p-8 text-center text-ink-400 text-xs font-semibold">No transactions yet.</div>';
         return;
     }
     const icons = {
-        earn:   '<i class="fas fa-arrow-up"></i>',
-        deduct: '<i class="fas fa-arrow-down"></i>'
+        earn:   '<i class="fas fa-arrow-up text-ink-900 dark:text-gold"></i>',
+        deduct: '<i class="fas fa-arrow-down text-rose-500"></i>'
     };
     tl.innerHTML = history.map(h => `
-        <div class="xp-timeline-item">
-            <div class="xp-tl-icon ${h.type}">${icons[h.type] || icons.earn}</div>
-            <div style="flex:1;min-width:0;">
-                <div class="xp-tl-reason">${h.reason}</div>
-                <div class="xp-tl-date">${h.timestamp}</div>
+        <div class="flex items-center gap-4 px-6 py-3.5 border-b border-cream-100 dark:border-ink-800 last:border-none hover:bg-cream-50/30 dark:hover:bg-ink-900/10 transition-all">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs bg-cream-100 border border-cream-200 dark:bg-ink-900 dark:border-ink-800 flex-shrink-0">${icons[h.type] || icons.earn}</div>
+            <div class="flex-1 min-w-0 leading-tight">
+                <div class="text-xs font-bold text-ink-900 dark:text-cream-100 truncate">${h.reason}</div>
+                <div class="text-[10px] font-bold text-ink-400 dark:text-ink-500 mt-0.5">${h.timestamp}</div>
             </div>
-            <div class="xp-tl-points ${h.type}">${h.type === 'earn' ? '+' : ''}${h.points} XP</div>
+            <div class="text-sm font-black flex-shrink-0 tracking-tight ${h.type === 'earn' ? 'text-ink-900 dark:text-gold' : 'text-rose-600 dark:text-rose-400'}">${h.type === 'earn' ? '+' : ''}${h.points} XP</div>
         </div>`).join('');
 }
 

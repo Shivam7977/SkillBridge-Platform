@@ -1,341 +1,263 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Join SkillBridge</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Playfair Display', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
+      },
+      colors: {
+        cream: { 50:'#fdfcf8', 100:'#f8f4ec', 200:'#f0e9d8', 300:'#e5d9c0', 400:'#d4c4a0', 500:'#b8a07a' },
+        ink:   { 900:'#1a1714', 800:'#2c2820', 700:'#3d3830', 600:'#5c5548', 500:'#7a7268', 400:'#9c9488' },
+        gold:  '#c4973a',
+      }
+    }
+  }
+}
+</script>
 
 <style>
-:root{
-  --bg-main:#f6f7fb;
-  --bg-card:#ffffff;
-  --primary:#7c3aed;
-  --accent:#ec4899;
-  --text-main:#111827;
-  --text-muted:#6b7280;
-  --border:#e5e7eb;
+body { font-family: 'DM Sans', sans-serif; }
+
+.grain-bg {
+  background-color: #f8f4ec;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-  font-family:Inter,system-ui;
-  min-height:100vh;
-  background:linear-gradient(180deg,#f6f7fb,#f1effa);
-  display:flex;
-}
+input { font-family: 'DM Sans', sans-serif; font-size: 15px; }
 
-/* ---------- LAYOUT ---------- */
-.wrapper{
-  width:100%;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-}
+.hover-line { position: relative; }
+.hover-line::after { content:''; position:absolute; bottom:-1px; left:0; width:0; height:1px; background:currentColor; transition:width .3s ease; }
+.hover-line:hover::after { width:100%; }
 
-/* ---------- LEFT BRAND PANEL ---------- */
-.brand{
-  position:relative;
-  padding:80px;
-  background:
-    radial-gradient(600px 300px at 20% 10%,rgba(255,255,255,.25),transparent),
-    linear-gradient(135deg,var(--primary),var(--accent));
-  color:white;
-  overflow:hidden;
-}
-.brand h1{
-  font-size:3.5rem;
-  font-weight:900;
-  line-height:1;
-}
-.brand p{
-  margin-top:20px;
-  font-size:1.1rem;
-  opacity:.9;
-  max-width:420px;
-}
-.badges{
-  margin-top:40px;
-  display:flex;
-  gap:14px;
-  flex-wrap:wrap;
-}
-.badge{
-  background:rgba(255,255,255,.18);
-  padding:10px 16px;
-  border-radius:999px;
-  font-size:.85rem;
-  backdrop-filter:blur(10px);
-}
-.glow{
-  position:absolute;
-  width:300px;
-  height:300px;
-  background:rgba(255,255,255,.25);
-  filter:blur(120px);
-  border-radius:50%;
-  bottom:-100px;
-  right:-100px;
-}
+@keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+.slide-up { animation: slideUp 0.55s cubic-bezier(0.16,1,0.3,1) both; }
 
-/* ---------- FORM SIDE ---------- */
-.form-side{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  padding:40px;
-}
-.form-container{
-  width:100%;
-  max-width:420px;
-  background:var(--bg-card);
-  border-radius:24px;
-  padding:40px;
-  box-shadow:0 40px 80px rgba(124,58,237,.25);
-  animation:slideIn .6s ease;
-}
-@keyframes slideIn{
-  from{opacity:0;transform:translateX(40px)}
-  to{opacity:1;transform:none}
-}
-.logo{
-  font-size:1.8rem;
-  font-weight:900;
-  color:var(--primary);
-  text-align:center;
-  margin-bottom:10px;
-}
-h2{
-  text-align:center;
-  font-size:1.6rem;
-}
-.subtitle{
-  text-align:center;
-  color:var(--text-muted);
-  margin-bottom:30px;
-}
-
-/* ---------- INPUTS ---------- */
-.input-group{
-  margin-bottom:18px;
-}
-.input-group label{
-  font-size:.85rem;
-  font-weight:600;
-}
-.input-wrapper{
-  position:relative;
-}
-input{
-  width:100%;
-  padding:14px 14px;
-  border-radius:12px;
-  border:1px solid var(--border);
-  background:#f9fafb;
-}
-input:focus{
-  outline:none;
-  border-color:var(--primary);
-  box-shadow:0 0 0 3px rgba(124,58,237,.15);
-}
-.toggle{
-  position:absolute;
-  right:12px;
-  top:50%;
-  transform:translateY(-50%);
-  font-size:.75rem;
-  cursor:pointer;
-  color:var(--text-muted);
-}
-
-/* ---------- BUTTON ---------- */
-button{
-  width:100%;
-  margin-top:20px;
-  padding:15px;
-  border:none;
-  border-radius:14px;
-  font-weight:700;
-  background:linear-gradient(90deg,var(--primary),var(--accent));
-  color:white;
-  cursor:pointer;
-  transition:.3s ease;
-}
-button:hover{
-  transform:translateY(-3px);
-  box-shadow:0 20px 40px rgba(124,58,237,.35);
-}
-
-.switch{
-  text-align:center;
-  margin-top:18px;
-  font-size:.9rem;
-}
-.switch a{
-  color:var(--primary);
-  font-weight:600;
-  text-decoration:none;
-}
-
-/* ---------- RESPONSIVE ---------- */
-
-
-/* Username field dark mode */
-body.dark #username-status { filter: brightness(1.2); }
-body.dark input { background:#0f0f1a !important; border-color:#2d2d44 !important; color:#e2e8f0 !important; }
-body.dark .form-container { background:#1a1a2e !important; }
-body.dark h2, body.dark label { color:#e2e8f0 !important; }
-body.dark .subtitle { color:#94a3b8 !important; }
-body.dark .switch { color:#94a3b8 !important; }
-body.dark .switch a { color:#a78bfa !important; }
+/* Dark mode overrides */
+.dark body, .dark .grain-bg { background-color: #1a1714; background-image: none; }
+.dark .form-card { background: #2c2820 !important; border-color: #3d3830 !important; }
+.dark input { background: #1a1714 !important; border-color: #3d3830 !important; color: #f0e9d8 !important; }
+.dark input::placeholder { color: #5c5548 !important; }
+.dark .field-label { color: #d4c4a0 !important; }
+.dark .form-title { color: #f0e9d8 !important; }
+.dark .form-sub { color: #9c9488 !important; }
+.dark .submit-btn { background: #f0e9d8 !important; color: #1a1714 !important; }
+.dark .submit-btn:hover { background: #fff !important; }
+.dark .toggle-pw { color: #7a7268 !important; }
+.dark .switch-text { color: #7a7268 !important; }
+.dark .switch-link { color: #c4973a !important; }
+.dark .hint { color: #5c5548 !important; }
 </style>
 </head>
 
-<body>
+<body class="grain-bg min-h-screen">
+<div class="min-h-screen flex flex-col lg:flex-row">
 
-<div class="wrapper">
-
-  <!-- LEFT SIDE -->
-  <div class="brand">
-    <h1>Build proof,<br>not promises.</h1>
-    <p>
-      SkillBridge helps you turn learning into real projects
-      and verifiable portfolios.
-    </p>
-    <div class="badges">
-      <div class="badge">AI Roadmaps</div>
-      <div class="badge">Real Projects</div>
-      <div class="badge">Proof of Work</div>
+  <!-- ══ LEFT — BRAND PANEL ══ -->
+  <div class="hidden lg:flex lg:w-[45%] bg-[#1a1714] text-[#f8f4ec] flex-col justify-between p-14 xl:p-20 relative overflow-hidden">
+    <!-- Grid lines decorative -->
+    <div class="absolute inset-0 opacity-[0.04]">
+      <div class="absolute left-1/2 top-0 bottom-0 w-px bg-[#f8f4ec]"></div>
+      <div class="absolute top-1/2 left-0 right-0 h-px bg-[#f8f4ec]"></div>
     </div>
-    <div class="glow"></div>
+
+    <!-- Top -->
+    <div class="relative z-10">
+      <p class="text-[10px] font-semibold tracking-[0.3em] uppercase text-[#7a7268]">SkillBridge · 2024</p>
+    </div>
+
+    <!-- Center headline -->
+    <div class="relative z-10">
+      <p class="text-[10px] font-semibold tracking-[0.3em] uppercase text-[#7a7268] mb-8">— Your career platform</p>
+      <h1 class="font-display text-[4.5rem] xl:text-[5.5rem] leading-[0.9] mb-8 tracking-tight">
+        Build<br>
+        proof,<br>
+        <span class="text-[#c4973a] italic">not</span><br>
+        promises.
+      </h1>
+      <p class="text-[#9c9488] text-base leading-relaxed max-w-xs font-body">
+        Turn your learning into real projects and verifiable portfolios that prove your skills.
+      </p>
+
+      <!-- Three pillars -->
+      <div class="mt-14 grid grid-cols-3 gap-6">
+        <div class="group cursor-default">
+          <div class="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#7a7268] mb-2 group-hover:text-gold transition-colors">01</div>
+          <div class="text-sm font-semibold text-[#d4c4a0]">AI Roadmaps</div>
+        </div>
+        <div class="group cursor-default">
+          <div class="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#7a7268] mb-2 group-hover:text-gold transition-colors">02</div>
+          <div class="text-sm font-semibold text-[#d4c4a0]">Real Projects</div>
+        </div>
+        <div class="group cursor-default">
+          <div class="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#7a7268] mb-2 group-hover:text-gold transition-colors">03</div>
+          <div class="text-sm font-semibold text-[#d4c4a0]">Proof of Work</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="relative z-10">
+      <div class="w-8 h-px bg-[#5c5548] mb-3"></div>
+      <p class="text-[10px] text-[#5c5548] tracking-widest uppercase">Learn · Build · Prove</p>
+    </div>
   </div>
 
-  <!-- RIGHT SIDE -->
-  <div class="form-side">
-    <div class="form-container">
-      <div class="logo">SkillBridge</div>
-      <h2>Create account</h2>
-      <p class="subtitle">Start your journey in minutes</p>
+  <!-- ══ RIGHT — FORM ══ -->
+  <div class="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-16 min-h-screen lg:min-h-0">
+    <div class="w-full max-w-[420px] slide-up">
 
-      <form id="signupForm" action="{{ url_for('signup') }}" method="POST">
+      <!-- Mobile only logo -->
+      <div class="lg:hidden mb-8">
+        <p class="text-[10px] font-semibold tracking-[0.25em] uppercase text-ink-500 mb-2">SkillBridge</p>
+        <h2 class="font-display text-4xl text-ink-900 leading-tight">
+          Build proof,<br><span class="text-[#c4973a] italic">not</span> promises.
+        </h2>
+      </div>
 
-        <div class="input-group">
-          <label>Full Name</label>
-          <input type="text" name="name" required>
+      <!-- Card -->
+      <div class="form-card bg-cream-50 border border-cream-200 rounded-2xl p-8 sm:p-10 shadow-sm hover:shadow-md transition-all duration-300">
+
+        <div class="mb-7">
+          <h2 class="form-title font-display text-[2rem] text-ink-900 leading-tight">Create account</h2>
+          <p class="form-sub text-ink-500 font-body text-sm mt-1">Start your journey in minutes</p>
         </div>
 
-        <div class="input-group">
-          <label>Email</label>
-          <input type="email" name="email" required>
-        </div>
+        <form id="signupForm" action="{{ url_for('signup') }}" method="POST" class="space-y-4">
 
-        <div class="input-group">
-          <label>Username</label>
-          <div class="input-wrapper">
-            <input type="text" name="username" id="username" placeholder="e.g. shivam_pandey" required
-              autocomplete="off" oninput="checkUsername(this.value)"
-              style="padding-right:110px;">
-            <span id="username-status" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:0.75rem;font-weight:700;"></span>
+          <!-- Full Name -->
+          <div>
+            <label class="field-label block text-[10px] font-semibold tracking-[0.2em] uppercase text-ink-600 mb-1.5">Full Name</label>
+            <input type="text" name="name" required placeholder="Your full name"
+              class="w-full px-4 py-3 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200">
           </div>
-          <div style="font-size:0.72rem;color:#6b7280;margin-top:4px;">3-20 chars, letters/numbers/underscores only</div>
-        </div>
 
-        <div class="input-group">
-          <label>Password</label>
-          <div class="input-wrapper">
-            <input type="password" id="password" name="password" required>
-            <span class="toggle" onclick="toggle('password')">SHOW</span>
+          <!-- Email -->
+          <div>
+            <label class="field-label block text-[10px] font-semibold tracking-[0.2em] uppercase text-ink-600 mb-1.5">Email Address</label>
+            <input type="email" name="email" required placeholder="you@example.com"
+              class="w-full px-4 py-3 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200">
           </div>
-        </div>
 
-        <div class="input-group">
-          <label>Confirm Password</label>
-          <div class="input-wrapper">
-            <input type="password" id="confirm_password" name="confirm_password" required>
-            <span class="toggle" onclick="toggle('confirm_password')">SHOW</span>
+          <!-- Username -->
+          <div>
+            <label class="field-label block text-[10px] font-semibold tracking-[0.2em] uppercase text-ink-600 mb-1.5">Username</label>
+            <div class="relative">
+              <input type="text" name="username" id="username" required
+                placeholder="e.g. shivam_pandey"
+                autocomplete="off" oninput="checkUsername(this.value)"
+                class="w-full px-4 py-3 pr-28 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200">
+              <span id="username-status" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold"></span>
+            </div>
+            <p class="hint text-[11px] text-ink-400 font-body mt-1">3–20 chars, letters/numbers/underscores only</p>
           </div>
-        </div>
 
-        <button type="submit">Create Account</button>
+          <!-- Password -->
+          <div>
+            <label class="field-label block text-[10px] font-semibold tracking-[0.2em] uppercase text-ink-600 mb-1.5">Password</label>
+            <div class="relative">
+              <input type="password" id="password" name="password" required
+                placeholder="Min 8 chars, A-Z, 0-9, symbol"
+                class="w-full px-4 py-3 pr-16 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200">
+              <button type="button" onclick="toggle('password')"
+                class="toggle-pw absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold tracking-wider text-ink-400 hover:text-ink-900 dark:hover:text-cream-100 transition-colors">SHOW</button>
+            </div>
+          </div>
 
-        <p class="switch">
+          <!-- Confirm Password -->
+          <div>
+            <label class="field-label block text-[10px] font-semibold tracking-[0.2em] uppercase text-ink-600 mb-1.5">Confirm Password</label>
+            <div class="relative">
+              <input type="password" id="confirm_password" name="confirm_password" required
+                placeholder="Re-enter password"
+                class="w-full px-4 py-3 pr-16 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200">
+              <button type="button" onclick="toggle('confirm_password')"
+                class="toggle-pw absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold tracking-wider text-ink-400 hover:text-ink-900 dark:hover:text-cream-100 transition-colors">SHOW</button>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit"
+            class="submit-btn w-full mt-2 py-3.5 bg-ink-900 text-cream-100 font-body font-semibold text-sm rounded-xl tracking-wide transition-all duration-300 hover:bg-ink-800 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-98">
+            Create Account →
+          </button>
+
+        </form>
+
+        <p class="switch-text text-center mt-5 text-sm text-ink-500 font-body">
           Already have an account?
-          <a href="{{ url_for('login') }}">Login</a>
+          <a href="{{ url_for('login') }}" class="switch-link hover-line font-semibold text-ink-900 ml-1">Login</a>
         </p>
-      </form>
+
+      </div>
     </div>
   </div>
 
 </div>
 
 <script>
-function toggle(id){
-  const el=document.getElementById(id);
-  el.type=el.type==="password"?"text":"password";
+function toggle(id) {
+  const el = document.getElementById(id);
+  el.type = el.type === 'password' ? 'text' : 'password';
 }
 
-let usernameTimer;
-let usernameValid = false;
+let usernameTimer, usernameValid = false;
 
 async function checkUsername(val) {
-    const status = document.getElementById('username-status');
-    val = val.trim().toLowerCase();
-    if (!val) { status.textContent = ''; usernameValid = false; return; }
-    if (!/^[a-z0-9_]{3,20}$/.test(val)) {
-        status.textContent = '❌ Invalid format';
-        status.style.color = '#ef4444';
+  const status = document.getElementById('username-status');
+  val = val.trim().toLowerCase();
+  if (!val) { status.textContent = ''; usernameValid = false; return; }
+  if (!/^[a-z0-9_]{3,20}$/.test(val)) {
+    status.textContent = '✗ Invalid';
+    status.style.color = '#dc2626';
+    usernameValid = false; return;
+  }
+  status.textContent = '...';
+  status.style.color = '#9c9488';
+  clearTimeout(usernameTimer);
+  usernameTimer = setTimeout(async () => {
+    try {
+      const res  = await fetch(`/api/check_username?username=${encodeURIComponent(val)}`);
+      const data = await res.json();
+      if (data.available) {
+        status.textContent = '✓ Available';
+        status.style.color = '#16a34a';
+        usernameValid = true;
+      } else {
+        status.textContent = data.error || '✗ Taken';
+        status.style.color = '#dc2626';
         usernameValid = false;
-        return;
-    }
-    status.textContent = '⏳ Checking...';
-    status.style.color = '#6b7280';
-    clearTimeout(usernameTimer);
-    usernameTimer = setTimeout(async () => {
-        try {
-            const res = await fetch(`/api/check_username?username=${encodeURIComponent(val)}`);
-            const data = await res.json();
-            if (data.available) {
-                status.textContent = '✅ Available!';
-                status.style.color = '#10b981';
-                usernameValid = true;
-            } else {
-                status.textContent = data.error || '❌ Taken';
-                status.style.color = '#ef4444';
-                usernameValid = false;
-            }
-        } catch(e) { status.textContent = ''; }
-    }, 500);
+      }
+    } catch(e) { status.textContent = ''; }
+  }, 500);
 }
 
-/* existing validation untouched */
-document.getElementById('signupForm').addEventListener('submit', function(event) {
-  event.preventDefault(); 
-
-  const password = document.getElementById('password').value;
-  const confirmPassword = document.getElementById('confirm_password').value;
-
-  if (password !== confirmPassword) {
-    alert('Passwords do not match.');
-    return;
-  }
-
-  if (!usernameValid) {
-    alert('Please choose a valid and available username.');
-    return;
-  }
-
-  const passwordPattern =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
-  if (!passwordPattern.test(password)) {
-    alert('Password must contain uppercase, lowercase, number & symbol.');
-    return;
-  }
+document.getElementById('signupForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const pw  = document.getElementById('password').value;
+  const cpw = document.getElementById('confirm_password').value;
+  if (pw !== cpw) { alert('Passwords do not match.'); return; }
+  if (!usernameValid) { alert('Please choose a valid and available username.'); return; }
+  const pat = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  if (!pat.test(pw)) { alert('Password must contain uppercase, lowercase, number & symbol.'); return; }
   this.submit();
 });
-</script>
-<script>
-(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+
+// Apply saved theme
+(function() {
+  if (localStorage.getItem('sb-theme') === 'dark') document.documentElement.classList.add('dark');
+})();
 </script>
 </body>
 </html>

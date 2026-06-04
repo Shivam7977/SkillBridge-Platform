@@ -1,96 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+<head>
+<link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portfolio Builder — SkillBridge</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Fraunces:wght@700;900&family=Sora:wght@300;400;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-/* ═══════════════════════════════════════
-   DASHBOARD SHELL
-═══════════════════════════════════════ */
-:root{
-  --bg:#f0f2f8; --surface:#fff; --primary:#7c3aed; --accent:#ec4899;
-  --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --sw:260px;
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
-.sb{width:var(--sw);background:var(--surface);border-right:1px solid var(--border);
-  padding:2rem 1.5rem;position:fixed;height:100vh;z-index:50;
-  display:flex;flex-direction:column;overflow-y:auto;}
-.sb .logo{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:900;
-  background:linear-gradient(90deg,var(--primary),var(--accent));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  margin-bottom:2rem;text-decoration:none;display:block;}
-.sb a{display:flex;align-items:center;gap:10px;padding:.75rem 1rem;
-  border-radius:12px;color:var(--muted);text-decoration:none;
-  margin-bottom:.25rem;font-size:.87rem;font-weight:500;transition:.18s;}
-.sb a:hover{background:#f8fafc;color:var(--primary);}
-.sb a.on{background:linear-gradient(90deg,var(--primary),var(--accent));
-  color:#fff;box-shadow:0 8px 24px rgba(124,58,237,.3);}
-.sb .out{margin-top:auto;padding-top:1rem;}
-.sb .out a{color:#ef4444;}
-.main{margin-left:var(--sw);padding:2rem 2.5rem;transition:padding-right .3s ease;}
-.main.panel-open{padding-right:380px;}
-.topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;}
-.topbar h1{font-family:'Fraunces',serif;font-size:2rem;font-weight:900;}
-.topbar p{color:var(--muted);font-size:.85rem;margin-top:4px;}
-.btns{display:flex;gap:10px;flex-shrink:0;}
-@media(max-width:768px){
-  .sb{display:none!important;}
-  .main{margin-left:0!important;width:100%!important;padding:1rem!important;padding-top:60px!important;}
-  .topbar{flex-direction:column;align-items:flex-start;gap:.75rem;}
-  .btns{width:100%;flex-wrap:wrap;}
-  .btns .btn{flex:1;justify-content:center;font-size:.78rem;padding:8px 10px;}
-  .layout{grid-template-columns:1fr!important;}
-  .cp{position:static!important;}
-  .preview-wrap{min-height:400px;}
-}
-.btn{padding:10px 22px;border-radius:12px;font-family:'DM Sans',sans-serif;
-  font-size:.87rem;font-weight:600;cursor:pointer;border:none;
-  display:flex;align-items:center;gap:7px;transition:.22s;}
-.btn-p{background:linear-gradient(90deg,var(--primary),var(--accent));
-  color:#fff;box-shadow:0 6px 20px rgba(124,58,237,.3);}
-.btn-p:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(124,58,237,.4);}
-.btn-o{background:var(--surface);color:var(--primary);border:1.5px solid var(--primary);}
-.btn-o:hover{background:var(--primary);color:#fff;}
-.layout{display:grid;grid-template-columns:295px 1fr;gap:22px;}
-.cp{background:var(--surface);border-radius:20px;padding:1.4rem;
-  border:1px solid var(--border);height:fit-content;position:sticky;top:2rem;}
-.cp-lbl{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--muted);margin-bottom:.8rem;display:flex;align-items:center;gap:6px;}
-.cp-lbl i{color:var(--primary);}
-.cp-sec{margin-bottom:1.2rem;}
-.divider{height:1px;background:var(--border);margin:.9rem 0;}
-.tpl-list{display:flex;flex-direction:column;gap:5px;}
-.tcard{display:flex;align-items:center;gap:9px;padding:9px 11px;
-  border-radius:10px;border:1.5px solid var(--border);background:#f8fafc;
-  cursor:pointer;transition:.18s;text-align:left;}
-.tcard:hover{border-color:var(--primary);background:#f5f3ff;}
-.tcard.on{border-color:var(--primary);background:#f5f3ff;}
-.tcard-ico{width:32px;height:32px;border-radius:7px;display:flex;
-  align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
-.tcard-name{font-size:.82rem;font-weight:700;color:var(--text);}
-.tcard-tag{font-size:.7rem;color:var(--muted);margin-top:1px;}
-.info-box{background:#f8fafc;border:1px solid var(--border);border-radius:10px;
-  padding:10px 12px;font-size:.77rem;color:var(--muted);line-height:1.6;}
-.info-box a{color:var(--primary);font-weight:600;text-decoration:none;}
-.chk{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
-.chk i{color:#10b981;font-size:.72rem;}
-.preview-wrap{background:#cbd5e1;border-radius:18px;padding:12px;overflow:auto;min-height:700px;}
-.preview-inner{border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.18);}
-.flash{position:fixed;top:18px;right:18px;z-index:1001;display:flex;flex-direction:column;gap:8px;max-width:340px;}
-.fb{padding:.9rem 1.3rem;border-radius:12px;color:#fff;font-weight:500;font-size:.88rem;animation:pi .3s ease;}
-@keyframes pi{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
-.fb-success{background:#10b981}.fb-error{background:#ef4444}
-.fb-warning{background:#f59e0b;color:#111}.fb-info{background:#3b82f6}
 
-/* ═══════════════════════════════════════
-   PORTFOLIO TEMPLATE BASE
-═══════════════════════════════════════ */
-.pt{ display:none; }
-.pt.on{ display:block; }
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Fraunces:wght@700;900&family=Sora:wght@300;400;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Playfair Display', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
+      },
+      colors: {
+        cream: { 50:'#fdfcf8', 100:'#f8f4ec', 200:'#f0e9d8', 300:'#e5d9c0', 400:'#d4c4a0', 500:'#b8a07a' },
+        ink:   { 900:'#1a1714', 800:'#2c2820', 700:'#3d3830', 600:'#5c5548', 500:'#7a7268', 400:'#9c9488' },
+        gold:  '#c4973a',
+      }
+    }
+  }
+}
+</script>
+
+<style>
+/* ═══ BASE (matches mainpage exactly) ═══ */
+body { font-family: 'DM Sans', sans-serif; }
+
+.grain-bg {
+  background-color: #f8f4ec;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+.custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #d4c4a0; border-radius: 10px; }
+
+.hover-line { position: relative; }
+.hover-line::after { content:''; position:absolute; bottom:-1px; left:0; width:0; height:1px; background:currentColor; transition:width .3s ease; }
+.hover-line:hover::after { width:100%; }
+
+/* Dark mode overrides */
+.dark body, .dark .grain-bg { background-color: #1a1714; background-image: none; color: #f8f4ec; }
+.dark aside { background: #2c2820 !important; border-color: #3d3830 !important; }
+.dark .editorial-card { background: #2c2820 !important; border-color: #3d3830 !important; color: #f0e9d8; }
+.dark input, .dark textarea { background: #1a1714 !important; border-color: #3d3830 !important; color: #f0e9d8 !important; }
+.dark input:focus, .dark textarea:focus { border-color: #c4973a !important; }
+.dark .nav-item-active { background: #1a1714 !important; color: #c4973a !important; }
+
+/* ═══ CONTROL PANEL (left column) ═══ */
+.tpl-list { display: flex; flex-direction: column; gap: 5px; }
+.tcard {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 12px;
+  border: 1.5px solid #e5d9c0;
+  background: #fdfcf8; cursor: pointer;
+  transition: all .2s ease; text-align: left;
+}
+.tcard:hover { border-color: #1a1714; background: #f8f4ec; }
+.tcard.on { border-color: #1a1714; background: #f8f4ec; box-shadow: 0 2px 8px rgba(26,23,20,.08); }
+.dark .tcard { background: #2c2820; border-color: #3d3830; }
+.dark .tcard:hover, .dark .tcard.on { border-color: #c4973a; background: #1a1714; }
+.tcard-ico { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .82rem; flex-shrink: 0; }
+.tcard-name { font-size: .82rem; font-weight: 700; color: #1a1714; }
+.tcard-tag { font-size: .7rem; color: #7a7268; margin-top: 1px; }
+.dark .tcard-name { color: #f0e9d8; }
+.dark .tcard-tag { color: #9c9488; }
+
+.info-box {
+  background: #fdfcf8; border: 1px solid #e5d9c0; border-radius: 12px;
+  padding: 12px 14px; font-size: .77rem; color: #7a7268; line-height: 1.6;
+}
+.info-box a { color: #1a1714; font-weight: 700; text-decoration: none; }
+.info-box a:hover { text-decoration: underline; }
+.dark .info-box { background: #2c2820; border-color: #3d3830; color: #9c9488; }
+.dark .info-box a { color: #c4973a; }
+.chk { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; font-size: .77rem; color: #5c5548; }
+.chk i { color: #1a1714; font-size: .7rem; }
+.dark .chk { color: #9c9488; }
+.dark .chk i { color: #c4973a; }
+
+.cp-divider { height: 1px; background: #e5d9c0; margin: 1rem 0; }
+.dark .cp-divider { background: #3d3830; }
+
+.cp-label {
+  font-size: .68rem; font-weight: 800; letter-spacing: .12em;
+  text-transform: uppercase; color: #9c9488; margin-bottom: .75rem;
+  display: flex; align-items: center; gap: 6px;
+}
+.cp-label i { color: #1a1714; }
+.dark .cp-label { color: #7a7268; }
+.dark .cp-label i { color: #c4973a; }
+
+/* ═══ PREVIEW WRAP ═══ */
+.preview-wrap {
+  background: #e5d9c0; border-radius: 20px;
+  padding: 14px; overflow: auto; min-height: 680px;
+}
+.dark .preview-wrap { background: #2c2820; }
+.preview-inner { border-radius: 14px; overflow: hidden; box-shadow: 0 24px 64px rgba(26,23,20,.2); }
+
+/* ═══ EDIT PANEL (slide-in drawer) ═══ */
+#edit-panel {
+  display: none; position: fixed; top: 0; right: 0;
+  width: 360px; height: 100vh;
+  background: #fdfcf8; border-left: 1px solid #e5d9c0;
+  z-index: 9999; box-shadow: -12px 0 48px rgba(26,23,20,.12);
+}
+.dark #edit-panel { background: #2c2820 !important; border-color: #3d3830 !important; }
+.ep-header {
+  padding: 1.2rem 1.5rem; border-bottom: 1px solid #e5d9c0; background: #fdfcf8;
+}
+.dark .ep-header { background: #2c2820; border-color: #3d3830; }
+.ep-body { height: calc(100vh - 150px); overflow-y: auto; padding: 1.2rem 1.5rem; }
+.dark .ep-body { background: #2c2820; }
+
+.ep-group { margin-bottom: .9rem; }
+.ep-lbl {
+  display: block; font-size: .68rem; font-weight: 800;
+  letter-spacing: .1em; text-transform: uppercase; color: #9c9488;
+  margin-bottom: 5px;
+}
+.dark .ep-lbl { color: #7a7268; }
+.ep-inp {
+  width: 100%; border: 1.5px solid #e5d9c0; border-radius: 10px;
+  padding: 9px 12px; font-family: 'DM Sans', sans-serif;
+  font-size: .85rem; color: #1a1714; resize: vertical;
+  outline: none; transition: border-color .2s;
+  background: #fff;
+}
+.ep-inp:focus { border-color: #1a1714; }
+.dark .ep-inp { background: #1a1714 !important; border-color: #3d3830 !important; color: #f0e9d8 !important; }
+.dark .ep-inp:focus { border-color: #c4973a !important; }
+
+/* ═══ FLASH MESSAGES ═══ */
+.flash { position: fixed; top: 18px; right: 18px; z-index: 10001; display: flex; flex-direction: column; gap: 8px; max-width: 340px; }
+.fb { padding: .9rem 1.3rem; border-radius: 14px; color: #fff; font-weight: 600; font-size: .88rem; animation: pi .3s ease; }
+@keyframes pi { from { opacity:0; transform:translateY(-10px) } to { opacity:1; transform:none } }
+.fb-success { background: #1a1714; } .fb-error { background: #dc2626; }
+.fb-warning { background: #c4973a; color: #1a1714; } .fb-info { background: #1a1714; }
+
+/* ═══ MAIN PANEL OPEN STATE ═══ */
+.main-open { padding-right: 380px !important; }
+@media(max-width:1024px) { .main-open { padding-right: 1rem !important; } }
+
+/* ═══ PORTFOLIO TEMPLATE BASE ═══ */
+.pt { display: none; }
+.pt.on { display: block; }
 
 /* ═══════════════════════════════════════
    P1 — DARK HACKER
@@ -129,6 +190,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 #p1 .contact-item:hover{color:#39ff14;}
 #p1 .contact-item i{color:#39ff14;font-size:.8rem;}
 #p1 footer{padding:24px 48px;font-size:.65rem;color:#333;letter-spacing:.1em;border-top:1px solid #111;}
+#p1 .certs-grid{display:flex;flex-wrap:wrap;gap:6px;}
+#p1 .cert-tag{font-size:.65rem;color:#39ff14;border:1px solid #1f1f1f;padding:3px 10px;background:#0d0d0d;display:inline-block;}
 
 /* ═══════════════════════════════════════
    P2 — EDITORIAL LIGHT
@@ -174,6 +237,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 #p2 .contact-val{font-size:.85rem;font-weight:600;color:#111;text-decoration:none;}
 #p2 .contact-val:hover{text-decoration:underline;}
 #p2 footer{padding:24px 56px;display:flex;justify-content:space-between;font-size:.7rem;color:#bbb;border-top:2px solid #111;}
+#p2 .cert-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;font-size:.82rem;}
+#p2 .cert-row .cn{font-weight:700;} #p2 .cert-row .ci{color:#999;font-size:.74rem;}
 
 /* ═══════════════════════════════════════
    P3 — GRADIENT GLOW
@@ -217,6 +282,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 #p3 .contact-item:hover{color:#a78bfa;}
 #p3 .contact-item i{width:32px;height:32px;border-radius:8px;background:rgba(124,58,237,.2);display:flex;align-items:center;justify-content:center;color:#a78bfa;font-size:.8rem;}
 #p3 footer{padding:24px 48px;text-align:center;font-size:.72rem;color:rgba(255,255,255,.2);border-top:1px solid rgba(255,255,255,.05);}
+#p3 .cert-pill{padding:8px 18px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);border-radius:8px;font-size:.78rem;font-weight:600;color:#a78bfa;display:inline-block;margin:4px;}
 
 /* ════════════════════════════════
    P4 — WARM STUDIO
@@ -255,12 +321,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 #p4 .proj-tags{display:flex;flex-wrap:wrap;gap:5px;}
 #p4 .proj-tag{font-size:.65rem;color:#c2440b;background:#fff3ee;padding:2px 8px;border-radius:4px;font-weight:600;}
 #p4 .contact-strip{display:flex;flex-wrap:wrap;gap:0;}
-#p4 .contact-item{flex:1;min-width:180px;max-width:100%;padding:20px 24px 20px 0;border-right:1px solid #ecdec8;margin-right:0;overflow:hidden;}
+#p4 .contact-item{flex:1;min-width:180px;padding:20px 24px 20px 0;border-right:1px solid #ecdec8;}
 #p4 .contact-item:last-child{border-right:none;}
 #p4 .contact-label{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#b8906e;font-weight:700;margin-bottom:6px;}
 #p4 .contact-val{font-size:.82rem;font-weight:700;color:#1a0f00;text-decoration:none;word-break:break-all;}
 #p4 .contact-val:hover{color:#c2440b;}
 #p4 footer{padding:20px 52px;font-size:.7rem;color:#b8906e;border-top:1px solid #ecdec8;}
+#p4 .cert-item{background:#fff;border:1px solid #ecdec8;border-radius:8px;padding:12px 14px;margin-bottom:8px;}
+#p4 .cert-item .cn{font-size:.82rem;font-weight:700;color:#1a0f00;} #p4 .cert-item .ci{font-size:.72rem;color:#c2440b;margin-top:2px;}
 
 /* ════════════════════════════════
    P5 — MINIMAL MONO
@@ -283,8 +351,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 #p5 .hero-bio{font-size:.88rem;line-height:1.9;color:#555;margin-bottom:32px;}
 #p5 .hero-meta{display:flex;flex-direction:column;gap:12px;}
 #p5 .meta-row{display:flex;justify-content:space-between;font-size:.75rem;padding-bottom:12px;border-bottom:1px solid #eee;}
-#p5 .meta-key{color:#aaa;font-weight:500;}
-#p5 .meta-val{font-weight:600;}
+#p5 .meta-key{color:#aaa;font-weight:500;} #p5 .meta-val{font-weight:600;}
 #p5 .section{display:grid;grid-template-columns:200px 1fr;border-bottom:1px solid #eee;}
 #p5 .sec-sidebar{padding:36px 48px;border-right:1px solid #eee;display:flex;align-items:flex-start;justify-content:center;}
 #p5 .sec-label{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:#aaa;font-weight:600;writing-mode:vertical-rl;transform:rotate(180deg);}
@@ -303,6 +370,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 #p5 .contact-item:hover{color:#0a0a0a;}
 #p5 .contact-item i{font-size:.7rem;}
 #p5 footer{padding:20px 48px;display:flex;justify-content:space-between;font-size:.68rem;color:#ccc;border-top:1px solid #eee;}
+#p5 .cert-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:.78rem;}
+#p5 .cert-item .cn{font-weight:700;} #p5 .cert-item .ci{color:#aaa;}
 
 /* ════════════════════════════════
    P6 — NEON CITY
@@ -348,20 +417,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 #p6 .contact-item:hover{color:#00fff7;}
 #p6 .contact-item i{color:#00fff7;font-size:.8rem;}
 #p6 footer{padding:20px 48px;font-size:.65rem;color:rgba(200,214,235,.2);border-top:1px solid rgba(0,255,247,.06);letter-spacing:.08em;}
-/* Certificates */
-#p1 .cert-tag{font-size:.65rem;color:#39ff14;border:1px solid #1f1f1f;padding:3px 10px;background:#0d0d0d;display:inline-block;margin:3px;}
-#p2 .cert-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;font-size:.82rem;}
-#p2 .cert-row .cn{font-weight:700;} #p2 .cert-row .ci{color:#999;font-size:.74rem;}
-#p3 .cert-pill{padding:8px 18px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);border-radius:8px;font-size:.78rem;font-weight:600;color:#a78bfa;display:inline-block;margin:4px;}
-#p4 .cert-item{background:#fff;border:1px solid #ecdec8;border-radius:8px;padding:12px 14px;margin-bottom:8px;}
-#p4 .cert-item .cn{font-size:.82rem;font-weight:700;color:#1a0f00;} #p4 .cert-item .ci{font-size:.72rem;color:#c2440b;margin-top:2px;}
-#p5 .cert-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:.78rem;}
-#p5 .cert-item .cn{font-weight:700;} #p5 .cert-item .ci{color:#aaa;}
 #p6 .cert-tag{font-size:.72rem;padding:5px 13px;border:1px solid rgba(0,255,247,.2);color:#00fff7;background:rgba(0,255,247,.05);display:inline-block;margin:3px;}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:1024px){
+  #edit-panel{width:100vw!important;top:auto!important;bottom:0;height:70vh;border-left:none!important;border-top:1px solid #e5d9c0;border-radius:20px 20px 0 0;}
+  .dark #edit-panel{border-top-color:#3d3830!important;}
+}
+@media(max-width:640px){
+  .layout-grid{grid-template-columns:1fr!important;}
+  .preview-wrap{min-height:400px;}
+  #p1 nav,#p2 nav,#p3 nav,#p4 nav,#p5 nav,#p6 nav{padding:16px 24px;}
+  #p1 .hero,#p3 .hero,#p6 .hero{padding:48px 24px 36px;}
+  #p1 .section,#p3 .section,#p6 .section{padding:32px 24px;}
+  #p2 .hero{grid-template-columns:1fr;}
+  #p2 .hero-left{border-right:none;border-bottom:2px solid #111;}
+  #p2 .section,#p4 .section,#p5 .sec-body{padding:32px 24px;}
+  #p4 .hero{grid-template-columns:1fr;} #p4 .hero-right{display:none;}
+  #p5 .hero{grid-template-columns:1fr;} #p5 .hero-left{border-right:none;}
+  #p5 .section{grid-template-columns:1fr;} #p5 .sec-sidebar{display:none;}
+}
 </style>
 </head>
-<body>
 
+<body class="grain-bg text-ink-900 min-h-screen custom-scroll antialiased">
+
+<!-- Flash Messages -->
 <div class="flash">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}{% for cat,msg in messages %}
@@ -370,171 +451,244 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   {% endwith %}
 </div>
 
-<aside class="sb">
-  <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
-  <a href="{{ url_for('main_page') }}"><i class="fas fa-home"></i> Dashboard</a>
-  <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a>
-  <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
-  <a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> Roadmap AI</a>
-  <a href="{{ url_for('resume_builder') }}"><i class="fas fa-file-alt"></i> Resume Builder</a>
-  <a href="{{ url_for('portfolio_builder') }}" class="on"><i class="fas fa-briefcase"></i> Portfolio Builder</a>
-  <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
-  <a href="{{ url_for('find_communities') }}"><i class="fas fa-users"></i> All Communities</a>
-  <a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a>
+<div class="min-h-screen flex flex-col lg:flex-row relative w-full">
 
-  <div class="out" style="border-top: 1px solid var(--border); padding-top: 1rem;">
-      <a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a>
-  </div>
-</aside>
-
-<main class="main">
-  <div class="topbar">
-    <div>
-      <h1>Portfolio Builder</h1>
-      <p>6 stunning templates · auto-filled from your profile · one-click export</p>
-    </div>
-    <div class="btns">
-      <button class="btn btn-o" onclick="toggleEditPanel()"><i class="fas fa-pen"></i> Edit Content</button>
-      <button class="btn btn-o" id="copy-html-btn" onclick="copyHTML()"><i class="fas fa-copy"></i> Copy HTML</button>
-      <button class="btn btn-p" onclick="openPortfolio()"><i class="fas fa-external-link-alt"></i> Open Full Page</button>
-    </div>
-  </div>
-
-  <!-- ── EDIT PANEL ── -->
-  <div id="edit-panel" style="display:none;position:fixed;top:0;right:0;width:360px;height:100vh;background:#fff;border-left:1px solid #e2e8f0;z-index:9999;box-shadow:-8px 0 40px rgba(0,0,0,.12);">
-    <!-- TOP: title + buttons — never scrolls -->
-    <div style="padding:1rem 1.5rem;border-bottom:2px solid #e2e8f0;background:#fff;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
-        <strong style="font-size:.95rem;color:#0f172a;">✏️ Edit Portfolio</strong>
-        <button onclick="toggleEditPanel()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#64748b;line-height:1;">✕</button>
-      </div>
-      <button onclick="copyHTML()" style="width:100%;padding:9px;border-radius:10px;border:1.5px solid #7c3aed;background:#fff;color:#7c3aed;font-weight:700;cursor:pointer;font-size:.82rem;font-family:inherit;margin-bottom:.4rem;">
-        📋 Copy HTML
+  <!-- ══ MOBILE HEADER ══ -->
+  <header class="lg:hidden bg-cream-100 dark:bg-ink-800 border-b border-cream-200 dark:border-ink-700 px-6 py-4 flex items-center justify-between sticky top-0 z-40 transition-colors w-full">
+    <div class="flex items-center gap-3">
+      <button onclick="toggleSidebarMenu()" class="text-ink-900 dark:text-cream-50 text-xl p-1.5 focus:outline-none transition-transform active:scale-95">
+        <i class="fas fa-bars" id="menu-icon"></i>
       </button>
-      <button onclick="openPortfolio()" style="width:100%;padding:9px;border-radius:10px;border:none;background:linear-gradient(90deg,#7c3aed,#ec4899);color:#fff;font-weight:700;cursor:pointer;font-size:.82rem;font-family:inherit;">
-        🔗 Open Full Page
+      <a href="{{ url_for('main_page') }}" class="font-display text-2xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+    </div>
+    <button class="w-10 h-10 rounded-full border border-cream-300 dark:border-ink-700 flex items-center justify-center relative text-ink-900 dark:text-cream-50" id="mobile-notif-btn" onclick="toggleNotifDropdown(event)">
+      <i class="fas fa-bell"></i>
+      <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[9px] font-bold w-4 h-4 rounded-full hidden items-center justify-center notif-badge"></span>
+    </button>
+  </header>
+
+  <!-- ══ NAVIGATION SIDEBAR (exact copy from mainpage) ══ -->
+  <aside id="app-sidebar" class="hidden lg:flex fixed lg:sticky top-0 left-0 w-full lg:w-64 bg-white border-r border-cream-200 p-6 flex-col h-screen z-50 overflow-y-auto custom-scroll transition-all duration-300 flex-shrink-0">
+
+    <div class="flex items-center justify-between mb-8">
+      <a href="{{ url_for('main_page') }}" class="font-display text-3xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+      <button class="w-9 h-9 rounded-full border border-cream-200 dark:border-ink-700 flex items-center justify-center relative text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-cream-50 transition-colors" id="desktop-notif-btn" onclick="toggleNotifDropdown(event)">
+        <i class="fas fa-bell text-sm"></i>
+        <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full hidden items-center justify-center notif-badge"></span>
       </button>
     </div>
-    <!-- BOTTOM: scrollable fields -->
-    <div style="height:calc(100vh - 145px);overflow-y:auto;padding:1rem 1.5rem;">
-      <p style="font-size:.73rem;color:#94a3b8;margin-bottom:1rem;padding:7px 9px;background:#f8fafc;border-radius:7px;border:1px solid #e2e8f0;">
-        Edits are preview-only. Changes reset when you leave.
-      </p>
-      <div class="ep-group"><label class="ep-lbl">Full Name</label><input class="ep-inp" id="ep-name" oninput="liveUpdate()" placeholder="Your name"></div>
-      <div class="ep-group"><label class="ep-lbl">Job Title / Role</label><input class="ep-inp" id="ep-title" oninput="liveUpdate()" placeholder="e.g. Full Stack Developer"></div>
-      <div class="ep-group"><label class="ep-lbl">Email</label><input class="ep-inp" id="ep-email" oninput="liveUpdate()" placeholder="you@email.com"></div>
-      <div class="ep-group"><label class="ep-lbl">Location</label><input class="ep-inp" id="ep-location" oninput="liveUpdate()" placeholder="City, Country"></div>
-      <div class="ep-group"><label class="ep-lbl">LinkedIn URL</label><input class="ep-inp" id="ep-linkedin" oninput="liveUpdate()" placeholder="https://linkedin.com/in/..."></div>
-      <div class="ep-group"><label class="ep-lbl">GitHub URL</label><input class="ep-inp" id="ep-github" oninput="liveUpdate()" placeholder="https://github.com/..."></div>
-      <div class="ep-group"><label class="ep-lbl">About / Bio</label><textarea class="ep-inp" id="ep-about" oninput="liveUpdate()" rows="4" placeholder="Brief bio..."></textarea></div>
-      <div class="ep-group"><label class="ep-lbl">Known Skills (comma separated)</label><textarea class="ep-inp" id="ep-skills" oninput="liveUpdate()" rows="2" placeholder="Python, Flask, React..."></textarea></div>
-      <div class="ep-group"><label class="ep-lbl">Learning Skills (comma separated)</label><textarea class="ep-inp" id="ep-learning" oninput="liveUpdate()" rows="2" placeholder="Rust, Go..."></textarea></div>
 
-      <!-- Work Experience -->
-      <div style="height:1px;background:#e2e8f0;margin:.5rem 0;"></div>
-      <div style="font-size:.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;">Work Experience (preview only)</div>
-      <div id="ep-exp-list"></div>
-      <button type="button" onclick="addEpExp()" style="width:100%;padding:7px;border-radius:8px;border:1.5px dashed #cbd5e1;background:transparent;color:#64748b;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:.5rem;">
-        + Add Experience Entry
-      </button>
-
-      <!-- Projects -->
-      <div style="margin:1rem 0 .5rem;padding-top:.75rem;border-top:1.5px solid #e2e8f0;">
-        <div class="ep-lbl" style="font-size:.75rem;color:#7c3aed;margin-bottom:.6rem;">⚡ Projects</div>
-      </div>
-      {% for p in projects %}
-      <div class="ep-group" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:.75rem;">
-        <label class="ep-lbl">Project {{ loop.index }} — Title</label>
-        <input class="ep-inp" id="ep-proj-title-{{ loop.index0 }}" oninput="liveUpdate()" placeholder="{{ p.title }}" style="margin-bottom:.4rem;">
-        <label class="ep-lbl" style="margin-top:.3rem;">Description</label>
-        <textarea class="ep-inp" id="ep-proj-desc-{{ loop.index0 }}" oninput="liveUpdate()" rows="3" placeholder="{{ p.description }}"></textarea>
-      </div>
-      {% endfor %}
-
-      <button onclick="resetEdits()" style="width:100%;margin-top:.5rem;padding:9px;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-weight:600;cursor:pointer;font-size:.82rem;font-family:inherit;">
-        ↩ Reset to Original
-      </button>
-    </div>
-  </div>
-
-  <style>
-  .ep-group{margin-bottom:.85rem;}
-  .ep-lbl{display:block;font-size:.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
-  .ep-inp{width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-family:'DM Sans',sans-serif;font-size:.85rem;color:#0f172a;resize:vertical;outline:none;transition:border-color .2s;}
-  .ep-inp:focus{border-color:#7c3aed;}
-  body.dark #edit-panel{background:#1a1a2e;border-color:#2d2d44;}
-  body.dark #edit-panel > div:last-child{background:#1a1a2e!important;border-color:#2d2d44!important;}
-  body.dark .ep-inp{background:#13131f;border-color:#2d2d44;color:#e2e8f0;}
-  body.dark .ep-inp:focus{border-color:#a78bfa;}
-  body.dark .ep-lbl{color:#64748b;}
-  </style>
-
-
-  <div class="layout" id="main-layout">
-
-    <div class="cp">
-      <div class="cp-sec">
-        <div class="cp-lbl"><i class="fas fa-palette"></i> Choose Template</div>
-        <div class="tpl-list">
-          <div class="tcard on" onclick="sw(1,this)">
-            <div class="tcard-ico" style="background:#050505;color:#39ff14"><i class="fas fa-terminal"></i></div>
-            <div><div class="tcard-name">Dark Hacker</div><div class="tcard-tag">Dev · Backend · Security</div></div>
-          </div>
-          <div class="tcard" onclick="sw(2,this)">
-            <div class="tcard-ico" style="background:#faf9f7;color:#111;border:1px solid #ddd"><i class="fas fa-newspaper"></i></div>
-            <div><div class="tcard-name">Editorial Light</div><div class="tcard-tag">Writer · Designer · PM</div></div>
-          </div>
-          <div class="tcard" onclick="sw(3,this)">
-            <div class="tcard-ico" style="background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff"><i class="fas fa-star"></i></div>
-            <div><div class="tcard-name">Gradient Glow</div><div class="tcard-tag">AI · Startup · Modern</div></div>
-          </div>
-          <div class="tcard" onclick="sw(4,this)">
-            <div class="tcard-ico" style="background:#fdf6ee;color:#c2440b;border:1px solid #ecdec8"><i class="fas fa-paint-brush"></i></div>
-            <div><div class="tcard-name">Warm Studio</div><div class="tcard-tag">Creative · Freelancer</div></div>
-          </div>
-          <div class="tcard" onclick="sw(5,this)">
-            <div class="tcard-ico" style="background:#fff;color:#0a0a0a;border:1px solid #0a0a0a"><i class="fas fa-minus"></i></div>
-            <div><div class="tcard-name">Minimal Mono</div><div class="tcard-tag">Swiss · Clean · Universal</div></div>
-          </div>
-          <div class="tcard" onclick="sw(6,this)">
-            <div class="tcard-ico" style="background:#0a0f1e;color:#00fff7"><i class="fas fa-microchip"></i></div>
-            <div><div class="tcard-name">Neon City</div><div class="tcard-tag">Data Science · Cyberpunk</div></div>
+    <!-- XP + Streak Card -->
+    <div class="bg-cream-100/60 dark:bg-ink-900/40 border border-cream-300/50 dark:border-ink-700 rounded-2xl p-4 mb-6 space-y-3 shadow-inner">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl leading-none select-none">{{ level_info.icon }}</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-[9px] font-bold tracking-widest uppercase text-gold">Lv.{{ level_info.level }} · {{ level_info.badge }}</div>
+          <div class="text-lg font-black text-ink-900 dark:text-cream-100 leading-tight mt-0.5">
+            {{ xp }} <span class="text-xs font-semibold text-ink-400 dark:text-ink-500">XP</span>
           </div>
         </div>
       </div>
-
-      <div class="divider"></div>
-
-      <div class="cp-sec">
-        <div class="cp-lbl"><i class="fas fa-check-circle"></i> Auto-Filled From Profile</div>
-        <div class="info-box">
-          <div class="chk"><i class="fas fa-check"></i> Name &amp; Title</div>
-          <div class="chk"><i class="fas fa-check"></i> About Me</div>
-          <div class="chk"><i class="fas fa-check"></i> Skills ({{ user.known_skills|length if user.known_skills else 0 }})</div>
-          <div class="chk"><i class="fas fa-check"></i> Projects ({{ projects|length }})</div>
-          <div class="chk"><i class="fas fa-check"></i> Education &amp; Experience</div>
-          <div class="chk"><i class="fas fa-check"></i> GitHub · LinkedIn · Email</div>
-          <div class="chk"><i class="fas fa-check"></i> Certificates ({{ user.certificates|length if user.certificates else 0 }})</div>
-          <div style="margin-top:8px;font-size:.74rem;">
-            Edit via <a href="{{ url_for('profile') }}">Profile</a> or <a href="{{ url_for('my_projects') }}">Projects</a>
-          </div>
+      <div>
+        <div class="w-full h-1.5 bg-cream-200 dark:bg-ink-700 rounded-full overflow-hidden mb-1.5">
+          <div class="h-full bg-ink-900 dark:bg-gold rounded-full transition-all duration-1000" style="width: {{ progress_pct }}%"></div>
+        </div>
+        <div class="flex justify-between text-[10px] font-bold text-ink-500 dark:text-ink-400">
+          <span>{{ xp }} XP</span>
+          <span>{% if level_info.next_xp == 'Max' %}🏆 Max{% else %}{{ level_info.next_xp }} XP{% endif %}</span>
         </div>
       </div>
+      <div class="pt-0.5">
+        {% if streak and streak >= 1 %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 text-xs font-bold text-rose-700 dark:text-rose-400">
+            <span>🔥</span> {{ streak }} day streak
+          </div>
+        {% else %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cream-200 border border-cream-300/40 dark:bg-ink-800 dark:border-ink-700 text-xs font-bold text-ink-400 dark:text-ink-500">
+            <span>❄️</span> No active streak
+          </div>
+        {% endif %}
+      </div>
+    </div>
 
-      <div class="divider"></div>
+    <!-- Nav Links -->
+    <nav class="space-y-1 flex-1 font-body">
+      <a href="{{ url_for('main_page') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-home w-4 text-center"></i> Dashboard</a>
+      <a href="{{ url_for('profile') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-user-circle w-4 text-center"></i> My Profile</a>
+      <a href="{{ url_for('my_projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-layer-group w-4 text-center"></i> My Projects</a>
+      <a href="{{ url_for('roadmap_generator') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-magic w-4 text-center"></i> Roadmap AI</a>
+      <a href="{{ url_for('resume_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-file-alt w-4 text-center"></i> Resume Builder</a>
+      <a href="{{ url_for('portfolio_builder') }}" class="nav-item-active flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 shadow-sm transition-all"><i class="fas fa-briefcase w-4 text-center"></i> Portfolio Builder</a>
+      <a href="{{ url_for('projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-globe w-4 text-center"></i> Community</a>
+      <a href="{{ url_for('find_communities') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-users w-4 text-center"></i> All Communities</a>
+      <a href="{{ url_for('messages_list') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-comment-dots w-4 text-center"></i> Messages</a>
+      <a href="{{ url_for('leaderboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-trophy w-4 text-center"></i> Leaderboard</a>
+      <div class="pt-4 mt-4 border-t border-cream-200 dark:border-ink-800">
+        <a href="{{ url_for('settings') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-cog w-4 text-center"></i> Settings</a>
+      </div>
+    </nav>
+  </aside>
 
-      <div class="cp-sec">
-        <div class="cp-lbl"><i class="fas fa-info-circle"></i> How to Export</div>
-        <div class="info-box">
-          Click <strong>Open Full Page</strong> → browser opens your full portfolio site. Press <strong>Ctrl+S</strong> to save as HTML, or share the URL.<br><br>
-          Click <strong>Copy HTML</strong> to copy code directly.<br><br>
-          <a href="{{ url_for('profile') }}">✏️ Update profile</a> to change content.
+  <!-- ══ MAIN CONTENT ══ -->
+  <main class="flex-1 px-4 sm:px-8 py-8 lg:py-10 max-w-full overflow-x-hidden" id="main-content">
+
+    <!-- Page Header -->
+    <div class="editorial-card bg-white border border-cream-200 rounded-3xl p-6 sm:p-8 shadow-sm mb-8 relative overflow-hidden">
+      <div class="absolute inset-0 opacity-[0.02] dark:opacity-[0.04] pointer-events-none">
+        <div class="absolute left-1/3 top-0 bottom-0 w-px bg-ink-900 dark:bg-cream-50"></div>
+        <div class="absolute left-2/3 top-0 bottom-0 w-px bg-ink-900 dark:bg-cream-50"></div>
+      </div>
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
+        <div class="space-y-1.5">
+          <h1 class="font-display text-3xl sm:text-4xl font-black tracking-tight text-ink-900 dark:text-cream-100 leading-tight">Portfolio Builder</h1>
+          <p class="text-ink-500 dark:text-ink-400 text-sm font-body leading-relaxed">6 stunning templates · auto-filled from your profile · one-click export</p>
+        </div>
+        <div class="flex flex-wrap gap-3 flex-shrink-0">
+          <button onclick="toggleEditPanel()" class="flex items-center gap-2 px-5 py-3 bg-white dark:bg-ink-800 border border-cream-300 dark:border-ink-700 text-ink-900 dark:text-cream-100 font-body font-semibold text-sm rounded-xl tracking-wide transition-all hover:bg-cream-50 dark:hover:bg-ink-700 hover:-translate-y-0.5 shadow-sm">
+            <i class="fas fa-pen text-xs"></i> Edit Content
+          </button>
+          <button id="copy-html-btn" onclick="copyHTML()" class="flex items-center gap-2 px-5 py-3 bg-white dark:bg-ink-800 border border-cream-300 dark:border-ink-700 text-ink-900 dark:text-cream-100 font-body font-semibold text-sm rounded-xl tracking-wide transition-all hover:bg-cream-50 dark:hover:bg-ink-700 hover:-translate-y-0.5 shadow-sm">
+            <i class="fas fa-copy text-xs"></i> Copy HTML
+          </button>
+          <button onclick="openPortfolio()" class="flex items-center gap-2 px-5 py-3 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-body font-semibold text-sm rounded-xl tracking-wide transition-all hover:opacity-90 hover:-translate-y-0.5 shadow-sm">
+            <i class="fas fa-external-link-alt text-xs"></i> Open Full Page
+          </button>
         </div>
       </div>
     </div>
 
-    <div class="preview-wrap">
-      <div class="preview-inner" id="preview-inner">
+    <!-- EDIT PANEL (Slide-in drawer) -->
+    <div id="edit-panel">
+      <!-- Header (sticky) -->
+      <div class="ep-header">
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-display text-lg font-black text-ink-900 dark:text-cream-100 tracking-tight">Edit Portfolio</span>
+          <button onclick="toggleEditPanel()" class="w-8 h-8 rounded-lg border border-cream-300 dark:border-ink-700 flex items-center justify-center text-ink-500 hover:text-ink-900 dark:hover:text-cream-50 transition-colors">
+            <i class="fas fa-times text-sm"></i>
+          </button>
+        </div>
+        <div class="flex flex-col gap-2">
+          <button onclick="copyHTML()" class="w-full py-2.5 border border-cream-300 dark:border-ink-700 text-ink-900 dark:text-cream-100 font-body font-semibold text-xs rounded-xl tracking-wide transition-all hover:bg-cream-50 dark:hover:bg-ink-700 bg-white dark:bg-ink-800">
+            <i class="fas fa-copy mr-1.5"></i> Copy HTML
+          </button>
+          <button onclick="openPortfolio()" class="w-full py-2.5 bg-ink-900 dark:bg-cream-100 text-cream-100 dark:text-ink-900 font-body font-semibold text-xs rounded-xl tracking-wide transition-all hover:opacity-90">
+            <i class="fas fa-external-link-alt mr-1.5"></i> Open Full Page
+          </button>
+        </div>
+      </div>
+      <!-- Scrollable fields -->
+      <div class="ep-body custom-scroll">
+        <p class="text-[11px] font-semibold text-ink-400 dark:text-ink-500 mb-4 p-3 bg-cream-100 dark:bg-ink-900/40 border border-cream-200 dark:border-ink-700 rounded-xl">
+          Edits are preview-only. Changes reset on page leave.
+        </p>
+        <div class="ep-group"><label class="ep-lbl">Full Name</label><input class="ep-inp" id="ep-name" oninput="liveUpdate()" placeholder="Your name"></div>
+        <div class="ep-group"><label class="ep-lbl">Job Title / Role</label><input class="ep-inp" id="ep-title" oninput="liveUpdate()" placeholder="e.g. Full Stack Developer"></div>
+        <div class="ep-group"><label class="ep-lbl">Email</label><input class="ep-inp" id="ep-email" oninput="liveUpdate()" placeholder="you@email.com"></div>
+        <div class="ep-group"><label class="ep-lbl">Location</label><input class="ep-inp" id="ep-location" oninput="liveUpdate()" placeholder="City, Country"></div>
+        <div class="ep-group"><label class="ep-lbl">LinkedIn URL</label><input class="ep-inp" id="ep-linkedin" oninput="liveUpdate()" placeholder="https://linkedin.com/in/..."></div>
+        <div class="ep-group"><label class="ep-lbl">GitHub URL</label><input class="ep-inp" id="ep-github" oninput="liveUpdate()" placeholder="https://github.com/..."></div>
+        <div class="ep-group"><label class="ep-lbl">About / Bio</label><textarea class="ep-inp" id="ep-about" oninput="liveUpdate()" rows="4" placeholder="Brief bio..."></textarea></div>
+        <div class="ep-group"><label class="ep-lbl">Known Skills (comma separated)</label><textarea class="ep-inp" id="ep-skills" oninput="liveUpdate()" rows="2" placeholder="Python, Flask, React..."></textarea></div>
+        <div class="ep-group"><label class="ep-lbl">Learning Skills (comma separated)</label><textarea class="ep-inp" id="ep-learning" oninput="liveUpdate()" rows="2" placeholder="Rust, Go..."></textarea></div>
+
+        <div class="cp-divider"></div>
+        <div class="ep-lbl mb-3">Work Experience (preview only)</div>
+        <div id="ep-exp-list"></div>
+        <button type="button" onclick="addEpExp()" class="w-full py-2.5 mb-4 border-2 border-dashed border-cream-300 dark:border-ink-700 text-ink-500 dark:text-ink-400 text-xs font-semibold rounded-xl hover:border-ink-400 dark:hover:border-ink-500 transition-colors font-body">
+          + Add Experience Entry
+        </button>
+
+        <div class="cp-divider"></div>
+        <div class="ep-lbl mb-3">Projects</div>
+        {% for p in projects %}
+        <div class="ep-group bg-cream-100 dark:bg-ink-900/40 border border-cream-200 dark:border-ink-700 rounded-xl p-3">
+          <label class="ep-lbl">Project {{ loop.index }} — Title</label>
+          <input class="ep-inp" id="ep-proj-title-{{ loop.index0 }}" oninput="liveUpdate()" placeholder="{{ p.title }}" style="margin-bottom:.4rem;">
+          <label class="ep-lbl" style="margin-top:.3rem;">Description</label>
+          <textarea class="ep-inp" id="ep-proj-desc-{{ loop.index0 }}" oninput="liveUpdate()" rows="3" placeholder="{{ p.description }}"></textarea>
+        </div>
+        {% endfor %}
+
+        <button onclick="resetEdits()" class="w-full mt-3 py-2.5 border border-cream-300 dark:border-ink-700 text-ink-500 dark:text-ink-400 font-semibold text-xs rounded-xl hover:bg-cream-50 dark:hover:bg-ink-800 transition-colors font-body">
+          <i class="fas fa-undo mr-1.5"></i> Reset to Original
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN LAYOUT: Control Panel + Preview -->
+    <div class="grid gap-6 layout-grid" style="grid-template-columns: 280px 1fr;" id="main-layout">
+
+      <!-- LEFT: Control Panel -->
+      <div class="editorial-card bg-white border border-cream-200 rounded-2xl p-5 shadow-sm h-fit sticky top-6 space-y-4">
+
+        <!-- Template Selector -->
+        <div>
+          <div class="cp-label"><i class="fas fa-palette"></i> Choose Template</div>
+          <div class="tpl-list">
+            <div class="tcard on" onclick="sw(1,this)">
+              <div class="tcard-ico" style="background:#050505;color:#39ff14"><i class="fas fa-terminal"></i></div>
+              <div><div class="tcard-name">Dark Hacker</div><div class="tcard-tag">Dev · Backend · Security</div></div>
+            </div>
+            <div class="tcard" onclick="sw(2,this)">
+              <div class="tcard-ico" style="background:#faf9f7;color:#111;border:1px solid #ddd"><i class="fas fa-newspaper"></i></div>
+              <div><div class="tcard-name">Editorial Light</div><div class="tcard-tag">Writer · Designer · PM</div></div>
+            </div>
+            <div class="tcard" onclick="sw(3,this)">
+              <div class="tcard-ico" style="background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff"><i class="fas fa-star"></i></div>
+              <div><div class="tcard-name">Gradient Glow</div><div class="tcard-tag">AI · Startup · Modern</div></div>
+            </div>
+            <div class="tcard" onclick="sw(4,this)">
+              <div class="tcard-ico" style="background:#fdf6ee;color:#c2440b;border:1px solid #ecdec8"><i class="fas fa-paint-brush"></i></div>
+              <div><div class="tcard-name">Warm Studio</div><div class="tcard-tag">Creative · Freelancer</div></div>
+            </div>
+            <div class="tcard" onclick="sw(5,this)">
+              <div class="tcard-ico" style="background:#fff;color:#0a0a0a;border:1px solid #0a0a0a"><i class="fas fa-minus"></i></div>
+              <div><div class="tcard-name">Minimal Mono</div><div class="tcard-tag">Swiss · Clean · Universal</div></div>
+            </div>
+            <div class="tcard" onclick="sw(6,this)">
+              <div class="tcard-ico" style="background:#0a0f1e;color:#00fff7"><i class="fas fa-microchip"></i></div>
+              <div><div class="tcard-name">Neon City</div><div class="tcard-tag">Data Science · Cyberpunk</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cp-divider"></div>
+
+        <!-- Auto-filled info -->
+        <div>
+          <div class="cp-label"><i class="fas fa-check-circle"></i> Auto-Filled From Profile</div>
+          <div class="info-box">
+            <div class="chk"><i class="fas fa-check"></i> Name &amp; Title</div>
+            <div class="chk"><i class="fas fa-check"></i> About Me</div>
+            <div class="chk"><i class="fas fa-check"></i> Skills ({{ user.known_skills|length if user.known_skills else 0 }})</div>
+            <div class="chk"><i class="fas fa-check"></i> Projects ({{ projects|length }})</div>
+            <div class="chk"><i class="fas fa-check"></i> Education &amp; Experience</div>
+            <div class="chk"><i class="fas fa-check"></i> GitHub · LinkedIn · Email</div>
+            <div class="chk"><i class="fas fa-check"></i> Certificates ({{ user.certificates|length if user.certificates else 0 }})</div>
+            <div class="mt-2 text-[11px]">
+              Edit via <a href="{{ url_for('profile') }}">Profile</a> or <a href="{{ url_for('my_projects') }}">Projects</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="cp-divider"></div>
+
+        <!-- How to Export -->
+        <div>
+          <div class="cp-label"><i class="fas fa-info-circle"></i> How to Export</div>
+          <div class="info-box text-[11px] leading-relaxed">
+            Click <strong class="text-ink-700 dark:text-cream-300">Open Full Page</strong> → browser opens your portfolio. Press <strong class="text-ink-700 dark:text-cream-300">Ctrl+S</strong> to save as HTML, or share the URL.<br><br>
+            Click <strong class="text-ink-700 dark:text-cream-300">Copy HTML</strong> to copy code directly.<br><br>
+            <a href="{{ url_for('profile') }}">✏️ Update profile</a> to change content.
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Preview -->
+      <div class="preview-wrap">
+        <div class="preview-inner" id="preview-inner">
+
+<!-- ══ PORTFOLIO TEMPLATES (unchanged content) ══ -->
 
 <div id="p1" class="pt on">
   <nav>
@@ -553,42 +707,35 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
     <div class="hero-links">
       {% if user.github_url %}<a class="hl" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i> GitHub</a>{% endif %}
       {% if user.linkedin_url %}<a class="hl" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>{% endif %}
-      {% if user.email %}<a class="hl" href="/cdn-cgi/l/email-protection#5b20207b2e283e29753e363a32377b2626"><i class="fas fa-envelope"></i> Email</a>{% endif %}
+      {% if user.email %}<a class="hl" href="mailto:{{ user.email }}"><i class="fas fa-envelope"></i> Email</a>{% endif %}
     </div>
   </div>
   {% if user.known_skills %}
   <div class="section" id="skills">
     <div class="sec-label">SKILLS &amp; TECHNOLOGIES</div>
-    <div class="skills-grid">
-      {% for s in user.known_skills %}{% if s.strip() %}<span class="skill-tag">{{ s.strip() }}</span>{% endif %}{% endfor %}
-    </div>
+    <div class="skills-grid">{% for s in user.known_skills %}{% if s.strip() %}<span class="skill-tag">{{ s.strip() }}</span>{% endif %}{% endfor %}</div>
   </div>
   {% endif %}
   {% if user.certificates %}
-<div class="section" id="certs">
-  <div class="sec-label">CERTIFICATIONS</div>
-  <div class="certs-grid">{% for c in user.certificates %}<span class="cert-tag">{{ c.name }} — {{ c.issuer }}</span>{% endfor %}</div>
-</div>
-{% endif %}
-  {% if projects %}
+  <div class="section" id="certs">
+    <div class="sec-label">CERTIFICATIONS</div>
+    <div class="certs-grid">{% for c in user.certificates %}<span class="cert-tag">{{ c.name }} — {{ c.issuer }}</span>{% endfor %}</div>
+  </div>
+  {% endif %}
   {% if work_experience %}
   <div class="section" id="experience">
-    <div class="sec-title" style="font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:18px;opacity:.7;">Work Experience</div>
+    <div class="sec-label">WORK EXPERIENCE</div>
     {% for e in work_experience %}
     <div data-jinja-exp="1" style="padding:.85rem 0;border-bottom:1px solid rgba(128,128,128,.15);{% if loop.last %}border-bottom:none;{% endif %}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.25rem;">
-        <div>
-          <div style="font-weight:700;font-size:.92rem;">{{ e.role }}</div>
-          <div style="font-size:.82rem;opacity:.7;margin-top:2px;">{{ e.company }}</div>
-        </div>
-        <div style="font-size:.75rem;opacity:.55;font-weight:600;white-space:nowrap;">
-          {{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}
-        </div>
+        <div><div style="font-weight:700;font-size:.92rem;color:#fff;">{{ e.role }}</div><div style="font-size:.82rem;opacity:.7;margin-top:2px;">{{ e.company }}</div></div>
+        <div style="font-size:.75rem;opacity:.55;font-weight:600;white-space:nowrap;">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div>
       </div>
     </div>
     {% endfor %}
   </div>
   {% endif %}
+  {% if projects %}
   <div class="section" id="projects">
     <div class="sec-label">SELECTED PROJECTS</div>
     <div class="proj-grid">
@@ -604,85 +751,72 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   </div>
   {% endif %}
   <div class="section" id="contact">
-    <div class="sec-label">GET IN TOUCH</div>
+    <div class="sec-label">CONTACT</div>
     <div class="contact-row">
-      {% if user.email %}<a class="contact-item" href="/cdn-cgi/l/email-protection#8bf0f0abfef8eef9a5eee6eae2e7abf6f6"><i class="fas fa-envelope"></i>{{ user.email }}</a>{% endif %}
-      {% if user.location %}<span class="contact-item"><i class="fas fa-map-marker-alt"></i>{{ user.location }}</span>{% endif %}
-      {% if user.github_url %}<a class="contact-item" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
-      {% if user.linkedin_url %}<a class="contact-item" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+      {% if user.email %}<a class="contact-item" href="mailto:{{ user.email }}"><i class="fas fa-envelope"></i> {{ user.email }}</a>{% endif %}
+      {% if user.linkedin_url %}<a class="contact-item" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>{% endif %}
+      {% if user.github_url %}<a class="contact-item" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i> GitHub</a>{% endif %}
+      {% if user.location %}<span class="contact-item"><i class="fas fa-map-marker-alt"></i> {{ user.location }}</span>{% endif %}
     </div>
   </div>
-  <footer>{{ user.name or 'Portfolio' }} &nbsp;·&nbsp; Built with SkillBridge</footer>
+  <footer>{{ user.name or 'Portfolio' }} © {{ 2025 }}</footer>
 </div>
 
 <div id="p2" class="pt">
   <nav>
-    <div class="nav-name">{{ user.name or 'Your Name' }}</div>
+    <div class="nav-name">{{ user.name or 'Portfolio' }}</div>
     <div class="nav-links">
-      <a href="#skills">Work</a>
-      <a href="#projects">Projects</a>
-      <a href="#contact">Contact</a>
+      <a href="#skills">Skills</a><a href="#projects">Work</a><a href="#contact">Contact</a>
     </div>
   </nav>
   <div class="hero">
     <div class="hero-left">
       <div class="hero-issue">Portfolio — {{ user.title or 'Developer' }}</div>
-      <div class="hero-name">{% set parts = (user.name or 'Your Name').split() %}{{ parts[0] }}<br>{% if parts|length > 1 %}{{ parts[1:] | join(' ') }}{% endif %}</div>
+      <div class="hero-name">{{ user.name or 'Your Name' }}</div>
       <div class="hero-role">{{ user.title or 'Software Developer' }}</div>
-      {% if user.github_url or user.linkedin_url %}<a class="hero-cta" href="{{ user.github_url or user.linkedin_url }}" target="_blank">View My Work →</a>{% endif %}
+      <a class="hero-cta" href="#contact">Get in Touch ↗</a>
     </div>
     <div class="hero-right">
-      <div class="hero-bio">{{ user.about_me or 'A passionate developer building things that matter. Experienced in modern web technologies and passionate about clean, scalable solutions.' }}</div>
+      <div class="hero-bio">{{ user.about_me or 'A passionate developer building things that matter.' }}</div>
       <div class="hero-stats">
-        <div class="stat"><div class="stat-n">{{ user.experience_years or '1' }}+</div><div class="stat-l">Years Exp.</div></div>
         <div class="stat"><div class="stat-n">{{ projects|length }}</div><div class="stat-l">Projects</div></div>
-        <div class="stat"><div class="stat-n">{{ user.known_skills|length if user.known_skills else 0 }}</div><div class="stat-l">Technologies</div></div>
-        <div class="stat"><div class="stat-n">{{ user.education_degree[:3].upper() if user.education_degree else 'B.E.' }}</div><div class="stat-l">Degree</div></div>
+        <div class="stat"><div class="stat-n">{{ user.known_skills|length if user.known_skills else 0 }}</div><div class="stat-l">Skills</div></div>
       </div>
     </div>
   </div>
   {% if user.known_skills %}
   <div class="section" id="skills">
-    <div class="sec-head"><div class="sec-title">Skills &amp; Technologies</div><div class="sec-num">01 /</div></div>
+    <div class="sec-head"><div class="sec-title">Skills</div><div class="sec-num">01</div></div>
     <div class="skills-wrap">{% for s in user.known_skills %}{% if s.strip() %}<span class="skill-pill">{{ s.strip() }}</span>{% endif %}{% endfor %}</div>
   </div>
   {% endif %}
   {% if user.certificates %}
-<div class="section" id="certs">
-  <div class="sec-head"><div class="sec-title">Certifications</div><div class="sec-num">— /</div></div>
-  {% for c in user.certificates %}<div class="cert-row"><span class="cn">{{ c.name }}</span><span>{{ c.issuer }}</span><span class="ci">{{ c.issue_date or '' }}</span></div>{% endfor %}
-</div>
-{% endif %}
-  {% if projects %}
+  <div class="section" id="certs">
+    <div class="sec-head"><div class="sec-title">Certifications</div><div class="sec-num">02</div></div>
+    {% for c in user.certificates %}<div class="cert-row"><div class="cn">{{ c.name }}</div><div class="ci">{{ c.issuer }}</div></div>{% endfor %}
+  </div>
+  {% endif %}
   {% if work_experience %}
   <div class="section" id="experience">
-    <div class="sec-title" style="font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:18px;opacity:.7;">Work Experience</div>
+    <div class="sec-head"><div class="sec-title">Experience</div><div class="sec-num">03</div></div>
     {% for e in work_experience %}
-    <div data-jinja-exp="1" style="padding:.85rem 0;border-bottom:1px solid rgba(128,128,128,.15);{% if loop.last %}border-bottom:none;{% endif %}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.25rem;">
-        <div>
-          <div style="font-weight:700;font-size:.92rem;">{{ e.role }}</div>
-          <div style="font-size:.82rem;opacity:.7;margin-top:2px;">{{ e.company }}</div>
-        </div>
-        <div style="font-size:.75rem;opacity:.55;font-weight:600;white-space:nowrap;">
-          {{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}
-        </div>
+    <div data-jinja-exp="1" class="sec-body" style="padding:0;border-bottom:1px solid #eee;{% if loop.last %}border-bottom:none;{% endif %}padding:.75rem 0;">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.2rem;">
+        <div><div style="font-weight:700;font-size:.9rem;">{{ e.role }}</div><div style="font-size:.8rem;opacity:.7;margin-top:1px;">{{ e.company }}</div></div>
+        <div style="font-size:.74rem;opacity:.5;">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div>
       </div>
     </div>
     {% endfor %}
   </div>
   {% endif %}
+  {% if projects %}
   <div class="section" id="projects">
-    <div class="sec-head"><div class="sec-title">Selected Projects</div><div class="sec-num">02 /</div></div>
+    <div class="sec-head"><div class="sec-title">Selected Work</div><div class="sec-num">04</div></div>
     <div class="proj-list">
       {% for p in projects %}
       <div class="proj-row">
         <div class="proj-idx">{{ '%02d'|format(loop.index) }}</div>
-        <div>
-          <div class="proj-title">{{ p.title }}</div>
-          <div class="proj-desc">{{ p.description }}</div>
-          {% if p.skills_needed %}<div class="proj-tags">{% for sk in p.skills_needed %}<span class="proj-tag">{{ sk }}</span>{% endfor %}</div>{% endif %}
-        </div>
+        <div><div class="proj-title">{{ p.title }}</div><div class="proj-desc">{{ p.description }}</div>{% if p.skills_needed %}<div class="proj-tags">{% for sk in p.skills_needed %}<span class="proj-tag">{{ sk }}</span>{% endfor %}</div>{% endif %}</div>
         <div class="proj-arrow">→</div>
       </div>
       {% endfor %}
@@ -690,72 +824,62 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   </div>
   {% endif %}
   <div class="section" id="contact">
-    <div class="sec-head"><div class="sec-title">Contact</div><div class="sec-num">03 /</div></div>
+    <div class="sec-head"><div class="sec-title">Contact</div><div class="sec-num">05</div></div>
     <div class="contact-grid">
-      {% if user.email %}<div class="contact-item"><div class="contact-label">Email</div><a class="contact-val" href="/cdn-cgi/l/email-protection#72090952070117005c171f131b1e520f0f">{{ user.email }}</a></div>{% endif %}
-      {% if user.location %}<div class="contact-item"><div class="contact-label">Location</div><div class="contact-val">{{ user.location }}</div></div>{% endif %}
+      {% if user.email %}<div class="contact-item"><div class="contact-label">Email</div><a class="contact-val" href="mailto:{{ user.email }}">{{ user.email }}</a></div>{% endif %}
+      {% if user.linkedin_url %}<div class="contact-item"><div class="contact-label">LinkedIn</div><a class="contact-val" href="{{ user.linkedin_url }}" target="_blank">View Profile</a></div>{% endif %}
       {% if user.github_url %}<div class="contact-item"><div class="contact-label">GitHub</div><a class="contact-val" href="{{ user.github_url }}" target="_blank">View Profile</a></div>{% endif %}
-      {% if user.linkedin_url %}<div class="contact-item"><div class="contact-label">LinkedIn</div><a class="contact-val" href="{{ user.linkedin_url }}" target="_blank">Connect</a></div>{% endif %}
+      {% if user.location %}<div class="contact-item"><div class="contact-label">Location</div><div class="contact-val">{{ user.location }}</div></div>{% endif %}
     </div>
   </div>
-  <footer><span>{{ user.name or 'Portfolio' }}</span><span>Built with SkillBridge</span></footer>
+  <footer><span>{{ user.name or 'Portfolio' }} © 2025</span><span>Built with SkillBridge</span></footer>
 </div>
 
 <div id="p3" class="pt">
   <nav>
     <div class="nav-logo">{{ user.name or 'Portfolio' }}</div>
-    <div class="nav-links">
-      <a href="#skills">Skills</a>
-      <a href="#projects">Projects</a>
-      <a href="#contact">Contact</a>
-    </div>
+    <div class="nav-links"><a href="#skills">Skills</a><a href="#projects">Projects</a><a href="#contact">Contact</a></div>
   </nav>
   <div class="hero">
     <div class="hero-content">
-      <div class="hero-badge">{{ user.current_status or 'Available for Opportunities' }}</div>
+      <div class="hero-badge">{{ user.current_status or 'Open to Work' }}</div>
       <div class="hero-name">{{ user.name or 'Your Name' }}</div>
       <div class="hero-role">{{ user.title or 'Software Developer' }}</div>
-      <div class="hero-bio">{{ user.about_me or 'Building the future with code. Passionate about AI, clean architecture, and shipping products people love.' }}</div>
+      <div class="hero-bio">{{ user.about_me or 'Building beautiful experiences at the intersection of design and technology.' }}</div>
       <div class="hero-btns">
         {% if user.github_url %}<a class="hbtn hbtn-p" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i> GitHub</a>{% endif %}
-        {% if user.linkedin_url %}<a class="hbtn hbtn-o" href="{{ user.linkedin_url }}" target="_blank">LinkedIn ↗</a>{% endif %}
-        {% if user.email %}<a class="hbtn hbtn-o" href="/cdn-cgi/l/email-protection#304b4b10454355421e555d51595c104d4d">Contact Me</a>{% endif %}
+        {% if user.linkedin_url %}<a class="hbtn hbtn-o" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>{% endif %}
       </div>
     </div>
   </div>
   {% if user.known_skills %}
   <div class="section" id="skills">
-    <div class="sec-title">Skills</div>
+    <div class="sec-title">Skills &amp; Technologies</div>
     <div class="skills-grid">{% for s in user.known_skills %}{% if s.strip() %}<span class="skill">{{ s.strip() }}</span>{% endif %}{% endfor %}</div>
   </div>
   {% endif %}
   {% if user.certificates %}
-<div class="section" id="certs">
-  <div class="sec-title">Certifications</div>
-  {% for c in user.certificates %}<span class="cert-pill">🏅 {{ c.name }} <span style="opacity:.6;font-weight:400;">— {{ c.issuer }}</span></span>{% endfor %}
-</div>
-{% endif %}
-  {% if projects %}
+  <div class="section" id="certs">
+    <div class="sec-title">Certifications</div>
+    <div>{% for c in user.certificates %}<span class="cert-pill">{{ c.name }} — {{ c.issuer }}</span>{% endfor %}</div>
+  </div>
+  {% endif %}
   {% if work_experience %}
   <div class="section" id="experience">
-    <div class="sec-title" style="font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:18px;opacity:.7;">Work Experience</div>
+    <div class="sec-title">Experience</div>
     {% for e in work_experience %}
-    <div data-jinja-exp="1" style="padding:.85rem 0;border-bottom:1px solid rgba(128,128,128,.15);{% if loop.last %}border-bottom:none;{% endif %}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.25rem;">
-        <div>
-          <div style="font-weight:700;font-size:.92rem;">{{ e.role }}</div>
-          <div style="font-size:.82rem;opacity:.7;margin-top:2px;">{{ e.company }}</div>
-        </div>
-        <div style="font-size:.75rem;opacity:.55;font-weight:600;white-space:nowrap;">
-          {{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}
-        </div>
+    <div data-jinja-exp="1" style="padding:.75rem 0;border-bottom:1px solid rgba(255,255,255,.06);{% if loop.last %}border-bottom:none;{% endif %}">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.2rem;">
+        <div><div style="font-weight:700;font-size:.9rem;color:#fff;">{{ e.role }}</div><div style="font-size:.8rem;opacity:.6;margin-top:1px;">{{ e.company }}</div></div>
+        <div style="font-size:.74rem;opacity:.4;">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div>
       </div>
     </div>
     {% endfor %}
   </div>
   {% endif %}
+  {% if projects %}
   <div class="section" id="projects">
-    <div class="sec-title">Projects</div>
+    <div class="sec-title">Selected Projects</div>
     <div class="proj-grid">
       {% for p in projects %}
       <div class="proj-card">
@@ -771,34 +895,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   <div class="section" id="contact">
     <div class="sec-title">Get in Touch</div>
     <div class="contact-card">
-      {% if user.email %}<a class="contact-item" href="/cdn-cgi/l/email-protection#156e6e35606670673b7078747c79356868"><i class="fas fa-envelope"></i>{{ user.email }}</a>{% endif %}
-      {% if user.location %}<span class="contact-item"><i class="fas fa-map-marker-alt"></i>{{ user.location }}</span>{% endif %}
-      {% if user.github_url %}<a class="contact-item" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
-      {% if user.linkedin_url %}<a class="contact-item" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+      {% if user.email %}<a class="contact-item" href="mailto:{{ user.email }}"><i class="fas fa-envelope"></i> {{ user.email }}</a>{% endif %}
+      {% if user.linkedin_url %}<a class="contact-item" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>{% endif %}
+      {% if user.github_url %}<a class="contact-item" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i> GitHub</a>{% endif %}
+      {% if user.location %}<span class="contact-item"><i class="fas fa-map-marker-alt"></i> {{ user.location }}</span>{% endif %}
     </div>
   </div>
-  <footer>{{ user.name or 'Portfolio' }} · Built with SkillBridge</footer>
+  <footer>{{ user.name or 'Portfolio' }} © 2025 · Built with SkillBridge</footer>
 </div>
 
 <div id="p4" class="pt">
   <nav>
-    <div class="nav-name">{{ user.name or 'Your Name' }}</div>
-    <div class="nav-links">
-      <a href="#skills">Skills</a>
-      <a href="#projects">Work</a>
-      <a href="#contact">Contact</a>
-    </div>
+    <div class="nav-name">{{ user.name or 'Portfolio' }}</div>
+    <div class="nav-links"><a href="#skills">Skills</a><a href="#projects">Work</a><a href="#contact">Contact</a></div>
   </nav>
   <div class="hero">
     <div class="hero-left">
-      <span class="hero-tag">{{ user.current_status or 'Open to Work' }}</span>
-      <div class="hero-name">Hello, I'm <em>{{ (user.name or 'Your Name').split()[0] }}</em></div>
+      <div class="hero-tag">{{ user.current_status or 'Available' }}</div>
+      <div class="hero-name"><em>{{ user.name or 'Your Name' }}</em></div>
       <div class="hero-role">{{ user.title or 'Creative Developer' }}</div>
-      <div class="hero-bio">{{ user.about_me or 'I craft digital experiences that blend creativity with technical precision.' }}{% if user.location %} Based in {{ user.location }}.{% endif %}</div>
-      {% if user.github_url or user.email %}<a class="hero-cta" href="{{ user.github_url or 'mailto:' + (user.email or '') }}" target="_blank">See My Work ↗</a>{% endif %}
+      <div class="hero-bio">{{ user.about_me or 'Crafting meaningful digital experiences with care and creativity.' }}</div>
+      <a class="hero-cta" href="#contact">Let's Work Together →</a>
     </div>
     <div class="hero-right">
-      <div class="stat-box"><div class="stat-n">{{ user.experience_years or '1' }}+</div><div class="stat-l">Years of Experience</div></div>
       <div class="stat-box"><div class="stat-n">{{ projects|length }}</div><div class="stat-l">Projects Completed</div></div>
       <div class="stat-box"><div class="stat-n">{{ user.known_skills|length if user.known_skills else 0 }}</div><div class="stat-l">Skills Mastered</div></div>
     </div>
@@ -810,216 +929,168 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   </div>
   {% endif %}
   {% if user.certificates %}
-<div class="section" id="certs">
-  <div class="sec-header"><div class="sec-title">Certifications</div><div class="sec-line"></div></div>
-  {% for c in user.certificates %}<div class="cert-item"><div class="cn">{{ c.name }}</div><div class="ci">{{ c.issuer }}{% if c.issue_date %} · {{ c.issue_date }}{% endif %}</div></div>{% endfor %}
-</div>
-{% endif %}
-  {% if projects %}
+  <div class="section" id="certs">
+    <div class="sec-header"><div class="sec-title">Certifications</div><div class="sec-line"></div></div>
+    {% for c in user.certificates %}<div class="cert-item"><div class="cn">{{ c.name }}</div><div class="ci">{{ c.issuer }}</div></div>{% endfor %}
+  </div>
+  {% endif %}
   {% if work_experience %}
   <div class="section" id="experience">
-    <div class="sec-title" style="font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:18px;opacity:.7;">Work Experience</div>
+    <div class="sec-header"><div class="sec-title">Experience</div><div class="sec-line"></div></div>
     {% for e in work_experience %}
-    <div data-jinja-exp="1" style="padding:.85rem 0;border-bottom:1px solid rgba(128,128,128,.15);{% if loop.last %}border-bottom:none;{% endif %}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.25rem;">
-        <div>
-          <div style="font-weight:700;font-size:.92rem;">{{ e.role }}</div>
-          <div style="font-size:.82rem;opacity:.7;margin-top:2px;">{{ e.company }}</div>
-        </div>
-        <div style="font-size:.75rem;opacity:.55;font-weight:600;white-space:nowrap;">
-          {{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}
-        </div>
+    <div data-jinja-exp="1" style="padding:.75rem 0;border-bottom:1px solid #ecdec8;{% if loop.last %}border-bottom:none;{% endif %}">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.2rem;">
+        <div><div style="font-weight:700;font-size:.9rem;color:#1a0f00;">{{ e.role }}</div><div style="font-size:.8rem;color:#7a5c40;margin-top:1px;">{{ e.company }}</div></div>
+        <div style="font-size:.74rem;color:#b8906e;font-weight:600;">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div>
       </div>
     </div>
     {% endfor %}
   </div>
   {% endif %}
+  {% if projects %}
   <div class="section" id="projects">
     <div class="sec-header"><div class="sec-title">Selected Work</div><div class="sec-line"></div></div>
     <div class="proj-grid">
       {% for p in projects %}
-      <div class="proj-card">
-        <div class="proj-top"></div>
-        <div class="proj-body">
-          <div class="proj-title">{{ p.title }}</div>
-          <div class="proj-desc">{{ p.description }}</div>
-          {% if p.skills_needed %}<div class="proj-tags">{% for sk in p.skills_needed %}<span class="proj-tag">{{ sk }}</span>{% endfor %}</div>{% endif %}
-        </div>
-      </div>
+      <div class="proj-card"><div class="proj-top"></div><div class="proj-body"><div class="proj-title">{{ p.title }}</div><div class="proj-desc">{{ p.description }}</div>{% if p.skills_needed %}<div class="proj-tags">{% for sk in p.skills_needed %}<span class="proj-tag">{{ sk }}</span>{% endfor %}</div>{% endif %}</div></div>
       {% endfor %}
     </div>
   </div>
   {% endif %}
   <div class="section" id="contact">
-    <div class="sec-header"><div class="sec-title">Let's Connect</div><div class="sec-line"></div></div>
+    <div class="sec-header"><div class="sec-title">Contact</div><div class="sec-line"></div></div>
     <div class="contact-strip">
-      {% if user.email %}<div class="contact-item"><div class="contact-label">Email</div><a class="contact-val" href="/cdn-cgi/l/email-protection#295252095c5a4c5b074c44484045095454">{{ user.email }}</a></div>{% endif %}
-      {% if user.location %}<div class="contact-item"><div class="contact-label">Location</div><div class="contact-val">{{ user.location }}</div></div>{% endif %}
+      {% if user.email %}<div class="contact-item"><div class="contact-label">Email</div><a class="contact-val" href="mailto:{{ user.email }}">{{ user.email }}</a></div>{% endif %}
+      {% if user.linkedin_url %}<div class="contact-item"><div class="contact-label">LinkedIn</div><a class="contact-val" href="{{ user.linkedin_url }}" target="_blank">View Profile</a></div>{% endif %}
       {% if user.github_url %}<div class="contact-item"><div class="contact-label">GitHub</div><a class="contact-val" href="{{ user.github_url }}" target="_blank">View Profile</a></div>{% endif %}
-      {% if user.linkedin_url %}<div class="contact-item"><div class="contact-label">LinkedIn</div><a class="contact-val" href="{{ user.linkedin_url }}" target="_blank">Connect</a></div>{% endif %}
+      {% if user.location %}<div class="contact-item"><div class="contact-label">Location</div><div class="contact-val">{{ user.location }}</div></div>{% endif %}
     </div>
   </div>
-  <footer>{{ user.name or 'Portfolio' }} · Built with SkillBridge</footer>
+  <footer>{{ user.name or 'Portfolio' }} · {{ user.title or 'Developer' }} · 2025</footer>
 </div>
 
 <div id="p5" class="pt">
   <nav>
-    <div class="nav-name">{{ user.name or 'Your Name' }}</div>
-    <div class="nav-links">
-      <a href="#skills">Skills</a>
-      <a href="#projects">Projects</a>
-      <a href="#contact">Contact</a>
-    </div>
+    <div class="nav-name">{{ (user.name or 'PORTFOLIO').upper() }}</div>
+    <div class="nav-links"><a href="#skills">Skills</a><a href="#projects">Projects</a><a href="#contact">Contact</a></div>
   </nav>
   <div class="hero">
     <div class="hero-left">
-      <div class="hero-label">Portfolio — {{ user.title or 'Developer' }}</div>
+      <div class="hero-label">Portfolio</div>
       <div class="hero-name">{{ user.name or 'Your Name' }}</div>
-      <div class="hero-role">{{ user.title or 'Software Developer' }}</div>
+      <div class="hero-role">{{ user.title or 'Developer' }}</div>
       <div class="hero-links">
         {% if user.github_url %}<a class="hlink" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i> GitHub</a>{% endif %}
-        {% if user.linkedin_url %}<a class="hlink" href="{{ user.linkedin_url }}" target="_blank">LinkedIn</a>{% endif %}
-        {% if user.email %}<a class="hlink" href="/cdn-cgi/l/email-protection#8ff4f4affafceafda1eae2eee6e3aff2f2">Email</a>{% endif %}
+        {% if user.linkedin_url %}<a class="hlink" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>{% endif %}
       </div>
     </div>
     <div class="hero-right">
-      <div class="hero-bio">{{ user.about_me or 'A developer passionate about building clean, scalable software solutions.' }}</div>
+      <div class="hero-bio">{{ user.about_me or 'Building reliable, clean software with precision.' }}</div>
       <div class="hero-meta">
         {% if user.location %}<div class="meta-row"><span class="meta-key">Location</span><span class="meta-val">{{ user.location }}</span></div>{% endif %}
-        {% if user.education_degree %}<div class="meta-row"><span class="meta-key">Education</span><span class="meta-val">{{ user.education_degree }}</span></div>{% endif %}
-        {% if user.experience_years %}<div class="meta-row"><span class="meta-key">Experience</span><span class="meta-val">{{ user.experience_years }} Years</span></div>{% endif %}
-        {% if user.current_status %}<div class="meta-row"><span class="meta-key">Status</span><span class="meta-val">{{ user.current_status }}</span></div>{% endif %}
+        <div class="meta-row"><span class="meta-key">Skills</span><span class="meta-val">{{ user.known_skills|length if user.known_skills else 0 }} Technologies</span></div>
+        <div class="meta-row"><span class="meta-key">Projects</span><span class="meta-val">{{ projects|length }} Completed</span></div>
       </div>
     </div>
   </div>
   {% if user.known_skills %}
   <div class="section" id="skills">
     <div class="sec-sidebar"><div class="sec-label">Skills</div></div>
-    <div class="sec-body">
-      <div class="skills-grid">{% for s in user.known_skills %}{% if s.strip() %}<span class="skill">{{ s.strip() }}</span>{% endif %}{% endfor %}</div>
-    </div>
-    {% if user.certificates %}
-<div class="section" id="certs">
-  <div class="sec-sidebar"><div class="sec-label">Certs</div></div>
-  <div class="sec-body">
-    {% for c in user.certificates %}<div class="cert-item"><span class="cn">{{ c.name }} — {{ c.issuer }}</span><span class="ci">{{ c.issue_date or '' }}</span></div>{% endfor %}
+    <div class="sec-body"><div class="skills-grid">{% for s in user.known_skills %}{% if s.strip() %}<span class="skill">{{ s.strip() }}</span>{% endif %}{% endfor %}</div></div>
   </div>
-</div>
-{% endif %}
-  </div>
-  
   {% endif %}
-
-  {% if projects %}
+  {% if user.certificates %}
+  <div class="section" id="certs">
+    <div class="sec-sidebar"><div class="sec-label">Certs</div></div>
+    <div class="sec-body">{% for c in user.certificates %}<div class="cert-item"><div class="cn">{{ c.name }}</div><div class="ci">{{ c.issuer }}</div></div>{% endfor %}</div>
+  </div>
+  {% endif %}
   {% if work_experience %}
   <div class="section" id="experience">
-    <div class="sec-sidebar"><div class="sec-label">Experience</div></div>
+    <div class="sec-sidebar"><div class="sec-label">Work</div></div>
     <div class="sec-body">
       {% for e in work_experience %}
-      <div data-jinja-exp="1" style="padding:.75rem 0;border-bottom:1px solid #eee;{% if loop.last %}border-bottom:none;{% endif %}">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.25rem;">
-          <div>
-            <div style="font-weight:700;font-size:.9rem;">{{ e.role }}</div>
-            <div style="font-size:.82rem;color:#aaa;margin-top:2px;">{{ e.company }}</div>
-          </div>
-          <div style="font-size:.75rem;color:#aaa;font-weight:600;white-space:nowrap;">
-            {{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}
-          </div>
+      <div data-jinja-exp="1" style="padding:.75rem 0;border-bottom:1px solid #f0f0f0;{% if loop.last %}border-bottom:none;{% endif %}">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.2rem;">
+          <div><div style="font-weight:700;font-size:.9rem;">{{ e.role }}</div><div style="font-size:.8rem;color:#666;margin-top:1px;">{{ e.company }}</div></div>
+          <div style="font-size:.74rem;color:#aaa;font-weight:500;">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div>
         </div>
       </div>
       {% endfor %}
     </div>
   </div>
   {% endif %}
+  {% if projects %}
   <div class="section" id="projects">
     <div class="sec-sidebar"><div class="sec-label">Projects</div></div>
-    <div class="sec-body">
-      <div class="proj-list">
-        {% for p in projects %}
-        <div class="proj-item">
-          <div>
-            <div class="proj-title">{{ p.title }}</div>
-            <div class="proj-desc">{{ p.description }}</div>
-            {% if p.skills_needed %}<div class="proj-tags">{% for sk in p.skills_needed %}<span class="proj-tag">{{ sk }}</span>{% endfor %}</div>{% endif %}
-          </div>
-          <div class="proj-num">{{ '%02d'|format(loop.index) }}</div>
-        </div>
-        {% endfor %}
+    <div class="sec-body"><div class="proj-list">
+      {% for p in projects %}
+      <div class="proj-item">
+        <div><div class="proj-title">{{ p.title }}</div><div class="proj-desc">{{ p.description }}</div>{% if p.skills_needed %}<div class="proj-tags">{% for sk in p.skills_needed %}<span class="proj-tag">{{ sk }}</span>{% endfor %}</div>{% endif %}</div>
+        <div class="proj-num">{{ '%02d'|format(loop.index) }}</div>
       </div>
-    </div>
+      {% endfor %}
+    </div></div>
   </div>
   {% endif %}
   <div class="section" id="contact">
     <div class="sec-sidebar"><div class="sec-label">Contact</div></div>
-    <div class="sec-body">
-      <div class="contact-row">
-        {% if user.email %}<a class="contact-item" href="/cdn-cgi/l/email-protection#f28989d287819780dc979f939b9ed28f8f"><i class="fas fa-envelope"></i>{{ user.email }}</a>{% endif %}
-        {% if user.location %}<span class="contact-item"><i class="fas fa-map-marker-alt"></i>{{ user.location }}</span>{% endif %}
-        {% if user.github_url %}<a class="contact-item" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
-        {% if user.linkedin_url %}<a class="contact-item" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
-      </div>
-    </div>
+    <div class="sec-body"><div class="contact-row">
+      {% if user.email %}<a class="contact-item" href="mailto:{{ user.email }}"><i class="fas fa-envelope"></i> {{ user.email }}</a>{% endif %}
+      {% if user.linkedin_url %}<a class="contact-item" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>{% endif %}
+      {% if user.github_url %}<a class="contact-item" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i> GitHub</a>{% endif %}
+      {% if user.location %}<span class="contact-item"><i class="fas fa-map-marker-alt"></i> {{ user.location }}</span>{% endif %}
+    </div></div>
   </div>
-  <footer><span>{{ user.name or 'Portfolio' }}</span><span>Built with SkillBridge</span></footer>
+  <footer><span>{{ user.name or 'Portfolio' }}</span><span>2025</span></footer>
 </div>
 
 <div id="p6" class="pt">
   <nav>
-    <div class="nav-logo">{{ user.name or 'Portfolio' }}</div>
-    <div class="nav-links">
-      <a href="#skills">Skills</a>
-      <a href="#projects">Projects</a>
-      <a href="#contact">Contact</a>
-    </div>
+    <div class="nav-logo">{{ (user.name or 'DEV').upper().replace(' ','_') }}</div>
+    <div class="nav-links"><a href="#skills">skills</a><a href="#projects">projects</a><a href="#contact">contact</a></div>
   </nav>
   <div class="hero">
     <div class="hero-grid-bg"></div>
     <div class="hero-content">
       <div class="hero-status">{{ user.current_status or 'Available for Work' }}</div>
-      {% set nparts = (user.name or 'Your Name').split() %}
-      <div class="hero-name">{{ nparts[0] }}{% if nparts|length > 1 %}<br><span>{{ nparts[1:] | join(' ') }}</span>{% endif %}</div>
-      <div class="hero-role">{{ user.title or 'Software Developer' }}</div>
-      <div class="hero-bio">{{ user.about_me or 'Building intelligent systems and scalable architectures. Passionate about AI, data, and the future of tech.' }}</div>
+      <div class="hero-name">{{ user.name or 'Your' }} <span>Name</span></div>
+      <div class="hero-role">{{ user.title or 'Data Scientist &amp; Developer' }}</div>
+      <div class="hero-bio">{{ user.about_me or 'Turning data into insights and ideas into reality.' }}</div>
       <div class="hero-btns">
-        {% if user.github_url %}<a class="hbtn hbtn-p" href="{{ user.github_url }}" target="_blank">GitHub ↗</a>{% endif %}
-        {% if user.linkedin_url %}<a class="hbtn hbtn-o" href="{{ user.linkedin_url }}" target="_blank">LinkedIn</a>{% endif %}
-        {% if user.email %}<a class="hbtn hbtn-o" href="/cdn-cgi/l/email-protection#acd7d78cd9dfc9de82c9c1cdc5c08cd1d1">Contact</a>{% endif %}
+        {% if user.github_url %}<a class="hbtn hbtn-p" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i> GitHub</a>{% endif %}
+        {% if user.linkedin_url %}<a class="hbtn hbtn-o" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>{% endif %}
       </div>
     </div>
   </div>
   {% if user.known_skills %}
   <div class="section" id="skills">
-    <div class="sec-title">SKILLS</div>
+    <div class="sec-title">Skills &amp; Stack</div>
     <div class="skills-grid">{% for s in user.known_skills %}{% if s.strip() %}<span class="skill">{{ s.strip() }}</span>{% endif %}{% endfor %}</div>
   </div>
   {% endif %}
   {% if user.certificates %}
-<div class="section" id="certs">
-  <div class="sec-title">CERTIFICATIONS</div>
-  <div class="certs-grid">{% for c in user.certificates %}<span class="cert-tag">{{ c.name }} · {{ c.issuer }}</span>{% endfor %}</div>
-</div>
-{% endif %}
-  {% if projects %}
+  <div class="section" id="certs">
+    <div class="sec-title">Certifications</div>
+    <div>{% for c in user.certificates %}<span class="cert-tag">{{ c.name }} — {{ c.issuer }}</span>{% endfor %}</div>
+  </div>
+  {% endif %}
   {% if work_experience %}
   <div class="section" id="experience">
-    <div class="sec-title" style="font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:18px;opacity:.7;">Work Experience</div>
+    <div class="sec-title">Experience</div>
     {% for e in work_experience %}
-    <div data-jinja-exp="1" style="padding:.85rem 0;border-bottom:1px solid rgba(128,128,128,.15);{% if loop.last %}border-bottom:none;{% endif %}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.25rem;">
-        <div>
-          <div style="font-weight:700;font-size:.92rem;">{{ e.role }}</div>
-          <div style="font-size:.82rem;opacity:.7;margin-top:2px;">{{ e.company }}</div>
-        </div>
-        <div style="font-size:.75rem;opacity:.55;font-weight:600;white-space:nowrap;">
-          {{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}
-        </div>
+    <div data-jinja-exp="1" style="padding:.75rem 0;border-bottom:1px solid rgba(0,255,247,.07);{% if loop.last %}border-bottom:none;{% endif %}">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.2rem;">
+        <div><div style="font-weight:700;font-size:.9rem;color:#fff;">{{ e.role }}</div><div style="font-size:.8rem;opacity:.5;margin-top:1px;">{{ e.company }}</div></div>
+        <div style="font-size:.74rem;color:#00fff7;opacity:.6;">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div>
       </div>
     </div>
     {% endfor %}
   </div>
   {% endif %}
+  {% if projects %}
   <div class="section" id="projects">
-    <div class="sec-title">PROJECTS</div>
+    <div class="sec-title">Projects</div>
     <div class="proj-grid">
       {% for p in projects %}
       <div class="proj-card">
@@ -1032,36 +1103,79 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   </div>
   {% endif %}
   <div class="section" id="contact">
-    <div class="sec-title">CONTACT</div>
+    <div class="sec-title">Contact</div>
     <div class="contact-row">
-      {% if user.email %}<a class="contact-item" href="/cdn-cgi/l/email-protection#2e55550e5b5d4b5c004b434f47420e5353"><i class="fas fa-envelope"></i>{{ user.email }}</a>{% endif %}
-      {% if user.location %}<span class="contact-item"><i class="fas fa-map-marker-alt"></i>{{ user.location }}</span>{% endif %}
-      {% if user.github_url %}<a class="contact-item" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i>GitHub</a>{% endif %}
-      {% if user.linkedin_url %}<a class="contact-item" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a>{% endif %}
+      {% if user.email %}<a class="contact-item" href="mailto:{{ user.email }}"><i class="fas fa-envelope"></i> {{ user.email }}</a>{% endif %}
+      {% if user.linkedin_url %}<a class="contact-item" href="{{ user.linkedin_url }}" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>{% endif %}
+      {% if user.github_url %}<a class="contact-item" href="{{ user.github_url }}" target="_blank"><i class="fab fa-github"></i> GitHub</a>{% endif %}
+      {% if user.location %}<span class="contact-item"><i class="fas fa-map-marker-alt"></i> {{ user.location }}</span>{% endif %}
     </div>
   </div>
-  <footer>{{ user.name or 'PORTFOLIO' }} &nbsp;//&nbsp; BUILT WITH SKILLBRIDGE</footer>
+  <footer>{{ user.name or 'Portfolio' }} © 2025 · SKILLBRIDGE</footer>
 </div>
 
-      </div></div></div></main>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-let cur = 1;
+{% include 'notification_bell.html' %}
+{% include 'chatbot_widget.html' %}
 
-function sw(n, el) {
-  document.querySelectorAll('.pt').forEach(t => t.classList.remove('on'));
-  document.querySelectorAll('.tcard').forEach(b => b.classList.remove('on'));
-  document.getElementById('p' + n).classList.add('on');
-  el.classList.add('on');
-  cur = n;
+<script>
+// ── THEME ──
+applyTheme(localStorage.getItem('sb-theme') || 'light');
+function applyTheme(t){ t==='dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark'); }
+
+// ── MOBILE SIDEBAR TOGGLE ──
+function toggleSidebarMenu() {
+  const sidebar = document.getElementById('app-sidebar');
+  const icon = document.getElementById('menu-icon');
+  if(sidebar.classList.contains('hidden')) {
+    sidebar.classList.remove('hidden');
+    sidebar.classList.add('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
+    icon.classList.remove('fa-bars');
+    icon.classList.add('fa-times');
+    document.body.classList.add('overflow-hidden');
+  } else {
+    sidebar.classList.add('hidden');
+    sidebar.classList.remove('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
+    icon.classList.remove('fa-times');
+    icon.classList.add('fa-bars');
+    document.body.classList.remove('overflow-hidden');
+  }
 }
 
+// ── TEMPLATE SWITCHER ──
+let cur = 1;
+function sw(num, el) {
+  document.querySelectorAll('.pt').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.tcard').forEach(c => c.classList.remove('on'));
+  const t = document.getElementById('p' + num);
+  if (t) t.classList.add('on');
+  if (el) el.classList.add('on');
+  cur = num;
+  liveUpdate();
+}
+
+// ── EDIT PANEL TOGGLE ──
+function toggleEditPanel() {
+  const p = document.getElementById('edit-panel');
+  const mainEl = document.getElementById('main-content');
+  const isHidden = p.style.display === 'none' || p.style.display === '';
+  p.style.display = isHidden ? 'block' : 'none';
+  if (window.innerWidth >= 1024) {
+    isHidden ? mainEl.classList.add('main-open') : mainEl.classList.remove('main-open');
+  }
+}
+
+// ── BUILD STANDALONE HTML ──
 function buildStandaloneHTML(num) {
   const allStyles = Array.from(document.querySelectorAll('style'))
     .map(s => s.innerHTML).join('\n');
   const el = document.getElementById('p' + num);
   const html = el.outerHTML;
-
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1082,10 +1196,7 @@ ${html}
 function openPortfolio() {
   const html = buildStandaloneHTML(cur);
   const win = window.open('', '_blank');
-  if (!win) {
-    alert('Please allow popups for this site to open your portfolio.');
-    return;
-  }
+  if (!win) { alert('Please allow popups for this site.'); return; }
   win.document.open();
   win.document.write(html);
   win.document.close();
@@ -1100,8 +1211,6 @@ function copyHTML() {
     setTimeout(() => b.innerHTML = orig, 2000);
   });
 }
-
-(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
 
 // ── ORIGINAL DATA ──
 const ORIG = {
@@ -1119,7 +1228,6 @@ const ORIG = {
   work_experience: {{ (work_experience or [])|tojson }},
 };
 
-// ── Editable experience entries (panel only) ──
 let epExpEntries = JSON.parse(JSON.stringify(ORIG.work_experience || []));
 
 function renderEpExpList() {
@@ -1127,14 +1235,14 @@ function renderEpExpList() {
   if (!list) return;
   if (!epExpEntries.length) { list.innerHTML = ''; return; }
   list.innerHTML = epExpEntries.map((e, i) => `
-    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.75rem;margin-bottom:.5rem;">
+    <div class="ep-group" style="background:#f8f4ec;border:1px solid #e5d9c0;border-radius:10px;padding:.75rem;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.4rem;">
         <input class="ep-inp" placeholder="Role" value="${e.role||''}" oninput="epExpEntries[${i}].role=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
         <input class="ep-inp" placeholder="Company" value="${e.company||''}" oninput="epExpEntries[${i}].company=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
         <input class="ep-inp" placeholder="From" value="${e.from_year||''}" oninput="epExpEntries[${i}].from_year=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
         <input class="ep-inp" placeholder="${e.is_current?'Present':e.to_year||'To'}" value="${e.is_current?'':e.to_year||''}" ${e.is_current?'disabled':''} oninput="epExpEntries[${i}].to_year=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
       </div>
-      <button onclick="epExpEntries.splice(${i},1);renderEpExpList();liveUpdate()" style="padding:2px 10px;border-radius:5px;border:1px solid #ef4444;background:transparent;color:#ef4444;font-size:.72rem;cursor:pointer;font-family:inherit;">Remove</button>
+      <button onclick="epExpEntries.splice(${i},1);renderEpExpList();liveUpdate()" style="padding:2px 10px;border-radius:6px;border:1px solid #dc2626;background:transparent;color:#dc2626;font-size:.72rem;cursor:pointer;font-family:inherit;">Remove</button>
     </div>
   `).join('');
 }
@@ -1156,7 +1264,6 @@ function populatePanel() {
   document.getElementById('ep-learning').value = (ORIG.learning || []).join(', ');
   epExpEntries = JSON.parse(JSON.stringify(ORIG.work_experience || []));
   renderEpExpList();
-  // Projects
   (ORIG.projects || []).forEach((title, i) => {
     const tf = document.getElementById('ep-proj-title-' + i);
     const df = document.getElementById('ep-proj-desc-' + i);
@@ -1164,23 +1271,14 @@ function populatePanel() {
     if (df) df.value = (ORIG.projdescs || [])[i] || '';
   });
 }
+
 document.addEventListener('DOMContentLoaded', function() {
   populatePanel();
   renderEpExpList();
   liveUpdate();
 });
 
-function toggleEditPanel() {
-  const p = document.getElementById('edit-panel');
-  const mainEl = document.querySelector('.main');
-  const isHidden = p.style.display === 'none' || p.style.display === '';
-  p.style.display = isHidden ? 'block' : 'none';
-  if (isHidden) {
-    mainEl.classList.add('panel-open');
-  } else {
-    mainEl.classList.remove('panel-open');
-  }
-}
+function toggleEditPanel_old() {}
 
 function resetEdits() {
   populatePanel();
@@ -1200,13 +1298,9 @@ function liveUpdate() {
   const t = document.getElementById('p' + cur);
   if (!t) return;
 
-  // Name
   t.querySelectorAll('.hero-name,.name,.nm,.port-name').forEach(el => { if(name) el.textContent = name; });
-  // Title/Role
   t.querySelectorAll('.hero-role,.role,.tagline,.subtitle,.port-role').forEach(el => { if(title) el.textContent = title; });
-  // About
   t.querySelectorAll('.hero-bio,.about-text,.bio,p.about,.about-body').forEach(el => { if(about) el.textContent = about; });
-  // Email
   t.querySelectorAll('a').forEach(a => {
     if (a.querySelector && a.querySelector('.fa-envelope') && email) {
       a.href = 'mailto:' + email;
@@ -1216,14 +1310,12 @@ function liveUpdate() {
     if (a.querySelector && a.querySelector('.fa-linkedin') && linkedin) a.href = linkedin;
     if (a.querySelector && a.querySelector('.fa-github') && github) a.href = github;
   });
-  // Location
   t.querySelectorAll('span,a').forEach(el => {
     if (el.querySelector && el.querySelector('.fa-map-marker-alt') && location) {
       const nodes = Array.from(el.childNodes).filter(n => n.nodeType === 3);
       if (nodes.length) nodes[nodes.length-1].textContent = location;
     }
   });
-  // Skills — find container and rebuild
   t.querySelectorAll('.skills-grid,.skills-wrap,.skills-list,.tech-grid,.skill-tags').forEach(container => {
     const sample = container.querySelector('[class]');
     if (!sample) return;
@@ -1236,12 +1328,9 @@ function liveUpdate() {
       container.appendChild(span);
     });
   });
-  // Footer
   t.querySelectorAll('footer').forEach(f => {
     if (name && f.childNodes[0]) f.childNodes[0].textContent = name + ' ';
   });
-
-  // Projects — update title and description for each project card
   const projCards = t.querySelectorAll('.proj-card, .proj-row, .proj-item');
   projCards.forEach((card, i) => {
     const titleEl = card.querySelector('.proj-title');
@@ -1251,12 +1340,9 @@ function liveUpdate() {
     if (titleInp && titleInp.value && titleEl) titleEl.textContent = titleInp.value;
     if (descInp  && descInp.value  && descEl)  descEl.textContent  = descInp.value;
   });
-
-  // Work Experience — rebuild experience section in preview
   const expSection = t.querySelector('#experience');
   if (expSection && epExpEntries.length) {
     const body = expSection.querySelector('.sec-body') || expSection;
-    // Remove ALL existing entries — both Jinja-rendered and JS-added
     body.querySelectorAll('[data-jinja-exp],[data-ep-exp]').forEach(e => e.remove());
     epExpEntries.forEach(e => {
       if (!e.role && !e.company) return;
@@ -1272,7 +1358,5 @@ function liveUpdate() {
   }
 }
 </script>
-{% include 'notification_bell.html' %}
-{% include 'chatbot_widget.html' %}
 </body>
 </html>

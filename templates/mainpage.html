@@ -4,339 +4,325 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard – SkillBridge</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Playfair Display', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
+      },
+      colors: {
+        cream: { 50:'#fdfcf8', 100:'#f8f4ec', 200:'#f0e9d8', 300:'#e5d9c0', 400:'#d4c4a0', 500:'#b8a07a' },
+        ink:   { 900:'#1a1714', 800:'#2c2820', 700:'#3d3830', 600:'#5c5548', 500:'#7a7268', 400:'#9c9488' },
+        gold:  '#c4973a',
+      }
+    }
+  }
+}
+</script>
+
 <style>
-:root{ --bg:#f5f6fb; --surface:#ffffff; --primary:#8B5CF6; --secondary:#EC4899; --accent:#22d3ee; --text:#0f172a; --muted:#64748b; --border:#e5e7eb; --radius:20px; --shadow:0 30px 80px rgba(0,0,0,.12); }
-*{margin:0;padding:0;box-sizing:border-box}
-body{ font-family:Poppins,sans-serif; background: radial-gradient(900px 400px at 10% -10%,rgba(139,92,246,.25),transparent), radial-gradient(700px 300px at 90% 10%,rgba(236,72,153,.2),transparent), var(--bg); color:var(--text); }
-.dashboard-container{display:flex}
+body { font-family: 'DM Sans', sans-serif; }
 
-/* SIDEBAR */
-.sidebar{ width:250px; background:#fff; border-right:1px solid var(--border); padding:2rem 1.5rem; position:fixed; height:100vh; z-index:10; display:flex; flex-direction:column; overflow-y:auto; }
-.sidebar .logo{ font-size:1.9rem; font-weight:800; background:linear-gradient(90deg,var(--primary),var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:1.2rem; text-decoration:none; display:block; }
-.sidebar a{ display:flex; align-items:center; gap:12px; padding:.9rem 1rem; border-radius:14px; color:var(--muted); text-decoration:none; margin-bottom:.4rem; transition:.25s; font-weight:500; }
-.sidebar a:hover{ background:#f1f5f9; transform:translateX(6px); color:var(--primary); }
-.sidebar a.active{ background:linear-gradient(90deg,var(--primary),var(--secondary)); color:#fff; box-shadow:0 15px 40px rgba(139,92,246,.4); }
-
-/* SIDEBAR XP WIDGET */
-.sb-xp-widget{ background:linear-gradient(135deg,rgba(139,92,246,0.08),rgba(236,72,153,0.05)); border:1px solid rgba(139,92,246,0.18); border-radius:16px; padding:14px 16px; margin-bottom:1.2rem; }
-.sb-xp-top{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-.sb-xp-icon{ font-size:1.5rem; line-height:1; }
-.sb-xp-badge{ font-size:0.72rem; font-weight:700; color:var(--primary); }
-.sb-xp-num{ font-size:1.05rem; font-weight:800; color:var(--text); line-height:1.2; }
-.sb-xp-num span{ font-size:0.68rem; font-weight:600; color:var(--muted); }
-.sb-bar-bg{ width:100%; height:6px; background:rgba(139,92,246,0.12); border-radius:4px; overflow:hidden; margin-bottom:6px; }
-.sb-bar-fill{ height:100%; background:linear-gradient(90deg,var(--primary),var(--secondary)); border-radius:4px; transition:width 1s ease; }
-.sb-bar-labels{ display:flex; justify-content:space-between; font-size:0.62rem; color:var(--muted); font-weight:700; margin-bottom:8px; }
-.sb-streak{ display:inline-flex; align-items:center; gap:5px; font-size:0.7rem; font-weight:700; padding:3px 10px; border-radius:20px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.18); color:#dc2626; }
-.sb-streak.cold{ background:rgba(100,116,139,0.08); border-color:rgba(100,116,139,0.18); color:var(--muted); }
-
-/* MAIN */
-.main-content{ margin-left:250px; padding:3.5rem 4.5rem; width:calc(100% - 250px); }
-.hero{ position:relative; padding:3.5rem; border-radius:32px; background:linear-gradient(135deg,#ffffff,#f7f5ff); box-shadow:var(--shadow); overflow:hidden; }
-.hero-content{ position:relative; z-index:2; display:grid; grid-template-columns:1.4fr .6fr; gap:3rem; }
-.hero h1{ font-size:2.6rem; line-height:1.1; }
-.hero h1 span{ background:linear-gradient(90deg,var(--primary),var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-.hero p { color: var(--muted); margin-top: 10px; font-size: 0.95rem; }
-.action-stack{ display:flex; flex-direction:column; gap:16px; justify-content:center; }
-.action-stack a{ padding:16px; border-radius:999px; font-weight:800; text-decoration:none; text-align:center; transition:0.3s; }
-.action-stack .primary{ background:linear-gradient(90deg,var(--primary),var(--secondary)); color:#fff; box-shadow:0 20px 50px rgba(139,92,246,.45); }
-.action-stack .secondary{ background:#fff; border:1px solid var(--border); color:var(--primary); }
-
-/* STATS */
-.stats{ margin:3rem 0; display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:2rem; }
-.stat{ background:#fff; border-radius:24px; padding:2rem; box-shadow:var(--shadow); border:1px solid var(--border); }
-.stat h3{ font-size:.9rem; color:var(--muted); margin-bottom:8px; }
-.stat strong{ font-size:2.1rem; }
-
-/* XP STAT CARD — special */
-.stat.xp-stat { border-color: rgba(139,92,246,0.25); background: linear-gradient(135deg, #faf9ff, #fff); position: relative; overflow: hidden; }
-.stat.xp-stat::before { content: ''; position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; background: radial-gradient(circle, rgba(139,92,246,0.15), transparent); border-radius: 50%; }
-.xp-stat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.xp-stat-icon { font-size: 1.4rem; }
-.xp-stat-level { font-size: 0.7rem; font-weight: 800; color: var(--primary); background: rgba(139,92,246,0.1); padding: 3px 10px; border-radius: 20px; }
-.xp-stat-bar { height: 5px; background: rgba(139,92,246,0.12); border-radius: 3px; overflow: hidden; margin-top: 8px; }
-.xp-stat-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 3px; }
-.xp-stat-next { font-size: 0.65rem; color: var(--muted); font-weight: 600; margin-top: 5px; }
-
-/* STREAK STAT CARD */
-.stat.streak-stat { border-color: rgba(239,68,68,0.2); background: linear-gradient(135deg, #fff9f9, #fff); }
-.streak-fire { font-size: 1.8rem; line-height: 1; margin-bottom: 4px; display: block; }
-.streak-num { font-size: 2.1rem; font-weight: 800; color: var(--text); line-height: 1; }
-.streak-label { font-size: 0.75rem; color: var(--muted); font-weight: 600; margin-top: 4px; }
-.streak-bonus-hint { font-size: 0.68rem; color: #dc2626; font-weight: 700; margin-top: 6px; }
-
-/* WIDGETS */
-.widgets{ display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:2.5rem; }
-.widget{ background:#fff; border-radius:26px; padding:2.5rem; box-shadow:var(--shadow); position:relative; overflow:hidden; }
-.widget h3{ position:relative; font-size:1.4rem; margin-bottom:10px; }
-.widget p{ color:var(--muted); margin-bottom:1.5rem; font-size:0.9rem; }
-.widget .links{ display:flex; gap:15px; position:relative; z-index:2; }
-.widget a{ color:var(--primary); font-weight:700; text-decoration:none; }
-.profile-cta{ margin-top:3rem; background:linear-gradient(135deg,var(--primary),var(--secondary)); border-radius:30px; padding:2.5rem 3rem; color:#fff; display:flex; justify-content:space-between; align-items:center; }
-.profile-cta p { color: rgba(255,255,255,0.9); }
-.profile-cta a{ background:#fff; color:var(--primary); padding:14px 30px; border-radius:999px; font-weight:900; text-decoration:none; }
-
-/* LEVEL UP TOAST */
-.levelup-toast{ position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(80px); background:linear-gradient(90deg,var(--primary),var(--secondary)); color:#fff; padding:14px 28px; border-radius:50px; font-weight:800; font-size:1rem; z-index:99999; opacity:0; pointer-events:none; transition:all .5s cubic-bezier(.34,1.56,.64,1); white-space:nowrap; box-shadow:0 10px 40px rgba(139,92,246,0.4); }
-.levelup-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
-
-/* DARK */
-body.dark .sb-xp-num{ color:#e2e8f0 !important; }
-body.dark .sb-xp-widget{ background:linear-gradient(135deg,rgba(139,92,246,0.12),rgba(236,72,153,0.08)) !important; border-color:rgba(139,92,246,0.25) !important; }
-body.dark .sb-bar-bg{ background:rgba(139,92,246,0.18) !important; }
-
-/* ── SEARCH BAR ── */
-.search-section { position:relative; margin:2.5rem 0 0; }
-.search-form {
-    display:flex; align-items:center;
-    background:#fff; border-radius:20px;
-    box-shadow:0 8px 30px rgba(139,92,246,0.12);
-    border:2px solid transparent; overflow:hidden; transition:0.2s;
+.grain-bg {
+  background-color: #f8f4ec;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
 }
-.search-form:focus-within {
-    border-color:var(--primary);
-    box-shadow:0 8px 30px rgba(139,92,246,0.22);
-}
-.search-icon { padding:0 18px; color:var(--muted); font-size:1rem; flex-shrink:0; }
-.search-field {
-    flex:1; padding:16px 0; border:none; outline:none;
-    font-family:Poppins,sans-serif; font-size:0.95rem; color:var(--text); background:transparent;
-}
-.search-field::placeholder { color:var(--muted); }
-.search-submit {
-    padding:14px 26px; background:linear-gradient(90deg,var(--primary),var(--secondary));
-    color:#fff; border:none; font-family:Poppins,sans-serif; font-weight:700;
-    font-size:0.88rem; cursor:pointer; transition:0.2s; display:flex; align-items:center; gap:8px; flex-shrink:0;
-}
-.search-submit:hover { opacity:0.9; }
-.search-hint { font-size:0.72rem; color:var(--muted); margin-top:6px; margin-left:4px; font-weight:600; }
 
-/* Dropdown */
-.search-drop {
-    position:absolute; top:calc(100% + 8px); left:0; right:0;
-    background:#fff; border-radius:16px;
-    box-shadow:0 20px 60px rgba(0,0,0,0.12);
-    border:1px solid var(--border); z-index:9000;
-    display:none; max-height:360px; overflow-y:auto;
-}
-.search-drop.open { display:block; }
-.search-drop-item {
-    display:flex; align-items:center; gap:12px;
-    padding:12px 18px; text-decoration:none; color:inherit;
-    border-bottom:1px solid #f1f5f9; transition:0.15s;
-}
-.search-drop-item:last-child { border-bottom:none; }
-.search-drop-item:hover { background:#f8fafc; }
-.search-drop-avatar { width:40px; height:40px; border-radius:10px; object-fit:cover; border:2px solid var(--border); flex-shrink:0; }
-.search-drop-name { font-size:0.88rem; font-weight:800; }
-.search-drop-username { font-size:0.72rem; color:var(--primary); font-weight:700; }
-.search-drop-title { font-size:0.75rem; color:var(--muted); }
-.search-drop-badge { font-size:0.68rem; font-weight:700; color:var(--primary); background:rgba(139,92,246,0.08); padding:3px 10px; border-radius:10px; margin-left:auto; white-space:nowrap; }
-.search-drop-empty { padding:1.5rem; text-align:center; color:var(--muted); font-size:0.85rem; }
+/* Custom scrollbars for editorial system */
+.custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #d4c4a0; border-radius: 10px; }
 
-body.dark .search-form { background:#1a1a2e !important; }
-body.dark .search-field { color:#e2e8f0 !important; }
-body.dark .search-drop { background:#1a1a2e !important; border-color:#2d2d44 !important; }
-body.dark .search-drop-item { border-bottom-color:#2d2d44 !important; }
-body.dark .search-drop-item:hover { background:#13131f !important; }
-body.dark .search-drop-name { color:#e2e8f0 !important; }
+.hover-line { position: relative; }
+.hover-line::after { content:''; position:absolute; bottom:-1px; left:0; width:0; height:1px; background:currentColor; transition:width .3s ease; }
+.hover-line:hover::after { width:100%; }
 
-/* ── SEARCH BAR RESPONSIVE ── */
-@media (max-width: 768px) {
-    .search-section { margin: 1.5rem 0 0; }
-    .search-submit span { display: none; } /* hide text, keep icon */
-    .search-submit {
-        padding: 14px 18px !important;
-    }
-    .search-field {
-        font-size: 0.85rem !important;
-    }
-    .search-drop {
-        max-height: 280px !important;
-    }
-}
-@media (max-width: 480px) {
-    .search-form { border-radius: 14px !important; }
-    .search-submit { padding: 12px 14px !important; }
-}
+/* Dark mode architecture styles overrides */
+.dark body, .dark .grain-bg { background-color: #1a1714; background-image: none; color: #f8f4ec; }
+.dark aside { background: #2c2820 !important; border-color: #3d3830 !important; }
+.dark .editorial-card { background: #2c2820 !important; border-color: #3d3830 !important; color: #f0e9d8; }
+.dark input { background: #1a1714 !important; border-color: #3d3830 !important; color: #f0e9d8 !important; }
+.dark input:focus { border-color: #c4973a !important; }
+.dark .nav-item-active { background: #1a1714 !important; color: #c4973a !important; }
+.dark .search-drop-box { background: #2c2820 !important; border-color: #3d3830 !important; }
+.dark .search-item-node:hover { background: #1a1714 !important; }
 </style>
 </head>
-<body>
-<div class="dashboard-container">
-  <aside class="sidebar">
-    <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
 
-    <!-- ── SIDEBAR XP WIDGET ── -->
-    <div class="sb-xp-widget">
-      <div class="sb-xp-top">
-        <div class="sb-xp-icon">{{ level_info.icon }}</div>
-        <div>
-          <div class="sb-xp-badge">Lv.{{ level_info.level }} · {{ level_info.badge }}</div>
-          <div class="sb-xp-num">{{ xp }} <span>XP</span></div>
+<body class="grain-bg text-ink-900 min-h-screen custom-scroll antialiased">
+
+<div class="min-h-screen flex flex-col lg:flex-row relative w-full">
+
+  <!-- ══ MOBILE HEADER & MENU ACTION BAR (Bell integrated right inside here) ══ -->
+  <header class="lg:hidden bg-cream-100 dark:bg-ink-800 border-b border-cream-200 dark:border-ink-700 px-6 py-4 flex items-center justify-between sticky top-0 z-40 transition-colors w-full">
+    <div class="flex items-center gap-3">
+      <button onclick="toggleSidebarMenu()" class="text-ink-900 dark:text-cream-50 text-xl p-1.5 focus:outline-none transition-transform active:scale-95">
+        <i class="fas fa-bars" id="menu-icon"></i>
+      </button>
+      <a href="{{ url_for('main_page') }}" class="font-display text-2xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+    </div>
+    
+    <!-- Unified Mobile Notification Trigger Node -->
+    <button class="w-10 h-10 rounded-full border border-cream-300 dark:border-ink-700 flex items-center justify-center relative text-ink-900 dark:text-cream-50" id="mobile-notif-btn" onclick="toggleNotifDropdown(event)">
+      <i class="fas fa-bell"></i>
+      <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[9px] font-bold w-4 h-4 rounded-full hidden items-center justify-center notif-badge"></span>
+    </button>
+  </header>
+
+  <!-- ══ NAVIGATION SIDEBAR ══ -->
+  <aside id="app-sidebar" class="hidden lg:flex fixed lg:sticky top-0 left-0 w-full lg:w-64 bg-white border-r border-cream-200 p-6 flex-col h-screen z-50 overflow-y-auto custom-scroll transition-all duration-300 flex-shrink-0">
+    
+    <div class="flex items-center justify-between mb-8">
+      <a href="{{ url_for('main_page') }}" class="font-display text-3xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+      
+      <!-- Desktop Header Bell Feature -->
+      <button class="w-9 h-9 rounded-full border border-cream-200 dark:border-ink-700 flex items-center justify-center relative text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-cream-50 transition-colors" id="desktop-notif-btn" onclick="toggleNotifDropdown(event)">
+        <i class="fas fa-bell text-sm"></i>
+        <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full hidden items-center justify-center notif-badge"></span>
+      </button>
+    </div>
+
+    <div class="bg-cream-100/60 dark:bg-ink-900/40 border border-cream-300/50 dark:border-ink-700 rounded-2xl p-4 mb-6 space-y-3 shadow-inner">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl leading-none select-none">{{ level_info.icon }}</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-[9px] font-bold tracking-widest uppercase text-gold">Lv.{{ level_info.level }} · {{ level_info.badge }}</div>
+          <div class="text-lg font-black text-ink-900 dark:text-cream-100 leading-tight mt-0.5">
+            {{ xp }} <span class="text-xs font-semibold text-ink-400 dark:text-ink-500">XP</span>
+          </div>
         </div>
       </div>
-      <div class="sb-bar-bg">
-        <div class="sb-bar-fill" style="width:{{ progress_pct }}%"></div>
+      
+      <div>
+        <div class="w-full h-1.5 bg-cream-200 dark:bg-ink-700 rounded-full overflow-hidden mb-1.5">
+          <div class="h-full bg-ink-900 dark:bg-gold rounded-full transition-all duration-1000" style="width: {{ progress_pct }}%"></div>
+        </div>
+        <div class="flex justify-between text-[10px] font-bold text-ink-500 dark:text-ink-400">
+          <span>{{ xp }} XP</span>
+          <span>{% if level_info.next_xp == 'Max' %}🏆 Max{% else %}{{ level_info.next_xp }} XP{% endif %}</span>
+        </div>
       </div>
-      <div class="sb-bar-labels">
-        <span>{{ xp }} XP</span>
-        <span>{% if level_info.next_xp == 'Max' %}🏆 Max{% else %}{{ level_info.next_xp }} XP{% endif %}</span>
-      </div>
-      {% if streak and streak >= 1 %}
-        <div class="sb-streak">🔥 {{ streak }} day streak</div>
-      {% else %}
-        <div class="sb-streak cold">❄️ No streak yet</div>
-      {% endif %}
-    </div>
-    <!-- ── END SIDEBAR XP WIDGET ── -->
 
-    <a href="{{ url_for('main_page') }}" class="active"><i class="fas fa-home"></i> Dashboard</a>
-    <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a>
-    <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
-    <a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> Roadmap AI</a>
-    <a href="{{ url_for('resume_builder') }}"><i class="fas fa-file-alt"></i> Resume Builder</a>
-    <a href="{{ url_for('portfolio_builder') }}"><i class="fas fa-briefcase"></i> Portfolio Builder</a>
-    <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
-    <a href="{{ url_for('find_communities') }}"><i class="fas fa-users"></i> All Communities</a>
-    <a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a>
-    <a href="{{ url_for('leaderboard') }}"><i class="fas fa-trophy"></i> Leaderboard</a>
-    <div style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border)">
-      <a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a>
+      <div class="pt-0.5">
+        {% if streak and streak >= 1 %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 text-xs font-bold text-rose-700 dark:text-rose-400">
+            <span>🔥</span> {{ streak }} day streak
+          </div>
+        {% else %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cream-200 border border-cream-300/40 dark:bg-ink-800 dark:border-ink-700 text-xs font-bold text-ink-400 dark:text-ink-500">
+            <span>❄️</span> No active streak
+          </div>
+        {% endif %}
+      </div>
     </div>
+
+    <nav class="space-y-1 flex-1 font-body">
+      <a href="{{ url_for('main_page') }}" class="nav-item-active flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 shadow-sm transition-all"><i class="fas fa-home w-4 text-center"></i> Dashboard</a>
+      <a href="{{ url_for('profile') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-user-circle w-4 text-center"></i> My Profile</a>
+      <a href="{{ url_for('my_projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-layer-group w-4 text-center"></i> My Projects</a>
+      <a href="{{ url_for('roadmap_generator') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-magic w-4 text-center"></i> Roadmap AI</a>
+      <a href="{{ url_for('resume_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-file-alt w-4 text-center"></i> Resume Builder</a>
+      <a href="{{ url_for('portfolio_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-briefcase w-4 text-center"></i> Portfolio Builder</a>
+      <a href="{{ url_for('projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-globe w-4 text-center"></i> Community</a>
+      <a href="{{ url_for('find_communities') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-users w-4 text-center"></i> All Communities</a>
+      <a href="{{ url_for('messages_list') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-comment-dots w-4 text-center"></i> Messages</a>
+      <a href="{{ url_for('leaderboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-trophy w-4 text-center"></i> Leaderboard</a>
+      
+      <div class="pt-4 mt-4 border-t border-cream-200 dark:border-ink-800">
+        <a href="{{ url_for('settings') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-cog w-4 text-center"></i> Settings</a>
+      </div>
+    </nav>
   </aside>
 
-  <main class="main-content">
-    <section class="hero">
-      <div class="hero-content">
-        <div>
-          <h1>Welcome back,<br><span>{{ user_name or 'Builder' }}</span></h1>
-          <p>Your command center for learning, building, and proving your technical architecture.</p>
+  <!-- ══ CONTENT BLOCK ══ -->
+  <main class="flex-1 px-4 sm:px-8 py-8 lg:py-12 max-w-7xl mx-auto w-full space-y-8 overflow-x-hidden">
+    
+    <section class="editorial-card bg-white border border-cream-200 rounded-3xl p-8 sm:p-12 shadow-sm relative overflow-hidden transition-all duration-300">
+      <div class="absolute inset-0 opacity-[0.02] dark:opacity-[0.04] pointer-events-none">
+        <div class="absolute left-1/3 top-0 bottom-0 w-px bg-ink-900 dark:bg-cream-50"></div>
+        <div class="absolute left-2/3 top-0 bottom-0 w-px bg-ink-900 dark:bg-cream-50"></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center relative z-10">
+        <div class="md:col-span-8 space-y-4">
+          <h1 class="font-display text-4xl sm:text-5xl font-black tracking-tight text-ink-900 dark:text-cream-100 leading-[1.1]">
+            Welcome back,<br><span class="text-gold italic font-normal font-display">{{ user_name or 'Builder' }}</span>
+          </h1>
+          <p class="text-ink-500 dark:text-ink-400 text-sm max-w-lg font-body leading-relaxed">
+            Your centralized operational matrix node built to deploy architectures, configure learning vectors, and record production capability values.
+          </p>
         </div>
-        <div class="action-stack">
-          <a href="{{ url_for('roadmap_generator') }}" class="primary">Generate Roadmap</a>
-          <a href="{{ url_for('create_project') }}" class="secondary">Create Project</a>
+        <div class="md:col-span-4 flex flex-col sm:flex-row md:flex-col gap-3 justify-center w-full">
+          <a href="{{ url_for('roadmap_generator') }}" class="w-full text-center py-3.5 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-body font-semibold text-sm rounded-xl tracking-wide transition-all hover:opacity-90 hover:-translate-y-0.5 shadow-sm">Generate Roadmap</a>
+          <a href="{{ url_for('create_project') }}" class="w-full text-center py-3.5 bg-white dark:bg-ink-800 border border-cream-300 dark:border-ink-700 text-ink-900 dark:text-cream-100 font-body font-semibold text-sm rounded-xl tracking-wide transition-all hover:bg-cream-50 dark:hover:bg-ink-700 hover:-translate-y-0.5 shadow-sm">Create Project</a>
         </div>
       </div>
     </section>
 
-    <!-- ── SEARCH BUILDERS ── -->
-    <div class="search-section">
-        <div class="search-form">
-            <div class="search-icon"><i class="fas fa-search"></i></div>
-            <input class="search-field" id="sb-search" type="text"
-                placeholder="Search builders by name or @username..."
-                autocomplete="off"
-                oninput="sbLiveSearch(this.value)"
-                onkeydown="if(event.key==='Enter'&&this.value.trim())window.location.href='/search?q='+encodeURIComponent(this.value.trim())">
-            <button class="search-submit" onclick="sbGoSearch()">
-                <i class="fas fa-search"></i> Find
-            </button>
-        </div>
-        <div class="search-hint">Type a name or <strong>@username</strong> · Press Enter for full results</div>
-        <div class="search-drop" id="sb-drop"></div>
-    </div>
+    <section class="relative space-y-2 max-w-3xl">
+      <div class="flex items-center bg-white dark:bg-ink-800 border border-cream-300 dark:border-ink-700 rounded-xl overflow-hidden focus-within:border-ink-900 dark:focus-within:border-gold shadow-sm transition-all">
+        <div class="pl-4 pr-2 text-ink-400"><i class="fas fa-search"></i></div>
+        <input class="w-full py-4 text-sm bg-transparent outline-none text-ink-900 dark:text-cream-100 placeholder-ink-400 font-body px-1" 
+            id="sb-search" type="text"
+            placeholder="Search builders by name or @username..."
+            autocomplete="off"
+            oninput="sbLiveSearch(this.value)"
+            onkeydown="if(event.key==='Enter'&&this.value.trim())window.location.href='/search?q='+encodeURIComponent(this.value.trim())">
+        <button class="px-6 py-4 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-body font-bold text-xs tracking-wider uppercase transition-all hover:opacity-95" onclick="sbGoSearch()">
+            Find
+        </button>
+      </div>
+      <div class="text-[11px] font-semibold text-ink-400 dark:text-ink-500 font-body pl-1">Input target keyword variables or <strong class="text-ink-700 dark:text-cream-400">@username parameters</strong> · Return executes queries</div>
+      
+      <div class="search-drop-box absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-cream-200 shadow-xl z-50 overflow-hidden max-h-80 hidden custom-scroll" id="sb-drop"></div>
+    </section>
 
-    <section class="stats">
-      <div class="stat"><h3>Roadmaps</h3><strong>{{ roadmap_count or 0 }}</strong></div>
-      <div class="stat"><h3>Projects</h3><strong>{{ project_count or 0 }}</strong></div>
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 font-body">
+      <div class="editorial-card bg-white border border-cream-200 p-6 rounded-2xl shadow-sm hover:border-ink-400 dark:hover:border-ink-600 transition-all duration-300 flex flex-col justify-between">
+        <p class="text-[10px] font-bold tracking-[0.2em] text-ink-400 uppercase">Roadmaps Active</p>
+        <strong class="text-5xl font-black block text-ink-900 dark:text-cream-100 mt-4 font-body tracking-tight">{{ roadmap_count or 0 }}</strong>
+      </div>
 
-      <!-- XP STAT CARD -->
-      <div class="stat xp-stat">
-        <div class="xp-stat-top">
-          <div class="xp-stat-icon">{{ level_info.icon }}</div>
-          <span class="xp-stat-level">Level {{ level_info.level }}</span>
+      <div class="editorial-card bg-white border border-cream-200 p-6 rounded-2xl shadow-sm hover:border-ink-400 dark:hover:border-ink-600 transition-all duration-300 flex flex-col justify-between">
+        <p class="text-[10px] font-bold tracking-[0.2em] text-ink-400 uppercase">Projects Uploaded</p>
+        <strong class="text-5xl font-black block text-ink-900 dark:text-cream-100 mt-4 font-body tracking-tight">{{ project_count or 0 }}</strong>
+      </div>
+
+      <div class="editorial-card bg-white border border-cream-200 p-6 rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between group hover:border-ink-400 dark:hover:border-ink-600 transition-all duration-300">
+        <div class="flex items-center justify-between gap-2">
+          <p class="text-[10px] font-bold tracking-[0.2em] text-ink-400 uppercase">Experience Points</p>
+          <span class="text-[9px] font-extrabold text-gold bg-cream-100 border border-cream-200/60 dark:bg-ink-900 rounded-full px-2 py-0.5 uppercase tracking-wide">Level {{ level_info.level }}</span>
         </div>
-        <h3>XP Points</h3>
-        <strong>{{ xp }}</strong>
-        <div class="xp-stat-bar">
-          <div class="xp-stat-bar-fill" style="width:{{ progress_pct }}%"></div>
-        </div>
-        <div class="xp-stat-next">
-          {% if level_info.next_xp == 'Max' %}🏆 Max Level reached!
-          {% else %}{{ level_info.next_xp - xp }} XP to {{ level_info.next_xp }} XP{% endif %}
+        <strong class="text-5xl font-black block text-ink-900 dark:text-cream-100 mt-4 tracking-tight">{{ xp }}</strong>
+        
+        <div class="mt-5 space-y-1.5 w-full">
+          <div class="w-full h-1 bg-cream-200 dark:bg-ink-700 rounded-full overflow-hidden">
+            <div class="h-full bg-ink-900 dark:bg-gold rounded-full transition-all duration-500" style="width: {{ progress_pct }}%"></div>
+          </div>
+          <div class="text-[10px] font-bold text-ink-400 dark:text-ink-500">
+            {% if level_info.next_xp == 'Max' %}🏆 Maximum Level Node Achieved
+            {% else %}{{ level_info.next_xp - xp }} XP required to step to {{ level_info.next_xp }}{% endif %}
+          </div>
         </div>
       </div>
 
-      <!-- STREAK STAT CARD -->
-      <div class="stat streak-stat">
-        <h3>Login Streak</h3>
+      <div class="editorial-card bg-white border border-cream-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between hover:border-ink-400 dark:hover:border-ink-600 transition-all duration-300">
+        <p class="text-[10px] font-bold tracking-[0.2em] text-ink-400 uppercase">Activity Streak</p>
         {% if streak and streak >= 1 %}
-          <span class="streak-fire">🔥</span>
-          <div class="streak-num">{{ streak }}</div>
-          <div class="streak-label">day streak</div>
-          {% if streak < 7 %}
-            <div class="streak-bonus-hint">{{ 7 - streak }} days to +35 XP bonus!</div>
-          {% elif streak < 30 %}
-            <div class="streak-bonus-hint">{{ 30 - streak }} days to +100 XP bonus!</div>
-          {% else %}
-            <div class="streak-bonus-hint">🏆 Legendary streak!</div>
-          {% endif %}
+          <div class="flex items-baseline gap-2 mt-4">
+            <strong class="text-5xl font-black text-ink-900 dark:text-cream-100 tracking-tight">{{ streak }}</strong>
+            <span class="text-xs text-rose-600 font-bold tracking-wider uppercase">Days 🔥</span>
+          </div>
+          <div class="text-[10px] font-bold text-rose-600 mt-4">
+            {% if streak < 7 %}{{ 7 - streak }} days left until +35 XP tier increment
+            {% elif streak < 30 %}{{ 30 - streak }} days left until +100 XP tier increment
+            {% else %}🏆 Legendary streak configuration enabled{% endif %}
+          </div>
         {% else %}
-          <span class="streak-fire">❄️</span>
-          <div class="streak-num" style="font-size:1.3rem;color:var(--muted)">None</div>
-          <div class="streak-label">Log in daily for bonus XP</div>
-          <div class="streak-bonus-hint" style="color:var(--muted)">7 days = +35 XP</div>
+          <div class="flex items-baseline gap-2 mt-4">
+            <strong class="text-4xl font-black text-ink-400 tracking-tight">0</strong>
+            <span class="text-xs text-ink-400 font-bold uppercase">No Streak ❄️</span>
+          </div>
+          <div class="text-[10px] font-bold text-ink-400 mt-4">7 continuous login cycles yields +35 XP bonus units</div>
         {% endif %}
       </div>
     </section>
 
-    <section class="widgets">
-      <div class="widget">
-        <h3>Learning Paths</h3>
-        <p>Access AI-powered roadmaps for career growth.</p>
-        <div class="links">
-          <a href="{{ url_for('my_roadmaps') }}">View Saved</a>
-          <a href="{{ url_for('roadmap_generator') }}">Create New</a>
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 font-body">
+      <div class="editorial-card bg-white border border-cream-200 p-8 rounded-2xl shadow-sm space-y-4 hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+        <div class="space-y-2">
+          <h3 class="font-display text-xl font-bold text-ink-900 dark:text-cream-100">Learning Paths</h3>
+          <p class="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">Inspect and access automated goal-oriented curriculum maps structured through predictive generation servers.</p>
+        </div>
+        <div class="flex gap-5 pt-4 text-xs font-bold text-ink-900 dark:text-gold uppercase tracking-wider">
+          <a href="{{ url_for('my_roadmaps') }}" class="hover-line">View Saved</a>
+          <a href="{{ url_for('roadmap_generator') }}" class="hover-line">Create New</a>
         </div>
       </div>
-      <div class="widget">
-        <h3>Direct Messages</h3>
-        <p>Chat with other builders in real-time.</p>
-        <div class="links"><a href="{{ url_for('messages_list') }}">Open Inbox</a></div>
+
+      <div class="editorial-card bg-white border border-cream-200 p-8 rounded-2xl shadow-sm space-y-4 hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+        <div class="space-y-2">
+          <h3 class="font-display text-xl font-bold text-ink-900 dark:text-cream-100">Direct Messaging</h3>
+          <p class="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">Establish active messaging socket instances with other node builders across system lines in real-time.</p>
+        </div>
+        <div class="flex pt-4 text-xs font-bold text-ink-900 dark:text-gold uppercase tracking-wider">
+          <a href="{{ url_for('messages_list') }}" class="hover-line">Open Central Inbox</a>
+        </div>
       </div>
-      <div class="widget">
-        <h3>Community</h3>
-        <p>Explore ecosystem projects.</p>
-        <div class="links"><a href="{{ url_for('projects') }}">Explore Hub</a></div>
+
+      <div class="editorial-card bg-white border border-cream-200 p-8 rounded-2xl shadow-sm space-y-4 hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+        <div class="space-y-2">
+          <h3 class="font-display text-xl font-bold text-ink-900 dark:text-cream-100">Ecosystem Hub</h3>
+          <p class="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">Browse, evaluate, and collaborate on production-grade source packages made public by developers.</p>
+        </div>
+        <div class="flex pt-4 text-xs font-bold text-ink-900 dark:text-gold uppercase tracking-wider">
+          <a href="{{ url_for('projects') }}" class="hover-line">Explore Community Grid</a>
+        </div>
       </div>
     </section>
 
-    <div class="profile-cta">
-      <p>Complete your profile to unlock smarter recommendations.</p>
-      <a href="{{ url_for('profile') }}">Complete Profile</a>
+    <div class="bg-[#1a1714] text-cream-100 border border-ink-800 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-md">
+      <div class="space-y-1 text-center sm:text-left">
+        <p class="font-body text-sm text-cream-200 font-medium">Complete verification layers to optimize recommendations algorithms.</p>
+      </div>
+      <a href="{{ url_for('profile') }}" class="px-6 py-3 bg-cream-100 text-ink-900 font-body font-bold text-xs rounded-xl tracking-wider uppercase transition-all hover:bg-white active:scale-95 flex-shrink-0 shadow-sm">Complete Profile →</a>
     </div>
   </main>
 </div>
 
-<!-- Level-up toast -->
-<div class="levelup-toast" id="levelup-toast"></div>
+<!-- Modal Overlays Canvas Anchors -->
+<div class="levelup-toast fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3.5 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 text-sm font-bold rounded-full border border-cream-300 dark:border-ink-800 shadow-xl transition-all duration-500 pointer-events-none transform translate-y-24 opacity-0 z-[9999]" id="levelup-toast"></div>
+
+<!-- ══ CORE GLOBAL WIDGET HOOKS ══ -->
 {% include 'notification_bell.html' %}
 {% include 'onboarding_widget.html' %}
 {% include 'chatbot_widget.html' %}
 
 <script>
-applyTheme(localStorage.getItem('sb-theme') || 'light');
-function applyTheme(t){ t==='dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark'); }
+function toggleSidebarMenu() {
+  const sidebar = document.getElementById('app-sidebar');
+  const icon = document.getElementById('menu-icon');
+  
+  if(sidebar.classList.contains('hidden')) {
+    sidebar.classList.remove('hidden');
+    sidebar.classList.add('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
+    icon.classList.remove('fa-bars');
+    icon.classList.add('fa-times');
+    document.body.classList.add('overflow-hidden');
+  } else {
+    sidebar.classList.add('hidden');
+    sidebar.classList.remove('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
+    icon.classList.remove('fa-times');
+    icon.classList.add('fa-bars');
+    document.body.classList.remove('overflow-hidden');
+  }
+}
 
-// Check for pending level-up notification
+applyTheme(localStorage.getItem('sb-theme') || 'light');
+function applyTheme(t){ t==='dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark'); }
+
 fetch('/api/check_levelup').then(r => r.json()).then(d => {
   if (d.levelup) {
     const t = document.getElementById('levelup-toast');
-    t.innerHTML = '🎉 Level Up! You are now <strong>' + d.badge + '</strong>!';
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 4500);
+    t.innerHTML = '🎉 Level Up! You are now authenticated as: <strong>' + d.badge + '</strong>';
+    t.classList.remove('translate-y-24', 'opacity-0');
+    setTimeout(() => t.classList.add('translate-y-24', 'opacity-0'), 4500);
   }
 }).catch(() => {});
 
-// ── SEARCH ────────────────────────────────────
 let sbTimer;
 async function sbLiveSearch(val) {
     const drop = document.getElementById('sb-drop');
     val = val.trim();
-    if (!val || val.length < 2) { drop.classList.remove('open'); return; }
+    if (!val || val.length < 2) { drop.classList.add('hidden'); drop.innerHTML = ''; return; }
     clearTimeout(sbTimer);
     sbTimer = setTimeout(async () => {
         try {
@@ -344,20 +330,20 @@ async function sbLiveSearch(val) {
             const data = await res.json();
             const results = data.results || [];
             if (!results.length) {
-                drop.innerHTML = `<div class="search-drop-empty">No builders found for "<strong>${val}</strong>"</div>`;
+                drop.innerHTML = `<div class="p-4 text-center text-xs font-semibold text-ink-400 dark:text-ink-500">No builders found matching data constraints: "<strong>${val}</strong>"</div>`;
             } else {
                 drop.innerHTML = results.map(u => `
-                    <a href="/user/${u._id}" class="search-drop-item">
-                        <img class="search-drop-avatar" src="/static/profile_pics/${u.profile_pic}" alt="">
-                        <div style="flex:1;min-width:0;">
-                            <div class="search-drop-name">${u.name}</div>
-                            ${u.username ? `<div class="search-drop-username">@${u.username}</div>` : ''}
-                            <div class="search-drop-title">${u.title || 'SkillBridge Member'}</div>
+                    <a href="/user/${u._id}" class="search-item-node flex items-center gap-3 p-3 text-ink-900 dark:text-cream-100 border-b border-cream-100 dark:border-ink-800 last:border-none hover:bg-cream-100/50 dark:hover:bg-ink-700/50 transition-all">
+                        <img class="w-9 h-9 rounded-lg object-cover border border-cream-200 dark:border-ink-700" src="/static/profile_pics/${u.profile_pic}" alt="">
+                        <div class="min-w-0 flex-1 leading-tight">
+                            <div class="text-xs font-bold">${u.name}</div>
+                            ${u.username ? `<div class="text-[10px] font-bold text-gold">@${u.username}</div>` : ''}
+                            <div class="text-[11px] text-ink-400 dark:text-ink-500 truncate mt-0.5">${u.title || 'SkillBridge Member'}</div>
                         </div>
-                        <span class="search-drop-badge">${u.badge || 'Bronze'}</span>
+                        <span class="text-[9px] font-bold text-ink-900 bg-cream-200 border border-cream-300 rounded-md px-2 py-0.5 uppercase tracking-wider">${u.badge || 'Bronze'}</span>
                     </a>`).join('');
             }
-            drop.classList.add('open');
+            drop.classList.remove('hidden');
         } catch(e) {}
     }, 300);
 }
@@ -368,9 +354,10 @@ function sbGoSearch() {
 }
 
 document.addEventListener('click', function(e) {
-    const section = document.querySelector('.search-section');
-    if (section && !section.contains(e.target)) {
-        document.getElementById('sb-drop').classList.remove('open');
+    const section = document.getElementById('sb-search');
+    const drop = document.getElementById('sb-drop');
+    if (section && !section.contains(e.target) && drop) {
+        drop.classList.add('hidden');
     }
 });
 </script>

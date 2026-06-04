@@ -1,100 +1,149 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Resume Builder — SkillBridge</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Fraunces:ital,wght@0,700;0,900;1,700&family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Josefin+Sans:wght@300;400;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Fraunces:ital,wght@0,700;0,900;1,700&family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Josefin+Sans:wght@300;400;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<style>
-:root{
-  --bg:#f0f2f8; --surface:#fff; --primary:#7c3aed; --accent:#ec4899;
-  --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --sw:260px;
+
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Playfair Display', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
+      },
+      colors: {
+        cream: { 50:'#fdfcf8', 100:'#f8f4ec', 200:'#f0e9d8', 300:'#e5d9c0', 400:'#d4c4a0', 500:'#b8a07a' },
+        ink:   { 900:'#1a1714', 800:'#2c2820', 700:'#3d3830', 600:'#5c5548', 500:'#7a7268', 400:'#9c9488' },
+        gold:  '#c4973a',
+      }
+    }
+  }
 }
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
+</script>
 
-.sb{width:var(--sw);background:var(--surface);border-right:1px solid var(--border);
-  padding:2rem 1.5rem;position:fixed;height:100vh;z-index:50;
-  display:flex;flex-direction:column;overflow-y:auto;}
-.sb .logo{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:900;
-  background:linear-gradient(90deg,var(--primary),var(--accent));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  margin-bottom:2rem;text-decoration:none;display:block;}
-.sb a{display:flex;align-items:center;gap:10px;padding:.75rem 1rem;
-  border-radius:12px;color:var(--muted);text-decoration:none;
-  margin-bottom:.25rem;font-size:.87rem;font-weight:500;transition:.18s;}
-.sb a:hover{background:#f8fafc;color:var(--primary);}
-.sb a.on{background:linear-gradient(90deg,var(--primary),var(--accent));
-  color:#fff;box-shadow:0 8px 24px rgba(124,58,237,.3);}
-.sb .out{margin-top:auto;padding-top:1rem;}
-.sb .out a{color:#ef4444;}
+<style>
+/* ══ GRAIN BG ══ */
+.grain-bg {
+  background-color: #f8f4ec;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+.dark .grain-bg { background-color: #1a1714; background-image: none; }
 
-.main{margin-left:var(--sw);padding:2rem 2.5rem;transition:padding-right .3s ease;}
-.main.panel-open{padding-right:380px;}
-.topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;}
-.topbar h1{font-family:'Fraunces',serif;font-size:2rem;font-weight:900;}
-.topbar p{color:var(--muted);font-size:.85rem;margin-top:4px;}
-.btns{display:flex;gap:10px;flex-shrink:0;}
-@media(max-width:768px){
-  .sb{display:none!important;}
-  .main{margin-left:0!important;width:100%!important;padding:1rem!important;padding-top:60px!important;}
-  .topbar{flex-direction:column;align-items:flex-start;gap:.75rem;}
-  .btns{width:100%;flex-wrap:wrap;}
-  .btns .btn{flex:1;justify-content:center;font-size:.78rem;padding:8px 10px;}
-  .layout{grid-template-columns:1fr!important;}
-  .cp{position:static!important;}
-  .preview-wrap{min-height:400px;}
+/* ══ CUSTOM SCROLLBAR ══ */
+.custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #d4c4a0; border-radius: 10px; }
+
+/* ══ HOVER LINE ══ */
+.hover-line { position: relative; }
+.hover-line::after { content:''; position:absolute; bottom:-1px; left:0; width:0; height:1px; background:currentColor; transition:width .3s ease; }
+.hover-line:hover::after { width:100%; }
+
+/* ══ DARK MODE SIDEBAR ══ */
+.dark #app-sidebar { background: #2c2820 !important; border-color: #3d3830 !important; }
+.dark .nav-item-active { background: #f8f4ec !important; color: #1a1714 !important; }
+
+/* ══ RESUME BUILDER MAIN CONTENT AREA ══ */
+:root{
+  --bg:#f8f4ec; --surface:#fff; --primary:#7c3aed; --accent:#ec4899;
+  --text:#0f172a; --muted:#64748b; --border:#e2e8f0;
+}
+.dark { --bg:#1a1714; --surface:#2c2820; --border:#3d3830; --text:#f0e9d8; --muted:#9c9488; }
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; }
+
+/* ══ LAYOUT WRAPPERS ══ */
+.rb-page { display:flex; min-height:100vh; }
+.rb-main { flex:1; padding:2rem 2.5rem; transition:padding-right .3s ease; min-width:0; }
+.rb-main.panel-open { padding-right:380px; }
+
+/* ══ TOPBAR ══ */
+.topbar { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem; }
+.topbar h1 { font-family:'Playfair Display',serif; font-size:2rem; font-weight:900; color:#1a1714; }
+.dark .topbar h1 { color:#f0e9d8; }
+.topbar p { color:var(--muted); font-size:.85rem; margin-top:4px; }
+.btns { display:flex; gap:10px; flex-shrink:0; }
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:1023px){
+  .rb-main { padding:1rem; padding-top:1.5rem; }
+  .topbar { flex-direction:column; align-items:flex-start; gap:.75rem; }
+  .btns { width:100%; flex-wrap:wrap; }
+  .btns .btn { flex:1; justify-content:center; font-size:.78rem; padding:8px 10px; }
+  .layout { grid-template-columns:1fr!important; }
+  .cp { position:static!important; }
+  .preview-wrap { min-height:400px; }
+  .rb-main.panel-open { padding-right:1rem; }
 }
 .btn{padding:10px 22px;border-radius:12px;font-family:'DM Sans',sans-serif;
   font-size:.87rem;font-weight:600;cursor:pointer;border:none;
   display:flex;align-items:center;gap:7px;transition:.22s;}
-.btn-p{background:linear-gradient(90deg,var(--primary),var(--accent));
-  color:#fff;box-shadow:0 6px 20px rgba(124,58,237,.3);}
-.btn-p:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(124,58,237,.4);}
-.btn-o{background:var(--surface);color:var(--primary);border:1.5px solid var(--primary);}
-.btn-o:hover{background:var(--primary);color:#fff;}
+.btn-p{background:#1a1714;color:#f8f4ec;box-shadow:0 4px 14px rgba(26,23,20,.18);}
+.btn-p:hover{transform:translateY(-2px);opacity:.9;}
+.dark .btn-p{background:#f8f4ec;color:#1a1714;}
+.btn-o{background:#fff;color:#1a1714;border:1.5px solid #e5d9c0;}
+.btn-o:hover{background:#f8f4ec;border-color:#1a1714;}
+.dark .btn-o{background:#2c2820;color:#f0e9d8;border-color:#3d3830;}
+.dark .btn-o:hover{background:#3d3830;}
 
 .layout{display:grid;grid-template-columns:295px 1fr;gap:22px;}
-.cp{background:var(--surface);border-radius:20px;padding:1.4rem;
-  border:1px solid var(--border);height:fit-content;position:sticky;top:2rem;}
+.cp{background:#fff;border-radius:20px;padding:1.4rem;
+  border:1px solid #f0e9d8;height:fit-content;position:sticky;top:2rem;}
+.dark .cp{background:#2c2820;border-color:#3d3830;}
 .cp-lbl{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--muted);margin-bottom:.8rem;display:flex;align-items:center;gap:6px;}
-.cp-lbl i{color:var(--primary);}
+  color:#9c9488;margin-bottom:.8rem;display:flex;align-items:center;gap:6px;}
+.cp-lbl i{color:#c4973a;}
+.dark .cp-lbl{color:#7a7268;}
 .cp-sec{margin-bottom:1.2rem;}
-.divider{height:1px;background:var(--border);margin:.9rem 0;}
+.divider{height:1px;background:#f0e9d8;margin:.9rem 0;}
+.dark .divider{background:#3d3830;}
 
 .tpl-list{display:flex;flex-direction:column;gap:5px;max-height:500px;overflow-y:auto;padding-right:3px;}
 .tpl-list::-webkit-scrollbar{width:3px;}
-.tpl-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.tpl-list::-webkit-scrollbar-thumb{background:#e5d9c0;border-radius:2px;}
 .tcard{display:flex;align-items:center;gap:9px;padding:9px 11px;
-  border-radius:10px;border:1.5px solid var(--border);background:#f8fafc;
+  border-radius:10px;border:1.5px solid #f0e9d8;background:#fdfcf8;
   cursor:pointer;transition:.18s;text-align:left;}
-.tcard:hover{border-color:var(--primary);background:#f5f3ff;}
-.tcard.on{border-color:var(--primary);background:#f5f3ff;}
+.tcard:hover{border-color:#1a1714;background:#f8f4ec;}
+.tcard.on{border-color:#1a1714;background:#f8f4ec;}
+.dark .tcard{background:#3d3830;border-color:#3d3830;}
+.dark .tcard:hover{border-color:#c4973a;background:#2c2820;}
+.dark .tcard.on{border-color:#c4973a;background:#2c2820;}
 .tcard-ico{width:32px;height:32px;border-radius:7px;display:flex;
   align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
-.tcard-name{font-size:.82rem;font-weight:700;color:var(--text);}
-.tcard-tag{font-size:.7rem;color:var(--muted);margin-top:1px;}
+.tcard-name{font-size:.82rem;font-weight:700;color:#1a1714;}
+.dark .tcard-name{color:#f0e9d8;}
+.tcard-tag{font-size:.7rem;color:#9c9488;margin-top:1px;}
 
-.info-box{background:#f8fafc;border:1px solid var(--border);border-radius:10px;
-  padding:10px 12px;font-size:.77rem;color:var(--muted);line-height:1.6;}
-.info-box a{color:var(--primary);font-weight:600;text-decoration:none;}
+.info-box{background:#fdfcf8;border:1px solid #f0e9d8;border-radius:10px;
+  padding:10px 12px;font-size:.77rem;color:#9c9488;line-height:1.6;}
+.dark .info-box{background:#3d3830;border-color:#5c5548;color:#7a7268;}
+.info-box a{color:#c4973a;font-weight:600;text-decoration:none;}
 .chk{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
 .chk i{color:#10b981;font-size:.72rem;}
 
-.preview-wrap{background:#cbd5e1;border-radius:18px;padding:2px;min-height:820px;overflow:auto;}
+.preview-wrap{background:#e5d9c0;border-radius:18px;padding:2px;min-height:820px;overflow:auto;}
 .preview-inner{border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.12);background:transparent;}
 
-.loader{position:fixed;inset:0;background:rgba(255,255,255,.92);
+.loader{position:fixed;inset:0;background:rgba(248,244,236,.92);
   display:none;justify-content:center;align-items:center;z-index:999;
   flex-direction:column;gap:14px;}
+.dark .loader{background:rgba(26,23,20,.92);}
 .loader.show{display:flex;}
-.spin{width:44px;height:44px;border:4px solid var(--border);
-  border-top-color:var(--primary);border-radius:50%;animation:sp .8s linear infinite;}
+.spin{width:44px;height:44px;border:4px solid #e5d9c0;
+  border-top-color:#1a1714;border-radius:50%;animation:sp .8s linear infinite;}
+.dark .spin{border-color:#3d3830;border-top-color:#c4973a;}
 @keyframes sp{to{transform:rotate(360deg)}}
-.loader p{font-weight:600;color:var(--muted);font-size:.88rem;}
+.loader p{font-weight:600;color:#9c9488;font-size:.88rem;}
 
 .flash{position:fixed;top:18px;right:18px;z-index:1001;display:flex;flex-direction:column;gap:8px;max-width:340px;}
 .fb{padding:.9rem 1.3rem;border-radius:12px;color:#fff;font-weight:500;font-size:.88rem;animation:pi .3s ease;}
@@ -558,7 +607,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 #t18 .es{font-family:'DM Sans',sans-serif;font-size:.76rem;color:rgba(255,255,255,.38);margin-top:2px;}
 </style>
 </head>
-<body>
+<body class="grain-bg text-ink-900 dark:text-cream-100 min-h-screen custom-scroll antialiased">
 
 <div class="loader" id="ldr"><div class="spin"></div><p>Generating your PDF…</p></div>
 
@@ -568,24 +617,86 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   {% endwith %}
 </div>
 
-<aside class="sb">
-  <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
-  <a href="{{ url_for('main_page') }}"><i class="fas fa-home"></i> Dashboard</a>
-  <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a>
-  <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
-  <a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> Roadmap AI</a>
-  <a href="{{ url_for('resume_builder') }}" class="on"><i class="fas fa-file-alt"></i> Resume Builder</a>
-  <a href="{{ url_for('portfolio_builder') }}"><i class="fas fa-briefcase"></i> Portfolio Builder</a>
-  <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
-  <a href="{{ url_for('find_communities') }}"><i class="fas fa-users"></i> All Communities</a>
-  <a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a>
-
-  <div class="out" style="border-top: 1px solid var(--border); padding-top: 1rem;">
-      <a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a>
+<!-- ══ MOBILE HEADER ══ -->
+<header class="lg:hidden bg-cream-100 dark:bg-ink-800 border-b border-cream-200 dark:border-ink-700 px-6 py-4 flex items-center justify-between sticky top-0 z-40 transition-colors w-full">
+  <div class="flex items-center gap-3">
+    <button onclick="toggleSidebarMenu()" class="text-ink-900 dark:text-cream-50 text-xl p-1.5 focus:outline-none transition-transform active:scale-95">
+      <i class="fas fa-bars" id="menu-icon"></i>
+    </button>
+    <a href="{{ url_for('main_page') }}" class="font-display text-2xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
   </div>
-</aside>
+  <button class="w-10 h-10 rounded-full border border-cream-300 dark:border-ink-700 flex items-center justify-center relative text-ink-900 dark:text-cream-50" id="mobile-notif-btn" onclick="toggleNotifDropdown(event)">
+    <i class="fas fa-bell"></i>
+    <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[9px] font-bold w-4 h-4 rounded-full hidden items-center justify-center notif-badge"></span>
+  </button>
+</header>
 
-<main class="main">
+<div class="flex min-h-screen">
+
+  <!-- ══ NAVIGATION SIDEBAR ══ -->
+  <aside id="app-sidebar" class="hidden lg:flex fixed lg:sticky top-0 left-0 w-full lg:w-64 bg-white dark:bg-ink-800 border-r border-cream-200 dark:border-ink-700 p-6 flex-col h-screen z-50 overflow-y-auto custom-scroll transition-all duration-300 flex-shrink-0">
+
+    <div class="flex items-center justify-between mb-8">
+      <a href="{{ url_for('main_page') }}" class="font-display text-3xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+      <button class="w-9 h-9 rounded-full border border-cream-200 dark:border-ink-700 flex items-center justify-center relative text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-cream-50 transition-colors" id="desktop-notif-btn" onclick="toggleNotifDropdown(event)">
+        <i class="fas fa-bell text-sm"></i>
+        <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full hidden items-center justify-center notif-badge"></span>
+      </button>
+    </div>
+
+    <!-- XP / Level / Streak card -->
+    <div class="bg-cream-100/60 dark:bg-ink-900/40 border border-cream-300/50 dark:border-ink-700 rounded-2xl p-4 mb-6 space-y-3 shadow-inner">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl leading-none select-none">{{ level_info.icon }}</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-[9px] font-bold tracking-widest uppercase text-gold">Lv.{{ level_info.level }} · {{ level_info.badge }}</div>
+          <div class="text-lg font-black text-ink-900 dark:text-cream-100 leading-tight mt-0.5">
+            {{ xp }} <span class="text-xs font-semibold text-ink-400 dark:text-ink-500">XP</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="w-full h-1.5 bg-cream-200 dark:bg-ink-700 rounded-full overflow-hidden mb-1.5">
+          <div class="h-full bg-ink-900 dark:bg-gold rounded-full transition-all duration-1000" style="width: {{ progress_pct }}%"></div>
+        </div>
+        <div class="flex justify-between text-[10px] font-bold text-ink-500 dark:text-ink-400">
+          <span>{{ xp }} XP</span>
+          <span>{% if level_info.next_xp == 'Max' %}🏆 Max{% else %}{{ level_info.next_xp }} XP{% endif %}</span>
+        </div>
+      </div>
+      <div class="pt-0.5">
+        {% if streak and streak >= 1 %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 text-xs font-bold text-rose-700 dark:text-rose-400">
+            <span>🔥</span> {{ streak }} day streak
+          </div>
+        {% else %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cream-200 border border-cream-300/40 dark:bg-ink-800 dark:border-ink-700 text-xs font-bold text-ink-400 dark:text-ink-500">
+            <span>❄️</span> No active streak
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Nav links -->
+    <nav class="space-y-1 flex-1 font-body">
+      <a href="{{ url_for('main_page') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-700 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-home w-4 text-center"></i> Dashboard</a>
+      <a href="{{ url_for('profile') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-700 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-user-circle w-4 text-center"></i> My Profile</a>
+      <a href="{{ url_for('my_projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-700 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-layer-group w-4 text-center"></i> My Projects</a>
+      <a href="{{ url_for('roadmap_generator') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-700 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-magic w-4 text-center"></i> Roadmap AI</a>
+      <a href="{{ url_for('resume_builder') }}" class="nav-item-active flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 shadow-sm transition-all"><i class="fas fa-file-alt w-4 text-center"></i> Resume Builder</a>
+      <a href="{{ url_for('portfolio_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-700 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-briefcase w-4 text-center"></i> Portfolio Builder</a>
+      <a href="{{ url_for('projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-700 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-globe w-4 text-center"></i> Community</a>
+      <a href="{{ url_for('find_communities') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-700 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-users w-4 text-center"></i> All Communities</a>
+      <a href="{{ url_for('messages_list') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-700 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-comment-dots w-4 text-center"></i> Messages</a>
+      <a href="{{ url_for('leaderboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-700 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-trophy w-4 text-center"></i> Leaderboard</a>
+      <div class="pt-4 mt-4 border-t border-cream-200 dark:border-ink-800">
+        <a href="{{ url_for('settings') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-700 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-cog w-4 text-center"></i> Settings</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ══ MAIN CONTENT ══ -->
+  <main class="rb-main flex-1 min-w-0 lg:pt-0 pt-2">
   <div class="topbar">
     <div>
       <h1>Resume Builder</h1>
@@ -701,11 +812,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
   .ep-lbl { display:block;font-size:.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px; }
   .ep-inp { width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-family:'DM Sans',sans-serif;font-size:.85rem;color:#0f172a;resize:vertical;outline:none;transition:border-color .2s; }
   .ep-inp:focus { border-color:#7c3aed; }
-  body.dark #edit-panel { background:#1a1a2e;border-color:#2d2d44; }
-  body.dark #edit-panel > div:last-child { background:#1a1a2e!important;border-color:#2d2d44!important; }
-  body.dark .ep-inp { background:#13131f;border-color:#2d2d44;color:#e2e8f0; }
-  body.dark .ep-inp:focus { border-color:#a78bfa; }
-  body.dark .ep-lbl { color:#64748b; }
+  .dark #edit-panel { background:#2c2820 !important; border-color:#3d3830 !important; }
+  .dark #edit-panel > div:last-child { background:#2c2820 !important; border-color:#3d3830 !important; }
+  .dark .ep-inp { background:#1a1714; border-color:#3d3830; color:#f0e9d8; }
+  .dark .ep-inp:focus { border-color:#c4973a; }
+  .dark .ep-lbl { color:#7a7268; }
   </style>
 
   <div class="layout">
@@ -1309,6 +1420,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 </div>
 
       </div></div></div></main>
+</div><!-- /.flex -->
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 let cur = 1;
@@ -1413,7 +1525,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function toggleEditPanel() {
   const p = document.getElementById('edit-panel');
-  const mainEl = document.querySelector('.main');
+  const mainEl = document.querySelector('.rb-main');
   const isHidden = p.style.display === 'none' || p.style.display === '';
   p.style.display = isHidden ? 'block' : 'none';
   if (isHidden) {
@@ -1564,7 +1676,28 @@ function rebuildTags(secEl, arr) {
   });
 }
 
-(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+// ── THEME ──
+function applyTheme(t) {
+  t === 'dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark');
+}
+applyTheme(localStorage.getItem('sb-theme') || 'light');
+
+// ── MOBILE SIDEBAR TOGGLE ──
+function toggleSidebarMenu() {
+  const sidebar = document.getElementById('app-sidebar');
+  const icon = document.getElementById('menu-icon');
+  if (sidebar.classList.contains('hidden')) {
+    sidebar.classList.remove('hidden');
+    sidebar.classList.add('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
+    icon.classList.replace('fa-bars', 'fa-times');
+    document.body.classList.add('overflow-hidden');
+  } else {
+    sidebar.classList.add('hidden');
+    sidebar.classList.remove('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
+    icon.classList.replace('fa-times', 'fa-bars');
+    document.body.classList.remove('overflow-hidden');
+  }
+}
 </script>
 {% include 'notification_bell.html' %}
 {% include 'chatbot_widget.html' %}

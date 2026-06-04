@@ -5,322 +5,194 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login – SkillBridge</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Playfair Display', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
+      },
+      colors: {
+        cream: { 50:'#fdfcf8', 100:'#f8f4ec', 200:'#f0e9d8', 300:'#e5d9c0', 400:'#d4c4a0', 500:'#b8a07a' },
+        ink:   { 900:'#1a1714', 800:'#2c2820', 700:'#3d3830', 600:'#5c5548', 500:'#7a7268', 400:'#9c9488' },
+        gold:  '#c4973a',
+      }
+    }
+  }
+}
+</script>
 
 <style>
-:root{
-  --bg-main:#f6f7fb;
-  --bg-card:#ffffff;
-  --primary:#7c3aed;
-  --accent:#ec4899;
-  --text-main:#111827;
-  --text-muted:#6b7280;
-  --border:#e5e7eb;
+body { font-family: 'DM Sans', sans-serif; }
+
+.grain-bg {
+  background-color: #f8f4ec;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-  font-family:Inter,system-ui;
-  min-height:100vh;
-  background:linear-gradient(180deg,#f6f7fb,#f1effa);
-  display:flex;
-}
+input { font-family: 'DM Sans', sans-serif; font-size: 15px; }
 
-/* ---------- LAYOUT ---------- */
-.wrapper{
-  width:100%;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-}
+.hover-line { position: relative; }
+.hover-line::after { content:''; position:absolute; bottom:-1px; left:0; width:0; height:1px; background:currentColor; transition:width .3s ease; }
+.hover-line:hover::after { width:100%; }
 
-/* ---------- LEFT BRAND PANEL ---------- */
-.brand{
-  position:relative;
-  padding:80px;
-  background:
-    radial-gradient(600px 300px at 20% 10%,rgba(255,255,255,.25),transparent),
-    linear-gradient(135deg,var(--primary),var(--accent));
-  color:white;
-  overflow:hidden;
-}
-.brand h1{
-  font-size:3.5rem;
-  font-weight:900;
-  line-height:1;
-}
-.brand p{
-  margin-top:20px;
-  font-size:1.1rem;
-  opacity:.9;
-  max-width:420px;
-}
-.badges{
-  margin-top:40px;
-  display:flex;
-  gap:14px;
-  flex-wrap:wrap;
-}
-.badge{
-  background:rgba(255,255,255,.18);
-  padding:10px 16px;
-  border-radius:999px;
-  font-size:.85rem;
-  backdrop-filter:blur(10px);
-}
-.glow{
-  position:absolute;
-  width:300px;
-  height:300px;
-  background:rgba(255,255,255,.25);
-  filter:blur(120px);
-  border-radius:50%;
-  bottom:-100px;
-  right:-100px;
-}
+@keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+.slide-up { animation: slideUp 0.55s cubic-bezier(0.16,1,0.3,1) both; }
 
-/* ---------- FORM SIDE ---------- */
-.form-side{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  padding:40px;
-}
-.form-container{
-  width:100%;
-  max-width:420px;
-  background:var(--bg-card);
-  border-radius:24px;
-  padding:40px;
-  box-shadow:0 40px 80px rgba(124,58,237,.25);
-  animation:slideIn .6s ease;
-}
-@keyframes slideIn{
-  from{opacity:0;transform:translateX(40px)}
-  to{opacity:1;transform:none}
-}
-
-.logo{
-  font-size:1.8rem;
-  font-weight:900;
-  color:var(--primary);
-  text-align:center;
-  margin-bottom:10px;
-}
-h2{
-  text-align:center;
-  font-size:1.6rem;
-}
-.subtitle{
-  text-align:center;
-  color:var(--text-muted);
-  margin-bottom:30px;
-}
-
-/* ---------- INPUTS ---------- */
-.input-group{
-  margin-bottom:18px;
-}
-.input-group label{
-  font-size:.85rem;
-  font-weight:600;
-}
-.input-wrapper{
-  position:relative;
-}
-input{
-  width:100%;
-  padding:14px 14px;
-  border-radius:12px;
-  border:1px solid var(--border);
-  background:#f9fafb;
-}
-input:focus{
-  outline:none;
-  border-color:var(--primary);
-  box-shadow:0 0 0 3px rgba(124,58,237,.15);
-}
-.toggle{
-  position:absolute;
-  right:12px;
-  top:50%;
-  transform:translateY(-50%);
-  font-size:.75rem;
-  cursor:pointer;
-  color:var(--text-muted);
-}
-
-/* ---------- EXTRA LINKS ---------- */
-.form-links{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin:10px 0 20px;
-  font-size:.85rem;
-}
-.form-links label{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  color:var(--text-muted);
-}
-.form-links input{
-  accent-color:var(--primary);
-}
-.form-links a{
-  color:var(--primary);
-  text-decoration:none;
-  font-weight:600;
-}
-
-/* ---------- BUTTON ---------- */
-button{
-  width:100%;
-  padding:15px;
-  border:none;
-  border-radius:14px;
-  font-weight:700;
-  background:linear-gradient(90deg,var(--primary),var(--accent));
-  color:white;
-  cursor:pointer;
-  transition:.3s ease;
-}
-button:hover{
-  transform:translateY(-3px);
-  box-shadow:0 20px 40px rgba(124,58,237,.35);
-}
-
-.switch{
-  text-align:center;
-  margin-top:18px;
-  font-size:.9rem;
-}
-.switch a{
-  color:var(--primary);
-  font-weight:600;
-  text-decoration:none;
-}
-
-/* ---------- FLASH ---------- */
-.flash-messages-container{
-  position:absolute;
-  top:20px;
-  left:50%;
-  transform:translateX(-50%);
-  width:90%;
-  max-width:420px;
-  z-index:1000;
-}
-.flash-banner{
-  padding:14px 18px;
-  border-radius:12px;
-  margin-bottom:10px;
-  color:white;
-  font-weight:600;
-}
-.flash-success{background:#16a34a}
-.flash-error{background:#dc2626}
-.flash-warning{background:#f59e0b;color:#111}
-.flash-info{background:#2563eb}
-
-/* ---------- RESPONSIVE ---------- */
-@media(max-width:900px){
-  .wrapper{grid-template-columns:1fr; min-height:100vh;}
-  .brand{display:none !important;}
-  .form-side{
-    padding:24px 16px;
-    width:100%;
-    min-height:100vh;
-  }
-  .form-container{
-    padding:28px 20px;
-    width:100%;
-    max-width:100%;
-    box-shadow:0 10px 40px rgba(124,58,237,.15);
-  }
-  input{
-    font-size:16px !important; /* iOS zoom fix */
-  }
-}
+/* Dark mode overrides matching signup */
+.dark body, .dark .grain-bg { background-color: #1a1714; background-image: none; }
+.dark .form-card { background: #2c2820 !important; border-color: #3d3830 !important; }
+.dark input { background: #1a1714 !important; border-color: #3d3830 !important; color: #f0e9d8 !important; }
+.dark input::placeholder { color: #5c5548 !important; }
+.dark .field-label { color: #d4c4a0 !important; }
+.dark .form-title { color: #f0e9d8 !important; }
+.dark .form-sub { color: #9c9488 !important; }
+.dark .submit-btn { background: #f0e9d8 !important; color: #1a1714 !important; }
+.dark .submit-btn:hover { background: #fff !important; }
+.dark .toggle-pw { color: #7a7268 !important; }
+.dark .switch-text { color: #7a7268 !important; }
+.dark .switch-link { color: #c4973a !important; }
 </style>
 </head>
 
-<body>
+<body class="grain-bg min-h-screen relative">
 
-<div class="flash-messages-container">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="absolute top-6 left-1/2 -translate-x-1/2 w-full max-w-[420px] px-6 z-50 space-y-2">
       {% for category, message in messages %}
-        <div class="flash-banner flash-{{ category }}">{{ message }}</div>
+        <div class="px-4 py-3 rounded-xl shadow-md border text-sm font-medium slide-up
+          {% if category == 'success' %} bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-900/50 dark:text-emerald-300
+          {% elif category == 'error' %} bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-950/30 dark:border-rose-900/50 dark:text-rose-300
+          {% else %} bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-300 {% endif %}">
+          {{ message }}
+        </div>
       {% endfor %}
-    {% endif %}
-  {% endwith %}
-</div>
-
-<div class="wrapper">
-
-  <!-- LEFT SIDE -->
-  <div class="brand">
-    <h1>Welcome back<br>to SkillBridge.</h1>
-    <p>
-      Continue building real projects and
-      growing your proof of work.
-    </p>
-    <div class="badges">
-      <div class="badge">Your Roadmaps</div>
-      <div class="badge">Your Projects</div>
-      <div class="badge">Your Proof</div>
     </div>
-    <div class="glow"></div>
+  {% endif %}
+{% endwith %}
+
+<div class="min-h-screen flex flex-col lg:flex-row">
+
+  <div class="hidden lg:flex lg:w-[45%] bg-[#1a1714] text-[#f8f4ec] flex-col justify-between p-14 xl:p-20 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.04]">
+      <div class="absolute left-1/2 top-0 bottom-0 w-px bg-[#f8f4ec]"></div>
+      <div class="absolute top-1/2 left-0 right-0 h-px bg-[#f8f4ec]"></div>
+    </div>
+
+    <div class="relative z-10">
+      <p class="text-[10px] font-semibold tracking-[0.3em] uppercase text-[#7a7268]">SkillBridge · 2026</p>
+    </div>
+
+    <div class="relative z-10">
+      <p class="text-[10px] font-semibold tracking-[0.3em] uppercase text-[#7a7268] mb-8">— Welcome Back</p>
+      <h1 class="font-display text-[4.5rem] xl:text-[5.5rem] leading-[0.9] mb-8 tracking-tight">
+        Resume<br>
+        your,<br>
+        <span class="text-[#c4973a] italic">proof</span> of<br>
+        work.
+      </h1>
+      <p class="text-[#9c9488] text-base leading-relaxed max-w-xs font-body">
+        Log back in to continue generating AI roadmaps, tracking streaks, and finalizing your engineering ecosystem.
+      </p>
+
+      <div class="mt-14 grid grid-cols-3 gap-6">
+        <div class="group cursor-default">
+          <div class="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#7a7268] mb-2 group-hover:text-gold transition-colors">PROOFS</div>
+          <div class="text-sm font-semibold text-[#d4c4a0]">Your Roadmaps</div>
+        </div>
+        <div class="group cursor-default">
+          <div class="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#7a7268] mb-2 group-hover:text-gold transition-colors">SYSTEMS</div>
+          <div class="text-sm font-semibold text-[#d4c4a0]">Your Projects</div>
+        </div>
+        <div class="group cursor-default">
+          <div class="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#7a7268] mb-2 group-hover:text-gold transition-colors">STATS</div>
+          <div class="text-sm font-semibold text-[#d4c4a0]">Your Network</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="relative z-10">
+      <div class="w-8 h-px bg-[#5c5548] mb-3"></div>
+      <p class="text-[10px] text-[#5c5548] tracking-widest uppercase">Learn · Build · Prove</p>
+    </div>
   </div>
 
-  <!-- RIGHT SIDE -->
-  <div class="form-side">
-    <div class="form-container">
-      <div class="logo">SkillBridge</div>
-      <h2>Login</h2>
-      <p class="subtitle">Access your dashboard</p>
+  <div class="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-16 min-h-screen lg:min-h-0">
+    <div class="w-full max-w-[420px] slide-up">
 
-      <form action="{{ url_for('login') }}" method="POST">
+      <div class="lg:hidden mb-8">
+        <p class="text-[10px] font-semibold tracking-[0.25em] uppercase text-ink-500 mb-2">SkillBridge</p>
+        <h2 class="font-display text-4xl text-ink-900 leading-tight">
+          Welcome back to<br><span class="text-[#c4973a] italic">SkillBridge</span>.
+        </h2>
+      </div>
 
-        <div class="input-group">
-          <label>Email</label>
-          <input type="email" name="email" required>
+      <div class="form-card bg-cream-50 border border-cream-200 rounded-2xl p-8 sm:p-10 shadow-sm hover:shadow-md transition-all duration-300">
+        
+        <div class="mb-7">
+          <h2 class="form-title font-display text-[2rem] text-ink-900 leading-tight">Login</h2>
+          <p class="form-sub text-ink-500 font-body text-sm mt-1">Access your project workspace</p>
         </div>
 
-        <div class="input-group">
-          <label>Password</label>
-          <div class="input-wrapper">
-            <input type="password" id="password" name="password" required>
-            <span class="toggle" onclick="toggle('password')">SHOW</span>
+        <form action="{{ url_for('login') }}" method="POST" class="space-y-4">
+          
+          <div>
+            <label class="field-label block text-[10px] font-semibold tracking-[0.2em] uppercase text-ink-600 mb-1.5">Email Address</label>
+            <input type="email" name="email" required placeholder="you@example.com"
+              class="w-full px-4 py-3 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200">
           </div>
-        </div>
 
-        <div class="form-links">
-          <label>
-            <input type="checkbox" name="remember">
-            Remember me
-          </label>
-          <a href="{{ url_for('forgot_password') }}">Forgot password?</a>
-        </div>
+          <div>
+            <label class="field-label block text-[10px] font-semibold tracking-[0.2em] uppercase text-ink-600 mb-1.5">Password</label>
+            <div class="relative">
+              <input type="password" id="password" name="password" required placeholder="••••••••"
+                class="w-full px-4 py-3 pr-16 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200">
+              <button type="button" onclick="toggle('password')"
+                class="toggle-pw absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold tracking-wider text-ink-400 hover:text-ink-900 dark:hover:text-cream-100 transition-colors">SHOW</button>
+            </div>
+          </div>
 
-        <button type="submit">Login</button>
+          <div class="flex items-center justify-between text-xs pt-1">
+            <label class="field-label flex items-center gap-2 text-ink-600 cursor-pointer select-none">
+              <input type="checkbox" name="remember" class="w-4 h-4 rounded border-cream-300 text-ink-900 focus:ring-0 accent-ink-900 transition-all">
+              Remember me
+            </label>
+            <a href="{{ url_for('forgot_password') }}" class="switch-link hover-line font-medium text-ink-900 dark:text-cream-300">Forgot password?</a>
+          </div>
 
-        <p class="switch">
-          Don’t have an account?
-          <a href="{{ url_for('signup') }}">Sign up</a>
+          <button type="submit"
+            class="submit-btn w-full mt-2 py-3.5 bg-ink-900 text-cream-100 font-body font-semibold text-sm rounded-xl tracking-wide transition-all duration-300 hover:bg-ink-800 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-98">
+            Sign In →
+          </button>
+        </form>
+
+        <p class="switch-text text-center mt-6 text-sm text-ink-500 font-body">
+          Don't have an account?
+          <a href="{{ url_for('signup') }}" class="switch-link hover-line font-semibold text-ink-900 ml-1">Sign up</a>
         </p>
-      </form>
+
+      </div>
     </div>
   </div>
 
 </div>
 
 <script>
-function toggle(id){
-  const el=document.getElementById(id);
-  el.type=el.type==="password"?"text":"password";
+function toggle(id) {
+  const el = document.getElementById(id);
+  el.type = el.type === 'password' ? 'text' : 'password';
 }
-</script>
 
+// Sync global app theme setting configurations 
+(function() {
+  if (localStorage.getItem('sb-theme') === 'dark') document.documentElement.classList.add('dark');
+})();
+</script>
 </body>
 </html>

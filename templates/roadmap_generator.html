@@ -1,312 +1,347 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roadmap Generator - SkillBridge</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Light Theme Variables matching mainpage.html */
-        :root {
-            --color-background: #f8f9fa;
-            --color-surface: #ffffff;
-            --color-sidebar-bg: #ffffff;
-            --color-sidebar-border: #dee2e6;
-            --color-primary: #8B5CF6;
-            --color-secondary: #EC4899;
-            --color-text-primary: #1F2937;
-            --color-text-secondary: #6B7280;
-            --color-input-bg: #F9FAFB;
-            --color-input-border: #D1D5DB;
-            --color-input-focus-border: var(--color-primary);
-            --color-input-focus-shadow: rgba(139, 92, 246, 0.15);
-            --color-success: #10B981; /* Green for resource links */
-            --border-radius-lg: 12px;
-            --border-radius-md: 8px;
-            --box-shadow-card: 0 6px 20px rgba(0, 0, 0, 0.06);
-            --box-shadow-widget: 0 4px 15px rgba(0, 0, 0, 0.05);
-            --box-shadow-button: 0 6px 20px rgba(139, 92, 246, 0.3);
-        }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--color-background); color: var(--color-text-primary); margin: 0; line-height: 1.6; }
-        .dashboard-container { display: flex; }
-        /* Sidebar styles same as mainpage.html */
-        .sidebar { width: 250px; background: var(--color-sidebar-bg); border-right: 1px solid var(--color-sidebar-border); height: 100vh; padding: 2rem 1.5rem; position: fixed; box-sizing: border-box; z-index: 10; display: flex; flex-direction: column; overflow-y: auto; }
-        .sidebar .logo { font-size: 1.9em; font-weight: 800; margin-bottom: 3rem; background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; letter-spacing: -1px; display: block; }
-        .sidebar nav { flex-grow: 1; }
-        .sidebar nav ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; height: 100%; }
-        .sidebar nav li a { display: block; color: var(--color-text-secondary); text-decoration: none; padding: 0.9rem 1rem; margin-bottom: .5rem; border-radius: var(--border-radius-md); font-weight: 500; transition: all .2s ease-in-out; }
-        .sidebar nav li a:hover { background-color: #f1f3f5; color: var(--color-text-primary); transform: translateX(4px); }
-        .sidebar nav li a.active { background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); color: #fff; font-weight: 600; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2); transform: translateX(0); }
-        .sidebar .logout-link { margin-top: auto; }
-        .sidebar .logout-link a { color: #dc3545; }
-        .sidebar .logout-link a:hover { background-color: rgba(220, 53, 69, 0.1); color: #b02a37; }
-        /* Main content */
-        .main-content { margin-left: 250px; padding: 2.5rem 3.5rem; width: calc(100% - 250px); box-sizing: border-box; }
-        .main-content h1 { font-size: 2.2em; font-weight: 700; margin-bottom: 0.5rem; color: var(--color-text-primary); }
-        .main-content > p.subtitle { color: var(--color-text-secondary); margin-bottom: 2.5rem; font-size: 1.1em; margin-top: 0; }
-        /* Form styling */
-        .generator-form { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
-        @media (max-width: 768px) {
-            .sidebar { display: none !important; }
-            .main-content { margin-left: 0 !important; width: 100% !important; padding: 1.2rem !important; padding-top: 60px !important; }
-            .generator-form { flex-direction: column; }
-            .generator-form .cta-button { width: 100%; text-align: center; }
-        }
-        .generator-form input[type="text"] {
-            flex-grow: 1; /* Take remaining space */
-            padding: 14px 16px;
-            border-radius: var(--border-radius-md);
-            border: 1px solid var(--color-input-border);
-            background: var(--color-input-bg);
-            color: var(--color-text-primary);
-            font-family: 'Poppins', sans-serif;
-            font-size: 1em;
-            box-sizing: border-box;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .generator-form input[type="text"]:focus { border-color: var(--color-input-focus-border); box-shadow: 0 0 0 3px var(--color-input-focus-shadow); outline: none; }
-        .cta-button { background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); color: #fff; padding: 14px 28px; border: none; border-radius: var(--border-radius-md); font-weight: 600; cursor: pointer; transition: transform .2s, box-shadow .3s; font-size: 1em; text-decoration: none; display: inline-block; box-shadow: var(--box-shadow-button); white-space: nowrap; }
-        .cta-button:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4); }
-        a.view-saved-link { color: var(--color-primary); text-decoration: none; font-weight: 500; display: inline-block; margin-bottom: 2.5rem; position: relative; }
-        a.view-saved-link::after { content: ''; position: absolute; width: 0; height: 2px; display: block; margin-top: 2px; right: 0; background: var(--color-primary); transition: width .3s ease; }
-        a.view-saved-link:hover::after { width: 100%; left: 0; background: var(--color-secondary); }
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roadmap Generator - SkillBridge</title>
 
-        /* Roadmap Display Container */
-        .roadmap-container {
-            margin-top: 2.5rem;
-            background: var(--color-surface);
-            border: 1px solid var(--color-sidebar-border);
-            border-radius: var(--border-radius-lg);
-            padding: 2rem 2.5rem;
-            box-shadow: var(--box-shadow-card);
-        }
-        .roadmap-header h2 { margin-top: 0; font-size: 1.8em; color: var(--color-text-primary); }
-        .roadmap-header p { color: var(--color-text-secondary); font-style: normal; font-size: 1em; }
-        .roadmap-header p strong { color: var(--color-text-primary); font-weight: 600; }
-        form.save-roadmap-form { margin-top: 1.5rem; margin-bottom: 2rem; text-align: right;}
-        .save-button { width: auto; font-size: 0.95em; padding: 10px 20px; } /* Smaller save button */
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-        /* Stage Styling */
-        .stage { border-top: 1px solid var(--color-sidebar-border); padding-top: 1.5rem; margin-top: 1.5rem; }
-        .stage:first-of-type { border-top: none; margin-top: 0; padding-top: 0; } /* Remove top border for first stage */
-        .stage h3 { color: var(--color-primary); font-size: 1.5em; margin-bottom: 0.5rem; }
-        .stage-meta { font-size: 0.9em; color: var(--color-text-secondary); margin-bottom: 1rem; }
-        .stage-meta strong { color: var(--color-text-primary); font-weight: 600; }
-        .stage > p { color: var(--color-text-secondary); /* Description color */ }
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Playfair Display', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
+      },
+      colors: {
+        cream: { 50:'#fdfcf8', 100:'#f8f4ec', 200:'#f0e9d8', 300:'#e5d9c0', 400:'#d4c4a0', 500:'#b8a07a' },
+        ink:   { 900:'#1a1714', 800:'#2c2820', 700:'#3d3830', 600:'#5c5548', 500:'#7a7268', 400:'#9c9488' },
+        gold:  '#c4973a',
+      }
+    }
+  }
+}
+</script>
 
-        /* Module Styling */
-        .module { background-color: var(--color-input-bg); /* Light background for module */ border-radius: var(--border-radius-md); padding: 1.5rem; margin-top: 1rem; border: 1px solid #e9ecef; /* Slightly darker border */ }
-        .module h4 { margin-top: 0; font-size: 1.2em; color: var(--color-text-primary); }
-        .module-meta { font-size: 0.8em; color: var(--color-text-secondary); margin-top: -0.75rem; margin-bottom: 1rem; }
-        .module ul { padding-left: 20px; margin: 0.5rem 0; color: var(--color-text-secondary); }
-        .module li { margin-bottom: 0.5rem; }
-        .resource-link { color: var(--color-success); /* Use green for links */ text-decoration: none; font-weight: 600; }
-        .resource-link:hover { text-decoration: underline; color: #0f9a6f; } /* Darker green hover */
+<style>
+body { font-family: 'DM Sans', sans-serif; }
 
-        /* Project Idea & Capstone */
-        .project-idea { border: 1px dashed var(--color-primary); border-radius: var(--border-radius-md); padding: 1.5rem; margin-top: 1.5rem; background-color: rgba(139, 92, 246, 0.05); /* Very subtle purple bg */ }
-        .project-idea h4 { margin-top: 0; color: var(--color-primary); }
-        .project-idea p, .project-idea ul { color: var(--color-text-secondary); }
-        .project-idea ul { padding-left: 20px; }
-        .capstone-project { background: linear-gradient(90deg, var(--color-primary), #a55eea); color: white; border-radius: var(--border-radius-lg); padding: 1.5rem 2rem; margin-top: 2rem; text-align: center; box-shadow: 0 8px 20px rgba(139, 92, 246, 0.25); }
-        .capstone-project h3 { margin-top: 0; font-size: 1.8em; }
-        .capstone-project p, .capstone-project ul { color: rgba(255,255,255,0.9); }
-        .capstone-project ul { padding-left: 20px; text-align: left; display: inline-block; }
+.grain-bg {
+  background-color: #f8f4ec;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
 
-        /* Next Steps */
-        .next-steps { text-align: center; margin-top: 2.5rem; border-top: 1px solid var(--color-sidebar-border); padding-top: 2rem; }
-        .next-steps h3 { color: var(--color-primary); font-size: 1.5em; margin-bottom: 1rem; }
-        .next-steps ul { list-style: none; padding: 0; color: var(--color-text-secondary); }
-        .next-steps li { margin-bottom: 0.5rem; }
+.custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #d4c4a0; border-radius: 10px; }
 
-        /* Flash Messages */
-        .flash-messages { position: fixed; top: 20px; right: 20px; z-index: 1001; display: flex; flex-direction: column; gap: 10px; width: calc(100% - 40px); max-width: 380px; }
-        .flash-banner { padding: 1rem 1.5rem; border-radius: var(--border-radius-md); color: #fff; font-weight: 500; box-shadow: 0 5px 20px rgba(0,0,0,0.15); opacity: 0; transform: translateY(-20px) scale(0.95); animation: popDown .4s 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; border-left: 5px solid; }
-        @keyframes popDown { to { opacity: 1; transform: translateY(0) scale(1); } }
-        .flash-success { background-color: #28a745; border-left-color: #1e7e34; }
-        .flash-error   { background-color: #dc3545; border-left-color: #b02a37; }
-        .flash-warning { background-color: #ffc107; color: #333; border-left-color: #d39e00; }
-        .flash-info    { background-color: #17a2b8; border-left-color: #117a8b; }
-    </style>
+.hover-line { position: relative; }
+.hover-line::after { content:''; position:absolute; bottom:-1px; left:0; width:0; height:1px; background:currentColor; transition:width .3s ease; }
+.hover-line:hover::after { width:100%; }
+
+/* Dark mode configurations override targets values styles */
+.dark body, .dark .grain-bg { background-color: #1a1714; background-image: none; color: #f8f4ec; }
+.dark aside { background: #2c2820 !important; border-color: #3d3830 !important; }
+.dark .editorial-card { background: #2c2820 !important; border-color: #3d3830 !important; color: #f0e9d8; }
+.dark input { background: #1a1714 !important; border-color: #3d3830 !important; color: #f0e9d8 !important; }
+.dark input:focus { border-color: #c4973a !important; }
+.dark .nav-item-active { background: #1a1714 !important; color: #c4973a !important; }
+
+nav.sidebar, .dashboard-container > aside.sidebar, body > aside.sidebar { display: none !important; }
+</style>
 </head>
-<body>
-    <div class="dashboard-container">
-        <aside class="sidebar">
-            <div class="logo">SkillBridge</div>
-            <nav>
-                <ul>
-                    <li><a href="{{ url_for('main_page') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-home"></i> Dashboard</a></li>
-                    <li><a href="{{ url_for('profile') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-user-circle"></i> My Profile</a></li>
-                    <li><a href="{{ url_for('my_projects') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-layer-group"></i> My Projects</a></li>
-                    <li><a href="{{ url_for('roadmap_generator') }}" class="active" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-magic"></i> Roadmap AI</a></li>
-                    <li><a href="{{ url_for('resume_builder') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-file-alt"></i> Resume Builder</a></li>
-                    <li><a href="{{ url_for('portfolio_builder') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-briefcase"></i> Portfolio Builder</a></li>
-                    <li><a href="{{ url_for('projects') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-globe"></i> Community</a></li>
-                    <li><a href="{{ url_for('find_communities') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-users"></i> All Communities</a></li>
-                    <li><a href="{{ url_for('messages_list') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-comment-dots"></i> Messages</a></li>
+<body class="grain-bg text-ink-900 min-h-screen custom-scroll antialiased">
 
-                    <li style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--color-sidebar-border);">
-                        <a href="{{ url_for('settings') }}" style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-cog"></i> Settings</a>
-                    </li>
-                </ul>
-            </nav>
-        </aside>
+<div class="min-h-screen flex flex-col lg:flex-row relative w-full">
 
-        <main class="main-content">
-             {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}
-                <div class="flash-messages">
-                  {% for category, message in messages %}
-                    <div class="flash-banner flash-{{ category }}">{{ message }}</div>
-                  {% endfor %}
+  <header class="lg:hidden bg-cream-100 dark:bg-ink-800 border-b border-cream-200 dark:border-ink-700 px-6 py-4 flex items-center justify-between sticky top-0 z-40 transition-colors w-full">
+    <div class="flex items-center gap-3">
+      <button onclick="toggleSidebarMenu()" class="text-ink-900 dark:text-cream-50 text-xl p-1.5 focus:outline-none transition-transform active:scale-95">
+        <i class="fas fa-bars" id="menu-icon"></i>
+      </button>
+      <a href="{{ url_for('main_page') }}" class="font-display text-2xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+    </div>
+    
+    <button class="w-10 h-10 rounded-full border border-cream-300 dark:border-ink-700 flex items-center justify-center relative text-ink-900 dark:text-cream-50" id="mobile-notif-btn" onclick="toggleNotifDropdown(event)">
+      <i class="fas fa-bell"></i>
+      <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[9px] font-bold w-4 h-4 rounded-full hidden items-center justify-center notif-badge"></span>
+    </button>
+  </header>
+
+  <aside id="app-sidebar" class="hidden lg:flex fixed lg:sticky top-0 left-0 w-full lg:w-64 bg-white border-r border-cream-200 p-6 flex-col h-screen z-50 overflow-y-auto custom-scroll transition-all duration-300 flex-shrink-0">
+    <div class="flex items-center justify-between mb-8">
+      <a href="{{ url_for('main_page') }}" class="font-display text-3xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+      
+      <button class="w-9 h-9 rounded-full border border-cream-200 dark:border-ink-700 flex items-center justify-center relative text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-cream-50 transition-colors" id="desktop-notif-btn" onclick="toggleNotifDropdown(event)">
+        <i class="fas fa-bell text-sm"></i>
+        <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full hidden items-center justify-center notif-badge"></span>
+      </button>
+    </div>
+
+    <div class="bg-cream-100/60 dark:bg-ink-900/40 border border-cream-300/50 dark:border-ink-700 rounded-2xl p-4 mb-6 space-y-3 shadow-inner">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl leading-none select-none">
+          {% if level_info is defined and level_info %}{{ level_info.icon }}
+          {% elif current_user is defined and current_user.is_authenticated and current_user.xp is defined %}
+            {% if current_user.xp < 200 %}🥉{% elif current_user.xp < 500 %}🥈{% elif current_user.xp < 1000 %}🥇{% elif current_user.xp < 2000 %}💎{% else %}🚀{% endif %}
+          {% else %}🥉{% endif %}
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="text-[9px] font-bold tracking-widest uppercase text-gold">
+            {% if level_info is defined and level_info %}Lv.{{ level_info.level }} · {{ level_info.badge }}
+            {% elif current_user is defined and current_user.is_authenticated and current_user.xp is defined %}
+              {% if current_user.xp < 200 %}Lv.1 · Bronze Builder{% elif current_user.xp < 500 %}Lv.2 · Silver Coder{% elif current_user.xp < 1000 %}Lv.3 · Gold Developer{% elif current_user.xp < 2000 %}Lv.4 · Platinum Architect{% else %}Lv.5 · Diamond Founder{% endif %}
+            {% else %}Lv.1 · Bronze Builder{% endif %}
+          </div>
+          <div class="text-lg font-black text-ink-900 dark:text-cream-100 leading-tight mt-0.5">
+            {% if xp is defined %}{{ xp }}{% elif current_user is defined and current_user.xp is defined %}{{ current_user.xp }}{% else %}0{% endif %} <span class="text-xs font-semibold text-ink-400 dark:text-ink-500">XP</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="w-full h-1.5 bg-cream-200 dark:bg-ink-700 rounded-full overflow-hidden mb-1.5">
+          <div class="h-full bg-ink-900 dark:bg-gold rounded-full transition-all duration-1000" style="width: {% if progress_pct is defined %}{{ progress_pct }}{% elif current_user is defined and current_user.xp is defined %}{% if current_user.xp < 200 %}{{ (current_user.xp / 200 * 100)|int }}{% elif current_user.xp < 500 %}{{ (current_user.xp / 500 * 100)|int }}{% elif current_user.xp < 1000 %}{{ (current_user.xp / 1000 * 100)|int }}{% elif current_user.xp < 2000 %}{{ (current_user.xp / 2000 * 100)|int }}{% else %}100{% endif %}{% else %}0{% endif %}%"></div>
+        </div>
+        <div class="flex justify-between text-[10px] font-bold text-ink-500 dark:text-ink-400">
+          <span>{% if xp is defined %}{{ xp }}{% elif current_user is defined and current_user.xp is defined %}{{ current_user.xp }}{% else %}0{% endif %} XP</span>
+          <span>
+            {% if level_info is defined and level_info %}{% if level_info.next_xp == 'Max' %}🏆 Max{% else %}{{ level_info.next_xp }} XP{% endif %}
+            {% elif current_user is defined and current_user.is_authenticated and current_user.xp is defined %}
+              {% if current_user.xp < 200 %}200 XP{% elif current_user.xp < 500 %}500 XP{% elif current_user.xp < 1000 %}1000 XP{% elif current_user.xp < 2000 %}2000 XP{% else %}🏆 Max{% endif %}
+            {% else %}200 XP{% endif %}
+          </span>
+        </div>
+      </div>
+      <div class="pt-0.5">
+        {% if streak is defined and streak %}{% set gold_streak = streak %}
+        {% elif current_user is defined and current_user.streak_count is defined %}{% set gold_streak = current_user.streak_count %}{% else %}{% set gold_streak = 0 %}{% endif %}
+        
+        {% if gold_streak and gold_streak >= 1 %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 text-xs font-bold text-rose-700 dark:text-rose-400">
+            <span>🔥</span> {{ gold_streak }} day streak
+          </div>
+        {% else %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cream-200 border border-cream-300/40 dark:bg-ink-800 dark:border-ink-700 text-xs font-bold text-ink-400 dark:text-ink-500">
+            <span>❄️</span> No active streak
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <nav class="space-y-1 flex-1 font-body">
+      <a href="{{ url_for('main_page') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-home w-4 text-center"></i> Dashboard</a>
+      <a href="{{ url_for('profile') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-user-circle w-4 text-center"></i> My Profile</a>
+      <a href="{{ url_for('my_projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-layer-group w-4 text-center"></i> My Projects</a>
+      <a href="{{ url_for('roadmap_generator') }}" class="nav-item-active flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 shadow-sm transition-all"><i class="fas fa-magic w-4 text-center"></i> Roadmap AI</a>
+      <a href="{{ url_for('resume_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-file-alt w-4 text-center"></i> Resume Builder</a>
+      <a href="{{ url_for('portfolio_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-briefcase w-4 text-center"></i> Portfolio Builder</a>
+      <a href="{{ url_for('projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-globe w-4 text-center"></i> Community</a>
+      <a href="{{ url_for('find_communities') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-users w-4 text-center"></i> All Communities</a>
+      <a href="{{ url_for('messages_list') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-comment-dots w-4 text-center"></i> Messages</a>
+      <a href="{{ url_for('leaderboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-trophy w-4 text-center"></i> Leaderboard</a>
+      
+      <div class="pt-4 mt-4 border-t border-cream-200 dark:border-ink-800">
+        <a href="{{ url_for('settings') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-cog w-4 text-center"></i> Settings</a>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="flex-1 px-4 sm:px-8 py-8 lg:py-12 max-w-7xl mx-auto w-full space-y-6 overflow-x-hidden">
+    
+    <div class="space-y-1.5 border-b border-cream-200 dark:border-ink-700 pb-5">
+        <h1 class="font-display text-4xl font-black tracking-tight text-ink-900 dark:text-cream-100">Roadmap Generator</h1>
+        <p class="text-xs text-ink-500 dark:text-ink-400 font-body">Enter a role, skill, or topic to generate an AI-powered, project-based learning plan.</p>
+    </div>
+
+    <form action="{{ url_for('roadmap_generator') }}" method="POST" class="flex flex-col sm:flex-row gap-3 font-body">
+        <input type="text" name="goal" value="{{ goal or '' }}" placeholder="e.g., 'Become a Full Stack Developer' or 'Master React'" required
+               class="flex-1 px-4 py-3 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm placeholder-ink-400 focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200">
+        <button type="submit" class="px-6 py-3 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-bold text-xs rounded-xl tracking-wider uppercase transition-all hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0 shadow-sm flex-shrink-0">Generate Matrix</button>
+    </form>
+
+    <div class="pt-1">
+        <a href="{{ url_for('my_roadmaps') }}" class="text-xs font-bold uppercase tracking-wider text-ink-900 dark:text-gold hover-line">View my saved roadmaps →</a>
+    </div>
+
+    {% if roadmap_data %}
+    <div class="editorial-card bg-white border border-cream-200 rounded-3xl p-6 sm:p-10 shadow-sm space-y-6 mt-6 transition-all duration-300 animate-fade">
+        
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-cream-100 dark:border-ink-800 pb-5">
+            <div class="space-y-1">
+                <h2 class="font-display text-2xl font-black text-ink-900 dark:text-cream-50 tracking-tight">{{ roadmap_data.get('title', 'Generated Roadmap') }}</h2>
+                {% if roadmap_data.get('description') %}
+                <p class="text-xs text-ink-500 dark:text-ink-400 font-body leading-relaxed max-w-2xl">{{ roadmap_data.description }}</p>
+                {% endif %}
+                <div class="text-[11px] font-bold text-ink-400 dark:text-ink-500 uppercase tracking-wider pt-1 flex flex-wrap gap-2 divide-x divide-cream-300 dark:divide-ink-700">
+                    {% if roadmap_data.get('assessed_complexity') %}<span class="pr-2">Complexity: <strong class="text-ink-700 dark:text-gold">{{ roadmap_data.assessed_complexity }}</strong></span>{% endif %}
+                    {% if roadmap_data.get('estimated_stages') %}<span class="pl-2">Stages Count: <strong class="text-ink-700 dark:text-gold">{{ roadmap_data.estimated_stages }}</strong></span>{% endif %}
                 </div>
-              {% endif %}
-            {% endwith %}
+            </div>
 
-            <h1>Roadmap Generator</h1>
-            <p class="subtitle">Enter a role, skill, or topic to generate an AI-powered, project-based learning plan.</p>
-
-            <form action="{{ url_for('roadmap_generator') }}" method="POST" class="generator-form">
-                <input type="text" name="goal" value="{{ goal or '' }}" placeholder="e.g., 'Become a Full Stack Developer' or 'Master React'" required>
-                <button type="submit" class="cta-button">Generate</button>
+            <form action="{{ url_for('save_roadmap') }}" method="POST" class="flex-shrink-0 w-full sm:w-auto">
+                <input type="hidden" name="goal" value="{{ goal }}">
+                <input type="hidden" name="roadmap_content" value='{{ roadmap_data | tojson | escape }}'>
+                <button type="submit" class="w-full sm:w-auto px-4 py-2.5 bg-emerald-700 text-white font-body font-bold text-xs rounded-xl tracking-wider uppercase transition-all hover:bg-emerald-600 active:scale-98 shadow-sm">Save to My Roadmaps</button>
             </form>
+        </div>
 
-            <a href="{{ url_for('my_roadmaps') }}" class="view-saved-link">View my saved roadmaps</a>
-
-            {% if roadmap_data %}
-            <div class="roadmap-container">
-                <div class="roadmap-header">
-                    <h2>{{ roadmap_data.get('title', 'Generated Roadmap') }}</h2>
-                     {% if roadmap_data.get('description') %}
-                     <p>{{ roadmap_data.description }}</p>
-                     {% endif %}
-                    <p>
-                        {% if roadmap_data.get('assessed_complexity') %}<strong>Complexity:</strong> {{ roadmap_data.assessed_complexity }}{% endif %}
-                        {% if roadmap_data.get('assessed_complexity') and roadmap_data.get('estimated_stages') %} | {% endif %}
-                        {% if roadmap_data.get('estimated_stages') %}<strong>Stages:</strong> {{ roadmap_data.estimated_stages }}{% endif %}
-                    </p>
+        {% set stages = roadmap_data.get('stages', []) %}
+        {% if stages is iterable and stages is not string %}
+            <div class="space-y-8">
+            {% for stage in stages %}
+            <div class="border-b border-cream-100 dark:border-ink-800 last:border-none pb-8 last:pb-0 space-y-4">
+                <div class="space-y-1">
+                    <h3 class="font-display text-xl font-black text-ink-900 dark:text-gold tracking-tight">{{ loop.index }}. {{ stage.get('name', 'Unnamed Stage') }}</h3>
+                    <div class="text-[11px] font-bold text-ink-400 dark:text-ink-500 uppercase tracking-wider flex flex-wrap gap-3">
+                        {% if stage.get('estimated_time_to_complete') %}<span><i class="far fa-clock mr-1"></i> Time: {{ stage.estimated_time_to_complete }}</span>{% endif %}
+                        {% if stage.get('tools_and_software') %}<span>| &nbsp;<i class="fas fa-tools mr-1"></i> Stack: {{ stage.tools_and_software | join(', ') }}</span>{% endif %}
+                    </div>
                 </div>
+                
+                {% if stage.get('description') %}<p class="text-sm text-ink-500 dark:text-ink-400 font-body leading-relaxed max-w-3xl">{{ stage.description }}</p>{% endif %}
 
-                <form action="{{ url_for('save_roadmap') }}" method="POST" class="save-roadmap-form">
-                    {# Pass goal back for saving #}
-                    <input type="hidden" name="goal" value="{{ goal }}">
-                    {# Pass full roadmap data as JSON string #}
-                    <input type="hidden" name="roadmap_content" value='{{ roadmap_data | tojson | escape }}'> {# Use escape for safety #}
-                    <button type="submit" class="cta-button save-button">Save to My Roadmaps</button>
-                </form>
-
-                {# Iterate through stages if they exist and are a list #}
-                {% set stages = roadmap_data.get('stages', []) %}
-                {% if stages is iterable and stages is not string %}
-                    {% for stage in stages %}
-                    <div class="stage">
-                        <h3>{{ loop.index }}. {{ stage.get('name', 'Unnamed Stage') }}</h3>
-                        <div class="stage-meta">
-                            {% if stage.get('estimated_time_to_complete') %}<strong>Est. Time:</strong> {{ stage.estimated_time_to_complete }}{% endif %}
-                            {% if stage.get('tools_and_software') %} | <strong>Tools:</strong> {{ stage.tools_and_software | join(', ') }}{% endif %}
+                {% set learning_modules = stage.get('learning_modules', []) %}
+                {% if learning_modules is iterable and learning_modules is not string %}
+                    <div class="grid grid-cols-1 gap-4">
+                    {% for module in learning_modules %}
+                    <div class="bg-cream-50/40 dark:bg-ink-900/20 border border-cream-200 dark:border-ink-800 rounded-2xl p-5 space-y-3">
+                        <div class="leading-tight">
+                            <h4 class="font-display text-base font-bold text-ink-900 dark:text-cream-100">{{ module.get('name', 'Unnamed Module') }}</h4>
+                            <div class="text-[10px] font-bold text-ink-400 tracking-wider uppercase mt-1">
+                                {% if module.get('difficulty_level') %}<span>Difficulty: {{ module.difficulty_level }}</span>{% endif %}
+                                {% if module.get('estimated_time_to_complete') %}<span> &nbsp;·&nbsp; Est. Duration: {{ module.estimated_time_to_complete }}</span>{% endif %}
+                            </div>
                         </div>
-                        {% if stage.get('description') %}<p>{{ stage.description }}</p>{% endif %}
 
-                        {% set learning_modules = stage.get('learning_modules', []) %}
-                        {% if learning_modules is iterable and learning_modules is not string %}
-                            {% for module in learning_modules %}
-                            <div class="module">
-                                <h4>{{ module.get('name', 'Unnamed Module') }}</h4>
-                                <div class="module-meta">
-                                    {% if module.get('difficulty_level') %}<strong>Difficulty:</strong> {{ module.difficulty_level }}{% endif %}
-                                    {% if module.get('estimated_time_to_complete') %} | <strong>Est. Time:</strong> {{ module.estimated_time_to_complete }}{% endif %}
-                                </div>
-
-                                {% set concepts = module.get('concepts', []) %}
-                                {% if concepts is iterable and concepts is not string and concepts %}
-                                <strong>Learning Objectives:</strong>
-                                <ul>
-                                {% for concept in concepts %}
-                                    <li>{{ concept }}</li>
-                                {% endfor %}
-                                </ul>
-                                {% endif %} {# end concepts check #}
-
-                                {% set resources = module.get('resources', []) %}
-                                {% if resources is iterable and resources is not string and resources %}
-                                <strong>Resources:</strong>
-                                <ul>
-                                {% for resource in resources %}
-                                    <li>
-                                        {{ resource.get('type', 'Resource') }}:
-                                        <a href="{{ resource.get('url', '#') }}" target="_blank" class="resource-link">
-                                            {{ resource.get('title', 'Link') }}
-                                        </a>
-                                    </li>
-                                {% endfor %}
-                                </ul>
-                                {% endif %} {# end resources check #}
-                            </div> {# end module #}
-                            {% endfor %} {# end module loop #}
-                        {% endif %} {# end learning_modules check #}
-
-                        {% set project_idea = stage.get('project_idea') %}
-                        {% if project_idea is mapping %} {# Check if project_idea is a dictionary-like object #}
-                        <div class="project-idea">
-                            <h4>💡 Project Idea: {{ project_idea.get('title', 'Unnamed Project') }}</h4>
-                             {% if project_idea.get('description') %}<p>{{ project_idea.description }}</p>{% endif %}
-                            {% set core_features = project_idea.get('core_features', []) %}
-                            {% if core_features is iterable and core_features is not string and core_features %}
-                            <strong>Core Features to Build:</strong>
-                            <ul>
-                            {% for feature in core_features %}
-                                <li>{{ feature }}</li>
+                        {% set concepts = module.get('concepts', []) %}
+                        {% if concepts is iterable and concepts is not string and concepts %}
+                        <div class="space-y-1.5 font-body">
+                            <span class="text-[10px] font-bold tracking-wider text-ink-400 uppercase block">Learning Concepts</span>
+                            <ul class="list-disc list-inside text-xs font-medium text-ink-600 dark:text-ink-400 space-y-1 pl-1">
+                            {% for concept in concepts %}
+                                <li>{{ concept }}</li>
                             {% endfor %}
                             </ul>
-                            {% endif %} {# end core_features check #}
                         </div>
-                        {% endif %} {# end project_idea check #}
-                    </div> {# end stage #}
-                    {% endfor %} {# end stage loop #}
-                {% else %}
-                    <p style="color: var(--color-text-secondary); margin-top: 1rem;">The generated roadmap data appears to be missing or invalid.</p>
-                {% endif %} {# end stages check #}
+                        {% endif %}
 
-
-                {% set capstone = roadmap_data.get('capstone_project') %}
-                {% if capstone is mapping %}
-                <div class="capstone-project">
-                    <h3>🎓 Final Capstone Project: {{ capstone.get('title', 'Unnamed Capstone') }}</h3>
-                     {% if capstone.get('description') %}<p>{{ capstone.description }}</p>{% endif %}
-                     {% set capstone_features = capstone.get('core_features', []) %}
-                     {% if capstone_features is iterable and capstone_features is not string and capstone_features %}
-                    <strong>Core Features to Build:</strong>
-                    <ul>
-                    {% for feature in capstone_features %}
-                        <li>{{ feature }}</li>
+                        {% set resources = module.get('resources', []) %}
+                        {% if resources is iterable and resources is not string and resources %}
+                        <div class="space-y-1.5 font-body pt-1">
+                            <span class="text-[10px] font-bold tracking-wider text-ink-400 uppercase block">Curated Materials</span>
+                            <ul class="text-xs space-y-1.5 pl-0.5">
+                            {% for resource in resources %}
+                                <li class="flex items-center gap-2 font-semibold text-ink-700 dark:text-ink-300">
+                                    <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-cream-200 dark:bg-ink-800 border border-cream-300 dark:border-ink-700 text-ink-500 uppercase tracking-wide">{{ resource.get('type', 'Resource') }}</span>
+                                    <a href="{{ resource.get('url', '#') }}" target="_blank" class="text-emerald-700 dark:text-emerald-400 hover:underline inline-flex items-center gap-1">
+                                        {{ resource.get('title', 'Link Connection') }} <i class="fas fa-external-link-alt text-[9px] opacity-70"></i>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
                     {% endfor %}
-                    </ul>
+                    </div>
+                {% endif %}
+
+                {% set project_idea = stage.get('project_idea') %}
+                {% if project_idea is mapping %}
+                <div class="border border-dashed border-gold rounded-2xl p-5 bg-cream-50/20 dark:bg-ink-900/10 space-y-2.5 font-body">
+                    <h4 class="font-display text-sm font-bold text-ink-900 dark:text-gold flex items-center gap-1.5 leading-none"><i class="far fa-lightbulb text-gold"></i> Project Assignment Verification Variable: {{ project_idea.get('title', 'Unnamed Blueprint') }}</h4>
+                    {% if project_idea.get('description') %}<p class="text-xs text-ink-500 dark:text-ink-400 leading-relaxed max-w-2xl">{{ project_idea.description }}</p>{% endif %}
+                    
+                    {% set core_features = project_idea.get('core_features', []) %}
+                    {% if core_features is iterable and core_features is not string and core_features %}
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold tracking-wider text-ink-400 uppercase block">Blueprint Core Requirements</span>
+                        <ul class="list-decimal list-inside text-xs font-medium text-ink-600 dark:text-ink-400 space-y-1 pl-0.5">
+                        {% for feature in core_features %}
+                            <li>{{ feature }}</li>
+                        {% endfor %}
+                        </ul>
+                    </div>
                     {% endif %}
                 </div>
-                {% endif %} {# end capstone check #}
+                {% endif %}
+            </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-xs font-semibold font-body text-ink-400 dark:text-ink-500 mt-4">The generated roadmap content arrays trace mapping returned a syntax schema validation error values.</p>
+        {% endif %}
 
-                {% set next_steps = roadmap_data.get('next_steps', []) %}
-                {% if next_steps is iterable and next_steps is not string and next_steps %}
-                <div class="next-steps">
-                    <h3>🚀 Where to Go From Here</h3>
-                    <ul>
-                    {% for step in next_steps %}
-                        <li>{{ step }}</li>
-                    {% endfor %}
-                    </ul>
-                </div>
-                {% endif %} {# end next_steps check #}
-            </div> {# end roadmap-container #}
-            {% endif %} {# end if roadmap_data #}
-        </main>
+        {% set capstone = roadmap_data.get('capstone_project') %}
+        {% if capstone is mapping %}
+        <div class="bg-ink-900 text-cream-50 rounded-2xl p-6 sm:p-8 space-y-4 font-body border border-ink-800 shadow-md">
+            <div class="leading-tight">
+                <span class="text-[9px] font-extrabold px-2 py-0.5 bg-gold text-ink-900 rounded uppercase tracking-wider">Final Architecture Production Capstone</span>
+                <h3 class="font-display text-2xl font-black tracking-tight text-white mt-2">{{ capstone.get('title', 'Unnamed Capstone Deployment') }}</h3>
+            </div>
+            {% if capstone.get('description') %}<p class="text-xs text-ink-400 leading-relaxed max-w-3xl">{{ capstone.description }}</p>{% endif %}
+            
+            {% set capstone_features = capstone.get('core_features', []) %}
+            {% if capstone_features is iterable and capstone_features is not string and capstone_features %}
+            <div class="space-y-1.5">
+                <span class="text-[10px] font-bold tracking-wider text-[#7a7268] uppercase block">Definitive Production Pipeline Conditions</span>
+                <ul class="list-disc list-inside text-xs text-ink-400 font-medium space-y-1 pl-0.5">
+                {% for feature in capstone_features %}
+                    <li>{{ feature }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% set next_steps = roadmap_data.get('next_steps', []) %}
+        {% if next_steps is iterable and next_steps is not string and next_steps %}
+        <div class="text-center pt-6 mt-6 border-t border-cream-100 dark:border-ink-800 space-y-3 font-body animate-fade">
+            <h3 class="font-display text-lg font-bold text-ink-900 dark:text-gold tracking-tight">🚀 Next Incremental Deployment Vectors</h3>
+            <ul class="text-xs font-semibold text-ink-500 dark:text-ink-400 space-y-1 max-w-md mx-auto">
+            {% for step in next_steps %}
+                <li>{{ step }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
     </div>
+    {% endif %}
+  </main>
+</div>
+
 {% include 'notification_bell.html' %}
+{% include 'onboarding_widget.html' %}
 {% include 'chatbot_widget.html' %}
 
 <script>
+// Toggle sidebar drawers model validation parameters checks safely
+function toggleSidebarMenu() {
+  const sidebar = document.getElementById('app-sidebar');
+  const icon = document.getElementById('menu-icon');
+  if(sidebar.classList.contains('hidden')) {
+    sidebar.classList.remove('hidden');
+    sidebar.classList.add('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
+    icon.classList.remove('fa-bars');
+    icon.classList.add('fa-times');
+    document.body.classList.add('overflow-hidden');
+  } else {
+    sidebar.classList.add('hidden');
+    sidebar.classList.remove('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
+    icon.classList.remove('fa-times');
+    icon.classList.add('fa-bars');
+    document.body.classList.remove('overflow-hidden');
+  }
+}
+
 applyTheme(localStorage.getItem('sb-theme') || 'light');
-function applyTheme(t){ t==='dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark'); }
+function applyTheme(t){ t==='dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark'); }
 </script>    
 </body>
 </html>

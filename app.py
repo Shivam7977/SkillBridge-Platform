@@ -17,13 +17,13 @@ from ai_roadmap_generator import configure_ai, generate_roadmap_with_ai, find_yo
 import regex as re_ext
 from bs4 import BeautifulSoup
 from werkzeug.utils import secure_filename
-from flask_limiter import Limiter                         # ← ADDED
-from flask_limiter.util import get_remote_address         # ← ADDED
-from flask_limiter.errors import RateLimitExceeded        # ← ADDED
-import bleach                                             # ← ADDED: XSS sanitization
-from apscheduler.schedulers.background import BackgroundScheduler  # ← ADDED: weekly XP reset
-from apscheduler.triggers.cron import CronTrigger                  # ← ADDED
-import pytz                                                         # ← ADDED
+from flask_limiter import Limiter                         
+from flask_limiter.util import get_remote_address         
+from flask_limiter.errors import RateLimitExceeded        
+import bleach                                             
+from apscheduler.schedulers.background import BackgroundScheduler  
+from apscheduler.triggers.cron import CronTrigger                  
+import pytz                                                         
 import os
 from dotenv import load_dotenv
 import requests
@@ -41,12 +41,12 @@ except Exception as e_ai_config:
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'project_uploads')
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024      # ← ADDED: 16MB max upload size
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024      
 bcrypt = Bcrypt(app)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))
 s = URLSafeTimedSerializer(app.secret_key)
 
-# ── RATE LIMITER ──────────────────────────────────────────  # ← ADDED
+# ── RATE LIMITER ──────────────────────────────────────────  
 limiter = Limiter(
     key_func=get_remote_address,
     app=app,
@@ -54,7 +54,7 @@ limiter = Limiter(
     storage_uri="memory://"
 )
 
-# ── SMART RATE LIMIT KEY FUNCTIONS ────────────────────────  # ← ADDED
+# ── SMART RATE LIMIT KEY FUNCTIONS ────────────────────────  # 
 def get_login_key():
     """Rate limit by IP + target email combined.
     Prevents both credential stuffing (many accounts, one IP)
@@ -896,17 +896,26 @@ def profile():
 def roadmap_generator():
     roadmap_data = None
     goal = ""
+
+    # Fetch XP/streak for sidebar — same logic as profile route
+    _u = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'xp': 1, 'streak_count': 1})
+    _xp = _u.get('xp', 0) if _u else 0
+    _streak = _u.get('streak_count', 0) if _u else 0
+    _level_info = get_level_info(_xp)
+    _progress_pct = int((_xp / _level_info['next_xp']) * 100) if _level_info['next_xp'] != "Max" else 100
+    _sidebar = dict(xp=_xp, level_info=_level_info, streak=_streak, progress_pct=_progress_pct)
+
     if request.method == 'POST':
         goal = request.form.get('goal', '').strip()
         if not goal:
             flash("Please enter a goal for your roadmap.", "error")
-            return render_template('roadmap_generator.html', goal=goal)
+            return render_template('roadmap_generator.html', goal=goal, **_sidebar)
 
         # ── AI DAILY CAP CHECK (IST) ──────────────────────────
         allowed, used, limit = check_ai_daily_limit(current_user.id, 'roadmap')
         if not allowed:
             flash(f'⚠️ You have used all {limit} roadmap generations for today. Resets at midnight IST.', 'error')
-            return render_template('roadmap_generator.html', goal=goal)
+            return render_template('roadmap_generator.html', goal=goal, **_sidebar)
 
     else:
         goal_from_url = request.args.get('goal', '').strip()
@@ -934,15 +943,15 @@ def roadmap_generator():
                                 except Exception as e_yt:
                                     print(f"Error finding YouTube playlist for '{query}': {e_yt}")
                                     resource["url"] = "#"; resource["title"] = f"Error finding playlist"
-                return render_template('roadmap_generator.html', roadmap_data=roadmap_data, goal=goal)
+                return render_template('roadmap_generator.html', roadmap_data=roadmap_data, goal=goal, **_sidebar)
             else:
                 print(f"AI response invalid or missing stages for goal '{goal}'. Response: {roadmap_data}")
                 flash("Sorry, the AI response was incomplete or in an unexpected format. Please try again.", "error")
         except Exception as e_ai:
             print(f"Error during roadmap generation or processing for '{goal}': {e_ai}")
             flash(f"An error occurred while communicating with the AI: {e_ai}", "error")
-        return render_template('roadmap_generator.html', goal=goal)
-    return render_template('roadmap_generator.html')
+        return render_template('roadmap_generator.html', goal=goal, **_sidebar)
+    return render_template('roadmap_generator.html', **_sidebar)
 
 @app.route('/save_roadmap', methods=['POST'])
 @login_required
@@ -1218,7 +1227,7 @@ def my_projects():
 
         # ── BOOKMARKED PROJECTS ──────────────────────────────
         user_data = users_collection.find_one(
-            {'_id': ObjectId(current_user.id)}, {'bookmarks': 1}
+            {'_id': ObjectId(current_user.id)}, {'bookmarks': 1, 'xp': 1, 'streak_count': 1}
         )
         bookmark_ids = user_data.get('bookmarks', []) if user_data else []
         bookmarked_projects = []
@@ -1235,17 +1244,29 @@ def my_projects():
                 p['comment_count'] = p.get('comment_count', 0)
                 bookmarked_projects.append(p)
 
+        xp = user_data.get('xp', 0) if user_data else 0
+        streak = user_data.get('streak_count', 0) if user_data else 0
+        level_info = get_level_info(xp)
+        progress_pct = int((xp / level_info['next_xp']) * 100) if level_info['next_xp'] != "Max" else 100
+
         return render_template('my_projects.html',
             projects=my_projects_list,
             page=page,
             total_pages=total_pages,
             total=total,
-            bookmarked_projects=bookmarked_projects)
+            bookmarked_projects=bookmarked_projects,
+            xp=xp,
+            level_info=level_info,
+            streak=streak,
+            progress_pct=progress_pct)
     except Exception as e:
         print(f"Error fetching user projects for {current_user.id}: {e}")
         flash("Could not load your projects.", "error")
+        xp = 0
+        level_info = get_level_info(xp)
+        progress_pct = 0
         return render_template('my_projects.html', projects=[], page=1, total_pages=1, total=0,
-            bookmarked_projects=[])
+            bookmarked_projects=[], xp=xp, level_info=level_info, streak=0, progress_pct=progress_pct)
 
 @app.route('/create_project', methods=['GET', 'POST'])
 @login_required
@@ -1822,7 +1843,23 @@ def resume_builder():
         github_repos = user_data.get("github_repos", []) if user_data else []
         github_langs = user_data.get("github_langs", []) if user_data else []
         work_experience = user_data.get('work_experience', [])
-        return render_template("resume_builder.html", user=user_data, projects=user_projects, certificates=certificates, github_repos=github_repos, github_langs=github_langs, work_experience=work_experience)
+        # ── Sidebar XP / Level / Streak (same as mainpage) ──
+        xp = user_data.get('xp', 0) if user_data else 0
+        level_info = get_level_info(xp)
+        streak = user_data.get('streak_count', 0) if user_data else 0
+        progress_pct = int((xp / level_info['next_xp']) * 100) if level_info['next_xp'] != 'Max' else 100
+        return render_template("resume_builder.html",
+            user=user_data,
+            projects=user_projects,
+            certificates=certificates,
+            github_repos=github_repos,
+            github_langs=github_langs,
+            work_experience=work_experience,
+            xp=xp,
+            level_info=level_info,
+            streak=streak,
+            progress_pct=progress_pct,
+        )
     except Exception as e:
         print(f"Error loading resume builder: {e}")
         flash("Could not load your resume data.", "error")
@@ -2017,7 +2054,23 @@ def portfolio_builder():
         github_repos = user_data.get('github_repos', [])
         github_langs = user_data.get('github_langs', [])
         work_experience = user_data.get('work_experience', [])
-        return render_template('portfolio_builder.html', user=user_data, projects=user_projects, certificates=certificates, github_repos=github_repos, github_langs=github_langs, work_experience=work_experience)
+        # FIX: Pass XP, level_info, streak to template
+        xp = user_data.get('xp', 0)
+        level_info = get_level_info(xp)
+        streak = user_data.get('streak_count', 0)
+        progress_pct = int((xp / level_info['next_xp']) * 100) if level_info['next_xp'] != "Max" else 100
+        return render_template('portfolio_builder.html',
+            user=user_data,
+            projects=user_projects,
+            certificates=certificates,
+            github_repos=github_repos,
+            github_langs=github_langs,
+            work_experience=work_experience,
+            xp=xp,
+            level_info=level_info,
+            streak=streak,
+            progress_pct=progress_pct
+        )
     except Exception as e:
         print(f"Error loading portfolio builder: {e}")
         flash("Could not load your portfolio data.", "error")

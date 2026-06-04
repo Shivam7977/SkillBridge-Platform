@@ -1,364 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
-<meta charset="UTF-8" />
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SkillBridge — Learn. Build. Prove.</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Premium Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Playfair Display', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
+      },
+      colors: {
+        cream: { 50:'#fdfcf8', 100:'#f8f4ec', 200:'#f0e9d8', 300:'#e5d9c0', 400:'#d4c4a0', 500:'#b8a07a' },
+        ink:   { 900:'#1a1714', 800:'#2c2820', 700:'#3d3830', 600:'#5c5548', 500:'#7a7268', 400:'#9c9488' },
+        gold:  '#c4973a',
+      }
+    }
+  }
+}
+</script>
+
 <style>
-:root{
-  --bg-main:#f6f7fb;
-  --bg-tint:#f1effa;
-  --card:#ffffff;
-  --primary:#7c3aed;
-  --accent:#ec4899;
-  --text:#111827;
-  --muted:#6b7280;
-  --border:#e5e7eb;
+body { font-family: 'DM Sans', sans-serif; }
+
+.grain-bg {
+  background-color: #f8f4ec;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
-*{margin:0;padding:0;box-sizing:border-box}
+.hover-line { position: relative; }
+.hover-line::after { content:''; position:absolute; bottom:-1px; left:0; width:0; height:1px; background:currentColor; transition:width .3s ease; }
+.hover-line:hover::after { width:100%; }
 
-body{
-  font-family:Inter,system-ui;
-  background:linear-gradient(180deg,var(--bg-main),var(--bg-tint));
-  color:var(--text);
-  overflow-x:hidden;
-}
+/* Scroll reveal properties */
+.reveal { opacity: 0; transform: translateY(40px); transition: all 0.75s cubic-bezier(0.16, 1, 0.3, 1); }
+.reveal.show { opacity: 1; transform: translateY(0); }
 
-.container{
-  max-width:1200px;
-  margin:auto;
-  padding:0 24px;
-}
-
-/* ---------- NAV ---------- */
-nav{
-  position:sticky;
-  top:0;
-  background:rgba(255,255,255,.85);
-  backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--border);
-  z-index:100;
-}
-.nav-inner{
-  height:72px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-.logo{
-  font-size:1.4rem;
-  font-weight:800;
-  color:var(--primary);
-}
-.nav-links a{
-  margin-left:24px;
-  text-decoration:none;
-  font-weight:600;
-  color:var(--muted);
-}
-.nav-links .cta{
-  padding:10px 22px;
-  border-radius:10px;
-  background:linear-gradient(90deg,var(--primary),var(--accent));
-  color:white;
-}
-
-/* ---------- HERO ---------- */
-.hero{
-  padding:120px 0;
-  position:relative;
-}
-.hero::before{
-  content:"";
-  position:absolute;
-  width:520px;
-  height:520px;
-  top:-160px;
-  left:-160px;
-  background:radial-gradient(circle,var(--primary),transparent 70%);
-  opacity:.12;
-  filter:blur(60px);
-  animation:float 10s infinite alternate ease-in-out;
-}
-@keyframes float{
-  from{transform:translateY(0)}
-  to{transform:translateY(40px)}
-}
-
-.hero-grid{
-  display:grid;
-  grid-template-columns:1.1fr .9fr;
-  gap:60px;
-  align-items:center;
-}
-.hero h1{
-  font-size:3.8rem;
-  font-weight:800;
-  line-height:1.05;
-}
-.hero h1 span{
-  background:linear-gradient(90deg,var(--primary),var(--accent));
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-}
-.hero p{
-  margin-top:22px;
-  color:var(--muted);
-  max-width:520px;
-}
-.hero-actions{
-  margin-top:36px;
-  display:flex;
-  gap:16px;
-}
-.btn{
-  padding:16px 30px;
-  border-radius:12px;
-  font-weight:600;
-  text-decoration:none;
-  transition:.25s;
-}
-.btn-primary{
-  background:linear-gradient(90deg,var(--primary),var(--accent));
-  color:white;
-}
-.btn-outline{
-  border:1px solid var(--border);
-  background:white;
-  color:var(--text);
-}
-.btn:hover{
-  transform:translateY(-3px);
-  box-shadow:0 12px 30px rgba(124,58,237,.25);
-}
-
-/* ---------- HERO FEATURE CARD ---------- */
-.hero-card{
-  background:var(--card);
-  border-radius:26px;
-  padding:32px;
-  box-shadow:0 30px 70px rgba(124,58,237,.18);
-}
-.hero-step{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  padding:18px 20px;
-  background:#f1ecff;
-  border-radius:14px;
-  font-weight:600;
-  position:relative;
-  margin-bottom:18px;
-  opacity:0;
-  transform:translateX(40px);
-}
-.hero-step:last-child{margin-bottom:0}
-.hero-step::before{
-  content:"";
-  position:absolute;
-  left:0;
-  top:0;
-  width:5px;
-  height:100%;
-  background:linear-gradient(180deg,var(--primary),var(--accent));
-  border-radius:14px 0 0 14px;
-}
-.hero-step span{font-size:1.2rem}
-
-/* ---------- STATS ---------- */
-.stats{
-  padding:100px 0;
-}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:32px;
-}
-.card{
-  background:var(--card);
-  border-radius:24px;
-  padding:42px;
-  text-align:center;
-  box-shadow:0 14px 40px rgba(0,0,0,.06);
-  transition:.3s;
-}
-.card:hover{transform:translateY(-8px)}
-.card h3{
-  font-size:2.8rem;
-}
-.card p{
-  margin-top:8px;
-  color:var(--muted);
-}
-
-/* ---------- FEATURES ---------- */
-.features{
-  padding:120px 0;
-}
-.features h2{
-  text-align:center;
-  font-size:2.6rem;
-  margin-bottom:70px;
-}
-.features .card i{
-  font-size:2rem;
-  color:var(--primary);
-  margin-bottom:16px;
-}
-
-/* ---------- CTA ---------- */
-.cta{
-  padding:120px 0;
-}
-.cta-box{
-  background:linear-gradient(135deg,var(--primary),var(--accent));
-  color:white;
-  padding:80px 40px;
-  border-radius:28px;
-  text-align:center;
-}
-.cta-box h2{
-  font-size:3rem;
-}
-.cta-box p{
-  margin:18px auto 36px;
-  max-width:520px;
-}
-.cta-box a{
-  background:white;
-  color:var(--primary);
-  padding:16px 36px;
-  border-radius:12px;
-  font-weight:700;
-  text-decoration:none;
-}
-
-/* ---------- FOOTER ---------- */
-footer{
-  padding:40px 0;
-  text-align:center;
-  font-size:.85rem;
-  color:var(--muted);
-}
-
-/* ---------- SCROLL REVEAL ---------- */
-.reveal{
-  opacity:0;
-  transform:translateY(60px);
-  transition:.8s ease;
-}
-.reveal.show{
-  opacity:1;
-  transform:none;
-}
-
-/* ---------- RESPONSIVE ---------- */
-@media(max-width:900px){
-  .hero-grid,.grid{grid-template-columns:1fr}
-  .hero{text-align:center}
-  .hero-actions{justify-content:center;flex-wrap:wrap}
-}
+/* Dark mode configurations */
+.dark body, .dark .grain-bg { background-color: #1a1714; background-image: none; color: #f8f4ec; }
+.dark nav { background-color: rgba(26, 23, 20, 0.85) !important; border-bottom-color: #2c2820 !important; }
+.dark .editorial-card { background: #2c2820 !important; border-color: #3d3830 !important; }
+.dark .hero-step-item { background: #1a1714 !important; border-color: #2c2820 !important; }
+.dark .cta-banner { background: #2c2820 !important; border-color: #3d3830 !important; }
 </style>
 </head>
 
-<body>
+<body class="grain-bg text-ink-900 min-h-screen transition-colors duration-300">
 
-<nav>
-  <div class="container nav-inner">
-    <div class="logo">SkillBridge</div>
-    <div class="nav-links">
-      <a href="{{ url_for('login') }}">Login</a>
-      <a href="{{ url_for('signup') }}" class="cta">Get Started</a>
-    </div>
-  </div>
-</nav>
-
-<section class="hero container">
-  <div class="hero-grid">
-
-    <div class="reveal">
-      <h1>Learn. Build.<br><span>Prove Your Skills.</span></h1>
-      <p>
-        AI roadmaps, real projects, community collaboration,
-        and portfolio proof — all in one platform.
-      </p>
-      <div class="hero-actions">
-        <a href="{{ url_for('signup') }}" class="btn btn-primary">Start Learning</a>
-        <a href="#stats" class="btn btn-outline">See Impact</a>
+  <!-- ══ NAVIGATION BAR ══ -->
+  <nav class="sticky top-0 bg-cream-100/80 backdrop-filter backdrop-blur-xl border-b border-cream-200 z-50 transition-colors">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <div class="font-display text-2xl font-black tracking-tight text-ink-900 dark:text-cream-50 select-none">SkillBridge</div>
+      <div class="flex items-center gap-6">
+        <a href="{{ url_for('login') }}" class="text-sm font-semibold text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-cream-100 transition-colors">Login</a>
+        <a href="{{ url_for('signup') }}" class="px-5 py-2.5 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-body font-semibold text-xs rounded-xl tracking-wide transition-all duration-300 hover:opacity-95 hover:-translate-y-0.5 active:scale-95 shadow-sm">
+          Get Started
+        </a>
       </div>
     </div>
+  </nav>
 
-    <div class="hero-card">
-      <div class="hero-step"><span>📌</span> AI Roadmaps</div>
-      <div class="hero-step"><span>🛠</span> Real Projects</div>
-      <div class="hero-step"><span>👥</span> Community</div>
-      <div class="hero-step"><span>🌐</span> Portfolio Proof</div>
-    </div>
-
-  </div>
-</section>
-
-<section class="stats container" id="stats">
-  <div class="grid">
-    <div class="card reveal">
-      <h3 class="counter" data-target="{{ total_users }}">0</h3>
-      <p>Active Learners</p>
-    </div>
-    <div class="card reveal">
-      <h3 class="counter" data-target="{{ total_projects }}">0</h3>
-      <p>Projects Uploaded</p>
-    </div>
-    <div class="card reveal">
-      <h3 class="counter" data-target="{{ completion_percent }}">0</h3>
-      <p>Projects Completed (%)</p>
-    </div>
-  </div>
-</section>
-
-<section class="features">
-  <div class="container">
-    <h2 class="reveal">Everything you need in one place</h2>
-    <div class="grid">
-      <div class="card reveal">
-        <i class="fa-solid fa-brain"></i>
-        <h3>AI Learning Paths</h3>
-        <p>Goal-based roadmaps generated by AI.</p>
+  <!-- ══ HERO SECTION ══ -->
+  <section class="max-w-7xl mx-auto px-6 py-16 lg:py-28">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+      
+      <!-- Headline & Call to action -->
+      <div class="reveal lg:col-span-7 space-y-6">
+        <p class="text-[10px] font-semibold tracking-[0.3em] uppercase text-ink-500 dark:text-ink-400">— SkillBridge Platform</p>
+        <h1 class="font-display text-5xl sm:text-6xl xl:text-7xl font-black leading-[0.95] tracking-tight text-ink-900 dark:text-cream-100">
+          Learn. Build.<br>
+          <span class="text-gold italic font-normal">Prove</span> your skills.
+        </h1>
+        <p class="text-ink-500 dark:text-ink-400 text-base sm:text-lg max-w-xl font-body leading-relaxed">
+          AI roadmaps, production-grade project environments, decentralized community collaboration, and transparent portfolios — designed to establish your definitive proof of work.
+        </p>
+        <div class="flex flex-wrap gap-4 pt-4">
+          <a href="{{ url_for('signup') }}" class="px-6 py-3.5 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-body font-semibold text-sm rounded-xl tracking-wide transition-all duration-300 hover:-translate-y-1 hover:shadow-lg active:scale-98">
+            Start Learning
+          </a>
+          <a href="#stats" class="px-6 py-3.5 border border-cream-300 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-900 dark:text-cream-100 font-body font-semibold text-sm rounded-xl tracking-wide transition-all duration-300 hover:-translate-y-1 hover:bg-cream-50 dark:hover:bg-ink-700 active:scale-98 shadow-sm">
+            See Impact
+          </a>
+        </div>
       </div>
-      <div class="card reveal">
-        <i class="fa-solid fa-code"></i>
-        <h3>Project Workspace</h3>
-        <p>Build, upload, and version real projects.</p>
+
+      <!-- Hero Interactive Card Panels -->
+      <div class="lg:col-span-5">
+        <div class="editorial-card bg-white border border-cream-200 rounded-3xl p-8 shadow-sm space-y-4 hover:border-cream-400 dark:hover:border-ink-600 transition-all duration-300">
+          <div class="text-[10px] font-semibold tracking-[0.2em] uppercase text-ink-400 dark:text-cream-400 mb-2">SYSTEM CAPABILITIES</div>
+          
+          <div class="hero-step-item flex items-center gap-4 p-4 bg-cream-100 border border-cream-200/50 rounded-xl transition-all duration-300 opacity-0 translate-x-10 text-ink-900 dark:text-cream-100 hover:scale-[1.02] hover:border-ink-400 dark:hover:border-gold/50 cursor-default">
+            <span class="text-xl">📌</span>
+            <div class="text-sm font-bold">AI Learning Roadmaps</div>
+          </div>
+          <div class="hero-step-item flex items-center gap-4 p-4 bg-cream-100 border border-cream-200/50 rounded-xl transition-all duration-300 opacity-0 translate-x-10 text-ink-900 dark:text-cream-100 hover:scale-[1.02] hover:border-ink-400 dark:hover:border-gold/50 cursor-default">
+            <span class="text-xl">🛠</span>
+            <div class="text-sm font-bold">Real Project Workspaces</div>
+          </div>
+          <div class="hero-step-item flex items-center gap-4 p-4 bg-cream-100 border border-cream-200/50 rounded-xl transition-all duration-300 opacity-0 translate-x-10 text-ink-900 dark:text-cream-100 hover:scale-[1.02] hover:border-ink-400 dark:hover:border-gold/50 cursor-default">
+            <span class="text-xl">👥</span>
+            <div class="text-sm font-bold">Community Ecosystems</div>
+          </div>
+          <div class="hero-step-item flex items-center gap-4 p-4 bg-cream-100 border border-cream-200/50 rounded-xl transition-all duration-300 opacity-0 translate-x-10 text-ink-900 dark:text-cream-100 hover:scale-[1.02] hover:border-ink-400 dark:hover:border-gold/50 cursor-default">
+            <span class="text-xl">🌐</span>
+            <div class="text-sm font-bold">Verifiable Portfolios</div>
+          </div>
+        </div>
       </div>
-      <div class="card reveal">
-        <i class="fa-solid fa-users"></i>
-        <h3>Community Hub</h3>
-        <p>Collaborate with like-minded builders.</p>
+
+    </div>
+  </section>
+
+  <!-- ══ STATS SECTION ══ -->
+  <section class="max-w-7xl mx-auto px-6 py-12 lg:py-20 border-t border-b border-cream-200 dark:border-ink-800" id="stats">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+      
+      <div class="editorial-card bg-cream-50 border border-cream-200 dark:border-ink-800 p-8 rounded-2xl reveal hover:-translate-y-1 hover:shadow-md transition-all duration-300">
+        <h3 class="font-display text-5xl font-black text-ink-900 dark:text-cream-100 counter" data-target="{{ total_users }}">0</h3>
+        <p class="text-xs font-semibold tracking-widest text-ink-500 dark:text-ink-400 uppercase mt-2">Active Learners</p>
+      </div>
+
+      <div class="editorial-card bg-cream-50 border border-cream-200 dark:border-ink-800 p-8 rounded-2xl reveal hover:-translate-y-1 hover:shadow-md transition-all duration-300">
+        <h3 class="font-display text-5xl font-black text-ink-900 dark:text-cream-100 counter" data-target="{{ total_projects }}">0</h3>
+        <p class="text-xs font-semibold tracking-widest text-ink-500 dark:text-ink-400 uppercase mt-2">Projects Uploaded</p>
+      </div>
+
+      <div class="editorial-card bg-cream-50 border border-cream-200 dark:border-ink-800 p-8 rounded-2xl reveal hover:-translate-y-1 hover:shadow-md transition-all duration-300">
+        <h3 class="font-display text-5xl font-black text-ink-900 dark:text-cream-100 counter" data-target="{{ completion_percent }}">0</h3>
+        <p class="text-xs font-semibold tracking-widest text-ink-500 dark:text-ink-400 uppercase mt-2">Completion Efficiency (%)</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ FEATURES SECTION ══ -->
+  <section class="max-w-7xl mx-auto px-6 py-20 lg:py-32">
+    <div class="text-center space-y-4 mb-16">
+      <p class="text-[10px] font-semibold tracking-[0.3em] uppercase text-gold">— ARCHITECTURE COMPONENTS</p>
+      <h2 class="font-display text-4xl sm:text-5xl font-black tracking-tight text-ink-900 dark:text-cream-50 reveal">Everything in one centralized node</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      <div class="editorial-card bg-white border border-cream-200 p-10 rounded-2xl shadow-sm space-y-4 reveal text-ink-900 dark:text-cream-100 hover:-translate-y-1.5 hover:shadow-md transition-all duration-300">
+        <div class="w-12 h-12 rounded-xl bg-cream-100 dark:bg-ink-900 flex items-center justify-center text-ink-900 dark:text-cream-100 text-xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fa-solid fa-brain"></i>
+        </div>
+        <h3 class="font-display text-2xl font-bold">AI Learning Paths</h3>
+        <p class="text-sm text-ink-500 dark:text-ink-400 font-body leading-relaxed">Dynamic, intent-driven educational timelines curated instantly by our deep generation logic engines.</p>
+      </div>
+
+      <div class="editorial-card bg-white border border-cream-200 p-10 rounded-2xl shadow-sm space-y-4 reveal text-ink-900 dark:text-cream-100 hover:-translate-y-1.5 hover:shadow-md transition-all duration-300">
+        <div class="w-12 h-12 rounded-xl bg-cream-100 dark:bg-ink-900 flex items-center justify-center text-ink-900 dark:text-cream-100 text-xl">
+          <i class="fa-solid fa-code"></i>
+        </div>
+        <h3 class="font-display text-2xl font-bold">Project Workspaces</h3>
+        <p class="text-sm text-ink-500 dark:text-ink-400 font-body leading-relaxed">Version-controlled repository structures built to host, audit, and authenticate actual source code variants.</p>
+      </div>
+
+      <div class="editorial-card bg-white border border-cream-200 p-10 rounded-2xl shadow-sm space-y-4 reveal text-ink-900 dark:text-cream-100 hover:-translate-y-1.5 hover:shadow-md transition-all duration-300">
+        <div class="w-12 h-12 rounded-xl bg-cream-100 dark:bg-ink-900 flex items-center justify-center text-ink-900 dark:text-cream-100 text-xl">
+          <i class="fa-solid fa-users"></i>
+        </div>
+        <h3 class="font-display text-2xl font-bold">Community Ecosystems</h3>
+        <p class="text-sm text-ink-500 dark:text-ink-400 font-body leading-relaxed">Secure communication layers integrated directly into project pipelines for agile group development.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ CTA SECTION ══ -->
+  <section class="max-w-7xl mx-auto px-6 pb-20">
+    <div class="cta-banner bg-[#1a1714] text-cream-100 border border-ink-800 rounded-3xl p-12 sm:p-20 text-center relative overflow-hidden reveal shadow-xl">
+      
+      <!-- Background subtle element -->
+      <div class="absolute inset-0 opacity-[0.02]">
+        <div class="absolute left-1/4 top-0 bottom-0 w-px bg-white"></div>
+        <div class="absolute left-3/4 top-0 bottom-0 w-px bg-white"></div>
+      </div>
+
+      <div class="relative z-10 space-y-6 max-w-2xl mx-auto">
+        <h2 class="font-display text-4xl sm:text-5xl font-black tracking-tight leading-none text-cream-100">Ready to deploy your engineering career?</h2>
+        <p class="text-ink-400 font-body text-sm sm:text-base leading-relaxed">Transition out of conceptual loop theory. Construct real applications and deliver cold proof of capability.</p>
+        <div class="pt-4">
+          <a href="{{ url_for('signup') }}" class="inline-block px-8 py-4 bg-cream-100 text-ink-900 font-body font-bold text-sm rounded-xl transition-all duration-300 hover:bg-white hover:-translate-y-1 hover:shadow-lg active:scale-95">
+            Join SkillBridge
+          </a>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section class="cta">
-  <div class="container">
-    <div class="cta-box reveal">
-      <h2>Ready to build your future?</h2>
-      <p>Turn learning into proof — and proof into opportunity.</p>
-      <a href="{{ url_for('signup') }}">Join SkillBridge</a>
-    </div>
-  </div>
-</section>
-
-<footer>
-  © 2025 SkillBridge — Learn • Build • Prove
-</footer>
+  <!-- ══ FOOTER SECTION ══ -->
+  <footer class="py-12 border-t border-cream-200 dark:border-ink-800 text-center text-xs font-semibold tracking-widest text-ink-400 dark:text-ink-500 uppercase font-body">
+    © 2026 SkillBridge — Learn • Build • Prove
+  </footer>
 
 <script>
-/* COUNTERS */
+/* JAVASCRIPT LOGIC COUNTERS UNTOUCHED AND SECURE */
 document.querySelectorAll('.counter').forEach(counter=>{
   const target = +counter.dataset.target;
   let count = 0;
@@ -374,24 +223,27 @@ document.querySelectorAll('.counter').forEach(counter=>{
   }, 20);
 });
 
-/* SCROLL REVEAL */
+/* INTERSECTION OBSERVER FOR SCROLL REVEAL ELEMENTS */
 const observer = new IntersectionObserver(entries=>{
   entries.forEach(e=>{
     if(e.isIntersecting) e.target.classList.add("show");
   });
-},{threshold:.15});
+},{threshold:.10});
 document.querySelectorAll(".reveal").forEach(el=>observer.observe(el));
 
-/* HERO STEP STAGGER */
-document.querySelectorAll(".hero-step").forEach((step,i)=>{
+/* TIMEOUT DISPATCHER FOR HIGH SPEED STAGGER ON HERO COMPONENT */
+document.querySelectorAll(".hero-step-item").forEach((step,i)=>{
   setTimeout(()=>{
     step.style.opacity = 1;
     step.style.transform = "translateX(0)";
-  }, 400 + i*200);
+  }, 400 + i*180);
 });
-</script>
-<script>
-(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+
+/* GLOBAL CORE SYSTEM APPLICATION THEMING SYNC */
+(function(){ 
+  var t=localStorage.getItem('sb-theme')||'light'; 
+  if(t==='dark') document.documentElement.classList.add('dark');
+})();
 </script>
 </body>
 </html>
