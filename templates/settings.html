@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>(function(){var t=localStorage.getItem('sb-theme')||'light';if(t==='dark'){document.documentElement.classList.add('dark');document.documentElement.style.background='#1a1714';}})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Settings — SkillBridge</title>
@@ -64,19 +65,32 @@ body { font-family: 'DM Sans', sans-serif; }
 </head>
 <body class="grain-bg text-ink-900 min-h-screen custom-scroll antialiased transition-colors duration-300">
 
-<div class="min-h-screen flex flex-col lg:flex-row relative">
+<div class="min-h-screen flex flex-col lg:flex-row relative w-full">
 
   <!-- ══ MOBILE HEADER & MENU ACTION BAR ══ -->
-  <header class="lg:hidden bg-cream-100 dark:bg-ink-800 border-b border-cream-200 dark:border-ink-700 px-6 py-4 flex items-center justify-between sticky top-0 z-50 transition-colors">
-    <a href="{{ url_for('main_page') }}" class="font-display text-2xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
-    <button onclick="toggleSidebarMenu()" class="text-ink-900 dark:text-cream-50 text-xl p-2 focus:outline-none transition-transform active:scale-95">
-      <i class="fas fa-bars" id="menu-icon"></i>
+  <header class="lg:hidden bg-cream-100 dark:bg-ink-800 border-b border-cream-200 dark:border-ink-700 px-6 py-4 flex items-center justify-between sticky top-0 z-40 transition-colors w-full">
+    <div class="flex items-center gap-3">
+      <button onclick="toggleSidebarMenu()" class="text-ink-900 dark:text-cream-50 text-xl p-1.5 focus:outline-none transition-transform active:scale-95">
+        <i class="fas fa-bars" id="menu-icon"></i>
+      </button>
+      <a href="{{ url_for('main_page') }}" class="font-display text-2xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+    </div>
+    <button class="w-10 h-10 rounded-full border border-cream-300 dark:border-ink-700 flex items-center justify-center relative text-ink-900 dark:text-cream-50" id="mobile-notif-btn" onclick="toggleNotifDropdown(event)">
+      <i class="fas fa-bell"></i>
+      <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[9px] font-bold w-4 h-4 rounded-full hidden items-center justify-center notif-badge"></span>
     </button>
   </header>
 
   <!-- ══ NAVIGATION SIDEBAR ══ -->
-  <aside id="app-sidebar" class="hidden lg:flex fixed lg:sticky top-[65px] lg:top-0 left-0 w-full lg:w-64 bg-white border-r border-cream-200 p-6 flex-col h-[calc(100vh-65px)] lg:h-screen z-40 overflow-y-auto custom-scroll transition-all duration-300">
-    <a href="{{ url_for('main_page') }}" class="hidden lg:block font-display text-3xl font-black text-ink-900 dark:text-cream-50 mb-8 tracking-tight">SkillBridge</a>
+  <aside id="app-sidebar" class="hidden lg:flex fixed lg:sticky top-0 left-0 w-full lg:w-64 bg-white dark:bg-ink-800 border-r border-cream-200 dark:border-ink-700 p-6 flex-col h-screen z-50 overflow-y-auto custom-scroll transition-all duration-300 flex-shrink-0">
+
+    <div class="flex items-center justify-between mb-8">
+      <a href="{{ url_for('main_page') }}" class="font-display text-3xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+      <button class="w-9 h-9 rounded-full border border-cream-200 dark:border-ink-700 flex items-center justify-center relative text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-cream-50 transition-colors" id="desktop-notif-btn" onclick="toggleNotifDropdown(event)">
+        <i class="fas fa-bell text-sm"></i>
+        <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full hidden items-center justify-center notif-badge"></span>
+      </button>
+    </div>
 
     <!-- ── SIDEBAR METRIC TRANSITS (XP WIDGET) ── -->
     <div class="bg-cream-100/60 dark:bg-ink-900/40 border border-cream-300/50 dark:border-ink-700 rounded-2xl p-4 mb-6 space-y-3 shadow-inner">
@@ -111,30 +125,42 @@ body { font-family: 'DM Sans', sans-serif; }
       </div>
     </div>
 
-    <!-- ── NAVIGATION SYSTEM LINKS ── -->
+    <!-- ── NAVIGATION LINKS ── -->
     <nav class="space-y-1 flex-1 font-body">
       <a href="{{ url_for('main_page') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-home w-4 text-center"></i> Dashboard</a>
-      <a href="{{ url_for('messages_list') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-comment-dots w-4 text-center"></i> Messages</a>
-      <a href="{{ url_for('projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-globe w-4 text-center"></i> Community</a>
-      <a href="{{ url_for('my_projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-layer-group w-4 text-center"></i> My Projects</a>
       <a href="{{ url_for('profile') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-user-circle w-4 text-center"></i> My Profile</a>
+      <a href="{{ url_for('my_projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-layer-group w-4 text-center"></i> My Projects</a>
       <a href="{{ url_for('roadmap_generator') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-magic w-4 text-center"></i> Roadmap AI</a>
-      <a href="{{ url_for('portfolio_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-briefcase w-4 text-center"></i> Portfolio Builder</a>
       <a href="{{ url_for('resume_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-file-alt w-4 text-center"></i> Resume Builder</a>
+      <a href="{{ url_for('portfolio_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-briefcase w-4 text-center"></i> Portfolio Builder</a>
+      <a href="{{ url_for('projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-globe w-4 text-center"></i> Community</a>
       <a href="{{ url_for('find_communities') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-users w-4 text-center"></i> All Communities</a>
-      
+      <a href="{{ url_for('messages_list') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-comment-dots w-4 text-center"></i> Messages</a>
+      <a href="{{ url_for('leaderboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-trophy w-4 text-center"></i> Leaderboard</a>
       <div class="pt-4 mt-4 border-t border-cream-200 dark:border-ink-800">
         <a href="{{ url_for('settings') }}" class="nav-item-active flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 shadow-sm transition-all"><i class="fas fa-cog w-4 text-center"></i> Settings</a>
       </div>
     </nav>
   </aside>
 
-  <!-- ══ MAIN INTERACTIVE HUB CONTENT ══ -->
-  <main class="flex-1 px-4 sm:px-8 py-8 lg:py-12 max-w-4xl mx-auto w-full space-y-8 overflow-x-hidden">
-    
-    <div class="space-y-1.5">
-      <h1 class="font-display text-4xl font-black tracking-tight text-ink-900 dark:text-cream-100">⚙️ Settings</h1>
-      <p class="text-ink-500 dark:text-ink-400 text-sm font-body">Manage your account, appearance, and preferences.</p>
+  <!-- ══ MAIN CONTENT ══ -->
+  <main class="flex-1 px-4 sm:px-8 py-8 lg:py-10 max-w-full w-full overflow-x-hidden">
+
+    <!-- Page Header Card -->
+    <div class="editorial-card bg-white border border-cream-200 rounded-3xl p-6 sm:p-8 shadow-sm mb-8 relative overflow-hidden">
+      <div class="absolute inset-0 opacity-[0.02] dark:opacity-[0.04] pointer-events-none">
+        <div class="absolute left-1/3 top-0 bottom-0 w-px bg-ink-900"></div>
+        <div class="absolute left-2/3 top-0 bottom-0 w-px bg-ink-900"></div>
+      </div>
+      <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 class="font-display text-3xl sm:text-4xl font-black tracking-tight text-ink-900 dark:text-cream-100 leading-tight">Settings</h1>
+          <p class="text-ink-500 dark:text-ink-400 text-sm font-body mt-1.5 leading-relaxed">Manage your account, appearance, and preferences.</p>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-ink-900 dark:bg-cream-100 flex items-center justify-content:center flex-shrink-0 items-center justify-center">
+          <i class="fas fa-cog text-cream-100 dark:text-ink-900 text-lg"></i>
+        </div>
+      </div>
     </div>
 
     <div class="space-y-6 max-w-3xl">
@@ -642,19 +668,18 @@ body { font-family: 'DM Sans', sans-serif; }
 function toggleSidebarMenu() {
   const sidebar = document.getElementById('app-sidebar');
   const icon = document.getElementById('menu-icon');
-  
   if(sidebar.classList.contains('hidden')) {
     sidebar.classList.remove('hidden');
-    sidebar.classList.add('block', 'w-full');
+    sidebar.classList.add('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
     icon.classList.remove('fa-bars');
     icon.classList.add('fa-times');
-    document.body.classList.add('overflow-hidden', 'lg:overflow-auto');
+    document.body.classList.add('overflow-hidden');
   } else {
     sidebar.classList.add('hidden');
-    sidebar.classList.remove('block', 'w-full');
+    sidebar.classList.remove('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
     icon.classList.remove('fa-times');
     icon.classList.add('fa-bars');
-    document.body.classList.remove('overflow-hidden', 'lg:overflow-auto');
+    document.body.classList.remove('overflow-hidden');
   }
 }
 

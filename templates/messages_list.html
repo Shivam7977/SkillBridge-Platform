@@ -1,267 +1,354 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+<head>
+<script>(function(){var t=localStorage.getItem('sb-theme')||'light';if(t==='dark'){document.documentElement.classList.add('dark');document.documentElement.style.background='#1a1714';}})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Messages | SkillBridge</title>
+<title>Messages - SkillBridge</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Playfair Display', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
+      },
+      colors: {
+        cream: { 50:'#fdfcf8', 100:'#f8f4ec', 200:'#f0e9d8', 300:'#e5d9c0', 400:'#d4c4a0', 500:'#b8a07a' },
+        ink:   { 900:'#1a1714', 800:'#2c2820', 700:'#3d3830', 600:'#5c5548', 500:'#7a7268', 400:'#9c9488' },
+        gold:  '#c4973a',
+        skill: { purple:'#7c3aed', pink:'#ec4899' }
+      }
+    }
+  }
+}
+</script>
+
 <style>
-:root{
-  --bg:#f5f6fb;
-  --surface:#ffffff;
-  --primary:#8B5CF6;
-  --secondary:#EC4899;
-  --text:#0f172a;
-  --muted:#64748b;
-  --border:#e5e7eb;
-  --radius:24px;
-  --shadow:0 30px 80px rgba(0,0,0,.08);
+body { font-family: 'DM Sans', sans-serif; }
+
+.grain-bg {
+  background-color: #f8f4ec;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-  font-family:'Plus Jakarta Sans',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
+.custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #d4c4a0; border-radius: 10px; }
 
-/* SIDEBAR */
-.sidebar{
-  width:260px;
-  background:#fff;
-  border-right:1px solid var(--border);
-  padding:2.5rem 1.5rem;
-  position:fixed;
-  height:100vh;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
+.editorial-card { background: #fff; border: 1px solid #f0e9d8; box-shadow: 0 1px 2px rgba(26,23,20,.05); }
+.message-item {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1.1rem 1.25rem;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid #f0e9d8;
+  transition: background .18s ease, transform .18s ease;
 }
-.sidebar .logo{
-  font-size:1.8rem;
-  font-weight:800;
-  background:linear-gradient(90deg,var(--primary),var(--secondary));
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  margin-bottom:3rem;
-  text-decoration:none;
-  display:block;
+.message-item:last-child { border-bottom: 0; }
+.message-item:hover { background: #fdfcf8; transform: translateX(3px); }
+.message-item.unread { background: linear-gradient(90deg, rgba(124,58,237,.08), rgba(236,72,153,.03), transparent); }
+.avatar-ring { border: 2px solid #f0e9d8; }
+.message-item.unread .avatar-ring { border-color: #c4973a; box-shadow: 0 0 0 3px rgba(196,151,58,.12); }
+.unread-dot { width: .65rem; height: .65rem; border-radius: 999px; background: #ec4899; box-shadow: 0 0 0 4px rgba(236,72,153,.1); }
+.inbox-tab {
+  min-height: 38px;
+  padding: .58rem 1rem;
+  border-radius: 999px;
+  border: 1px solid #e5d9c0;
+  background: #fff;
+  color: #5c5548;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  transition: .18s ease;
 }
-.sidebar a{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:.9rem 1rem;
-  border-radius:14px;
-  color:var(--muted);
-  text-decoration:none;
-  margin-bottom:.4rem;
-  transition:.25s;
-  font-weight:600;
-}
-.sidebar a:hover{background:#f1f5f9;color:var(--primary)}
-.sidebar a.active{
-  background:linear-gradient(90deg,var(--primary),var(--secondary));
-  color:#fff;
-  box-shadow:0 15px 40px rgba(139,92,246,.4);
-}
+.inbox-tab:hover { border-color: #1a1714; color: #1a1714; transform: translateY(-1px); }
+.inbox-tab.active { background: #1a1714; border-color: #1a1714; color: #f8f4ec; }
 
-/* MAIN */
-.main{
-  margin-left:260px;
-  padding:3rem 4rem;
-}
+.dark body, .dark .grain-bg { background-color: #1a1714; background-image: none; color: #f8f4ec; }
+.dark aside { background: #2c2820 !important; border-color: #3d3830 !important; }
+.dark .editorial-card { background: #2c2820 !important; border-color: #3d3830 !important; color: #f0e9d8; }
+.dark input { background: #1a1714 !important; border-color: #3d3830 !important; color: #f0e9d8 !important; }
+.dark input:focus { border-color: #c4973a !important; }
+.dark .nav-item-active { background: #1a1714 !important; color: #c4973a !important; }
+.dark .message-item { border-color: #3d3830; }
+.dark .message-item:hover { background: #1a1714; }
+.dark .message-item.unread { background: linear-gradient(90deg, rgba(196,151,58,.13), rgba(236,72,153,.07), transparent); }
+.dark .avatar-ring { border-color: #3d3830; }
+.dark .inbox-tab { background: #2c2820; border-color: #3d3830; color: #d4c4a0; }
+.dark .inbox-tab:hover { border-color: #c4973a; color: #f8f4ec; }
+.dark .inbox-tab.active { background: #f8f4ec; border-color: #f8f4ec; color: #1a1714; }
 
-/* INBOX CARD */
-.inbox{
-  max-width:780px;
-  margin:auto;
-  background:#fff;
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  overflow:hidden;
-}
-
-.inbox-header{
-  padding:2rem 2.5rem;
-  border-bottom:1px solid var(--border);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-.inbox-header h2{
-  font-size:1.5rem;
-  font-weight:800;
-}
-.compose{
-  background:linear-gradient(90deg,var(--primary),var(--secondary));
-  color:#fff;
-  border:none;
-  padding:12px 18px;
-  border-radius:999px;
-  font-weight:700;
-  cursor:pointer;
-}
-
-/* CHAT LIST */
-.chat-list{padding:1rem 0}
-
-.chat-item{
-  display:flex;
-  align-items:center;
-  gap:18px;
-  padding:1.4rem 2.5rem;
-  text-decoration:none;
-  color:inherit;
-  transition:.25s;
-}
-.chat-item:hover{
-  background:#f8fafc;
-  transform:translateX(6px);
-}
-.chat-item.unread{
-  background:linear-gradient(90deg,rgba(139,92,246,.08),transparent);
-}
-
-.avatar{
-  width:56px;
-  height:56px;
-  border-radius:50%;
-  object-fit:cover;
-  border:3px solid transparent;
-}
-.chat-item.unread .avatar{
-  border-color:var(--primary);
-}
-
-.chat-body{flex:1;min-width:0}
-.chat-top{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:4px;
-}
-.chat-name{
-  font-weight:800;
-  font-size:1rem;
-}
-.chat-time{
-  font-size:.75rem;
-  color:var(--muted);
-}
-
-.chat-preview{
-  font-size:.9rem;
-  color:var(--muted);
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.chat-item.unread .chat-preview{
-  color:var(--text);
-  font-weight:700;
-}
-
-.unread-dot{
-  width:10px;
-  height:10px;
-  background:var(--primary);
-  border-radius:50%;
-}
-
-/* EMPTY */
-.empty{
-  padding:5rem 2rem;
-  text-align:center;
-  color:var(--muted);
-}
-.empty i{
-  font-size:4rem;
-  margin-bottom:1rem;
-  color:#cbd5e1;
-}
-
-@media(max-width:900px){
-  .sidebar{display:none}
-  .main{margin-left:0;padding:1.5rem}
+@media (max-width: 640px) {
+  .message-item { grid-template-columns: auto minmax(0,1fr); padding: 1rem; }
+  .message-meta { grid-column: 2; justify-self: start; margin-top: -.35rem; }
 }
 </style>
 </head>
 
-<body>
+<body class="grain-bg text-ink-900 min-h-screen custom-scroll antialiased">
+<div class="min-h-screen flex flex-col lg:flex-row relative w-full">
 
-<aside class="sidebar">
-  <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
-  <a href="{{ url_for('main_page') }}"><i class="fas fa-home"></i> Dashboard</a>
-  <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a>
-  <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
-  <a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> Roadmap AI</a>
-  <a href="{{ url_for('resume_builder') }}"><i class="fas fa-file-alt"></i> Resume Builder</a>
-  <a href="{{ url_for('portfolio_builder') }}"><i class="fas fa-briefcase"></i> Portfolio Builder</a>
-  <a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a>
-  <a href="{{ url_for('find_communities') }}"><i class="fas fa-users"></i> All Communities</a>
-  <a href="{{ url_for('messages_list') }}" class="active"><i class="fas fa-comment-dots"></i> Messages</a>
+  <!-- MOBILE HEADER & MENU ACTION BAR -->
+  <header class="lg:hidden bg-cream-100 dark:bg-ink-800 border-b border-cream-200 dark:border-ink-700 px-6 py-4 flex items-center justify-between sticky top-0 z-40 transition-colors w-full">
+    <div class="flex items-center gap-3">
+      <button onclick="toggleSidebarMenu()" class="text-ink-900 dark:text-cream-50 text-xl p-1.5 focus:outline-none transition-transform active:scale-95">
+        <i class="fas fa-bars" id="menu-icon"></i>
+      </button>
+      <a href="{{ url_for('main_page') }}" class="font-display text-2xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+    </div>
+    <button class="w-10 h-10 rounded-full border border-cream-300 dark:border-ink-700 flex items-center justify-center relative text-ink-900 dark:text-cream-50" id="mobile-notif-btn" onclick="toggleNotifDropdown(event)">
+      <i class="fas fa-bell"></i>
+      <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[9px] font-bold w-4 h-4 rounded-full hidden items-center justify-center notif-badge"></span>
+    </button>
+  </header>
 
-  <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border);">
-    <a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a>
-  </div>
-</aside>
-
-<main class="main">
-  <div class="inbox">
-    <div class="inbox-header">
-      <h2>Inbox</h2>
-      <button class="compose"><i class="fas fa-pen"></i> New</button>
+  <!-- NAVIGATION SIDEBAR -->
+  <aside id="app-sidebar" class="hidden lg:flex fixed lg:sticky top-0 left-0 w-full lg:w-64 bg-white border-r border-cream-200 p-6 flex-col h-screen z-50 overflow-y-auto custom-scroll transition-all duration-300 flex-shrink-0">
+    <div class="flex items-center justify-between mb-8">
+      <a href="{{ url_for('main_page') }}" class="font-display text-3xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+      <button class="w-9 h-9 rounded-full border border-cream-200 dark:border-ink-700 flex items-center justify-center relative text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-cream-50 transition-colors" id="desktop-notif-btn" onclick="toggleNotifDropdown(event)">
+        <i class="fas fa-bell text-sm"></i>
+        <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full hidden items-center justify-center notif-badge"></span>
+      </button>
     </div>
 
-    <div class="chat-list">
-      {% if conversations %}
-        {% for chat in conversations %}
-        <a href="{{ url_for('chat', receiver_id=chat.user_id) }}"
-           class="chat-item {{ 'unread' if chat.is_unread }}">
+    <div class="bg-cream-100/60 dark:bg-ink-900/40 border border-cream-300/50 dark:border-ink-700 rounded-2xl p-4 mb-6 space-y-3 shadow-inner">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl leading-none select-none">{{ level_info.icon }}</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-[9px] font-bold tracking-widest uppercase text-gold">Lv.{{ level_info.level }} · {{ level_info.badge }}</div>
+          <div class="text-lg font-black text-ink-900 dark:text-cream-100 leading-tight mt-0.5">
+            {{ xp }} <span class="text-xs font-semibold text-ink-400 dark:text-ink-500">XP</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="w-full h-1.5 bg-cream-200 dark:bg-ink-700 rounded-full overflow-hidden mb-1.5">
+          <div class="h-full bg-ink-900 dark:bg-gold rounded-full transition-all duration-1000" style="width: {{ progress_pct }}%"></div>
+        </div>
+        <div class="flex justify-between text-[10px] font-bold text-ink-500 dark:text-ink-400">
+          <span>{{ xp }} XP</span>
+          <span>{% if level_info.next_xp == 'Max' %}Max{% else %}{{ level_info.next_xp }} XP{% endif %}</span>
+        </div>
+      </div>
+      <div class="pt-0.5">
+        {% if streak and streak >= 1 %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 text-xs font-bold text-rose-700 dark:text-rose-400">
+            <span>🔥</span> {{ streak }} day streak
+          </div>
+        {% else %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cream-200 border border-cream-300/40 dark:bg-ink-800 dark:border-ink-700 text-xs font-bold text-ink-400 dark:text-ink-500">
+            <span>❄️</span> No active streak
+          </div>
+        {% endif %}
+      </div>
+    </div>
 
-          <img class="avatar"
-               src="{{ url_for('static', filename='profile_pics/' + chat.profile_pic) }}">
+    <nav class="space-y-1 flex-1 font-body">
+      <a href="{{ url_for('main_page') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-home w-4 text-center"></i> Dashboard</a>
+      <a href="{{ url_for('profile') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-user-circle w-4 text-center"></i> My Profile</a>
+      <a href="{{ url_for('my_projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-layer-group w-4 text-center"></i> My Projects</a>
+      <a href="{{ url_for('roadmap_generator') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-magic w-4 text-center"></i> Roadmap AI</a>
+      <a href="{{ url_for('resume_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-file-alt w-4 text-center"></i> Resume Builder</a>
+      <a href="{{ url_for('portfolio_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-briefcase w-4 text-center"></i> Portfolio Builder</a>
+      <a href="{{ url_for('projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-globe w-4 text-center"></i> Community</a>
+      <a href="{{ url_for('find_communities') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-users w-4 text-center"></i> All Communities</a>
+      <a href="{{ url_for('messages_list') }}" class="nav-item-active flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 shadow-sm transition-all"><i class="fas fa-comment-dots w-4 text-center"></i> Messages</a>
+      <a href="{{ url_for('leaderboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-trophy w-4 text-center"></i> Leaderboard</a>
+      <div class="pt-4 mt-4 border-t border-cream-200 dark:border-ink-800">
+        <a href="{{ url_for('settings') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-cog w-4 text-center"></i> Settings</a>
+      </div>
+    </nav>
+  </aside>
 
-          <div class="chat-body">
-            <div class="chat-top">
-              <div>
-                <div class="chat-name">{{ chat.user_name }}</div>
-                {% if chat.username %}
-                  <div style="font-size:0.72rem;color:var(--primary);font-weight:700;">@{{ chat.username }}</div>
-                {% endif %}
-              </div>
-              <div class="chat-time">{{ chat.timestamp }}</div>
+  <!-- CONTENT BLOCK -->
+  <main class="flex-1 px-4 sm:px-8 py-8 lg:py-10 max-w-full w-full space-y-6 overflow-x-hidden">
+    <div class="editorial-card bg-white border border-cream-200 rounded-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
+      <div class="absolute inset-0 opacity-[0.02] dark:opacity-[0.04] pointer-events-none">
+        <div class="absolute left-1/3 top-0 bottom-0 w-px bg-ink-900"></div>
+        <div class="absolute left-2/3 top-0 bottom-0 w-px bg-ink-900"></div>
+      </div>
+      <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 class="font-display text-3xl sm:text-4xl font-black tracking-tight text-ink-900 dark:text-cream-100 leading-tight">Messages</h1>
+          <p class="text-ink-500 dark:text-ink-400 text-sm font-body mt-1.5 leading-relaxed">Read your latest chats, find unread messages, and continue conversations with other builders.</p>
+        </div>
+        <div class="flex items-center gap-3 flex-shrink-0">
+          <a href="{{ url_for('find_communities') }}" class="flex items-center gap-2 px-5 py-2.5 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-body font-semibold text-sm rounded-xl tracking-wide transition-all hover:opacity-90 hover:-translate-y-0.5 shadow-sm">
+            <i class="fas fa-user-plus text-xs"></i> Find People
+          </a>
+          <a href="{{ url_for('projects') }}" class="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-ink-800 border border-cream-300 dark:border-ink-700 text-ink-900 dark:text-cream-100 font-body font-semibold text-sm rounded-xl tracking-wide transition-all hover:bg-cream-50 dark:hover:bg-ink-700 hover:-translate-y-0.5 shadow-sm">
+            <i class="fas fa-globe text-xs"></i> Community
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <section class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
+      <div class="editorial-card rounded-2xl overflow-hidden">
+        <div class="p-5 sm:p-6 border-b border-cream-200 dark:border-ink-700 space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <p class="text-[10px] font-black tracking-[0.24em] uppercase text-ink-400 dark:text-ink-500">Inbox</p>
+              <h2 class="font-display text-2xl font-black text-ink-900 dark:text-cream-100 mt-1">Conversations</h2>
             </div>
-
-            <div class="chat-preview">
-              <strong>{{ chat.sender_name }}:</strong>
-              {{ chat.last_message }}
+            <div class="text-xs font-black text-gold uppercase tracking-[0.16em]" id="message-count"></div>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-3">
+            <div class="flex items-center bg-white dark:bg-ink-900 border border-cream-300 dark:border-ink-700 rounded-xl overflow-hidden focus-within:border-ink-900 dark:focus-within:border-gold shadow-sm transition-all">
+              <div class="pl-4 pr-2 text-ink-400"><i class="fas fa-search"></i></div>
+              <input class="w-full py-3.5 text-sm bg-transparent outline-none text-ink-900 dark:text-cream-100 placeholder-ink-400 font-body px-1" type="text" id="message-search" placeholder="Search names, usernames, or message text..." autocomplete="off">
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button class="inbox-tab active" data-filter="all">All</button>
+              <button class="inbox-tab" data-filter="unread">Unread</button>
             </div>
           </div>
-
-          {% if chat.is_unread %}
-            <div class="unread-dot"></div>
-          {% endif %}
-        </a>
-        {% endfor %}
-      {% else %}
-        <div class="empty">
-          <i class="fas fa-paper-plane"></i>
-          <h3>No messages yet</h3>
-          <p>Start a conversation from the community.</p>
         </div>
-      {% endif %}
-    </div>
-  </div>
-  {% include 'notification_bell.html' %}
+
+        <div class="chat-list">
+          {% if conversations %}
+            {% for chat in conversations %}
+            <a href="{{ url_for('chat', receiver_id=chat.user_id) }}"
+               class="message-item {{ 'unread' if chat.is_unread }}"
+               data-unread="{{ 'true' if chat.is_unread else 'false' }}"
+               data-search="{{ (chat.user_name ~ ' ' ~ chat.username ~ ' ' ~ chat.sender_name ~ ' ' ~ chat.last_message)|lower }}">
+              <img class="avatar-ring w-14 h-14 rounded-2xl object-cover bg-cream-100 dark:bg-ink-900"
+                   src="{{ url_for('static', filename='profile_pics/' + chat.profile_pic) }}"
+                   alt="{{ chat.user_name }}">
+
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                  <h3 class="font-black text-ink-900 dark:text-cream-100 truncate">{{ chat.user_name }}</h3>
+                  {% if chat.username %}
+                    <span class="text-[11px] font-black text-gold">@{{ chat.username }}</span>
+                  {% endif %}
+                </div>
+                <p class="mt-1 text-sm text-ink-500 dark:text-ink-400 truncate {{ 'font-bold text-ink-900 dark:text-cream-100' if chat.is_unread }}">
+                  <span class="font-black">{{ chat.sender_name }}:</span>
+                  {{ chat.last_message }}
+                </p>
+              </div>
+
+              <div class="message-meta flex items-center gap-3 justify-self-end">
+                <span class="text-[11px] font-bold text-ink-400 dark:text-ink-500 whitespace-nowrap">{{ chat.timestamp }}</span>
+                {% if chat.is_unread %}
+                  <span class="unread-dot" title="Unread"></span>
+                {% endif %}
+              </div>
+            </a>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state p-10 sm:p-14 text-center">
+              <div class="mx-auto w-16 h-16 rounded-2xl bg-cream-100 dark:bg-ink-900 border border-cream-200 dark:border-ink-700 flex items-center justify-center text-gold text-2xl">
+                <i class="fas fa-paper-plane"></i>
+              </div>
+              <h3 class="font-display text-2xl font-black text-ink-900 dark:text-cream-100 mt-5">No messages yet</h3>
+              <p class="text-sm text-ink-500 dark:text-ink-400 mt-2">Start a conversation from a profile or community page.</p>
+              <a href="{{ url_for('find_communities') }}" class="inline-flex mt-6 items-center gap-2 px-5 py-3 rounded-xl bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 text-xs font-black uppercase tracking-wider">
+                <i class="fas fa-users"></i> Explore Communities
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <aside class="editorial-card rounded-2xl p-6 space-y-5">
+        <div>
+          <p class="text-[10px] font-black tracking-[0.24em] uppercase text-ink-400 dark:text-ink-500">Summary</p>
+          <h3 class="font-display text-xl font-black text-ink-900 dark:text-cream-100 mt-1">Inbox Status</h3>
+        </div>
+        <div class="grid grid-cols-2 xl:grid-cols-1 gap-3">
+          <div class="rounded-xl border border-cream-200 dark:border-ink-700 bg-cream-50 dark:bg-ink-900/40 p-4">
+            <p class="text-[10px] font-black tracking-[0.18em] uppercase text-ink-400 dark:text-ink-500">Threads</p>
+            <strong class="block mt-2 text-3xl font-black text-ink-900 dark:text-cream-100" id="total-threads">{{ conversations|length }}</strong>
+          </div>
+          <div class="rounded-xl border border-cream-200 dark:border-ink-700 bg-cream-50 dark:bg-ink-900/40 p-4">
+            <p class="text-[10px] font-black tracking-[0.18em] uppercase text-ink-400 dark:text-ink-500">Unread</p>
+            <strong class="block mt-2 text-3xl font-black text-gold" id="unread-threads">0</strong>
+          </div>
+        </div>
+        <p class="text-xs leading-relaxed text-ink-500 dark:text-ink-400">
+          Unread chats are highlighted so you can spot them quickly.
+        </p>
+      </aside>
+    </section>
+  </main>
+</div>
+
+{% include 'notification_bell.html' %}
 {% include 'chatbot_widget.html' %}
-</main>
+
 <script>
-(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+function toggleSidebarMenu() {
+  const sidebar = document.getElementById('app-sidebar');
+  const icon = document.getElementById('menu-icon');
+  if(sidebar.classList.contains('hidden')) {
+    sidebar.classList.remove('hidden');
+    sidebar.classList.add('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
+    icon.classList.remove('fa-bars');
+    icon.classList.add('fa-times');
+    document.body.classList.add('overflow-hidden');
+  } else {
+    sidebar.classList.add('hidden');
+    sidebar.classList.remove('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
+    icon.classList.remove('fa-times');
+    icon.classList.add('fa-bars');
+    document.body.classList.remove('overflow-hidden');
+  }
+}
+
+applyTheme(localStorage.getItem('sb-theme') || 'light');
+function applyTheme(t){ t==='dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark'); }
+
+const searchInput = document.getElementById('message-search');
+const filterTabs = document.querySelectorAll('.inbox-tab');
+let activeFilter = 'all';
+
+function applyMessageFilters() {
+  const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+  const items = Array.from(document.querySelectorAll('.message-item'));
+  let visible = 0;
+  let unread = 0;
+
+  items.forEach(item => {
+    if (item.dataset.unread === 'true') unread++;
+    const matchesSearch = !query || (item.dataset.search || '').includes(query);
+    const matchesFilter = activeFilter === 'all' || item.dataset.unread === 'true';
+    const show = matchesSearch && matchesFilter;
+    item.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+
+  const count = document.getElementById('message-count');
+  const unreadEl = document.getElementById('unread-threads');
+  if (count) count.textContent = `${visible} visible`;
+  if (unreadEl) unreadEl.textContent = unread;
+}
+
+if (searchInput) searchInput.addEventListener('input', applyMessageFilters);
+filterTabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    filterTabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    activeFilter = tab.dataset.filter;
+    applyMessageFilters();
+  });
+});
+
+applyMessageFilters();
 </script>
 </body>
 </html>

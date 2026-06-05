@@ -3,445 +3,623 @@
 <head>
 <script>
 (function(){
-    var t=localStorage.getItem('sb-theme')||'light';
-    if(t==='dark'){
-        document.documentElement.setAttribute('data-theme','dark');
-        document.documentElement.style.background='#0f0f1a';
-        document.documentElement.style.color='#e2e8f0';
-        // Apply immediately before CSS loads
-        var s=document.createElement('style');
-        s.id='pre-dark';
-        s.textContent='body{background:#0f0f1a!important;color:#e2e8f0!important}'+
-            '.project-card{background:#1a1a2e!important;border-color:#2d2d44!important}'+
-            '.sidebar{background:#13131f!important;border-color:#2d2d44!important}'+
-            '.skill-badge{background:#1e1e35!important;border-color:#2d2d44!important;color:#e2e8f0!important}'+
-            '.user-tag{background:#13131f!important}'+
-            '.card-footer{border-top-color:#2d2d44!important}'+
-            '.page-header h1{color:#e2e8f0!important}'+
-            '.page-header p{color:#94a3b8!important}'+
-            '.project-card h3{color:#e2e8f0!important}'+
-            '.project-card .desc{color:#94a3b8!important}';
-        document.head.appendChild(s);
-    }
+  var t = localStorage.getItem('sb-theme') || 'light';
+  if(t === 'dark') document.documentElement.classList.add('dark');
 })();
-</script><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+</script>
+<link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Community Projects | SkillBridge</title>
+<title>Community — SkillBridge</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Playfair Display', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
+      },
+      colors: {
+        cream: { 50:'#fdfcf8', 100:'#f8f4ec', 200:'#f0e9d8', 300:'#e5d9c0', 400:'#d4c4a0', 500:'#b8a07a' },
+        ink:   { 900:'#1a1714', 800:'#2c2820', 700:'#3d3830', 600:'#5c5548', 500:'#7a7268', 400:'#9c9488' },
+        gold:  '#c4973a',
+      }
+    }
+  }
+}
+</script>
+
 <style>
-:root {
-  --bg: #f5f6fb;
-  --surface: #ffffff;
-  --primary: #8B5CF6;   /* SkillBridge Purple */
-  --secondary: #EC4899; /* SkillBridge Pink */
-  --text-main: #0f172a;
-  --text-dim: #64748b;
-  --border: #e5e7eb;
-}
+body { font-family: 'DM Sans', sans-serif; }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  background-color: var(--bg);
-  color: var(--text-main);
-  line-height: 1.5;
+.grain-bg {
+  background-color: #f8f4ec;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
 }
+.dark .grain-bg, .dark body { background-color: #1a1714 !important; background-image: none; }
+.dark aside { background: #2c2820 !important; border-color: #3d3830 !important; }
+.dark .editorial-card { background: #2c2820 !important; border-color: #3d3830 !important; }
 
-.dashboard-container { display: flex; }
+.custom-scroll::-webkit-scrollbar { width: 4px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #d4c4a0; border-radius: 10px; }
+.dark .custom-scroll::-webkit-scrollbar-thumb { background: #3d3830; }
 
-/* ---------- SIDEBAR ---------- */
-.sidebar {
-  width: 260px; background: var(--surface); border-right: 1px solid var(--border);
-  padding: 2.5rem 1.5rem; position: fixed; height: 100vh; z-index: 100;
-  display: flex; flex-direction: column; overflow-y: auto;
+/* ── PROJECT CARDS ── */
+.proj-card {
+  background: #fff;
+  border: 1px solid #f0e9d8;
+  border-radius: 20px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: all .25s ease;
+  position: relative;
+  overflow: hidden;
 }
-.sidebar .logo {
-  font-size: 1.8rem; font-weight: 800; background: linear-gradient(90deg, var(--primary), var(--secondary));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 3rem; display: block; text-decoration: none;
+.proj-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1a1714, #c4973a);
+  opacity: 0;
+  transition: opacity .25s ease;
 }
-.sidebar a {
-  display: flex; align-items: center; gap: 12px; padding: .8rem 1rem; border-radius: 12px;
-  color: var(--text-dim); text-decoration: none; margin-bottom: .5rem; font-size: 0.9rem; font-weight: 600; transition: 0.2s;
-}
-.sidebar a:hover { background: #f1f5f9; color: var(--primary); }
-.sidebar a.active { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; }
+.proj-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(26,23,20,.1); border-color: #d4c4a0; }
+.proj-card:hover::before { opacity: 1; }
+.dark .proj-card { background: #2c2820; border-color: #3d3830; }
+.dark .proj-card:hover { border-color: #7a7268; box-shadow: 0 16px 40px rgba(0,0,0,.3); }
 
-/* ---------- MAIN CONTENT ---------- */
-.main-content { margin-left: 260px; padding: 4rem; width: calc(100% - 260px); }
+.proj-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem; font-weight: 700;
+  color: #1a1714; line-height: 1.3;
+}
+.dark .proj-card-title { color: #f0e9d8; }
 
-.page-header { margin-bottom: 3rem; }
-.page-header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; }
-.page-header p { color: var(--text-dim); font-size: 1rem; }
+.proj-card-desc {
+  font-size: .82rem; color: #7a7268; line-height: 1.75;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.dark .proj-card-desc { color: #9c9488; }
 
-/* ---------- SECTION TITLES ---------- */
-.section-title {
-    font-size: 1.2rem; font-weight: 800; margin-bottom: 2rem; display: flex; align-items: center; gap: 12px;
+.proj-user-tag {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 12px 5px 8px;
+  background: #f8f4ec; border: 1px solid #e5d9c0;
+  border-radius: 100px; text-decoration: none; transition: all .2s;
+  width: fit-content;
 }
-.section-title span {
-    width: 35px; height: 4px; background: var(--primary); border-radius: 10px;
+.proj-user-tag:hover { background: #f0e9d8; border-color: #1a1714; }
+.dark .proj-user-tag { background: #1a1714; border-color: #3d3830; }
+.dark .proj-user-tag:hover { border-color: #7a7268; }
+.proj-user-tag .avatar {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #1a1714; display: flex; align-items: center;
+  justify-content: center; font-size: .6rem; color: #f8f4ec; flex-shrink: 0;
 }
-.section-title.pink span { background: var(--secondary); }
+.dark .proj-user-tag .avatar { background: #c4973a; }
+.proj-user-tag .uname { font-size: .75rem; font-weight: 700; color: #1a1714; }
+.dark .proj-user-tag .uname { color: #f0e9d8; }
+.proj-user-tag .at { font-size: .68rem; color: #9c9488; font-weight: 500; }
 
-/* ---------- PROJECT GRID ---------- */
-.project-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; margin-bottom: 4rem;
+.skill-wrap { display: flex; flex-wrap: wrap; gap: 5px; }
+.skill-pill {
+  font-size: .68rem; font-weight: 700;
+  padding: 3px 10px; border-radius: 6px;
+  background: #f8f4ec; border: 1px solid #e5d9c0;
+  color: #5c5548; letter-spacing: .02em;
 }
+.dark .skill-pill { background: #1a1714; border-color: #3d3830; color: #9c9488; }
 
-.project-card {
-    background: var(--surface); border-radius: 24px; padding: 2rem;
-    border: 1px solid var(--border); transition: 0.3s; position: relative;
-    display: flex; flex-direction: column; justify-content: space-between;
+.card-stats-row {
+  display: flex; align-items: center; gap: 14px;
+  padding-top: .75rem;
+  border-top: 1px solid #f0e9d8;
 }
-.project-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.05); border-color: var(--primary); }
+.dark .card-stats-row { border-color: #3d3830; }
+.stat-item { display: flex; align-items: center; gap: 4px; font-size: .75rem; font-weight: 600; color: #9c9488; }
+.dark .stat-item { color: #7a7268; }
 
-.project-card h3 { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.8rem; color: var(--text-main); }
-.project-card .desc { font-size: 0.9rem; color: var(--text-dim); margin-bottom: 1.5rem; height: 4.5rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.card-footer-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: .75rem; border-top: 1px solid #f0e9d8;
+  margin-top: auto;
+}
+.dark .card-footer-row { border-color: #3d3830; }
 
-/* Clickable User Tag */
-.user-tag {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem;
-    padding: 8px 12px; background: #f8fafc; border-radius: 100px; width: fit-content;
-    text-decoration: none; transition: 0.2s;
+.explore-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: .8rem; font-weight: 700; color: #1a1714;
+  text-decoration: none; transition: gap .2s ease;
 }
-.user-tag:hover { background: rgba(139, 92, 246, 0.1); }
-.user-tag i { color: var(--primary); font-size: 1rem; }
-.user-tag span.by { font-size: 0.75rem; color: var(--text-dim); font-weight: 600; }
-.user-tag span.name { font-size: 0.85rem; color: var(--primary); font-weight: 800; }
+.explore-btn:hover { gap: 10px; }
+.dark .explore-btn { color: #c4973a; }
 
-/* Skill Tags */
-.skill-box { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 2rem; }
-.skill-badge {
-    background: #f1f5f9; color: var(--text-main); padding: 5px 12px; border-radius: 8px;
-    font-size: 0.7rem; font-weight: 700; border: 1px solid var(--border);
+.bm-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1.5px solid #e5d9c0; background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .8rem; color: #9c9488; cursor: pointer; transition: all .2s;
 }
+.bm-btn:hover { border-color: #c4973a; color: #c4973a; }
+.bm-btn.active { border-color: #c4973a; color: #c4973a; background: rgba(196,151,58,.08); }
+.dark .bm-btn { border-color: #3d3830; color: #7a7268; }
+.dark .bm-btn:hover, .dark .bm-btn.active { border-color: #c4973a; color: #c4973a; }
 
-.card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 1.5rem; border-top: 1px solid var(--border); }
-.view-btn {
-    text-decoration: none; color: var(--primary); font-weight: 800; font-size: 0.85rem;
-    display: flex; align-items: center; gap: 8px; transition: 0.2s;
+/* ── RECOMMENDED BADGE ── */
+.rec-badge {
+  position: absolute; top: 14px; right: 14px;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 100px;
+  background: #1a1714; color: #c4973a;
+  font-size: .65rem; font-weight: 800; letter-spacing: .06em;
+  text-transform: uppercase;
 }
-.view-btn:hover { gap: 12px; }
+.dark .rec-badge { background: #c4973a; color: #1a1714; }
 
-/* ── Bookmark button on cards ── */
-.bookmark-btn {
-    background: none; border: 1.5px solid var(--border);
-    border-radius: 50px; padding: 6px 12px; cursor: pointer;
-    font-size: 0.85rem; color: var(--text-dim);
-    transition: all 0.2s; display: flex; align-items: center;
+/* ── SECTION HEADERS ── */
+.sec-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.25rem;
 }
-.bookmark-btn:hover { border-color: #f59e0b; color: #f59e0b; }
-.bookmark-btn.bm-active { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.07); }
-body.dark .bookmark-btn { border-color: #2d2d44; color: #64748b; }
-body.dark .bookmark-btn:hover { border-color: #f59e0b; color: #f59e0b; }
-body.dark .bookmark-btn.bm-active { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.1); }
+.sec-title-group { display: flex; align-items: center; gap: 10px; }
+.sec-line { width: 28px; height: 3px; background: #1a1714; border-radius: 3px; }
+.dark .sec-line { background: #c4973a; }
+.sec-line-gold { background: #c4973a; }
+.sec-title-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem; font-weight: 700; color: #1a1714;
+}
+.dark .sec-title-text { color: #f0e9d8; }
+.sec-count-badge {
+  font-size: .68rem; font-weight: 800; padding: 2px 9px;
+  border-radius: 100px; background: #f0e9d8;
+  border: 1px solid #e5d9c0; color: #7a7268;
+  letter-spacing: .06em; text-transform: uppercase;
+}
+.dark .sec-count-badge { background: #1a1714; border-color: #3d3830; color: #9c9488; }
 
-/* ── Card Stats Row ── */
-.card-stats {
-    display: flex; align-items: center; gap: 12px;
-    padding: .6rem 0; margin: .5rem 0;
-    border-top: 1px solid var(--border);
+/* ── LOAD MORE ── */
+.load-more-wrap {
+  text-align: center; padding: 2.5rem 0 1rem;
 }
-.card-stat-pill {
-    display: flex; align-items: center; gap: 4px;
-    font-size: .75rem; font-weight: 600; color: var(--text-dim);
+.load-more-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 36px; border-radius: 100px;
+  border: 2px solid #1a1714; background: transparent;
+  color: #1a1714; font-family: 'DM Sans', sans-serif;
+  font-size: .88rem; font-weight: 700; cursor: pointer;
+  transition: all .2s ease;
 }
-.card-stat-pill i { font-size: .72rem; }
-body.dark .card-stats { border-color: #2d2d44; }
-body.dark .card-stat-pill { color: #64748b; }
+.load-more-btn:hover { background: #1a1714; color: #f8f4ec; }
+.dark .load-more-btn { border-color: #c4973a; color: #c4973a; }
+.dark .load-more-btn:hover { background: #c4973a; color: #1a1714; }
+.load-more-btn:disabled { opacity: .5; cursor: not-allowed; }
 
-.recommended-badge {
-    position: absolute; top: -12px; right: 20px;
-    background: linear-gradient(90deg, var(--primary), var(--secondary));
-    color: white; padding: 4px 14px; border-radius: 100px; font-size: 0.7rem; font-weight: 800;
-    box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);
+.pagination-info {
+  margin-top: .75rem; font-size: .75rem; font-weight: 600;
+  color: #9c9488; letter-spacing: .04em;
 }
+.dark .pagination-info { color: #7a7268; }
+.pagination-dots {
+  display: flex; align-items: center; justify-content: center;
+  gap: 5px; margin-top: 1rem;
+}
+.pg-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #e5d9c0; transition: all .2s;
+}
+.dark .pg-dot { background: #3d3830; }
+.pg-dot.active { background: #1a1714; width: 18px; border-radius: 3px; }
+.dark .pg-dot.active { background: #c4973a; }
 
-@media (max-width: 768px) {
-    .main-content { margin-left: 0; padding: 2rem; }
-    .sidebar { display: none; }
-    .project-grid { grid-template-columns: 1fr; }
+/* ── ALL SEEN STATE ── */
+.all-seen {
+  text-align: center; padding: 2rem 0;
+  font-size: .82rem; color: #9c9488; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
 }
+.dark .all-seen { color: #7a7268; }
+.all-seen-line { flex: 1; max-width: 80px; height: 1px; background: #e5d9c0; }
+.dark .all-seen-line { background: #3d3830; }
 
-/* ── DARK MODE ── */
-body.dark {
-    background: #0f0f1a !important;
-    color: #e2e8f0 !important;
-    --bg: #0f0f1a;
-    --surface: #1a1a2e;
-    --text-main: #e2e8f0;
-    --text-dim: #94a3b8;
-    --border: #2d2d44;
-}
-body.dark .sidebar { background: #13131f !important; border-right-color: #2d2d44 !important; }
-body.dark .sidebar a { color: #94a3b8 !important; }
-body.dark .sidebar a:hover { background: #1e1e35 !important; color: #a78bfa !important; }
-body.dark .main-content { background: transparent !important; }
-body.dark .project-card {
-    background: #1a1a2e !important;
-    border-color: #2d2d44 !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
-}
-body.dark .project-card:hover { border-color: #a78bfa !important; }
-body.dark .project-card h3 { color: #e2e8f0 !important; }
-body.dark .project-card .desc { color: #94a3b8 !important; }
-body.dark .skill-badge { background: #1e1e35 !important; border-color: #2d2d44 !important; color: #e2e8f0 !important; }
-body.dark .user-tag { background: #13131f !important; border-color: #2d2d44 !important; }
-body.dark .user-tag span.by { color: #64748b !important; }
-body.dark .user-tag span.name { color: #a78bfa !important; }
-body.dark .card-footer { border-top-color: #2d2d44 !important; }
-body.dark .card-stat { color: #64748b !important; }
-body.dark .view-btn { color: #a78bfa !important; }
-body.dark .page-header h1 { color: #e2e8f0 !important; }
-body.dark .page-header p { color: #94a3b8 !important; }
-body.dark .section-title { color: #e2e8f0 !important; }
-body.dark #load-more-btn { background: #1a1a2e !important; border-color: #a78bfa !important; color: #a78bfa !important; }
+/* ── FLASH ── */
+.flash-wrap { position: fixed; top: 18px; right: 18px; z-index: 10001; display: flex; flex-direction: column; gap: 8px; max-width: 340px; }
+.fb { padding: .9rem 1.3rem; border-radius: 14px; color: #fff; font-weight: 600; font-size: .88rem; animation: pi .3s ease; }
+@keyframes pi { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:none} }
+.fb-success { background: #1a1714; } .fb-error { background: #dc2626; }
+.fb-warning { background: #c4973a; color: #1a1714; }
 </style>
 </head>
 
-<body>
+<body class="grain-bg text-ink-900 dark:text-cream-100 min-h-screen custom-scroll antialiased">
 
-<div class="dashboard-container">
+<!-- Flash Messages -->
+<div class="flash-wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for cat,msg in messages %}
+      <div class="fb fb-{{cat}}">{{msg}}</div>
+    {% endfor %}{% endif %}
+  {% endwith %}
+</div>
 
-<aside class="sidebar">
-  <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
-  <a href="{{ url_for('main_page') }}"><i class="fas fa-home"></i> Dashboard</a>
-  <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a>
-  <a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a>
-  <a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> Roadmap AI</a>
-  <a href="{{ url_for('resume_builder') }}"><i class="fas fa-file-alt"></i> Resume Builder</a>
-  <a href="{{ url_for('portfolio_builder') }}"><i class="fas fa-briefcase"></i> Portfolio Builder</a>
-  <a href="{{ url_for('projects') }}" class="active"><i class="fas fa-globe"></i> Community</a>
-  <a href="{{ url_for('find_communities') }}"><i class="fas fa-users"></i> All Communities</a>
-  <a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a>
+<div class="min-h-screen flex flex-col lg:flex-row relative w-full">
 
-  <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border);">
-    <a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a>
-  </div>
-</aside>
-
-<main class="main-content">
-    <header class="page-header">
-        <h1>Community Architecture</h1>
-        <p>Explore what other builders are crafting in the SkillBridge ecosystem.</p>
-    </header>
-
-    {% if recommended_projects %}
-    <div class="section-title"><span></span> Recommended For You</div>
-    <div class="project-grid">
-        {% for project in recommended_projects %}
-        <div class="project-card">
-            <div class="recommended-badge"><i class="fas fa-star"></i> Skill Match</div>
-            <div>
-                <h3>{{ project.title }}</h3>
-                
-                <a href="{{ url_for('view_user_profile', user_id=project.created_by_id) }}" class="user-tag">
-                    <i class="fas fa-user-circle"></i>
-                    <span class="by">By</span>
-                    <span class="name">{{ project.created_by_name }}{% if project.created_by_username %} <span style="font-size:0.7rem;opacity:0.75;font-weight:600;">@{{ project.created_by_username }}</span>{% endif %}</span>
-                </a>
-
-                <p class="desc">{{ project.description }}</p>
-                
-                <div class="skill-box">
-                    {% for skill in project.skills_needed %}
-                    <span class="skill-badge">{{ skill }}</span>
-                    {% endfor %}
-                </div>
-            </div>
-
-                <!-- Stats row -->
-                <div class="card-stats">
-                    <div class="card-stat-pill"><i class="fas fa-eye" style="color:#8B5CF6"></i> {{ project.view_count or project.views or 0 }}</div>
-                    <div class="card-stat-pill"><i class="fas fa-heart" style="color:#ef4444"></i> {{ project.like_count or 0 }}</div>
-                    <div class="card-stat-pill"><i class="fas fa-comment" style="color:#3b82f6"></i> {{ project.comment_count or 0 }}</div>
-                </div>
-            <div class="card-footer">
-                <a href="{{ url_for('view_project', project_id=project._id) }}" class="view-btn">
-                    Explore Project <i class="fas fa-arrow-right"></i>
-                </a>
-                {% if current_user.is_authenticated %}
-                <button class="bookmark-btn {% if project._id|string in user_bookmark_ids %}bm-active{% endif %}"
-                    onclick="toggleBookmark('{{ project._id }}', this)"
-                    title="{% if project._id|string in user_bookmark_ids %}Remove Bookmark{% else %}Save Project{% endif %}">
-                    <i class="{% if project._id|string in user_bookmark_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
-                </button>
-                {% endif %}
-            </div>
-        </div>
-        {% endfor %}
+  <!-- ══ MOBILE HEADER ══ -->
+  <header class="lg:hidden bg-cream-100 dark:bg-ink-800 border-b border-cream-200 dark:border-ink-700 px-6 py-4 flex items-center justify-between sticky top-0 z-40 w-full">
+    <div class="flex items-center gap-3">
+      <button onclick="toggleSidebarMenu()" class="text-ink-900 dark:text-cream-50 text-xl p-1.5 focus:outline-none transition-transform active:scale-95">
+        <i class="fas fa-bars" id="menu-icon"></i>
+      </button>
+      <a href="{{ url_for('main_page') }}" class="font-display text-2xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
     </div>
-    {% endif %}
+    <button class="w-10 h-10 rounded-full border border-cream-300 dark:border-ink-700 flex items-center justify-center relative text-ink-900 dark:text-cream-50" id="mobile-notif-btn" onclick="toggleNotifDropdown(event)">
+      <i class="fas fa-bell"></i>
+      <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[9px] font-bold w-4 h-4 rounded-full hidden items-center justify-center notif-badge"></span>
+    </button>
+  </header>
 
-    <div class="section-title pink" style="display:flex;justify-content:space-between;align-items:center;">
-      <div style="display:flex;align-items:center;gap:12px;"><span></span> Explore Ecosystem</div>
-      <div style="font-size:0.82rem;color:var(--text-dim);font-weight:600;">
-        Showing <span id="showing-count">{{ other_projects|length }}</span> of {{ total }} projects
+  <!-- ══ SIDEBAR ══ -->
+  <aside id="app-sidebar" class="hidden lg:flex fixed lg:sticky top-0 left-0 w-full lg:w-64 bg-white dark:bg-ink-800 border-r border-cream-200 dark:border-ink-700 p-6 flex-col h-screen z-50 overflow-y-auto custom-scroll transition-all duration-300 flex-shrink-0">
+
+    <div class="flex items-center justify-between mb-8">
+      <a href="{{ url_for('main_page') }}" class="font-display text-3xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+      <button class="w-9 h-9 rounded-full border border-cream-200 dark:border-ink-700 flex items-center justify-center relative text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-cream-50 transition-colors" id="desktop-notif-btn" onclick="toggleNotifDropdown(event)">
+        <i class="fas fa-bell text-sm"></i>
+        <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full hidden items-center justify-center notif-badge"></span>
+      </button>
+    </div>
+
+    <!-- XP + Streak Card -->
+    <div class="bg-cream-100/60 dark:bg-ink-900/40 border border-cream-300/50 dark:border-ink-700 rounded-2xl p-4 mb-6 space-y-3 shadow-inner">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl leading-none select-none">{{ level_info.icon }}</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-[9px] font-bold tracking-widest uppercase text-gold">Lv.{{ level_info.level }} · {{ level_info.badge }}</div>
+          <div class="text-lg font-black text-ink-900 dark:text-cream-100 leading-tight mt-0.5">
+            {{ xp }} <span class="text-xs font-semibold text-ink-400 dark:text-ink-500">XP</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="w-full h-1.5 bg-cream-200 dark:bg-ink-700 rounded-full overflow-hidden mb-1.5">
+          <div class="h-full bg-ink-900 dark:bg-gold rounded-full transition-all duration-1000" style="width: {{ progress_pct }}%"></div>
+        </div>
+        <div class="flex justify-between text-[10px] font-bold text-ink-500 dark:text-ink-400">
+          <span>{{ xp }} XP</span>
+          <span>{% if level_info.next_xp == 'Max' %}🏆 Max{% else %}{{ level_info.next_xp }} XP{% endif %}</span>
+        </div>
+      </div>
+      <div class="pt-0.5">
+        {% if streak and streak >= 1 %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 text-xs font-bold text-rose-700 dark:text-rose-400">
+            <span>🔥</span> {{ streak }} day streak
+          </div>
+        {% else %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cream-200 dark:bg-ink-800 border border-cream-300/40 dark:border-ink-700 text-xs font-bold text-ink-400 dark:text-ink-500">
+            <span>❄️</span> No active streak
+          </div>
+        {% endif %}
       </div>
     </div>
 
-    <div class="project-grid" id="projects-grid">
-        {% for project in other_projects %}
-        <div class="project-card">
-            <div>
-                <h3>{{ project.title }}</h3>
-                <a href="{{ url_for('view_user_profile', user_id=project.created_by_id) }}" class="user-tag">
-                    <i class="fas fa-user-circle"></i>
-                    <span class="by">By</span>
-                    <span class="name">{{ project.created_by_name }}{% if project.created_by_username %} <span style="font-size:0.7rem;opacity:0.75;font-weight:600;">@{{ project.created_by_username }}</span>{% endif %}</span>
-                </a>
-                <p class="desc">{{ project.description }}</p>
-                <div class="skill-box">
-                    {% for skill in project.skills_needed %}
-                    <span class="skill-badge">{{ skill }}</span>
-                    {% endfor %}
-                </div>
-            </div>
-                <!-- Stats row -->
-                <div class="card-stats">
-                    <div class="card-stat-pill"><i class="fas fa-eye" style="color:#8B5CF6"></i> {{ project.view_count or project.views or 0 }}</div>
-                    <div class="card-stat-pill"><i class="fas fa-heart" style="color:#ef4444"></i> {{ project.like_count or 0 }}</div>
-                    <div class="card-stat-pill"><i class="fas fa-comment" style="color:#3b82f6"></i> {{ project.comment_count or 0 }}</div>
-                </div>
-            <div class="card-footer">
-                <a href="{{ url_for('view_project', project_id=project._id) }}" class="view-btn">
-                    Explore Project <i class="fas fa-arrow-right"></i>
-                </a>
-                {% if current_user.is_authenticated %}
-                <button class="bookmark-btn {% if project._id|string in user_bookmark_ids %}bm-active{% endif %}"
-                    onclick="toggleBookmark('{{ project._id }}', this)"
-                    title="{% if project._id|string in user_bookmark_ids %}Remove Bookmark{% else %}Save Project{% endif %}">
-                    <i class="{% if project._id|string in user_bookmark_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
-                </button>
-                {% endif %}
-            </div>
+    <!-- Nav Links -->
+    <nav class="space-y-1 flex-1 font-body">
+      <a href="{{ url_for('main_page') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-home w-4 text-center"></i> Dashboard</a>
+      <a href="{{ url_for('profile') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-user-circle w-4 text-center"></i> My Profile</a>
+      <a href="{{ url_for('my_projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-layer-group w-4 text-center"></i> My Projects</a>
+      <a href="{{ url_for('roadmap_generator') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-magic w-4 text-center"></i> Roadmap AI</a>
+      <a href="{{ url_for('resume_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-file-alt w-4 text-center"></i> Resume Builder</a>
+      <a href="{{ url_for('portfolio_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-briefcase w-4 text-center"></i> Portfolio Builder</a>
+      <a href="{{ url_for('projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 shadow-sm transition-all"><i class="fas fa-globe w-4 text-center"></i> Community</a>
+      <a href="{{ url_for('find_communities') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-users w-4 text-center"></i> All Communities</a>
+      <a href="{{ url_for('messages_list') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-comment-dots w-4 text-center"></i> Messages</a>
+      <a href="{{ url_for('leaderboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-trophy w-4 text-center"></i> Leaderboard</a>
+      <div class="pt-4 mt-4 border-t border-cream-200 dark:border-ink-800">
+        <a href="{{ url_for('settings') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-cog w-4 text-center"></i> Settings</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ══ MAIN CONTENT ══ -->
+  <main class="flex-1 px-4 sm:px-8 py-8 lg:py-10 max-w-full overflow-x-hidden">
+
+    <!-- Page Header Card -->
+    <div class="editorial-card bg-white dark:bg-ink-800 border border-cream-200 dark:border-ink-700 rounded-3xl p-6 sm:p-8 shadow-sm mb-8 relative overflow-hidden">
+      <div class="absolute inset-0 opacity-[0.02] dark:opacity-[0.04] pointer-events-none">
+        <div class="absolute left-1/3 top-0 bottom-0 w-px bg-ink-900 dark:bg-cream-50"></div>
+        <div class="absolute left-2/3 top-0 bottom-0 w-px bg-ink-900 dark:bg-cream-50"></div>
+      </div>
+      <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 class="font-display text-3xl sm:text-4xl font-black tracking-tight text-ink-900 dark:text-cream-100 leading-tight">Community</h1>
+          <p class="text-ink-500 dark:text-ink-400 text-sm font-body mt-1.5 leading-relaxed">Explore what other builders are crafting in the SkillBridge ecosystem.</p>
         </div>
-        {% endfor %}
+        <div class="flex items-center gap-3 flex-shrink-0">
+          <div class="text-right">
+            <div class="text-[10px] font-bold tracking-widest uppercase text-ink-400 dark:text-ink-500">Total Projects</div>
+            <div class="text-2xl font-black text-ink-900 dark:text-cream-100 leading-tight">{{ total }}</div>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-ink-900 dark:bg-cream-100 flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-globe text-cream-100 dark:text-ink-900 text-lg"></i>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- LOAD MORE BUTTON -->
-    {% if has_more %}
-    <div style="text-align:center;margin:2.5rem 0;" id="load-more-wrap">
-        <button id="load-more-btn" onclick="loadMore()"
-            style="padding:14px 40px;border-radius:50px;border:2px solid var(--primary);
-                   background:#fff;color:var(--primary);font-family:inherit;font-weight:800;
-                   font-size:0.95rem;cursor:pointer;transition:0.2s;display:inline-flex;
-                   align-items:center;gap:10px;">
-            <i class="fas fa-plus-circle"></i> Load More Projects
-        </button>
-        <div style="margin-top:8px;font-size:0.78rem;color:var(--text-dim);">
-            Page {{ page }} of {{ total_pages }}
-        </div>
+    <!-- ── RECOMMENDED SECTION ── -->
+    {% if recommended_projects %}
+    <div class="sec-header">
+      <div class="sec-title-group">
+        <div class="sec-line sec-line-gold"></div>
+        <span class="sec-title-text">Recommended For You</span>
+        <span class="sec-count-badge">{{ recommended_projects|length }} matches</span>
+      </div>
     </div>
-    {% else %}
-    <div style="text-align:center;margin:2rem 0;font-size:0.85rem;color:var(--text-dim);">
-        ✅ You've seen all {{ total }} projects!
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mb-10">
+      {% for project in recommended_projects %}
+      <div class="proj-card">
+        <div class="rec-badge"><i class="fas fa-star" style="font-size:.55rem;"></i> Skill Match</div>
+
+        <div class="space-y-2.5">
+          <div class="proj-card-title pr-20">{{ project.title }}</div>
+          <a href="{{ url_for('view_user_profile', user_id=project.created_by_id) }}" class="proj-user-tag">
+            <div class="avatar"><i class="fas fa-user" style="font-size:.55rem;"></i></div>
+            <span class="uname">{{ project.created_by_name }}</span>
+            {% if project.created_by_username %}<span class="at">@{{ project.created_by_username }}</span>{% endif %}
+          </a>
+          <p class="proj-card-desc">{{ project.description }}</p>
+        </div>
+
+        {% if project.skills_needed %}
+        <div class="skill-wrap">
+          {% for skill in project.skills_needed %}<span class="skill-pill">{{ skill }}</span>{% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="card-stats-row">
+          <div class="stat-item"><i class="fas fa-eye" style="color:#9c9488;font-size:.7rem;"></i> {{ project.view_count or project.views or 0 }}</div>
+          <div class="stat-item"><i class="fas fa-heart" style="color:#dc2626;font-size:.7rem;"></i> {{ project.like_count or 0 }}</div>
+          <div class="stat-item"><i class="fas fa-comment" style="color:#7a7268;font-size:.7rem;"></i> {{ project.comment_count or 0 }}</div>
+        </div>
+
+        <div class="card-footer-row">
+          <a href="{{ url_for('view_project', project_id=project._id) }}" class="explore-btn">
+            View Project <i class="fas fa-arrow-right" style="font-size:.7rem;"></i>
+          </a>
+          {% if current_user.is_authenticated %}
+          <button class="bm-btn {% if project._id|string in user_bookmark_ids %}active{% endif %}"
+            onclick="toggleBookmark('{{ project._id }}', this)"
+            title="{% if project._id|string in user_bookmark_ids %}Remove{% else %}Save{% endif %}">
+            <i class="{% if project._id|string in user_bookmark_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
+          </button>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
     </div>
     {% endif %}
 
-</main>
+    <!-- ── EXPLORE SECTION ── -->
+    <div class="sec-header">
+      <div class="sec-title-group">
+        <div class="sec-line"></div>
+        <span class="sec-title-text">Explore Ecosystem</span>
+      </div>
+      <div class="text-xs font-bold text-ink-400 dark:text-ink-500 tracking-wide">
+        Showing <span id="showing-count" class="text-ink-700 dark:text-cream-200">{{ other_projects|length }}</span> of <span class="text-ink-700 dark:text-cream-200">{{ total }}</span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5" id="projects-grid">
+      {% for project in other_projects %}
+      <div class="proj-card">
+        <div class="space-y-2.5">
+          <div class="proj-card-title">{{ project.title }}</div>
+          <a href="{{ url_for('view_user_profile', user_id=project.created_by_id) }}" class="proj-user-tag">
+            <div class="avatar"><i class="fas fa-user" style="font-size:.55rem;"></i></div>
+            <span class="uname">{{ project.created_by_name }}</span>
+            {% if project.created_by_username %}<span class="at">@{{ project.created_by_username }}</span>{% endif %}
+          </a>
+          <p class="proj-card-desc">{{ project.description }}</p>
+        </div>
+
+        {% if project.skills_needed %}
+        <div class="skill-wrap">
+          {% for skill in project.skills_needed %}<span class="skill-pill">{{ skill }}</span>{% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="card-stats-row">
+          <div class="stat-item"><i class="fas fa-eye" style="color:#9c9488;font-size:.7rem;"></i> {{ project.view_count or project.views or 0 }}</div>
+          <div class="stat-item"><i class="fas fa-heart" style="color:#dc2626;font-size:.7rem;"></i> {{ project.like_count or 0 }}</div>
+          <div class="stat-item"><i class="fas fa-comment" style="color:#7a7268;font-size:.7rem;"></i> {{ project.comment_count or 0 }}</div>
+        </div>
+
+        <div class="card-footer-row">
+          <a href="{{ url_for('view_project', project_id=project._id) }}" class="explore-btn">
+            View Project <i class="fas fa-arrow-right" style="font-size:.7rem;"></i>
+          </a>
+          {% if current_user.is_authenticated %}
+          <button class="bm-btn {% if project._id|string in user_bookmark_ids %}active{% endif %}"
+            onclick="toggleBookmark('{{ project._id }}', this)"
+            title="{% if project._id|string in user_bookmark_ids %}Remove{% else %}Save{% endif %}">
+            <i class="{% if project._id|string in user_bookmark_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
+          </button>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- ── PAGINATION ── -->
+    {% if has_more %}
+    <div class="load-more-wrap" id="load-more-wrap">
+      <button class="load-more-btn" id="load-more-btn" onclick="loadMore()">
+        <i class="fas fa-plus" style="font-size:.75rem;"></i> Load More Projects
+      </button>
+      <div class="pagination-info">Page <span id="cur-page">{{ page }}</span> of {{ total_pages }} · {{ total }} total</div>
+      <div class="pagination-dots" id="pg-dots">
+        {% for i in range(1, [total_pages + 1, 8]|min) %}
+        <div class="pg-dot {% if i == page %}active{% endif %}" data-page="{{ i }}"></div>
+        {% endfor %}
+        {% if total_pages > 7 %}<div class="pg-dot" style="opacity:.4;"></div>{% endif %}
+      </div>
+    </div>
+    {% else %}
+    <div class="all-seen">
+      <div class="all-seen-line"></div>
+      <span>✓ You've explored all {{ total }} projects</span>
+      <div class="all-seen-line"></div>
+    </div>
+    {% endif %}
+
+  </main>
 </div>
+
 {% include 'notification_bell.html' %}
 {% include 'chatbot_widget.html' %}
 
 <script>
-(function(){ 
-    var t=localStorage.getItem('sb-theme')||'light'; 
-    if(t==='dark') document.body.classList.add('dark');
-    else document.body.classList.remove('dark');
+// ── THEME ──
+(function(){
+  var t = localStorage.getItem('sb-theme') || 'light';
+  t === 'dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark');
 })();
 
+// ── MOBILE SIDEBAR ──
+function toggleSidebarMenu() {
+  const sidebar = document.getElementById('app-sidebar');
+  const icon = document.getElementById('menu-icon');
+  const isHidden = sidebar.classList.contains('hidden');
+  if (isHidden) {
+    sidebar.classList.remove('hidden');
+    sidebar.classList.add('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
+    icon.classList.replace('fa-bars', 'fa-times');
+    document.body.classList.add('overflow-hidden');
+  } else {
+    sidebar.classList.add('hidden');
+    sidebar.classList.remove('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
+    icon.classList.replace('fa-times', 'fa-bars');
+    document.body.classList.remove('overflow-hidden');
+  }
+}
 
-
-// ── LOAD MORE ─────────────────────────────────────────────
+// ── LOAD MORE ──
 let currentPage = {{ page }};
 let isLoading = false;
+const totalPages = {{ total_pages }};
+
+function updateDots(page) {
+  const dots = document.querySelectorAll('.pg-dot[data-page]');
+  dots.forEach(d => {
+    d.classList.toggle('active', parseInt(d.dataset.page) === page);
+  });
+  const curPageEl = document.getElementById('cur-page');
+  if (curPageEl) curPageEl.textContent = page;
+}
 
 async function loadMore() {
-    if (isLoading) return;
-    isLoading = true;
+  if (isLoading) return;
+  isLoading = true;
 
-    const btn = document.getElementById('load-more-btn');
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-    btn.disabled = true;
+  const btn = document.getElementById('load-more-btn');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:.75rem;"></i> Loading...';
+  btn.disabled = true;
 
-    try {
-        const res = await fetch(`/api/projects?page=${currentPage + 1}`);
-        const data = await res.json();
+  try {
+    const res = await fetch(`/api/projects?page=${currentPage + 1}`);
+    const data = await res.json();
+    const grid = document.getElementById('projects-grid');
 
-        const grid = document.getElementById('projects-grid');
+    data.projects.forEach(p => {
+      const skillsHtml = (p.skills_needed || []).map(s => `<span class="skill-pill">${s}</span>`).join('');
+      const card = document.createElement('div');
+      card.className = 'proj-card';
+      card.style.animation = 'fadeInUp .3s ease forwards';
+      card.innerHTML = `
+        <div class="space-y-2.5">
+          <div class="proj-card-title">${p.title}</div>
+          <a href="/user/${p.created_by_id}" class="proj-user-tag">
+            <div class="avatar"><i class="fas fa-user" style="font-size:.55rem;"></i></div>
+            <span class="uname">${p.created_by_name}</span>
+            ${p.created_by_username ? `<span class="at">@${p.created_by_username}</span>` : ''}
+          </a>
+          <p class="proj-card-desc">${p.description || ''}</p>
+        </div>
+        ${skillsHtml ? `<div class="skill-wrap">${skillsHtml}</div>` : ''}
+        <div class="card-stats-row">
+          <div class="stat-item"><i class="fas fa-eye" style="color:#9c9488;font-size:.7rem;"></i> ${p.view_count || p.views || 0}</div>
+          <div class="stat-item"><i class="fas fa-heart" style="color:#dc2626;font-size:.7rem;"></i> ${p.like_count || 0}</div>
+          <div class="stat-item"><i class="fas fa-comment" style="color:#7a7268;font-size:.7rem;"></i> ${p.comment_count || 0}</div>
+        </div>
+        <div class="card-footer-row">
+          <a href="/project/${p._id}" class="explore-btn">View Project <i class="fas fa-arrow-right" style="font-size:.7rem;"></i></a>
+        </div>`;
+      grid.appendChild(card);
+    });
 
-        data.projects.forEach(p => {
-            const skillsHtml = p.skills_needed.length
-                ? p.skills_needed.map(s => `<span class="skill-badge">${s}</span>`).join('')
-                : '';
+    currentPage++;
+    updateDots(currentPage);
 
-            const card = document.createElement('div');
-            card.className = 'project-card';
-            card.innerHTML = `
-                <div>
-                    <h3>${p.title}</h3>
-                    <a href="/user/${p.created_by_id}" class="user-tag">
-                        <i class="fas fa-user-circle"></i>
-                        <span class="by">By</span>
-                        <span class="name">${p.created_by_name}${p.created_by_username ? ' <span style="font-size:0.7rem;opacity:0.75;font-weight:600;">@'+p.created_by_username+'</span>' : ''}</span>
-                    </a>
-                    <p class="desc">${p.description}</p>
-                    <div class="skill-box">${skillsHtml}</div>
-                </div>
-                <div class="card-footer">
-                    <a href="/project/${p._id}" class="view-btn">
-                        Explore Project <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>`;
-            grid.appendChild(card);
-        });
+    const countEl = document.getElementById('showing-count');
+    if (countEl) countEl.textContent = parseInt(countEl.textContent) + data.projects.length;
 
-        currentPage++;
-
-        // Update showing count
-        const countEl = document.getElementById('showing-count');
-        if (countEl) countEl.textContent = parseInt(countEl.textContent) + data.projects.length;
-
-        // Hide Load More if no more pages
-        if (!data.has_more) {
-            document.getElementById('load-more-wrap').innerHTML =
-                '<p style="color:var(--text-dim);font-size:0.85rem;">✅ You've seen all projects!</p>';
-        } else {
-            btn.innerHTML = '<i class="fas fa-plus-circle"></i> Load More Projects';
-            btn.disabled = false;
-        }
-    } catch(e) {
-        btn.innerHTML = '<i class="fas fa-plus-circle"></i> Load More Projects';
-        btn.disabled = false;
-        console.error('Load more error:', e);
+    if (!data.has_more) {
+      document.getElementById('load-more-wrap').outerHTML = `
+        <div class="all-seen">
+          <div class="all-seen-line"></div>
+          <span>✓ You've explored all projects</span>
+          <div class="all-seen-line"></div>
+        </div>`;
+    } else {
+      btn.innerHTML = '<i class="fas fa-plus" style="font-size:.75rem;"></i> Load More Projects';
+      btn.disabled = false;
     }
-    isLoading = false;
+  } catch(e) {
+    const btn = document.getElementById('load-more-btn');
+    if (btn) { btn.innerHTML = '<i class="fas fa-plus" style="font-size:.75rem;"></i> Load More Projects'; btn.disabled = false; }
+    console.error('Load more error:', e);
+  }
+  isLoading = false;
 }
 
 async function toggleBookmark(projectId, btn) {
-    try {
-        const res = await fetch(`/project/${projectId}/bookmark`, { method: 'POST' });
-        const data = await res.json();
-        if (data.success) {
-            const icon = btn.querySelector('i');
-            if (data.bookmarked) {
-                btn.classList.add('bm-active');
-                btn.title = 'Remove Bookmark';
-                icon.className = 'fas fa-bookmark';
-                icon.style.transform = 'scale(1.3)';
-                setTimeout(() => { icon.style.transform = 'scale(1)'; }, 200);
-            } else {
-                btn.classList.remove('bm-active');
-                btn.title = 'Save Project';
-                icon.className = 'far fa-bookmark';
-            }
-        }
-    } catch(e) { console.error('Bookmark error:', e); }
+  try {
+    const res = await fetch(`/project/${projectId}/bookmark`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      const icon = btn.querySelector('i');
+      if (data.bookmarked) {
+        btn.classList.add('active');
+        btn.title = 'Remove Bookmark';
+        icon.className = 'fas fa-bookmark';
+        icon.style.transform = 'scale(1.3)';
+        setTimeout(() => { icon.style.transform = 'scale(1)'; }, 200);
+      } else {
+        btn.classList.remove('active');
+        btn.title = 'Save Project';
+        icon.className = 'far fa-bookmark';
+      }
+    }
+  } catch(e) { console.error('Bookmark error:', e); }
 }
+
+// card fade-in animation
+const style = document.createElement('style');
+style.textContent = '@keyframes fadeInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }';
+document.head.appendChild(style);
 </script>
 </body>
 </html>
+

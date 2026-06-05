@@ -982,11 +982,16 @@ def save_roadmap():
 def my_roadmaps():
     try:
         user_roadmaps = list(roadmaps_collection.find({'user_id': ObjectId(current_user.id)}).sort('created_at', -1))
-        return render_template('my_roadmaps.html', roadmaps=user_roadmaps)
+        _u = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'xp': 1, 'streak_count': 1}) or {}
+        xp = _u.get('xp', 0); level_info = get_level_info(xp)
+        streak = _u.get('streak_count', 0)
+        progress_pct = int((xp / level_info['next_xp']) * 100) if level_info['next_xp'] != "Max" else 100
+        return render_template('my_roadmaps.html', roadmaps=user_roadmaps, xp=xp, level_info=level_info, streak=streak, progress_pct=progress_pct)
     except Exception as e:
         print(f"Error fetching roadmaps for user {current_user.id}: {e}")
         flash("Could not load your saved roadmaps.", "error")
-        return render_template('my_roadmaps.html', roadmaps=[])
+        _fl = get_level_info(0)
+        return render_template('my_roadmaps.html', roadmaps=[], xp=0, level_info=_fl, streak=0, progress_pct=0)
 
 @app.route('/roadmap/delete/<roadmap_id>', methods=['POST'])
 @login_required
@@ -1129,6 +1134,16 @@ def projects():
             p['like_count'] = len(p.get('likes', []))
             p['view_count'] = p.get('views', 0)
 
+        # XP / level / streak for navbar
+        xp, level_info, streak, progress_pct = 0, get_level_info(0), 0, 0
+        if is_authenticated:
+            _u = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'xp': 1, 'streak_count': 1})
+            if _u:
+                xp = _u.get('xp', 0)
+                level_info = get_level_info(xp)
+                streak = _u.get('streak_count', 0)
+                progress_pct = int((xp / level_info['next_xp']) * 100) if level_info['next_xp'] != "Max" else 100
+
         return render_template('projects.html',
             recommended_projects=recommended_projects,
             other_projects=other_projects,
@@ -1138,13 +1153,19 @@ def projects():
             total_pages=total_pages,
             total=other_total,
             has_more=has_more,
-            user_bookmark_ids=user_bookmark_ids)
+            user_bookmark_ids=user_bookmark_ids,
+            xp=xp,
+            level_info=level_info,
+            streak=streak,
+            progress_pct=progress_pct)
     except Exception as e:
         print(f"Error fetching community projects: {e}")
         flash("Could not load community projects at this time.", "error")
+        _fallback_level = get_level_info(0)
         return render_template('projects.html', recommended_projects=[], other_projects=[],
             profile_incomplete=False, is_authenticated=current_user.is_authenticated,
-            page=1, total_pages=1, total=0, has_more=False)
+            page=1, total_pages=1, total=0, has_more=False,
+            xp=0, level_info=_fallback_level, streak=0, progress_pct=0)
 
 @app.route('/api/projects')
 def api_projects():
@@ -1468,11 +1489,18 @@ def view_project(project_id):
         user_bookmarked = obj_id in u.get('bookmarks', []) if u else False
     bookmark_count = project.get('bookmark_count', 0)
 
+    _xp = 0; _level_info = get_level_info(0); _streak = 0; _ppct = 0
+    if current_user.is_authenticated:
+        _pu = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'xp': 1, 'streak_count': 1}) or {}
+        _xp = _pu.get('xp', 0); _level_info = get_level_info(_xp)
+        _streak = _pu.get('streak_count', 0)
+        _ppct = int((_xp / _level_info['next_xp']) * 100) if _level_info['next_xp'] != "Max" else 100
     return render_template('project_page.html', project=project, is_owner=is_owner,
         commits=commits, creator_name=creator_name,
         user_liked=user_liked, like_count=like_count,
         comments=comments, comment_count=comment_count, is_admin=is_admin,
-        user_bookmarked=user_bookmarked, bookmark_count=bookmark_count)
+        user_bookmarked=user_bookmarked, bookmark_count=bookmark_count,
+        xp=_xp, level_info=_level_info, streak=_streak, progress_pct=_ppct)
 
 @app.route('/project/<project_id>/like', methods=['POST'])
 @login_required
@@ -2241,7 +2269,11 @@ def messages_list():
                 sender_name = sender_user.get("name", "User") if sender_user else "User"
             is_unread = (not res["is_read"]) and (not sent_by_me)
             conversations.append({"user_id": str(other_user["_id"]), "user_name": other_user.get("name", "Unknown"), "username": other_user.get("username", ""), "profile_pic": other_user.get("profile_pic", "default.jpg"), "last_message": res.get("last_message", ""), "timestamp": fmt_ist(res["timestamp"], "%b %d, %I:%M %p"), "is_unread": is_unread, "sent_by_me": sent_by_me, "sender_name": sender_name})
-        return render_template("messages_list.html", conversations=conversations)
+        _u = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'xp': 1, 'streak_count': 1}) or {}
+        _xp = _u.get('xp', 0); _li = get_level_info(_xp)
+        _streak = _u.get('streak_count', 0)
+        _ppct = int((_xp / _li['next_xp']) * 100) if _li['next_xp'] != "Max" else 100
+        return render_template("messages_list.html", conversations=conversations, xp=_xp, level_info=_li, streak=_streak, progress_pct=_ppct)
     except Exception as e:
         print(f"Inbox error: {e}"); return redirect(url_for("main_page"))
 
@@ -2471,6 +2503,11 @@ def remove_admin(community_id, user_id):
 @login_required
 def find_communities():
     user_id = ObjectId(current_user.id)
+    user_data = users_collection.find_one({'_id': user_id}, {'xp': 1, 'streak_count': 1}) or {}
+    xp = user_data.get('xp', 0)
+    level_info = get_level_info(xp)
+    streak = user_data.get('streak_count', 0)
+    progress_pct = int((xp / level_info['next_xp']) * 100) if level_info['next_xp'] != "Max" else 100
 
     # My communities (owned) — load all, usually very few
     my_communities = list(communities_collection.find(
@@ -2527,7 +2564,11 @@ def find_communities():
         other_total=other_total,
         page=page,
         total_pages=total_pages,
-        has_more=has_more)
+        has_more=has_more,
+        xp=xp,
+        level_info=level_info,
+        streak=streak,
+        progress_pct=progress_pct)
 
 @app.route('/api/communities')
 @login_required
@@ -3230,7 +3271,13 @@ def search():
                     'badge': u.get('badge', 'Bronze Builder'),
                     'known_skills': u.get('known_skills', [])[:4],
                 })
-    return render_template('search.html', results=results, query=query)
+    _sxp = 0; _sli = get_level_info(0); _sstreak = 0; _sppct = 0
+    if current_user.is_authenticated:
+        _su = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'xp': 1, 'streak_count': 1}) or {}
+        _sxp = _su.get('xp', 0); _sli = get_level_info(_sxp)
+        _sstreak = _su.get('streak_count', 0)
+        _sppct = int((_sxp / _sli['next_xp']) * 100) if _sli['next_xp'] != "Max" else 100
+    return render_template('search.html', results=results, query=query, xp=_sxp, level_info=_sli, streak=_sstreak, progress_pct=_sppct)
 
 @app.route('/api/search_users')
 @login_required
