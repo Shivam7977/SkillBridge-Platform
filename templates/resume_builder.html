@@ -53,10 +53,10 @@ tailwind.config = {
 
 /* ══ RESUME BUILDER MAIN CONTENT AREA ══ */
 :root{
-  --bg:#f8f4ec; --surface:#fff; --primary:#7c3aed; --accent:#ec4899;
-  --text:#0f172a; --muted:#64748b; --border:#e2e8f0;
+  --bg:#f8f4ec; --surface:#fff; --primary:#1a1714; --accent:#c4973a;
+  --text:#1a1714; --muted:#9c9488; --border:#f0e9d8;
 }
-.dark { --bg:#1a1714; --surface:#2c2820; --border:#3d3830; --text:#f0e9d8; --muted:#9c9488; }
+.dark { --bg:#1a1714; --surface:#2c2820; --border:#3d3830; --text:#f0e9d8; --muted:#7a7268; }
 
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'DM Sans',sans-serif; }
@@ -66,90 +66,199 @@ body { font-family:'DM Sans',sans-serif; }
 .rb-main { flex:1; padding:2rem 2.5rem; transition:padding-right .3s ease; min-width:0; }
 .rb-main.panel-open { padding-right:380px; }
 
-/* ══ TOPBAR ══ */
-.topbar { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem; }
-.topbar h1 { font-family:'Playfair Display',serif; font-size:2rem; font-weight:900; color:#1a1714; }
-.dark .topbar h1 { color:#f0e9d8; }
-.topbar p { color:var(--muted); font-size:.85rem; margin-top:4px; }
-.btns { display:flex; gap:10px; flex-shrink:0; }
+/* ══ PAGE HEADER CARD ══ */
+.page-header-card {
+  background:#fff; border:1px solid #f0e9d8; border-radius:24px;
+  padding:1.75rem 2rem; margin-bottom:1.75rem;
+  display:flex; justify-content:space-between; align-items:center;
+  gap:1.5rem; position:relative; overflow:hidden;
+  box-shadow:0 1px 6px rgba(26,23,20,.04);
+}
+.dark .page-header-card { background:#2c2820; border-color:#3d3830; }
+.page-header-card h1 { font-family:'Playfair Display',serif; font-size:1.85rem; font-weight:900; color:#1a1714; line-height:1.1; }
+.dark .page-header-card h1 { color:#f0e9d8; }
+.page-header-card p { color:#9c9488; font-size:.82rem; margin-top:4px; font-weight:500; }
+.dark .page-header-card p { color:#7a7268; }
+.badge-pill {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:3px 10px; border-radius:20px;
+  background:#f8f4ec; border:1px solid #e5d9c0;
+  font-size:.68rem; font-weight:700; color:#9c9488;
+  letter-spacing:.06em; text-transform:uppercase; margin-top:8px;
+}
+.dark .badge-pill { background:#1a1714; border-color:#3d3830; color:#7a7268; }
+.btns { display:flex; gap:8px; flex-shrink:0; flex-wrap:wrap; }
+
+/* ══ BUTTONS ══ */
+.btn {
+  padding:10px 20px; border-radius:12px; font-family:'DM Sans',sans-serif;
+  font-size:.84rem; font-weight:600; cursor:pointer; border:none;
+  display:flex; align-items:center; gap:6px; transition:all .2s ease;
+  white-space:nowrap;
+}
+.btn-p { background:#1a1714; color:#f8f4ec; box-shadow:0 3px 12px rgba(26,23,20,.2); }
+.btn-p:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(26,23,20,.25); }
+.dark .btn-p { background:#f8f4ec; color:#1a1714; }
+.btn-o { background:#fff; color:#1a1714; border:1.5px solid #e5d9c0; box-shadow:0 1px 4px rgba(26,23,20,.06); }
+.btn-o:hover { background:#f8f4ec; border-color:#1a1714; transform:translateY(-1px); }
+.dark .btn-o { background:#2c2820; color:#f0e9d8; border-color:#3d3830; }
+.dark .btn-o:hover { background:#3d3830; border-color:#7a7268; }
+
+/* ══ LAYOUT ══ */
+.layout { display:grid; grid-template-columns:285px 1fr; gap:20px; }
+
+/* ══ CONTROL PANEL ══ */
+.cp {
+  background:#fff; border-radius:20px; padding:1.25rem;
+  border:1px solid #f0e9d8; height:fit-content;
+  position:sticky; top:1.5rem;
+  box-shadow:0 2px 12px rgba(26,23,20,.05);
+}
+.dark .cp { background:#2c2820; border-color:#3d3830; }
+.cp-lbl {
+  font-size:.65rem; font-weight:800; letter-spacing:.14em;
+  text-transform:uppercase; color:#9c9488;
+  margin-bottom:.75rem; display:flex; align-items:center; gap:6px;
+}
+.cp-lbl i { color:#c4973a; }
+.dark .cp-lbl { color:#7a7268; }
+.cp-sec { margin-bottom:1.1rem; }
+.divider { height:1px; background:#f0e9d8; margin:.85rem 0; }
+.dark .divider { background:#3d3830; }
+
+/* ══ TEMPLATE CARDS ══ */
+.tpl-list { display:flex; flex-direction:column; gap:4px; max-height:480px; overflow-y:auto; padding-right:2px; }
+.tpl-list::-webkit-scrollbar { width:3px; }
+.tpl-list::-webkit-scrollbar-thumb { background:#e5d9c0; border-radius:2px; }
+.tcard {
+  display:flex; align-items:center; gap:9px;
+  padding:8px 10px; border-radius:10px;
+  border:1.5px solid #f0e9d8; background:#fdfcf8;
+  cursor:pointer; transition:all .18s ease; text-align:left;
+}
+.tcard:hover { border-color:#1a1714; background:#f8f4ec; transform:translateX(2px); }
+.tcard.on { border-color:#1a1714; background:#f8f4ec; box-shadow:0 2px 8px rgba(26,23,20,.08); }
+.dark .tcard { background:#3d3830; border-color:#3d3830; }
+.dark .tcard:hover { border-color:#c4973a; background:#2c2820; }
+.dark .tcard.on { border-color:#c4973a; background:#2c2820; box-shadow:0 2px 8px rgba(196,151,58,.1); }
+.tcard-ico { width:30px; height:30px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:.82rem; flex-shrink:0; }
+.tcard-name { font-size:.8rem; font-weight:700; color:#1a1714; }
+.dark .tcard-name { color:#f0e9d8; }
+.tcard-tag { font-size:.68rem; color:#9c9488; margin-top:1px; }
+
+/* ══ INFO BOX ══ */
+.info-box {
+  background:#fdfcf8; border:1px solid #f0e9d8; border-radius:12px;
+  padding:12px 14px; font-size:.77rem; color:#9c9488; line-height:1.65;
+}
+.dark .info-box { background:#1a1714; border-color:#3d3830; color:#7a7268; }
+.info-box a { color:#c4973a; font-weight:700; text-decoration:none; }
+.info-box a:hover { text-decoration:underline; }
+.chk { display:flex; align-items:center; gap:6px; margin-bottom:4px; font-size:.77rem; color:#5c5548; }
+.chk i { color:#1a1714; font-size:.7rem; }
+.dark .chk { color:#9c9488; }
+.dark .chk i { color:#c4973a; }
+
+/* ══ PREVIEW WRAP ══ */
+.preview-wrap { background:#e5d9c0; border-radius:20px; padding:14px; min-height:820px; overflow:auto; }
+.dark .preview-wrap { background:#2c2820; }
+.preview-inner { border-radius:14px; overflow:hidden; box-shadow:0 24px 60px rgba(26,23,20,.18); background:transparent; }
+
+/* ══ LOADER ══ */
+.loader {
+  position:fixed; inset:0; background:rgba(248,244,236,.94);
+  display:none; justify-content:center; align-items:center;
+  z-index:9998; flex-direction:column; gap:16px; backdrop-filter:blur(4px);
+}
+.dark .loader { background:rgba(26,23,20,.94); }
+.loader.show { display:flex; }
+.spin { width:44px; height:44px; border:3px solid #e5d9c0; border-top-color:#1a1714; border-radius:50%; animation:sp .75s linear infinite; }
+.dark .spin { border-color:#3d3830; border-top-color:#c4973a; }
+@keyframes sp { to { transform:rotate(360deg) } }
+.loader p { font-weight:700; color:#9c9488; font-size:.85rem; letter-spacing:.04em; }
+
+/* ══ FLASH ══ */
+.flash { position:fixed; top:18px; right:18px; z-index:10001; display:flex; flex-direction:column; gap:8px; max-width:340px; }
+.fb { padding:.9rem 1.3rem; border-radius:14px; color:#fff; font-weight:600; font-size:.88rem; animation:pi .3s ease; }
+@keyframes pi { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:none} }
+.fb-success { background:#1a1714; } .fb-error { background:#dc2626; }
+.fb-warning { background:#c4973a; color:#1a1714; } .fb-info { background:#1a1714; }
+
+/* ══ EDIT PANEL ══ */
+#edit-panel {
+  display:none; position:fixed; top:0; right:0;
+  width:360px; height:100vh;
+  background:#fdfcf8; border-left:1px solid #e5d9c0;
+  z-index:9999; box-shadow:-12px 0 48px rgba(26,23,20,.12);
+}
+.dark #edit-panel { background:#2c2820 !important; border-color:#3d3830 !important; }
+.ep-sticky-top {
+  padding:1.1rem 1.4rem; border-bottom:1px solid #f0e9d8;
+  background:#fdfcf8;
+}
+.dark .ep-sticky-top { background:#2c2820; border-color:#3d3830; }
+.ep-title-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:.85rem; }
+.ep-title { font-family:'Playfair Display',serif; font-size:1.05rem; font-weight:900; color:#1a1714; }
+.dark .ep-title { color:#f0e9d8; }
+.ep-close-btn {
+  width:30px; height:30px; border-radius:8px;
+  border:1.5px solid #e5d9c0; background:transparent;
+  display:flex; align-items:center; justify-content:center;
+  color:#9c9488; cursor:pointer; transition:all .15s; font-size:.9rem;
+}
+.ep-close-btn:hover { border-color:#1a1714; color:#1a1714; background:#f8f4ec; }
+.dark .ep-close-btn { border-color:#3d3830; color:#7a7268; }
+.dark .ep-close-btn:hover { border-color:#c4973a; color:#c4973a; }
+.ep-action-btns { display:flex; flex-direction:column; gap:6px; }
+.ep-btn-copy {
+  width:100%; padding:9px; border-radius:10px;
+  border:1.5px solid #e5d9c0; background:#fff;
+  color:#1a1714; font-weight:700; cursor:pointer;
+  font-size:.8rem; font-family:'DM Sans',sans-serif;
+  display:flex; align-items:center; justify-content:center; gap:6px; transition:all .18s;
+}
+.ep-btn-copy:hover { border-color:#1a1714; background:#f8f4ec; }
+.dark .ep-btn-copy { background:#1a1714; border-color:#3d3830; color:#f0e9d8; }
+.ep-btn-pdf {
+  width:100%; padding:9px; border-radius:10px; border:none;
+  background:#1a1714; color:#f8f4ec; font-weight:700; cursor:pointer;
+  font-size:.8rem; font-family:'DM Sans',sans-serif;
+  display:flex; align-items:center; justify-content:center; gap:6px; transition:all .18s;
+}
+.ep-btn-pdf:hover { opacity:.88; transform:translateY(-1px); }
+.dark .ep-btn-pdf { background:#f8f4ec; color:#1a1714; }
+.ep-scroll-body {
+  height:calc(100vh - 162px); overflow-y:auto; padding:1.1rem 1.4rem;
+}
+.ep-scroll-body::-webkit-scrollbar { width:3px; }
+.ep-scroll-body::-webkit-scrollbar-thumb { background:#e5d9c0; border-radius:2px; }
+.dark .ep-scroll-body::-webkit-scrollbar-thumb { background:#3d3830; }
+.ep-notice {
+  font-size:.72rem; color:#9c9488; margin-bottom:1rem;
+  padding:8px 11px; background:#f8f4ec; border:1px solid #e5d9c0; border-radius:10px; line-height:1.6;
+}
+.dark .ep-notice { background:#1a1714; border-color:#3d3830; color:#7a7268; }
+.ep-section-divider {
+  margin:.75rem 0 .6rem; padding-top:.75rem; border-top:1px solid #f0e9d8;
+  font-size:.65rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:#c4973a;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.dark .ep-section-divider { border-color:#3d3830; }
 
 /* ══ RESPONSIVE ══ */
+@media(max-width:1280px) { #edit-panel { width:320px; } }
 @media(max-width:1023px){
-  .rb-main { padding:1rem; padding-top:1.5rem; }
-  .topbar { flex-direction:column; align-items:flex-start; gap:.75rem; }
+  .rb-main { padding:1.5rem 1rem; }
+  .page-header-card { flex-direction:column; align-items:flex-start; border-radius:18px; }
   .btns { width:100%; flex-wrap:wrap; }
-  .btns .btn { flex:1; justify-content:center; font-size:.78rem; padding:8px 10px; }
+  .btns .btn { flex:1; justify-content:center; font-size:.78rem; padding:9px 10px; }
   .layout { grid-template-columns:1fr!important; }
   .cp { position:static!important; }
   .preview-wrap { min-height:400px; }
   .rb-main.panel-open { padding-right:1rem; }
+  #edit-panel { width:100vw!important; top:auto!important; bottom:0; height:70vh; border-left:none!important; border-top:1px solid #e5d9c0; border-radius:20px 20px 0 0; }
+  .dark #edit-panel { border-top-color:#3d3830!important; }
 }
-.btn{padding:10px 22px;border-radius:12px;font-family:'DM Sans',sans-serif;
-  font-size:.87rem;font-weight:600;cursor:pointer;border:none;
-  display:flex;align-items:center;gap:7px;transition:.22s;}
-.btn-p{background:#1a1714;color:#f8f4ec;box-shadow:0 4px 14px rgba(26,23,20,.18);}
-.btn-p:hover{transform:translateY(-2px);opacity:.9;}
-.dark .btn-p{background:#f8f4ec;color:#1a1714;}
-.btn-o{background:#fff;color:#1a1714;border:1.5px solid #e5d9c0;}
-.btn-o:hover{background:#f8f4ec;border-color:#1a1714;}
-.dark .btn-o{background:#2c2820;color:#f0e9d8;border-color:#3d3830;}
-.dark .btn-o:hover{background:#3d3830;}
-
-.layout{display:grid;grid-template-columns:295px 1fr;gap:22px;}
-.cp{background:#fff;border-radius:20px;padding:1.4rem;
-  border:1px solid #f0e9d8;height:fit-content;position:sticky;top:2rem;}
-.dark .cp{background:#2c2820;border-color:#3d3830;}
-.cp-lbl{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:#9c9488;margin-bottom:.8rem;display:flex;align-items:center;gap:6px;}
-.cp-lbl i{color:#c4973a;}
-.dark .cp-lbl{color:#7a7268;}
-.cp-sec{margin-bottom:1.2rem;}
-.divider{height:1px;background:#f0e9d8;margin:.9rem 0;}
-.dark .divider{background:#3d3830;}
-
-.tpl-list{display:flex;flex-direction:column;gap:5px;max-height:500px;overflow-y:auto;padding-right:3px;}
-.tpl-list::-webkit-scrollbar{width:3px;}
-.tpl-list::-webkit-scrollbar-thumb{background:#e5d9c0;border-radius:2px;}
-.tcard{display:flex;align-items:center;gap:9px;padding:9px 11px;
-  border-radius:10px;border:1.5px solid #f0e9d8;background:#fdfcf8;
-  cursor:pointer;transition:.18s;text-align:left;}
-.tcard:hover{border-color:#1a1714;background:#f8f4ec;}
-.tcard.on{border-color:#1a1714;background:#f8f4ec;}
-.dark .tcard{background:#3d3830;border-color:#3d3830;}
-.dark .tcard:hover{border-color:#c4973a;background:#2c2820;}
-.dark .tcard.on{border-color:#c4973a;background:#2c2820;}
-.tcard-ico{width:32px;height:32px;border-radius:7px;display:flex;
-  align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
-.tcard-name{font-size:.82rem;font-weight:700;color:#1a1714;}
-.dark .tcard-name{color:#f0e9d8;}
-.tcard-tag{font-size:.7rem;color:#9c9488;margin-top:1px;}
-
-.info-box{background:#fdfcf8;border:1px solid #f0e9d8;border-radius:10px;
-  padding:10px 12px;font-size:.77rem;color:#9c9488;line-height:1.6;}
-.dark .info-box{background:#3d3830;border-color:#5c5548;color:#7a7268;}
-.info-box a{color:#c4973a;font-weight:600;text-decoration:none;}
-.chk{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
-.chk i{color:#10b981;font-size:.72rem;}
-
-.preview-wrap{background:#e5d9c0;border-radius:18px;padding:2px;min-height:820px;overflow:auto;}
-.preview-inner{border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.12);background:transparent;}
-
-.loader{position:fixed;inset:0;background:rgba(248,244,236,.92);
-  display:none;justify-content:center;align-items:center;z-index:999;
-  flex-direction:column;gap:14px;}
-.dark .loader{background:rgba(26,23,20,.92);}
-.loader.show{display:flex;}
-.spin{width:44px;height:44px;border:4px solid #e5d9c0;
-  border-top-color:#1a1714;border-radius:50%;animation:sp .8s linear infinite;}
-.dark .spin{border-color:#3d3830;border-top-color:#c4973a;}
-@keyframes sp{to{transform:rotate(360deg)}}
-.loader p{font-weight:600;color:#9c9488;font-size:.88rem;}
-
-.flash{position:fixed;top:18px;right:18px;z-index:1001;display:flex;flex-direction:column;gap:8px;max-width:340px;}
-.fb{padding:.9rem 1.3rem;border-radius:12px;color:#fff;font-weight:500;font-size:.88rem;animation:pi .3s ease;}
-@keyframes pi{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
-.fb-success{background:#10b981}.fb-error{background:#ef4444}
-.fb-warning{background:#f59e0b;color:#111}.fb-info{background:#3b82f6}
 
 /* ── SHARED RESUME UTILITIES ── */
 /* Experience item — shared across all templates */
@@ -696,11 +805,13 @@ body { font-family:'DM Sans',sans-serif; }
   </aside>
 
   <!-- ══ MAIN CONTENT ══ -->
-  <main class="rb-main flex-1 min-w-0 lg:pt-0 pt-2">
-  <div class="topbar">
+  <main class="rb-main flex-1 min-w-0">
+  <!-- ══ PAGE HEADER ══ -->
+  <div class="page-header-card">
     <div>
       <h1>Resume Builder</h1>
       <p>18 career-specific templates · auto-filled from your profile · one-click PDF</p>
+      <div class="badge-pill"><i class="fas fa-bolt" style="color:#c4973a;font-size:.6rem;"></i> Auto-filled from your profile</div>
     </div>
     <div class="btns">
       <button class="btn btn-o" onclick="toggleEditPanel()"><i class="fas fa-pen"></i> Edit Content</button>
@@ -710,15 +821,21 @@ body { font-family:'DM Sans',sans-serif; }
   </div>
 
   <!-- ── EDIT PANEL ── -->
-  <div id="edit-panel" style="display:none;position:fixed;top:0;right:0;width:360px;height:100vh;background:#fff;border-left:1px solid #e2e8f0;z-index:9999;box-shadow:-8px 0 40px rgba(0,0,0,.12);">
-  <div id="edit-panel-scroll" style="height:calc(100vh - 110px);overflow-y:auto;padding:1.5rem;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
-      <h3 style="font-size:1rem;font-weight:700;color:#0f172a;"><i class="fas fa-pen" style="color:#7c3aed;margin-right:6px;"></i> Edit Resume Content</h3>
-      <button onclick="toggleEditPanel()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:#64748b;">✕</button>
+  <div id="edit-panel">
+    <!-- Sticky top: title + action buttons -->
+    <div class="ep-sticky-top">
+      <div class="ep-title-row">
+        <span class="ep-title">Edit Resume</span>
+        <button class="ep-close-btn" onclick="toggleEditPanel()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="ep-action-btns">
+        <button class="ep-btn-copy" onclick="copyHTML()"><i class="fas fa-copy"></i> Copy HTML</button>
+        <button class="ep-btn-pdf" onclick="openPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
+      </div>
     </div>
-    <p style="font-size:.75rem;color:#94a3b8;margin-bottom:1.2rem;background:#f8fafc;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0;">
-      ✏️ Edits apply to preview only. Copy HTML to save. Changes reset when you leave.
-    </p>
+    <!-- Scrollable body -->
+    <div id="edit-panel-scroll" class="ep-scroll-body">
+      <p class="ep-notice">✏️ Edits apply to preview only. Copy HTML to save. Changes reset when you leave.</p>
 
     <div class="ep-group">
       <label class="ep-lbl">Full Name</label>
@@ -753,11 +870,11 @@ body { font-family:'DM Sans',sans-serif; }
       <textarea class="ep-inp" id="ep-goal" oninput="liveUpdate()" rows="2" placeholder="Your career goal..."></textarea>
     </div>
     <div class="ep-group">
-      <label class="ep-lbl">Known Skills <span style="color:#94a3b8;font-weight:400;">(comma separated)</span></label>
+      <label class="ep-lbl">Known Skills <span style="color:#9c9488;font-weight:400;">(comma separated)</span></label>
       <textarea class="ep-inp" id="ep-skills" oninput="liveUpdate()" rows="2" placeholder="Python, Flask, React..."></textarea>
     </div>
     <div class="ep-group">
-      <label class="ep-lbl">Learning Skills <span style="color:#94a3b8;font-weight:400;">(comma separated)</span></label>
+      <label class="ep-lbl">Learning Skills <span style="color:#9c9488;font-weight:400;">(comma separated)</span></label>
       <textarea class="ep-inp" id="ep-learning" oninput="liveUpdate()" rows="2" placeholder="Rust, Go, Web3..."></textarea>
     </div>
     <div class="ep-group">
@@ -774,18 +891,15 @@ body { font-family:'DM Sans',sans-serif; }
     </div>
 
     <!-- Work Experience Entries -->
-    <div style="margin:.75rem 0 .5rem;padding-top:.75rem;border-top:1.5px solid #e2e8f0;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;">
-        <div class="ep-lbl" style="font-size:.75rem;color:#7c3aed;">💼 Work Experience</div>
-        <button type="button" onclick="addEpExp()" style="padding:3px 10px;border-radius:6px;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;">+ Add</button>
-      </div>
-      <div id="ep-exp-list"></div>
+    <div class="ep-section-divider">
+      <span>💼 Work Experience</span>
+      <button type="button" onclick="addEpExp()" style="padding:3px 10px;border-radius:6px;border:1.5px solid #e5d9c0;background:transparent;color:#1a1714;font-size:.72rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;" onmouseover="this.style.borderColor='#1a1714'" onmouseout="this.style.borderColor='#e5d9c0'">+ Add</button>
     </div>
-    <div style="margin:1rem 0 .5rem;padding-top:.75rem;border-top:1.5px solid #e2e8f0;">
-      <div class="ep-lbl" style="font-size:.75rem;color:#7c3aed;margin-bottom:.6rem;">⚡ Projects</div>
-    </div>
+    <div id="ep-exp-list"></div>
+
+    <div class="ep-section-divider">⚡ Projects</div>
     {% for p in projects %}
-    <div class="ep-group" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:.75rem;">
+    <div class="ep-group" style="background:#f8f4ec;border:1px solid #e5d9c0;border-radius:12px;padding:.75rem;">
       <label class="ep-lbl">Project {{ loop.index }} — Title</label>
       <input class="ep-inp" id="ep-proj-title-{{ loop.index0 }}" oninput="liveUpdate()" placeholder="{{ p.title }}" style="margin-bottom:.4rem;">
       <label class="ep-lbl" style="margin-top:.3rem;">Description</label>
@@ -793,27 +907,18 @@ body { font-family:'DM Sans',sans-serif; }
     </div>
     {% endfor %}
 
-    <button onclick="resetEdits()" style="width:100%;margin-top:.5rem;padding:10px;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-weight:600;cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;">
+    <button onclick="resetEdits()" style="width:100%;margin-top:.75rem;padding:10px;border-radius:10px;border:1.5px solid #e5d9c0;background:transparent;color:#9c9488;font-weight:600;cursor:pointer;font-size:.82rem;font-family:'DM Sans',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;" onmouseover="this.style.borderColor='#1a1714';this.style.color='#1a1714'" onmouseout="this.style.borderColor='#e5d9c0';this.style.color='#9c9488'">
       <i class="fas fa-undo"></i> Reset to Original
-    </button>
-  </div>
-  <div style="position:absolute;bottom:0;left:0;right:0;padding:1rem 1.5rem;border-top:1px solid #e2e8f0;background:#fff;">
-    <button onclick="copyHTML()" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid #7c3aed;background:#fff;color:#7c3aed;font-weight:700;cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:.5rem;">
-      <i class="fas fa-copy"></i> Copy HTML
-    </button>
-    <button onclick="openPDF()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(90deg,#7c3aed,#ec4899);color:#fff;font-weight:700;cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:7px;">
-      <i class="fas fa-file-pdf"></i> Download PDF
     </button>
   </div>
   </div>
 
   <style>
   .ep-group { margin-bottom:.85rem; }
-  .ep-lbl { display:block;font-size:.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px; }
-  .ep-inp { width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-family:'DM Sans',sans-serif;font-size:.85rem;color:#0f172a;resize:vertical;outline:none;transition:border-color .2s; }
-  .ep-inp:focus { border-color:#7c3aed; }
+  .ep-lbl { display:block;font-size:.65rem;font-weight:800;color:#9c9488;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px; }
+  .ep-inp { width:100%;border:1.5px solid #e5d9c0;border-radius:10px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:.85rem;color:#1a1714;resize:vertical;outline:none;transition:border-color .2s;background:#fff; }
+  .ep-inp:focus { border-color:#1a1714; }
   .dark #edit-panel { background:#2c2820 !important; border-color:#3d3830 !important; }
-  .dark #edit-panel > div:last-child { background:#2c2820 !important; border-color:#3d3830 !important; }
   .dark .ep-inp { background:#1a1714; border-color:#3d3830; color:#f0e9d8; }
   .dark .ep-inp:focus { border-color:#c4973a; }
   .dark .ep-lbl { color:#7a7268; }
@@ -848,13 +953,13 @@ body { font-family:'DM Sans',sans-serif; }
       <div class="cp-sec">
         <div class="cp-lbl"><i class="fas fa-database"></i> Auto-filled from</div>
         <div class="info-box">
-          <div class="chk"><i class="fas fa-check-circle"></i> Name, title &amp; location</div>
-          <div class="chk"><i class="fas fa-check-circle"></i> About me &amp; career goal</div>
-          <div class="chk"><i class="fas fa-check-circle"></i> Known &amp; learning skills</div>
-          <div class="chk"><i class="fas fa-check-circle"></i> All your projects</div>
-          <div class="chk"><i class="fas fa-check-circle"></i> Education &amp; experience</div>
-          <div class="chk"><i class="fas fa-check-circle"></i> Certificates &amp; credentials</div>
-          <div class="chk"><i class="fas fa-check-circle"></i> GitHub &amp; LinkedIn links</div>
+          <div class="chk"><i class="fas fa-check"></i> Name, title &amp; location</div>
+          <div class="chk"><i class="fas fa-check"></i> About me &amp; career goal</div>
+          <div class="chk"><i class="fas fa-check"></i> Known &amp; learning skills</div>
+          <div class="chk"><i class="fas fa-check"></i> All your projects</div>
+          <div class="chk"><i class="fas fa-check"></i> Education &amp; experience</div>
+          <div class="chk"><i class="fas fa-check"></i> Certificates &amp; credentials</div>
+          <div class="chk"><i class="fas fa-check"></i> GitHub &amp; LinkedIn links</div>
           <div style="margin-top:8px;font-size:.74rem;">
             Edit via <a href="{{ url_for('profile') }}">Profile</a> or <a href="{{ url_for('my_projects') }}">Projects</a>
           </div>
