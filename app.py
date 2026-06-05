@@ -2333,7 +2333,8 @@ def view_community(community_id):
     if is_member or is_public:
         raw_msgs = list(community_messages_collection.find(
             {"community_id": ObjectId(community_id)}
-        ).sort("timestamp", 1))
+        ).sort("timestamp", -1).limit(50))
+        raw_msgs = list(reversed(raw_msgs))  # show oldest→newest
         for m in raw_msgs:
             # now_ist() stores naive IST already. to_ist() would add 5:30 again - use directly.
             ts = m.get("timestamp")
@@ -2371,17 +2372,27 @@ def view_community(community_id):
 # The chat frontend uses the JSON API at /api/community/<id>/send (see below).
 # Keeping this route would create a duplicate path that bypasses rate limiting.
 
-@app.route('/community/<community_id>/react/<message_id>/<emoji>')
+@app.route('/community/<community_id>/react/<message_id>/<emoji>', methods=['GET','POST'])
 @login_required
 def react_to_message(community_id, message_id, emoji):
     user_id = ObjectId(current_user.id)
     message = community_messages_collection.find_one({"_id": ObjectId(message_id)})
-    if not message: return redirect(url_for("view_community", community_id=community_id))
+    if not message:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({"success": False, "error": "Message not found"}), 404
+        return redirect(url_for("view_community", community_id=community_id))
     reactions = message.get("reactions", {})
     if emoji not in reactions: reactions[emoji] = []
-    if user_id in reactions[emoji]: reactions[emoji].remove(user_id)
-    else: reactions[emoji].append(user_id)
+    if user_id in reactions[emoji]:
+        reactions[emoji].remove(user_id)
+        reacted = False
+    else:
+        reactions[emoji].append(user_id)
+        reacted = True
     community_messages_collection.update_one({"_id": ObjectId(message_id)}, {"$set": {"reactions": reactions}})
+    # AJAX response for frontend reaction updates
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({"success": True, "reacted": reacted, "count": len(reactions[emoji])})
     return redirect(url_for("view_community", community_id=community_id))
 
 @app.route('/community/<community_id>/request')
@@ -2503,11 +2514,6 @@ def remove_admin(community_id, user_id):
 @login_required
 def find_communities():
     user_id = ObjectId(current_user.id)
-    user_data = users_collection.find_one({'_id': user_id}, {'xp': 1, 'streak_count': 1}) or {}
-    xp = user_data.get('xp', 0)
-    level_info = get_level_info(xp)
-    streak = user_data.get('streak_count', 0)
-    progress_pct = int((xp / level_info['next_xp']) * 100) if level_info['next_xp'] != "Max" else 100
 
     # My communities (owned) — load all, usually very few
     my_communities = list(communities_collection.find(
@@ -2557,6 +2563,12 @@ def find_communities():
     total_pages = max(1, (other_total + PER_PAGE - 1) // PER_PAGE)
     has_more = page < total_pages
 
+    _u = users_collection.find_one({'_id': user_id}, {'xp': 1, 'streak_count': 1}) or {}
+    _xp = _u.get('xp', 0)
+    _level_info = get_level_info(_xp)
+    _streak = _u.get('streak_count', 0)
+    _ppct = int((_xp / _level_info['next_xp']) * 100) if _level_info['next_xp'] != "Max" else 100
+
     return render_template("find_communities.html",
         my_communities=my_communities,
         joined_communities=joined_communities,
@@ -2565,10 +2577,10 @@ def find_communities():
         page=page,
         total_pages=total_pages,
         has_more=has_more,
-        xp=xp,
-        level_info=level_info,
-        streak=streak,
-        progress_pct=progress_pct)
+        xp=_xp,
+        level_info=_level_info,
+        streak=_streak,
+        progress_pct=_ppct)
 
 @app.route('/api/communities')
 @login_required
@@ -3098,6 +3110,54 @@ def send_community_message_api(community_id):
         })
         return jsonify({'success': True})
     return jsonify({'success': False, 'error': 'Empty message'}), 400
+
+
+@app.route('/api/community/<community_id>/members')
+@login_required
+def api_community_members(community_id):
+    """Paginated + searchable members list — avoids loading 1000 members on page load."""
+    q      = request.args.get('q', '').strip().lower()
+    offset = int(request.args.get('offset', 0))
+    limit  = min(int(request.args.get('limit', 2)), 50)  # cap at 50 per request
+
+    try:
+        community = communities_collection.find_one({'_id': ObjectId(community_id)})
+    except Exception:
+        return jsonify({'members': []}), 400
+
+    if not community:
+        return jsonify({'members': []})
+
+    # Only members/public communities can view the list
+    user_id   = ObjectId(current_user.id)
+    is_member = user_id in community.get('members', [])
+    is_public = community.get('visibility') == 'public'
+    if not is_member and not is_public:
+        return jsonify({'members': []}), 403
+
+    member_ids = community.get('members', [])
+    owner_id   = community.get('owner_id')
+
+    # Build mongo query
+    query = {'_id': {'$in': member_ids}}
+    if q:
+        query['name'] = {'$regex': q, '$options': 'i'}
+
+    total  = users_collection.count_documents(query)
+    users  = list(users_collection.find(query, {'name': 1}).skip(offset).limit(limit))
+
+    result = []
+    for u in users:
+        uid  = u['_id']
+        role = 'owner' if uid == owner_id else (
+               'admin'  if uid in community.get('admins', []) else 'member')
+        result.append({
+            'id':   str(uid),
+            'name': u.get('name', '?'),
+            'role': role
+        })
+
+    return jsonify({'members': result, 'total': total})
 
 
 # ════════════════════════════════════════════════════════════

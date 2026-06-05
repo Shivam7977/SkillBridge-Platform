@@ -1,426 +1,467 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var t=localStorage.getItem('sb-theme')||'light';if(t==='dark'){document.documentElement.className='dark';document.documentElement.style.background='#0f0f1a';}})()</script>
+<script>(function(){var t=localStorage.getItem('sb-theme')||'light';if(t==='dark'){document.documentElement.classList.add('dark');document.documentElement.style.background='#1a1714';}})()</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ community.project_title }} — SkillBridge</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
 <style>
-:root {
-  --bg: #f5f6fb;
-  --surface: #ffffff;
-  --primary: #7c3aed;
-  --primary-light: #8B5CF6;
-  --secondary: #db2777;
-  --text-main: #0f172a;
-  --text-dim: #64748b;
-  --border: #e5e7eb;
-  --chat-bg: #f8f9fd;
-  --msg-out: linear-gradient(135deg, #7c3aed, #db2777);
-  --msg-in: #ffffff;
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:#f8f4ec;color:#1a1714;min-height:100vh;-webkit-font-smoothing:antialiased;}
+.dark body{background:#1a1714!important;color:#f0e9d8;}
+
+/* ── PAGE WRAP ── */
+.page{max-width:1200px;margin:0 auto;padding:1.5rem 1.5rem 2rem;}
+
+/* ── BACK ── */
+.back-row{display:flex;align-items:center;gap:8px;margin-bottom:1.1rem;}
+.back-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:9px;
+  border:1.5px solid #e5d9c0;background:transparent;
+  color:#5c5548;font-family:'DM Sans',sans-serif;
+  font-size:.78rem;font-weight:700;cursor:pointer;
+  text-decoration:none;transition:all .18s;
 }
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text-main);
-  height: 100vh; overflow: hidden;
+.back-btn:hover{border-color:#1a1714;color:#1a1714;background:#fff;}
+.dark .back-btn{border-color:#3d3830;color:#9c9488;}
+.dark .back-btn:hover{border-color:#c4973a;color:#c4973a;background:rgba(196,151,58,.08);}
+
+/* ── HERO BANNER ── */
+.hero{
+  border-radius:16px;
+  background:#fff;
+  border:1.5px solid #f0e9d8;
+  padding:1.1rem 1.5rem;
+  display:flex;align-items:center;gap:1rem;
+  margin-bottom:1.25rem;
+  position:relative;overflow:hidden;
+}
+.dark .hero{background:#2c2820;border-color:#3d3830;}
+.hero::after{
+  content:'';position:absolute;right:0;top:0;bottom:0;
+  width:220px;
+  background:radial-gradient(ellipse at right center, rgba(196,151,58,.07) 0%, transparent 70%);
+  pointer-events:none;
+}
+.dark .hero::after{background:radial-gradient(ellipse at right center, rgba(196,151,58,.10) 0%, transparent 70%);}
+.hero-icon{
+  width:46px;height:46px;border-radius:14px;
+  background:#1a1714;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Playfair Display',serif;
+  font-size:1.1rem;font-weight:900;color:#f8f4ec;letter-spacing:-1px;
+}
+.dark .hero-icon{background:#c4973a;color:#1a1714;}
+.hero-info{flex:1;min-width:0;}
+.hero-title{
+  font-family:'Playfair Display',serif;
+  font-size:1.35rem;font-weight:900;color:#1a1714;line-height:1.15;
+  margin-bottom:.2rem;
+}
+.dark .hero-title{color:#f0e9d8;}
+.hero-title span{color:#c4973a;}
+.hero-desc{font-size:.82rem;color:#7a7268;font-weight:500;line-height:1.5;max-width:500px;margin-bottom:.5rem;}
+.dark .hero-desc{color:#9c9488;}
+
+/* view project link in hero */
+.hero-project-link{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:.75rem;font-weight:700;color:#c4973a;text-decoration:none;
+}
+.hero-project-link:hover{text-decoration:underline;}
+
+@media(max-width:700px){.hero{padding:1rem;}}
+
+/* vis chip — reaction strip removed */
+.vis-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:.65rem;font-weight:800;padding:3px 8px;
+  border-radius:6px;letter-spacing:.04em;margin-left:6px;
+}
+.vis-chip.public{background:rgba(5,150,105,.1);color:#059669;}
+.vis-chip.private{background:rgba(220,38,38,.08);color:#dc2626;}
+.dark .vis-chip.public{background:rgba(52,211,153,.1);color:#34d399;}
+.dark .vis-chip.private{background:rgba(248,113,113,.08);color:#f87171;}
+
+/* ── MAIN GRID ── */
+.main-grid{
+  display:grid;
+  grid-template-columns:1fr 320px;
+  gap:1.25rem;
+  align-items:start;
+}
+@media(max-width:900px){.main-grid{grid-template-columns:1fr;}}
+
+/* ── CHAT CARD ── */
+.chat-card{
+  background:#fff;border:1.5px solid #f0e9d8;
+  border-radius:20px;overflow:hidden;
+  display:flex;flex-direction:column;
+  min-height:420px;
+}
+.dark .chat-card{background:#2c2820;border-color:#3d3830;}
+
+/* messages */
+.messages-wrap{
+  flex:1;overflow-y:auto;
+  padding:1.5rem;
+  display:flex;flex-direction:column;gap:1rem;
+  background:#fdfcf8;
+  scroll-behavior:smooth;
+}
+.dark .messages-wrap{background:#1a1714;}
+.messages-wrap::-webkit-scrollbar{width:4px;}
+.messages-wrap::-webkit-scrollbar-thumb{background:#e5d9c0;border-radius:4px;}
+.dark .messages-wrap::-webkit-scrollbar-thumb{background:#3d3830;}
+
+/* date divider */
+.date-sep{
+  display:flex;align-items:center;gap:10px;
+  font-size:.67rem;font-weight:700;color:#9c9488;letter-spacing:.07em;
+  margin:4px 0;
+}
+.date-sep::before,.date-sep::after{content:'';flex:1;height:1px;background:#f0e9d8;}
+.dark .date-sep::before,.dark .date-sep::after{background:#3d3830;}
+.dark .date-sep{color:#7a7268;}
+
+/* message row */
+.msg-row{display:flex;gap:12px;align-items:flex-start;animation:fadeUp .18s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.msg-row.out{flex-direction:row-reverse;}
+
+.msg-av{
+  width:38px;height:38px;border-radius:50%;flex-shrink:0;
+  background:#1a1714;display:flex;align-items:center;
+  justify-content:center;font-size:.75rem;font-weight:800;color:#f8f4ec;
+  margin-top:2px;
+}
+.dark .msg-av{background:#3d3830;color:#c4973a;}
+
+.msg-content{
+  max-width:68%;
+  background:#fff;border:1.5px solid #f0e9d8;
+  border-radius:4px 14px 14px 14px;
+  padding:9px 13px;
+  transition:box-shadow .15s;
+}
+.msg-row.out .msg-content{
+  background:#1a1714;border-color:#1a1714;
+  border-radius:14px 4px 14px 14px;
+  margin-left:auto;
+}
+.dark .msg-content{background:#2c2820;border-color:#3d3830;}
+.dark .msg-row.out .msg-content{background:#c4973a;border-color:#c4973a;}
+
+.msg-header{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.msg-name{font-size:.8rem;font-weight:800;color:#1a1714;}
+.dark .msg-name{color:#f0e9d8;}
+.msg-row.out .msg-name{color:#f8f4ec;}
+.dark .msg-row.out .msg-name{color:#1a1714;}
+.role-badge{
+  font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:5px;
+  background:rgba(196,151,58,.15);color:#c4973a;letter-spacing:.03em;
+}
+.dark .role-badge{background:rgba(196,151,58,.2);}
+.msg-text{font-size:.92rem;line-height:1.6;color:#1a1714;word-break:break-word;}
+.dark .msg-text{color:#f0e9d8;}
+.msg-row.out .msg-text{color:#f8f4ec;}
+.dark .msg-row.out .msg-text{color:#1a1714;}
+.msg-time{font-size:.65rem;color:#9c9488;font-weight:600;margin-top:6px;}
+.msg-row.out .msg-time{color:rgba(248,244,236,.55);}
+.dark .msg-row.out .msg-time{color:rgba(26,23,20,.5);}
+
+/* msg actions row */
+.msg-actions{
+  display:flex;align-items:center;gap:5px;margin-top:8px;flex-wrap:wrap;
+}
+.rxn-btn{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:.72rem;padding:3px 8px;border-radius:100px;
+  background:#f8f4ec;border:1px solid #e5d9c0;
+  cursor:pointer;transition:transform .15s,border-color .15s;
+  color:#5c5548;font-weight:700;text-decoration:none;
+}
+.rxn-btn:hover{transform:scale(1.12);border-color:#c4973a;}
+.rxn-btn.mine{background:#1a1714;color:#f8f4ec;border-color:#1a1714;}
+.dark .rxn-btn{background:#1a1714;border-color:#3d3830;color:#9c9488;}
+.dark .rxn-btn:hover{border-color:#c4973a;}
+.dark .rxn-btn.mine{background:#c4973a;color:#1a1714;border-color:#c4973a;}
+
+/* system msg */
+.sys-msg{
+  text-align:center;font-size:.72rem;color:#9c9488;font-weight:600;
+  padding:5px 14px;background:#f0e9d8;border-radius:100px;
+  align-self:center;
+}
+.dark .sys-msg{background:#2c2820;color:#7a7268;}
+
+/* empty state */
+.empty-state{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;color:#9c9488;
+  padding:3rem;
+}
+.empty-icon{
+  width:56px;height:56px;border-radius:18px;
+  border:1.5px dashed #e5d9c0;
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;
+}
+.dark .empty-icon{border-color:#3d3830;}
+.empty-state p{font-size:.88rem;font-weight:700;}
+.empty-state small{font-size:.78rem;color:#b0a898;}
+
+/* ── INPUT BAR ── */
+.input-bar{
+  padding:1rem 1.25rem;
+  background:#fff;border-top:1.5px solid #f0e9d8;
+  flex-shrink:0;
+}
+.dark .input-bar{background:#2c2820;border-color:#3d3830;}
+.input-inner{
+  display:flex;align-items:flex-end;gap:10px;
+  background:#f8f4ec;border:1.5px solid #e5d9c0;
+  border-radius:14px;padding:10px 10px 10px 16px;
+  transition:border-color .18s;
+}
+.input-inner:focus-within{border-color:#1a1714;}
+.dark .input-inner{background:#1a1714;border-color:#3d3830;}
+.dark .input-inner:focus-within{border-color:#c4973a;}
+.msg-input{
+  flex:1;border:none;background:transparent;outline:none;
+  font-family:'DM Sans',sans-serif;font-size:.92rem;
+  color:#1a1714;resize:none;max-height:100px;min-height:26px;line-height:1.5;
+}
+.msg-input::placeholder{color:#9c9488;}
+.dark .msg-input{color:#f0e9d8;}
+.send-btn{
+  width:40px;height:40px;border-radius:11px;border:none;
+  cursor:pointer;flex-shrink:0;background:#1a1714;color:#f8f4ec;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.95rem;transition:all .18s;
+}
+.send-btn:hover{background:#3d3830;transform:scale(1.04);}
+.send-btn:disabled{opacity:.3;cursor:not-allowed;transform:none;}
+.dark .send-btn{background:#c4973a;color:#1a1714;}
+.dark .send-btn:hover{background:#d4a84a;}
+
+/* guest/join bar */
+.guest-bar{
+  padding:1rem 1.25rem;background:#fff;border-top:1.5px solid #f0e9d8;
+  display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
+}
+.dark .guest-bar{background:#2c2820;border-color:#3d3830;}
+.guest-bar p{font-size:.85rem;color:#9c9488;font-weight:600;}
+.btn-join{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 20px;border-radius:11px;
+  background:#1a1714;color:#f8f4ec;
+  font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:700;
+  text-decoration:none;transition:all .18s;
+}
+.btn-join:hover{background:#3d3830;}
+.dark .btn-join{background:#c4973a;color:#1a1714;}
+.btn-pending{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 20px;border-radius:11px;
+  background:rgba(196,151,58,.1);color:#c4973a;
+  border:1.5px solid rgba(196,151,58,.3);
+  font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:700;
 }
 
-/* ─── CHAT LAYOUT — FULL SCREEN, 3 COLUMNS ─── */
-.chat-layout {
-  display: grid;
-  grid-template-columns: 260px 1fr 280px;
-  grid-template-rows: 100vh;
-  height: 100vh;
+/* ── PRIVATE WALL ── */
+.private-wall{
+  flex:1;display:flex;align-items:center;justify-content:center;padding:2.5rem;
+}
+.wall-card{
+  text-align:center;padding:2.5rem 2rem;max-width:380px;
+  background:#fff;border:1.5px solid #f0e9d8;border-radius:22px;
+}
+.dark .wall-card{background:#2c2820;border-color:#3d3830;}
+.lock-icon{
+  width:56px;height:56px;border-radius:16px;
+  background:#f8f4ec;border:1.5px solid #e5d9c0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;margin:0 auto 1.2rem;color:#1a1714;
+}
+.dark .lock-icon{background:#1a1714;border-color:#3d3830;color:#c4973a;}
+.wall-card h3{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;margin-bottom:.5rem;color:#1a1714;}
+.dark .wall-card h3{color:#f0e9d8;}
+.wall-card p{color:#9c9488;font-size:.85rem;line-height:1.7;margin-bottom:1.3rem;}
+
+/* ── RIGHT SIDEBAR ── */
+.sidebar{display:flex;flex-direction:column;gap:1.1rem;}
+
+.side-card{
+  background:#fff;border:1.5px solid #f0e9d8;
+  border-radius:18px;overflow:hidden;
+}
+.dark .side-card{background:#2c2820;border-color:#3d3830;}
+
+.side-head{
+  padding:.9rem 1.1rem;
+  border-bottom:1.5px solid #f0e9d8;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.dark .side-head{border-color:#3d3830;}
+.side-head-title{
+  display:flex;align-items:center;gap:8px;
+  font-size:.82rem;font-weight:800;color:#1a1714;
+}
+.dark .side-head-title{color:#f0e9d8;}
+.side-head-title i{color:#c4973a;font-size:.85rem;}
+.side-count{
+  font-size:.65rem;font-weight:800;
+  background:#f8f4ec;border:1px solid #e5d9c0;
+  color:#5c5548;padding:2px 8px;border-radius:6px;
+}
+.dark .side-count{background:#1a1714;border-color:#3d3830;color:#9c9488;}
+
+/* member search */
+.mem-search{
+  display:flex;align-items:center;gap:6px;
+  margin:.6rem .7rem .2rem;
+  background:#f8f4ec;border:1.5px solid #e5d9c0;
+  border-radius:9px;padding:6px 10px;
+}
+.dark .mem-search{background:#1a1714;border-color:#3d3830;}
+.mem-search i{color:#9c9488;font-size:.75rem;}
+.mem-search input{
+  border:none;background:transparent;outline:none;
+  font-family:'DM Sans',sans-serif;font-size:.78rem;color:#1a1714;width:100%;
+}
+.dark .mem-search input{color:#f0e9d8;}
+.mem-search input::placeholder{color:#9c9488;}
+
+.members-list{padding:.4rem .7rem .8rem;max-height:260px;overflow-y:auto;}
+.members-list::-webkit-scrollbar{width:3px;}
+.members-list::-webkit-scrollbar-thumb{background:#e5d9c0;border-radius:2px;}
+.dark .members-list::-webkit-scrollbar-thumb{background:#3d3830;}
+
+.member-row{
+  display:flex;align-items:center;gap:9px;
+  padding:7px 6px;border-radius:10px;transition:background .13s;
+}
+.member-row:hover{background:#f8f4ec;}
+.dark .member-row:hover{background:#1a1714;}
+.mem-av{
+  width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  background:#1a1714;display:flex;align-items:center;
+  justify-content:center;font-size:.7rem;font-weight:800;color:#f8f4ec;
+  position:relative;
+}
+.dark .mem-av{background:#3d3830;color:#c4973a;}
+.online-dot{
+  width:9px;height:9px;border-radius:50%;
+  background:#22c55e;border:2px solid #fff;
+  position:absolute;bottom:0;right:0;
+}
+.dark .online-dot{border-color:#2c2820;}
+.mem-info{flex:1;min-width:0;}
+.mem-name{font-size:.8rem;font-weight:700;color:#1a1714;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dark .mem-name{color:#f0e9d8;}
+.mem-role{font-size:.63rem;font-weight:700;margin-top:1px;}
+.mem-role.owner{color:#c4973a;}
+.mem-role.admin{color:#c4973a;}
+.mem-role.member{color:#9c9488;}
+.mem-acts{display:flex;gap:3px;}
+.m-btn{
+  width:23px;height:23px;border-radius:6px;border:1px solid #f0e9d8;
+  background:transparent;cursor:pointer;font-size:.65rem;
+  color:#9c9488;transition:all .13s;display:flex;align-items:center;
+  justify-content:center;text-decoration:none;
+}
+.m-btn:hover{border-color:#1a1714;color:#1a1714;background:#f8f4ec;}
+.m-btn.rm:hover{border-color:#dc2626;color:#dc2626;}
+.dark .m-btn{border-color:#3d3830;color:#7a7268;}
+.dark .m-btn:hover{border-color:#c4973a;color:#c4973a;}
+.crown-icon{color:#c4973a;font-size:.8rem;}
+
+/* pending */
+.pending-section{padding:.3rem .7rem .7rem;border-top:1.5px solid #f0e9d8;}
+.dark .pending-section{border-color:#3d3830;}
+.pending-label{font-size:.63rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#c4973a;display:flex;align-items:center;gap:5px;margin-bottom:7px;padding-top:8px;}
+.pending-item{background:rgba(196,151,58,.06);border:1px solid rgba(196,151,58,.18);border-radius:10px;padding:8px 9px;margin-bottom:5px;}
+.pending-name{font-size:.78rem;font-weight:700;color:#1a1714;}
+.dark .pending-name{color:#f0e9d8;}
+.pending-name small{display:block;font-size:.62rem;color:#9c9488;font-weight:600;}
+.pending-acts{display:flex;gap:5px;margin-top:6px;}
+.ap-btn{flex:1;padding:4px 0;border-radius:7px;text-align:center;font-size:.68rem;font-weight:700;text-decoration:none;transition:all .13s;background:rgba(5,150,105,.1);color:#059669;border:1px solid rgba(5,150,105,.2);}
+.ap-btn:hover{background:#059669;color:#fff;}
+.dc-btn{flex:1;padding:4px 0;border-radius:7px;text-align:center;font-size:.68rem;font-weight:700;text-decoration:none;transition:all .13s;background:rgba(220,38,38,.07);color:#dc2626;border:1px solid rgba(220,38,38,.18);}
+.dc-btn:hover{background:#dc2626;color:#fff;}
+
+/* guidelines */
+.guidelines-list{padding:.6rem .9rem 1rem;}
+.guide-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:8px 0;border-bottom:1px solid #f8f4ec;
+  font-size:.82rem;color:#5c5548;font-weight:500;line-height:1.4;
+}
+.guide-item:last-child{border-bottom:none;}
+.dark .guide-item{color:#9c9488;border-color:#3d3830;}
+.guide-icon{
+  width:26px;height:26px;border-radius:8px;
+  background:rgba(196,151,58,.12);color:#c4973a;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;flex-shrink:0;
 }
 
-/* ─── LEFT SIDEBAR (nav) ─── */
-.nav-sidebar {
-  background: var(--surface); border-right: 1px solid var(--border);
-  padding: 2rem 1.25rem; display: flex; flex-direction: column;
-  overflow-y: auto; height: 100vh;
+/* live activity */
+.live-list{padding:.5rem .7rem .8rem;}
+.live-row{
+  display:flex;align-items:center;gap:9px;
+  padding:6px 6px;border-radius:10px;
 }
-.logo {
-  font-size: 1.6rem; font-weight: 800;
-  background: linear-gradient(90deg, var(--primary), var(--secondary));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  margin-bottom: 2rem; display: block; text-decoration: none;
-}
-.nav-item {
-  display: flex; align-items: center; gap: 11px; padding: .7rem 1rem;
-  border-radius: 12px; color: var(--text-dim); text-decoration: none;
-  margin-bottom: .3rem; font-size: .85rem; font-weight: 600; transition: .18s;
-}
-.nav-item:hover { background: #f1f5f9; color: var(--primary); }
-.nav-item.active { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; }
-.nav-item i { width: 18px; text-align: center; font-size: .85rem; }
-.nav-bottom { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border); }
+.live-name{font-size:.8rem;font-weight:700;color:#1a1714;}
+.dark .live-name{color:#f0e9d8;}
+.live-status{font-size:.67rem;color:#9c9488;font-weight:500;}
+.live-dot-wrap{display:flex;align-items:center;gap:4px;font-size:.67rem;color:#22c55e;font-weight:700;}
 
-/* ─── CENTER: CHAT AREA ─── */
-.chat-area {
-  display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+/* load more btn */
+.load-more-btn{
+  width:100%;padding:6px 0;border-radius:9px;
+  border:1.5px solid #e5d9c0;background:transparent;
+  color:#7a7268;font-family:'DM Sans',sans-serif;
+  font-size:.73rem;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  transition:all .18s;
 }
+.load-more-btn:hover{border-color:#1a1714;color:#1a1714;background:#f8f4ec;}
+.load-more-btn:disabled{opacity:.4;cursor:not-allowed;}
+.dark .load-more-btn{border-color:#3d3830;color:#7a7268;}
+.dark .load-more-btn:hover{border-color:#c4973a;color:#c4973a;background:rgba(196,151,58,.06);}
 
-/* Chat header */
-.chat-header {
-  padding: 1.1rem 1.5rem;
-  background: var(--surface); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 1rem; flex-shrink: 0;
+/* leave btn */
+.leave-btn{
+  display:flex;align-items:center;gap:5px;
+  padding:6px 12px;border-radius:9px;
+  border:1.5px solid #e5d9c0;background:transparent;
+  color:#9c9488;font-family:'DM Sans',sans-serif;
+  font-size:.73rem;font-weight:700;cursor:pointer;
+  text-decoration:none;transition:all .18s;
 }
-.chat-header-icon {
-  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 1.1rem;
-}
-.chat-header-info { flex: 1; min-width: 0; }
-.chat-header-info h2 {
-  font-size: 1rem; font-weight: 800; color: var(--text-main);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.chat-header-meta {
-  font-size: .75rem; color: var(--text-dim); font-weight: 600;
-  display: flex; align-items: center; gap: .75rem; margin-top: .2rem;
-}
-.chat-header-meta span { display: flex; align-items: center; gap: .3rem; }
-.vis-chip {
-  font-size: .68rem; font-weight: 700; padding: .18rem .55rem;
-  border-radius: 6px;
-}
-.vis-chip.public { background: rgba(16,185,129,.1); color: #059669; }
-.vis-chip.private { background: rgba(239,68,68,.1); color: #dc2626; }
-.header-actions { display: flex; align-items: center; gap: .6rem; }
-.header-btn {
-  padding: .45rem .9rem; border-radius: 50px;
-  border: 1.5px solid var(--border); background: transparent;
-  color: var(--text-dim); font-family: inherit; font-size: .78rem;
-  font-weight: 600; cursor: pointer; transition: .18s;
-  display: flex; align-items: center; gap: .4rem; text-decoration: none;
-}
-.header-btn:hover { border-color: var(--primary); color: var(--primary); }
-.header-btn.danger:hover { border-color: #dc2626; color: #dc2626; }
-.pending-badge {
-  background: #f59e0b; color: #fff; font-size: .65rem;
-  font-weight: 800; padding: .15rem .45rem; border-radius: 50px; margin-left: .3rem;
-}
+.leave-btn:hover{border-color:#dc2626;color:#dc2626;}
+.dark .leave-btn{border-color:#3d3830;color:#7a7268;}
 
-/* Messages container */
-.messages-wrap {
-  flex: 1; overflow-y: auto; padding: 1.5rem;
-  background: var(--chat-bg); display: flex; flex-direction: column; gap: .75rem;
-}
-.messages-wrap::-webkit-scrollbar { width: 5px; }
-.messages-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+/* flash */
+.flash-wrap{position:fixed;top:14px;right:14px;z-index:9999;display:flex;flex-direction:column;gap:7px;max-width:320px;}
+.fb{padding:.75rem 1.1rem;border-radius:12px;color:#fff;font-weight:600;font-size:.83rem;animation:pi .25s ease;}
+@keyframes pi{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
+.fb-success{background:#1a1714;}.fb-error{background:#dc2626;}
+.fb-warning{background:#c4973a;color:#1a1714;}
 
-/* Date divider */
-.date-divider {
-  text-align: center; font-size: .72rem; color: var(--text-dim);
-  font-weight: 700; letter-spacing: .05em; margin: .5rem 0;
-  position: relative;
+/* toast */
+.ajax-toast{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(8px);
+  background:#1a1714;color:#f8f4ec;padding:8px 18px;border-radius:10px;
+  font-size:.8rem;font-weight:600;opacity:0;transition:all .25s;pointer-events:none;z-index:9999;
 }
-.date-divider::before, .date-divider::after {
-  content: ''; position: absolute; top: 50%;
-  width: calc(50% - 60px); height: 1px; background: var(--border);
-}
-.date-divider::before { left: 0; }
-.date-divider::after { right: 0; }
-
-/* Message bubble */
-.msg-row {
-  display: flex; gap: .7rem; align-items: flex-end;
-  animation: msgIn .2s ease;
-}
-@keyframes msgIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.msg-row.out { flex-direction: row-reverse; }
-.msg-avatar {
-  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  display: flex; align-items: center; justify-content: center;
-  font-size: .7rem; font-weight: 800; color: #fff;
-}
-.msg-body { max-width: 65%; display: flex; flex-direction: column; gap: .25rem; }
-.msg-row.out .msg-body { align-items: flex-end; }
-.msg-sender {
-  font-size: .72rem; font-weight: 700; color: var(--text-dim);
-  padding: 0 .3rem;
-}
-.msg-bubble {
-  padding: .65rem 1rem; border-radius: 18px;
-  font-size: .875rem; line-height: 1.55; word-break: break-word;
-}
-.msg-row.in .msg-bubble {
-  background: var(--msg-in); color: var(--text-main);
-  border: 1px solid var(--border);
-  border-bottom-left-radius: 4px;
-}
-.msg-row.out .msg-bubble {
-  background: var(--msg-out); color: #fff;
-  border-bottom-right-radius: 4px;
-}
-.msg-time {
-  font-size: .68rem; color: var(--text-dim); padding: 0 .3rem; font-weight: 600;
-}
-.msg-reactions {
-  display: flex; gap: .3rem; flex-wrap: wrap; padding: 0 .3rem;
-}
-.reaction-chip {
-  font-size: .75rem; padding: .15rem .5rem; border-radius: 50px;
-  background: rgba(124,58,237,.08); border: 1px solid rgba(124,58,237,.15);
-  cursor: pointer; transition: transform .15s;
-  text-decoration: none; color: var(--text-dim); font-weight: 700;
-}
-.reaction-chip:hover { transform: scale(1.15); }
-
-/* System message */
-.sys-msg {
-  text-align: center; font-size: .75rem; color: var(--text-dim);
-  font-weight: 600; padding: .3rem 1rem; background: rgba(124,58,237,.06);
-  border-radius: 50px; align-self: center;
-}
-
-/* ─── PRIVATE WALL (non-member on private community) ─── */
-.private-wall {
-  flex: 1; display: flex; align-items: center; justify-content: center;
-  background: var(--chat-bg);
-}
-.private-wall-card {
-  text-align: center; padding: 3rem 2.5rem; max-width: 420px;
-  background: var(--surface); border: 2px solid var(--border);
-  border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,.08);
-}
-.private-wall-card .lock-icon {
-  font-size: 3rem; margin-bottom: 1.25rem;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.private-wall-card h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: .6rem; }
-.private-wall-card p { color: var(--text-dim); font-size: .9rem; line-height: 1.6; margin-bottom: 1.5rem; }
-.btn-join {
-  display: inline-flex; align-items: center; gap: .5rem;
-  padding: .75rem 1.75rem; border-radius: 50px;
-  background: linear-gradient(90deg, var(--primary), var(--secondary));
-  color: #fff; font-family: inherit; font-size: .9rem;
-  font-weight: 700; text-decoration: none; transition: opacity .18s;
-}
-.btn-join:hover { opacity: .88; }
-.btn-join-pending {
-  display: inline-flex; align-items: center; gap: .5rem;
-  padding: .75rem 1.75rem; border-radius: 50px;
-  background: rgba(245,158,11,.12); color: #d97706;
-  border: 2px solid rgba(245,158,11,.3);
-  font-family: inherit; font-size: .9rem; font-weight: 700;
-  cursor: default;
-}
-
-/* ─── INPUT BAR ─── */
-.input-bar {
-  padding: 1rem 1.5rem; background: var(--surface);
-  border-top: 1px solid var(--border); flex-shrink: 0;
-}
-.input-inner {
-  display: flex; align-items: flex-end; gap: .75rem;
-  background: var(--chat-bg); border: 1.5px solid var(--border);
-  border-radius: 16px; padding: .6rem .75rem;
-  transition: border-color .18s;
-}
-.input-inner:focus-within { border-color: var(--primary); }
-.msg-input {
-  flex: 1; border: none; background: transparent; outline: none;
-  font-family: inherit; font-size: .9rem; color: var(--text-main);
-  resize: none; max-height: 100px; min-height: 24px; line-height: 1.5;
-}
-.msg-input::placeholder { color: var(--text-dim); }
-.send-btn {
-  width: 38px; height: 38px; border-radius: 10px; border: none; cursor: pointer;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  color: #fff; font-size: .95rem; display: flex; align-items: center;
-  justify-content: center; transition: opacity .18s, transform .15s; flex-shrink: 0;
-}
-.send-btn:hover { opacity: .9; transform: scale(1.05); }
-.send-btn:disabled { opacity: .4; transform: none; cursor: not-allowed; }
-
-/* Non-member bar (public: can see but not type) */
-.join-bar {
-  padding: 1rem 1.5rem; background: var(--surface);
-  border-top: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center; gap: 1rem;
-}
-.join-bar p { font-size: .88rem; color: var(--text-dim); font-weight: 600; }
-
-/* ─── RIGHT SIDEBAR (members) ─── */
-.members-sidebar {
-  background: var(--surface); border-left: 1px solid var(--border);
-  display: flex; flex-direction: column; height: 100vh; overflow: hidden;
-}
-.members-header {
-  padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--border);
-  font-size: .82rem; font-weight: 800; text-transform: uppercase;
-  letter-spacing: .07em; color: var(--text-dim);
-  display: flex; align-items: center; justify-content: space-between;
-}
-.members-list {
-  flex: 1; overflow-y: auto; padding: .75rem;
-}
-.members-list::-webkit-scrollbar { width: 4px; }
-.members-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-.member-row {
-  display: flex; align-items: center; gap: .75rem;
-  padding: .6rem .5rem; border-radius: 10px; transition: background .15s;
-  position: relative;
-}
-.member-row:hover { background: var(--bg); }
-.member-avatar {
-  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  display: flex; align-items: center; justify-content: center;
-  font-size: .75rem; font-weight: 800; color: #fff;
-}
-.member-info { flex: 1; min-width: 0; }
-.member-name {
-  font-size: .82rem; font-weight: 700; color: var(--text-main);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.member-role {
-  font-size: .68rem; font-weight: 700;
-}
-.member-role.owner { color: var(--primary); }
-.member-role.admin { color: #f59e0b; }
-.member-role.member { color: var(--text-dim); }
-.member-actions { display: flex; gap: .3rem; }
-.member-action-btn {
-  width: 26px; height: 26px; border-radius: 8px; border: 1px solid var(--border);
-  background: transparent; cursor: pointer; font-size: .7rem;
-  color: var(--text-dim); transition: .15s;
-  display: flex; align-items: center; justify-content: center;
-  text-decoration: none;
-}
-.member-action-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(124,58,237,.08); }
-.member-action-btn.remove:hover { border-color: #dc2626; color: #dc2626; background: rgba(220,38,38,.08); }
-
-/* Pending requests section */
-.pending-section {
-  border-top: 1px solid var(--border); padding: .75rem;
-}
-.pending-section-title {
-  font-size: .75rem; font-weight: 800; text-transform: uppercase;
-  letter-spacing: .07em; color: #d97706; margin-bottom: .6rem;
-  display: flex; align-items: center; gap: .4rem;
-}
-.pending-row {
-  display: flex; align-items: center; gap: .6rem;
-  padding: .5rem; border-radius: 10px; background: rgba(245,158,11,.05);
-  border: 1px solid rgba(245,158,11,.15); margin-bottom: .5rem;
-}
-.pending-name {
-  flex: 1; font-size: .8rem; font-weight: 700; color: var(--text-main);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.pending-name small { display: block; font-size: .68rem; color: var(--text-dim); font-weight: 600; }
-.approve-btn {
-  padding: .25rem .6rem; border-radius: 50px;
-  background: rgba(16,185,129,.12); color: #059669;
-  border: 1px solid rgba(16,185,129,.25);
-  font-family: inherit; font-size: .7rem; font-weight: 700;
-  cursor: pointer; text-decoration: none; transition: .15s;
-}
-.approve-btn:hover { background: #059669; color: #fff; }
-.decline-btn {
-  padding: .25rem .6rem; border-radius: 50px;
-  background: rgba(220,38,38,.08); color: #dc2626;
-  border: 1px solid rgba(220,38,38,.2);
-  font-family: inherit; font-size: .7rem; font-weight: 700;
-  cursor: pointer; text-decoration: none; transition: .15s;
-}
-.decline-btn:hover { background: #dc2626; color: #fff; }
-
-/* ─── DARK MODE ─── */
-html.dark body, body.dark {
-  --surface: #1a1a2e; --text-main: #e2e8f0; --text-dim: #94a3b8;
-  --border: #2d2d44; --bg: #0f0f1a; --chat-bg: #13131f;
-  --msg-in: #1e1e35;
-  background: #0f0f1a !important;
-}
-body.dark .nav-sidebar { background: #13131f !important; border-right-color: #2d2d44 !important; }
-body.dark .nav-item { color: #94a3b8 !important; }
-body.dark .nav-item:hover { background: #1e1e35 !important; color: #a78bfa !important; }
-body.dark .nav-item.active { background: linear-gradient(90deg,#7c3aed,#db2777) !important; color: #fff !important; }
-body.dark .nav-bottom { border-top-color: #2d2d44 !important; }
-body.dark .chat-header { background: #13131f !important; border-bottom-color: #2d2d44 !important; }
-body.dark .chat-header-info h2 { color: #e2e8f0 !important; }
-body.dark .header-btn { border-color: #2d2d44 !important; color: #94a3b8 !important; }
-body.dark .header-btn:hover { border-color: #a78bfa !important; color: #a78bfa !important; }
-body.dark .messages-wrap { background: #0f0f1a !important; }
-body.dark .msg-row.in .msg-bubble { background: #1e1e35 !important; border-color: #2d2d44 !important; color: #e2e8f0 !important; }
-body.dark .msg-time { color: #64748b !important; }
-body.dark .msg-sender { color: #64748b !important; }
-body.dark .reaction-chip { background: rgba(167,139,250,.1) !important; border-color: rgba(167,139,250,.2) !important; color: #a78bfa !important; }
-body.dark .input-bar { background: #13131f !important; border-top-color: #2d2d44 !important; }
-body.dark .input-inner { background: #0f0f1a !important; border-color: #2d2d44 !important; }
-body.dark .input-inner:focus-within { border-color: #a78bfa !important; }
-body.dark .msg-input { color: #e2e8f0 !important; }
-body.dark .members-sidebar { background: #13131f !important; border-left-color: #2d2d44 !important; }
-body.dark .members-header { border-bottom-color: #2d2d44 !important; }
-body.dark .member-name { color: #e2e8f0 !important; }
-body.dark .member-action-btn { border-color: #2d2d44 !important; color: #64748b !important; }
-body.dark .member-row:hover { background: #1e1e35 !important; }
-body.dark .pending-section { border-top-color: #2d2d44 !important; }
-body.dark .pending-row { background: rgba(245,158,11,.06) !important; border-color: rgba(245,158,11,.15) !important; }
-body.dark .pending-name { color: #e2e8f0 !important; }
-body.dark .private-wall { background: #0f0f1a !important; }
-body.dark .private-wall-card { background: #1a1a2e !important; border-color: #2d2d44 !important; }
-body.dark .private-wall-card h3 { color: #e2e8f0 !important; }
-body.dark .join-bar { background: #13131f !important; border-top-color: #2d2d44 !important; }
-body.dark .date-divider::before, body.dark .date-divider::after { background: #2d2d44 !important; }
-body.dark .sys-msg { background: rgba(167,139,250,.08) !important; }
-body.dark .vis-chip.public { background: rgba(16,185,129,.12) !important; color: #34d399 !important; }
-body.dark .vis-chip.private { background: rgba(239,68,68,.1) !important; color: #f87171 !important; }
-
-/* ─── RESPONSIVE ─── */
-@media (max-width: 900px) {
-  .chat-layout { grid-template-columns: 1fr; }
-  .nav-sidebar, .members-sidebar { display: none; }
-}
-@media (min-width: 901px) and (max-width: 1100px) {
-  .chat-layout { grid-template-columns: 220px 1fr 240px; }
-}
-
-/* ── Push chatbot bubble up so it never overlaps pending request buttons ── */
-#sb-bubble {
-  bottom: 90px !important;
-  right: 20px !important;
-  z-index: 999 !important;
-}
-#sb-window {
-  bottom: 150px !important;
-  right: 20px !important;
-  z-index: 999 !important;
-}
-/* Also keep notification bell clear of the header */
-.notif-float-btn {
-  top: 70px !important;
-  right: 300px !important; /* clear of the members sidebar */
-}
-.notif-dropdown {
-  top: 120px !important;
-  right: 300px !important;
-}
-/* Members sidebar: make pending section always scrollable into view */
-.members-sidebar {
-  overflow-y: auto !important;
-}
-.pending-section {
-  position: sticky;
-  bottom: 0;
-  background: var(--surface);
-  z-index: 10;
-}
+.ajax-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.dark .ajax-toast{background:#c4973a;color:#1a1714;}
 </style>
 </head>
 
@@ -429,401 +470,527 @@ body.dark .vis-chip.private { background: rgba(239,68,68,.1) !important; color: 
 {% set community_id_str = community._id | string %}
 {% set is_public = (community.visibility == 'public') %}
 
-<div class="chat-layout">
+<div class="flash-wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for cat,msg in messages %}
+      <div class="fb fb-{{cat}}">{{msg}}</div>
+    {% endfor %}{% endif %}
+  {% endwith %}
+</div>
+<div class="ajax-toast" id="ajax-toast"></div>
 
-  <!-- ── LEFT NAV SIDEBAR ── -->
-  <aside class="nav-sidebar">
-    <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
-    <a href="{{ url_for('main_page') }}" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
-    <a href="{{ url_for('profile') }}" class="nav-item"><i class="fas fa-user-circle"></i> My Profile</a>
-    <a href="{{ url_for('my_projects') }}" class="nav-item"><i class="fas fa-layer-group"></i> My Projects</a>
-    <a href="{{ url_for('roadmap_generator') }}" class="nav-item"><i class="fas fa-magic"></i> Roadmap AI</a>
-    <a href="{{ url_for('resume_builder') }}" class="nav-item"><i class="fas fa-file-alt"></i> Resume Builder</a>
-    <a href="{{ url_for('portfolio_builder') }}" class="nav-item"><i class="fas fa-briefcase"></i> Portfolio Builder</a>
-    <a href="{{ url_for('projects') }}" class="nav-item"><i class="fas fa-globe"></i> Explore Projects</a>
-    <a href="{{ url_for('find_communities') }}" class="nav-item active"><i class="fas fa-users"></i> Communities</a>
-    <a href="{{ url_for('messages_list') }}" class="nav-item"><i class="fas fa-comment-dots"></i> Messages</a>
-    <a href="{{ url_for('leaderboard') }}" class="nav-item"><i class="fas fa-trophy"></i> Leaderboard</a>
-    <div class="nav-bottom">
-      <a href="{{ url_for('settings') }}" class="nav-item"><i class="fas fa-cog"></i> Settings</a>
-    </div>
-  </aside>
+<div class="page">
 
-  <!-- ── CENTER: CHAT ── -->
-  <div class="chat-area">
+  <!-- back -->
+  <div class="back-row">
+    <a href="javascript:history.back()" class="back-btn">
+      <i class="fas fa-arrow-left"></i> Back
+    </a>
+  </div>
 
-    <!-- HEADER -->
-    <div class="chat-header">
-      <div class="chat-header-icon">
-        <i class="fas fa-users"></i>
+  <!-- ══ HERO BANNER ══ -->
+  <div class="hero">
+    <div class="hero-icon">{{ community.project_title[:2].upper() }}</div>
+    <div class="hero-info">
+      <div class="hero-title">
+        Community <span>Chat</span>
+        <span class="vis-chip {{ community.visibility }}">{{ community.visibility|capitalize }}</span>
       </div>
-      <div class="chat-header-info">
-        <h2>{{ community.project_title }}</h2>
-        <div class="chat-header-meta">
-          <span><i class="fas fa-users"></i> {{ members_data|length }} member{{ 's' if members_data|length != 1 }}</span>
-          <span class="vis-chip {{ community.visibility }}">{{ community.visibility|capitalize }}</span>
-          {% if community.project_id %}
-          <span><i class="fas fa-link"></i> <a href="{{ url_for('view_project', project_id=community.project_id) }}" style="color:inherit;text-decoration:underline;text-underline-offset:2px;">View Project</a></span>
+      <div class="hero-desc">{{ community.description or 'Connect, share ideas and grow together in this community.' }}</div>
+      {% if community.project_id %}
+      <a href="{{ url_for('view_project', project_id=community.project_id) }}" class="hero-project-link">
+        <i class="fas fa-link"></i> View Project
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ══ MAIN GRID ══ -->
+  <div class="main-grid">
+
+    <!-- ── CHAT CARD ── -->
+    <div class="chat-card">
+
+      {% if not is_member and not is_public %}
+      <!-- PRIVATE WALL -->
+      <div class="private-wall">
+        <div class="wall-card">
+          <div class="lock-icon"><i class="fas fa-lock"></i></div>
+          <h3>Private Community</h3>
+          <p>This is a private space. Request to join and once the owner approves, you'll be able to chat and collaborate.</p>
+          {% if user_request_pending %}
+            <span class="btn-pending"><i class="fas fa-clock"></i> Request Pending…</span>
+          {% else %}
+            <a href="{{ url_for('request_to_join_community', community_id=community._id) }}" class="btn-join">
+              <i class="fas fa-paper-plane"></i> Request to Join
+            </a>
           {% endif %}
         </div>
       </div>
-      <div class="header-actions">
-        {% if is_owner or is_admin %}
-          {% if pending_users %}
-          <span style="font-size:.78rem;font-weight:700;color:#d97706;">
-            <i class="fas fa-clock"></i>
-            <span class="pending-badge">{{ pending_users|length }}</span> pending
-          </span>
-          {% endif %}
-        {% endif %}
-        {% if is_member and not is_owner %}
-        <form method="POST" action="{{ url_for('leave_community', community_id=community._id) }}" style="display:inline" onsubmit="return confirm('Leave this community?')">
-          <button type="submit" class="header-btn danger"><i class="fas fa-sign-out-alt"></i> Leave</button>
-        </form>
-        {% endif %}
-        <a href="{{ url_for('find_communities') }}" class="header-btn"><i class="fas fa-arrow-left"></i> Back</a>
-      </div>
-    </div>
 
-    <!-- ────────────────────────────────────────────
-         PRIVATE COMMUNITY — NON-MEMBER VIEW
-    ──────────────────────────────────────────── -->
-    {% if not is_member and not is_public %}
-    <div class="private-wall">
-      <div class="private-wall-card">
-        <div class="lock-icon"><i class="fas fa-lock"></i></div>
-        <h3>Private Community</h3>
-        <p>
-          This is a private community. Send a join request to the owner — 
-          if approved, you'll be able to read and participate in the chat.
-        </p>
+      {% else %}
+
+      <!-- MESSAGES -->
+      <div class="messages-wrap" id="messages-wrap">
+        {% if not messages %}
+        <div class="empty-state">
+          <div class="empty-icon"><i class="fas fa-comments"></i></div>
+          <p>No messages yet</p>
+          <small>Be the first to say hello 👋</small>
+        </div>
+        {% else %}
+        {% set ns = namespace(last_date='', last_sender='') %}
+        {% for msg in messages %}
+          {% set msg_date = msg.timestamp.strftime('%b %d, %Y') if msg.timestamp else 'Today' %}
+          {% if msg_date != ns.last_date %}
+            <div class="date-sep">{{ msg_date }}</div>
+            {% set ns.last_date = msg_date %}
+            {% set ns.last_sender = '' %}
+          {% endif %}
+          {% set is_me = (msg.sender_id | string == user_id_str) %}
+          {% set sender_role = 'owner' if msg.sender_id | string == community.owner_id | string else 'member' %}
+          <div class="msg-row {{ 'out' if is_me else 'in' }}" id="msg-{{ msg._id }}">
+            {% if not is_me %}
+            <div class="msg-av">{{ msg.sender_name[0].upper() if msg.sender_name else '?' }}</div>
+            {% endif %}
+            <div class="msg-content">
+              <div class="msg-header">
+                <span class="msg-name">{{ 'You' if is_me else msg.sender_name }}</span>
+                {% if sender_role == 'owner' %}<span class="role-badge">Owner</span>{% endif %}
+              </div>
+              <div class="msg-text">{{ msg.message }}</div>
+              <div class="msg-time">{{ msg.timestamp.strftime('%I:%M %p') + ' IST' if msg.timestamp else '' }}</div>
+              {% if is_member %}
+              <div class="msg-actions">
+                {% for emoji in ['👍','❤️','🔥','😂'] %}
+                  {% set count = msg.reactions.get(emoji, [])|length if msg.reactions else 0 %}
+                  <a href="javascript:void(0)"
+                     class="rxn-btn {{ 'mine' if msg.reactions and current_user.id in msg.reactions.get(emoji, []) }}"
+                     onclick="reactMsg('{{ msg._id }}','{{ emoji }}',this)">
+                    {{ emoji }}{% if count > 0 %}<span class="rxn-count"> {{ count }}</span>{% endif %}
+                  </a>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% set ns.last_sender = msg.sender_id | string %}
+        {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- INPUT / GUEST BAR -->
+      {% if is_member %}
+      <div class="input-bar">
+        <div class="input-inner">
+          <textarea class="msg-input" id="msg-input" rows="1"
+            placeholder="Type your message…"
+            onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="send-btn" onclick="sendMessage()" title="Send (Enter)">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+      {% else %}
+      <div class="guest-bar">
+        <p><i class="fas fa-eye" style="margin-right:4px;"></i> Viewing as guest</p>
         {% if user_request_pending %}
-          <span class="btn-join-pending"><i class="fas fa-clock"></i> Request Pending…</span>
+          <span class="btn-pending"><i class="fas fa-clock"></i> Pending…</span>
         {% else %}
           <a href="{{ url_for('request_to_join_community', community_id=community._id) }}" class="btn-join">
             <i class="fas fa-paper-plane"></i> Request to Join
           </a>
         {% endif %}
-        <div style="margin-top:1.25rem;font-size:.78rem;color:var(--text-dim);">
-          <i class="fas fa-users"></i> {{ members_data|length }} member{{ 's' if members_data|length != 1 }}
-        </div>
       </div>
+      {% endif %}
+      {% endif %}
     </div>
 
-    <!-- ────────────────────────────────────────────
-         PUBLIC OR MEMBER VIEW — SHOW CHAT
-    ──────────────────────────────────────────── -->
-    {% else %}
-    <div class="messages-wrap" id="messages-wrap">
+    <!-- ── RIGHT SIDEBAR ── -->
+    <div class="sidebar">
 
-      {% if not messages %}
-      <div class="sys-msg">No messages yet. Be the first to say something! 👋</div>
-      {% endif %}
-
-      {% set ns = namespace(last_date='') %}
-      {% for msg in messages %}
-        {% set msg_date = msg.timestamp.strftime('%b %d, %Y') if msg.timestamp else 'Today' %}
-        {% if msg_date != ns.last_date %}
-          <div class="date-divider">{{ msg_date }}</div>
-          {% set ns.last_date = msg_date %}
-        {% endif %}
-
-        {% set is_me = (msg.sender_id | string == user_id_str) %}
-        <div class="msg-row {{ 'out' if is_me else 'in' }}" id="msg-{{ msg._id }}">
-          {% if not is_me %}
-          <div class="msg-avatar">{{ msg.sender_name[0].upper() if msg.sender_name else '?' }}</div>
-          {% endif %}
-          <div class="msg-body">
-            {% if not is_me %}<div class="msg-sender">{{ msg.sender_name }}</div>{% endif %}
-            <div class="msg-bubble">{{ msg.message }}</div>
-            <div class="msg-time">{{ msg.timestamp.strftime('%I:%M %p') + ' IST' if msg.timestamp else '' }}</div>
-            {% if is_member %}
-            <div class="msg-reactions">
-              {% for emoji in ['👍','❤️','🔥','😂'] %}
-                {% set count = msg.reactions.get(emoji, [])|length if msg.reactions else 0 %}
-                <a href="{{ url_for('react_to_message', community_id=community._id, message_id=msg._id, emoji=emoji) }}"
-                   class="reaction-chip">
-                  {{ emoji }}{% if count > 0 %} {{ count }}{% endif %}
-                </a>
-              {% endfor %}
+      <!-- Members card -->
+      <div class="side-card">
+        <div class="side-head">
+          <div class="side-head-title"><i class="fas fa-users"></i> Members</div>
+          <span class="side-count" id="members-count">{{ members_data|length }}</span>
+        </div>
+        <div class="mem-search">
+          <i class="fas fa-search"></i>
+          <input type="text" id="member-search-input" placeholder="Search members…" oninput="searchMembers(this.value)">
+        </div>
+        <div class="members-list" id="members-list">
+          {% for m in members_data[:2] %}
+          <div class="member-row" data-id="{{ m._id }}">
+            <div class="mem-av">
+              {{ m.name[0].upper() if m.name else '?' }}
+              <span class="online-dot"></span>
+            </div>
+            <div class="mem-info">
+              <div class="mem-name">{{ m.name }}</div>
+              <div class="mem-role {{ m.role }}">{{ m.role|capitalize }}</div>
+            </div>
+            {% if m.role == 'owner' %}
+              <i class="fas fa-crown crown-icon" title="Owner"></i>
+            {% endif %}
+            {% if (is_owner or is_admin) and m._id != user_id_str %}
+            <div class="mem-acts">
+              {% if m.role == 'member' and is_owner %}
+              <a href="{{ url_for('make_admin', community_id=community._id, user_id=m._id) }}" class="m-btn" title="Make Admin"><i class="fas fa-star"></i></a>
+              {% endif %}
+              {% if m.role == 'admin' and is_owner %}
+              <a href="{{ url_for('remove_admin', community_id=community._id, user_id=m._id) }}" class="m-btn" title="Remove Admin"><i class="fas fa-star-half-alt"></i></a>
+              {% endif %}
+              <a href="{{ url_for('remove_member', community_id=community._id, user_id=m._id) }}" class="m-btn rm" title="Remove" onclick="return confirm('Remove this member?')"><i class="fas fa-times"></i></a>
             </div>
             {% endif %}
           </div>
-          {% if is_me %}
-          <div class="msg-avatar">{{ current_user.name[0].upper() }}</div>
-          {% endif %}
+          {% endfor %}
         </div>
-      {% endfor %}
-    </div>
 
-    <!-- INPUT BAR — members only -->
-    {% if is_member %}
-    <div class="input-bar">
-      <div class="input-inner">
-        <textarea class="msg-input" id="msg-input" rows="1"
-          placeholder="Message {{ community.project_title }}…"
-          onkeydown="handleKey(event)"></textarea>
-        <button class="send-btn" id="send-btn" onclick="sendMessage()" title="Send (Enter)">
-          <i class="fas fa-paper-plane"></i>
-        </button>
-      </div>
-    </div>
-    {% else %}
-    <!-- Public community, not a member — read-only bar -->
-    <div class="join-bar">
-      <p><i class="fas fa-eye"></i> You're reading as a guest</p>
-      {% if user_request_pending %}
-        <span class="btn-join-pending" style="font-size:.82rem;padding:.5rem 1.25rem;">
-          <i class="fas fa-clock"></i> Request Pending…
-        </span>
-      {% else %}
-        <a href="{{ url_for('request_to_join_community', community_id=community._id) }}" class="btn-join" style="font-size:.82rem;padding:.5rem 1.25rem;">
-          <i class="fas fa-paper-plane"></i> Request to Join
-        </a>
-      {% endif %}
-    </div>
-    {% endif %}
-
-    {% endif %} {# end public/member vs private wall #}
-  </div> {# end chat-area #}
-
-  <!-- ── RIGHT MEMBERS SIDEBAR ── -->
-  <aside class="members-sidebar">
-    <div class="members-header">
-      <span>Members ({{ members_data|length }})</span>
-    </div>
-    <div class="members-list">
-      {% for m in members_data %}
-      <div class="member-row">
-        <div class="member-avatar">{{ m.name[0].upper() if m.name else '?' }}</div>
-        <div class="member-info">
-          <div class="member-name">{{ m.name }}</div>
-          <div class="member-role {{ m.role }}">{{ m.role|capitalize }}</div>
+        {% if members_data|length > 2 %}
+        <div style="padding:.3rem .7rem .7rem;">
+          <button class="load-more-btn" id="load-more-btn" onclick="loadMoreMembers()">
+            <i class="fas fa-chevron-down"></i> Load More
+          </button>
         </div>
-        {% if (is_owner or is_admin) and m._id != user_id_str %}
-        <div class="member-actions">
-          {% if m.role == 'member' and is_owner %}
-          <a href="{{ url_for('make_admin', community_id=community._id, user_id=m._id) }}"
-             class="member-action-btn" title="Make Admin"><i class="fas fa-star"></i></a>
-          {% endif %}
-          {% if m.role == 'admin' and is_owner %}
-          <a href="{{ url_for('remove_admin', community_id=community._id, user_id=m._id) }}"
-             class="member-action-btn" title="Remove Admin"><i class="fas fa-star-half-alt"></i></a>
-          {% endif %}
-          <a href="{{ url_for('remove_member', community_id=community._id, user_id=m._id) }}"
-             class="member-action-btn remove" title="Remove Member"
-             onclick="return confirm('Remove this member?')"><i class="fas fa-times"></i></a>
+        {% endif %}
+        <div class="pending-section">
+          <div class="pending-label"><i class="fas fa-clock"></i> Pending ({{ pending_users|length }})</div>
+          {% for pu in pending_users %}
+          <div class="pending-item">
+            <div class="pending-name">{{ pu.name }}<small>@{{ pu.username }}</small></div>
+            <div class="pending-acts">
+              <a href="{{ url_for('approve_member', community_id=community._id, user_id=pu._id) }}" class="ap-btn">✓ Accept</a>
+              <a href="{{ url_for('decline_member', community_id=community._id, user_id=pu._id) }}" class="dc-btn">✕ Decline</a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        {% if is_member and not is_owner %}
+        <div style="padding:.5rem .7rem .9rem;">
+          <form method="POST" action="{{ url_for('leave_community', community_id=community._id) }}" onsubmit="return confirm('Leave this community?')">
+            <button type="submit" class="leave-btn" style="width:100%;justify-content:center;">
+              <i class="fas fa-sign-out-alt"></i> Leave Community
+            </button>
+          </form>
         </div>
         {% endif %}
       </div>
-      {% endfor %}
-    </div>
 
-    <!-- PENDING REQUESTS — owner/admin only -->
-    {% if (is_owner or is_admin) and pending_users %}
-    <div class="pending-section">
-      <div class="pending-section-title">
-        <i class="fas fa-clock"></i> Pending Requests
-        <span class="pending-badge" style="font-size:.68rem;">{{ pending_users|length }}</span>
-      </div>
-      {% for pu in pending_users %}
-      <div class="pending-row">
-        <div class="pending-name">
-          {{ pu.name }}
-          <small>@{{ pu.username }}</small>
+      <!-- Community Guidelines -->
+      <div class="side-card">
+        <div class="side-head">
+          <div class="side-head-title"><i class="fas fa-shield-alt"></i> Community Guidelines</div>
         </div>
-        <div class="pending-actions" style="display:flex;gap:.35rem;flex-shrink:0;margin-top:.3rem;width:100%;">
-          <a href="{{ url_for('approve_member', community_id=community._id, user_id=pu._id) }}" class="approve-btn" style="flex:1;text-align:center;">✓ Accept</a>
-          <a href="{{ url_for('decline_member', community_id=community._id, user_id=pu._id) }}" class="decline-btn" style="flex:1;text-align:center;">✕ Decline</a>
+        <div class="guidelines-list">
+          <div class="guide-item">
+            <div class="guide-icon"><i class="fas fa-heart"></i></div>
+            Be respectful and kind
+          </div>
+          <div class="guide-item">
+            <div class="guide-icon"><i class="fas fa-lightbulb"></i></div>
+            Share knowledge freely
+          </div>
+          <div class="guide-item">
+            <div class="guide-icon"><i class="fas fa-ban"></i></div>
+            No spam or self-promotion
+          </div>
+          <div class="guide-item">
+            <div class="guide-icon"><i class="fas fa-users"></i></div>
+            Help the community grow
+          </div>
         </div>
       </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-  </aside>
 
-</div> {# end chat-layout #}
+      <!-- Live Activity -->
+      <div class="side-card">
+        <div class="side-head">
+          <div class="side-head-title"><i class="fas fa-bolt"></i> Live Activity</div>
+          <div class="live-dot-wrap"><span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;"></span> {{ members_data|length }} online</div>
+        </div>
+        <div class="live-list">
+          {% for m in members_data[:5] %}
+          <div class="live-row">
+            <div class="mem-av" style="width:30px;height:30px;font-size:.65rem;">
+              {{ m.name[0].upper() if m.name else '?' }}
+              <span class="online-dot"></span>
+            </div>
+            <div>
+              <div class="live-name">{{ m.name }}</div>
+              <div class="live-status">active now</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 {% include 'notification_bell.html' %}
 {% include 'chatbot_widget.html' %}
 
 <script>
-// ── THEME ──
 (function(){
-  var t = localStorage.getItem('sb-theme') || 'light';
-  document.body.classList.toggle('dark', t === 'dark');
+  var t=localStorage.getItem('sb-theme')||'light';
+  t==='dark'?document.documentElement.classList.add('dark'):document.documentElement.classList.remove('dark');
 })();
 
-// ── COMMUNITY CONFIG ──
-const COMMUNITY_ID   = "{{ community._id }}";
-const IS_MEMBER      = {{ 'true' if is_member else 'false' }};
-const CAN_POLL       = IS_MEMBER || {{ 'true' if is_public else 'false' }};
-const MY_INITIAL     = "{{ current_user.name[0].upper() }}";
-let   lastTimestamp  = null;
-let   polling        = null;
-let   pendingTempId  = null;
+const COMMUNITY_ID = "{{ community._id }}";
+const IS_MEMBER    = {{ 'true' if is_member else 'false' }};
+const CAN_POLL     = IS_MEMBER || {{ 'true' if is_public else 'false' }};
+const MY_INITIAL   = "{{ current_user.name[0].upper() if current_user.name else '?' }}";
+const MY_ID        = "{{ current_user.id }}";
+const OWNER_ID     = "{{ community.owner_id | string }}";
+let lastTimestamp  = null;
+let pendingTempId  = null;
 
-// Seed lastTimestamp from last server-rendered message (already IST from backend)
 {% if messages %}
 lastTimestamp = "{{ messages[-1].timestamp_iso if messages and messages[-1].get('timestamp_iso') else (messages[-1].timestamp.strftime('%Y-%m-%dT%H:%M:%S.000000') if messages and messages[-1].timestamp else '') }}";
 {% endif %}
 
-// ── AUTO-RESIZE TEXTAREA ──
-const input = document.getElementById('msg-input');
-if (input) {
-  input.addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
-  });
+/* auto resize */
+function autoResize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,100)+'px';
+}
+function handleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}
 }
 
-function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
+/* IST time */
+function nowIST(){
+  const utc=Date.now()+new Date().getTimezoneOffset()*60000;
+  const ist=new Date(utc+5.5*3600000);
+  let h=ist.getHours(),m=ist.getMinutes();
+  const ap=h>=12?'PM':'AM';h=h%12||12;
+  return `${h<10?'0'+h:h}:${m<10?'0'+m:m} ${ap} IST`;
+}
+function escHtml(s){
+  if(!s)return'';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// ── COMPUTE CURRENT IST TIME STRING ──
-// Used only for optimistic bubble — real messages use backend-formatted timestamp.
-function nowIST() {
-  const utc = Date.now() + new Date().getTimezoneOffset() * 60000;
-  const ist = new Date(utc + 5.5 * 3600 * 1000);
-  let h = ist.getHours(), m = ist.getMinutes();
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  return `${h < 10 ? '0'+h : h}:${m < 10 ? '0'+m : m} ${ampm} IST`;
-}
-
-// ── BUILD A MESSAGE DIV ──
-function buildMsgDiv(id, isMe, senderName, message, timeStr) {
-  const div = document.createElement('div');
-  div.className = `msg-row ${isMe ? 'out' : 'in'}`;
-  div.id = id;
-  const rawId = id.replace('msg-', '');
-  const reactionHtml = IS_MEMBER && rawId && !rawId.startsWith('temp') ? `<div class="msg-reactions">
-    ${['\ud83d\udc4d','\u2764\ufe0f','\ud83d\udd25','\ud83d\ude02'].map(e =>
-      `<a href="/community/${COMMUNITY_ID}/react/${rawId}/${encodeURIComponent(e)}" class="reaction-chip">${e}</a>`
-    ).join('')}
-  </div>` : '';
-  div.innerHTML = `
-    ${!isMe ? `<div class="msg-avatar">${escapeHtml(senderName.charAt(0).toUpperCase())}</div>` : ''}
-    <div class="msg-body">
-      ${!isMe ? `<div class="msg-sender">${escapeHtml(senderName)}</div>` : ''}
-      <div class="msg-bubble">${escapeHtml(message)}</div>
-      <div class="msg-time">${escapeHtml(timeStr)}</div>
+/* build message DOM */
+function buildMsg(id,isMe,senderName,message,timeStr){
+  const div=document.createElement('div');
+  const rawId=id.replace('msg-','');
+  const isTemp=rawId.startsWith('temp');
+  const isOwner=(MY_ID===OWNER_ID&&isMe)||(senderName&&senderName==='Owner');
+  div.className=`msg-row ${isMe?'out':'in'}`;
+  div.id=id;
+  const reactionHtml=IS_MEMBER&&!isTemp?`
+    <div class="msg-actions">
+      ${['👍','❤️','🔥','😂'].map(e=>
+        `<a href="javascript:void(0)" class="rxn-btn" onclick="reactMsg('${rawId}','${e}',this)">${e}</a>`
+      ).join('')}
+    </div>`:'';
+  div.innerHTML=`
+    ${!isMe?`<div class="msg-av">${escHtml((senderName||'?')[0].toUpperCase())}</div>`:''}
+    <div class="msg-content">
+      <div class="msg-header">
+        <span class="msg-name">${isMe?'You':escHtml(senderName)}</span>
+      </div>
+      <div class="msg-text">${escHtml(message)}</div>
+      <div class="msg-time">${escHtml(timeStr)}</div>
       ${reactionHtml}
-    </div>
-    ${isMe ? `<div class="msg-avatar">${MY_INITIAL}</div>` : ''}`;
+    </div>`;
   return div;
 }
 
-// ── SEND MESSAGE with optimistic UI ──
-async function sendMessage() {
-  if (!input || !IS_MEMBER) return;
-  const text = input.value.trim();
-  if (!text) return;
+/* toast */
+function showToast(msg){
+  const t=document.getElementById('ajax-toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
 
-  const btn = document.getElementById('send-btn');
-  btn.disabled = true;
-  input.value = '';
-  input.style.height = 'auto';
+/* quick react from hero (reacts to last message) */
+function quickReact(emoji){
+  const lastMsg=document.querySelector('.msg-row:last-child');
+  if(!lastMsg)return;
+  const rawId=lastMsg.id.replace('msg-','');
+  if(!rawId||rawId.startsWith('temp'))return;
+  const fakeEl=document.createElement('a');
+  reactMsg(rawId,emoji,fakeEl);
+}
 
-  // Show message instantly before server confirms
-  const wrap = document.getElementById('messages-wrap');
-  const tempId = 'temp-' + Date.now();
-  pendingTempId = tempId;
-  const tempDiv = buildMsgDiv(tempId, true, '', text, nowIST());
-  tempDiv.style.opacity = '0.55';
+/* send */
+async function sendMessage(){
+  if(!IS_MEMBER)return;
+  const input=document.getElementById('msg-input');
+  const text=input.value.trim();
+  if(!text)return;
+  const btn=document.getElementById('send-btn');
+  btn.disabled=true;
+  input.value='';input.style.height='auto';
+  const wrap=document.getElementById('messages-wrap');
+  const tempId='temp-'+Date.now();
+  pendingTempId=tempId;
+  const tempDiv=buildMsg(tempId,true,'',text,nowIST());
+  tempDiv.style.opacity='.5';
+  const empty=wrap.querySelector('.empty-state');
+  if(empty)empty.remove();
   wrap.appendChild(tempDiv);
-  wrap.scrollTop = wrap.scrollHeight;
-
-  try {
-    const res = await fetch(`/api/community/${COMMUNITY_ID}/send`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text })
+  wrap.scrollTop=wrap.scrollHeight;
+  try{
+    const res=await fetch(`/api/community/${COMMUNITY_ID}/send`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:text})
     });
-    const data = await res.json();
-    if (data.success) {
-      // Poll immediately — real message replaces the temp bubble
-      await pollMessages();
-    } else {
-      // Roll back on failure
-      const el = document.getElementById(tempId);
-      if (el) el.remove();
-      pendingTempId = null;
-      input.value = text;
-      console.error('Send failed:', data.error);
-    }
-  } catch(e) {
-    const el = document.getElementById(tempId);
-    if (el) el.remove();
-    pendingTempId = null;
-    input.value = text;
-    console.error('Send error:', e);
-  }
-  btn.disabled = false;
-  input.focus();
+    const data=await res.json();
+    if(data.success){await pollMessages();}
+    else{document.getElementById(tempId)?.remove();pendingTempId=null;input.value=text;showToast('Failed to send.');}
+  }catch(err){document.getElementById(tempId)?.remove();pendingTempId=null;input.value=text;showToast('Network error.');}
+  btn.disabled=false;input.focus();
 }
 
-// ── POLL NEW MESSAGES ──
-async function pollMessages() {
-  if (!CAN_POLL) return;
-  try {
-    const url = `/api/community/${COMMUNITY_ID}/messages` +
-                (lastTimestamp ? `?since=${encodeURIComponent(lastTimestamp)}` : '');
-    const res = await fetch(url);
-    if (!res.ok) return;
-    const data = await res.json();
-
-    if (data.messages && data.messages.length > 0) {
-      const wrap = document.getElementById('messages-wrap');
-      const wasAtBottom = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight < 100;
-      let addedAny = false;
-
-      data.messages.forEach(msg => {
-        // Already rendered by Jinja on page load — just advance the cursor
-        if (document.getElementById(`msg-${msg.id}`)) {
-          lastTimestamp = msg.timestamp_iso;
-          return;
-        }
-        // Remove optimistic bubble when my real message arrives
-        if (msg.is_me && pendingTempId) {
-          const tempEl = document.getElementById(pendingTempId);
-          if (tempEl) tempEl.remove();
-          pendingTempId = null;
-        }
-        // msg.timestamp is "HH:MM AM/PM IST" already formatted by backend
-        const div = buildMsgDiv(
-          `msg-${msg.id}`,
-          msg.is_me,
-          msg.sender_name,
-          msg.message,
-          msg.timestamp
-        );
-        wrap.appendChild(div);
-        lastTimestamp = msg.timestamp_iso;
-        addedAny = true;
+/* poll */
+async function pollMessages(){
+  if(!CAN_POLL)return;
+  try{
+    const url=`/api/community/${COMMUNITY_ID}/messages`+(lastTimestamp?`?since=${encodeURIComponent(lastTimestamp)}`:'');
+    const res=await fetch(url);
+    if(!res.ok)return;
+    const data=await res.json();
+    if(data.messages&&data.messages.length>0){
+      const wrap=document.getElementById('messages-wrap');
+      const atBottom=wrap.scrollHeight-wrap.scrollTop-wrap.clientHeight<80;
+      let added=false;
+      data.messages.forEach(msg=>{
+        if(document.getElementById(`msg-${msg.id}`)){lastTimestamp=msg.timestamp_iso;return;}
+        if(msg.is_me&&pendingTempId){document.getElementById(pendingTempId)?.remove();pendingTempId=null;}
+        wrap.appendChild(buildMsg(`msg-${msg.id}`,msg.is_me,msg.sender_name,msg.message,msg.timestamp));
+        lastTimestamp=msg.timestamp_iso;added=true;
       });
-
-      if (addedAny && wasAtBottom) wrap.scrollTop = wrap.scrollHeight;
+      if(added&&atBottom)wrap.scrollTop=wrap.scrollHeight;
     }
-  } catch(e) { /* silent fail — next interval retries */ }
+  }catch(e){}
 }
 
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+/* reactions AJAX */
+async function reactMsg(msgId,emoji,el){
+  if(!IS_MEMBER)return;
+  try{
+    const res=await fetch(`/community/${COMMUNITY_ID}/react/${msgId}/${encodeURIComponent(emoji)}`,{
+      method:'POST',
+      headers:{'X-Requested-With':'XMLHttpRequest','Content-Type':'application/json'}
+    });
+    if(!res.ok){showToast('Could not react.');return;}
+    const data=await res.json();
+    if(!data.success){showToast('Could not react.');return;}
+    el.classList.toggle('mine',data.reacted);
+    const countEl=el.querySelector('.rxn-count');
+    if(data.count>0){
+      if(countEl)countEl.textContent=' '+data.count;
+      else el.insertAdjacentHTML('beforeend',`<span class="rxn-count"> ${data.count}</span>`);
+    }else{countEl?.remove();}
+  }catch(err){showToast('Network error.');}
 }
 
-// ── INIT ──
-window.addEventListener('DOMContentLoaded', () => {
-  const wrap = document.getElementById('messages-wrap');
-  if (wrap) wrap.scrollTop = wrap.scrollHeight;
-  if (CAN_POLL) {
-    polling = setInterval(pollMessages, 2000);
+/* member search — server side */
+let memberSearchTimer = null;
+function searchMembers(q){
+  clearTimeout(memberSearchTimer);
+  memberSearchTimer = setTimeout(async()=>{
+    const list = document.getElementById('members-list');
+    const btn  = document.getElementById('load-more-btn');
+    if(!q.trim()){
+      // reset: reload first 2
+      membersOffset = 2;
+      list.innerHTML = '';
+      await fetchMembers(0, 2, '', true);
+      if(btn) btn.style.display='';
+      return;
+    }
+    if(btn) btn.style.display='none';
+    list.innerHTML = '<div style="padding:8px 6px;font-size:.78rem;color:#9c9488;">Searching…</div>';
+    try{
+      const res = await fetch(`/api/community/${COMMUNITY_ID}/members?q=${encodeURIComponent(q)}&limit=20`);
+      const data = await res.json();
+      list.innerHTML = '';
+      if(!data.members || data.members.length===0){
+        list.innerHTML='<div style="padding:8px 6px;font-size:.78rem;color:#9c9488;">No members found.</div>';
+        return;
+      }
+      data.members.forEach(m => list.appendChild(buildMemberRow(m)));
+    }catch(e){ list.innerHTML='<div style="padding:8px 6px;font-size:.78rem;color:#9c9488;">Error loading.</div>'; }
+  }, 350);
+}
+
+/* load more */
+const PAGE_SIZE = 2;
+let membersOffset = 2; // first 2 already rendered by Jinja
+let membersLoading = false;
+let membersExhausted = false;
+
+async function fetchMembers(offset, limit, q='', replace=false){
+  const list = document.getElementById('members-list');
+  try{
+    const res = await fetch(`/api/community/${COMMUNITY_ID}/members?offset=${offset}&limit=${limit}&q=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    if(replace) list.innerHTML='';
+    if(!data.members || data.members.length===0){ membersExhausted=true; return 0; }
+    data.members.forEach(m => list.appendChild(buildMemberRow(m)));
+    return data.members.length;
+  }catch(e){ return 0; }
+}
+
+async function loadMoreMembers(){
+  if(membersLoading || membersExhausted) return;
+  membersLoading = true;
+  const btn = document.getElementById('load-more-btn');
+  if(btn){ btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Loading…'; }
+  const loaded = await fetchMembers(membersOffset, PAGE_SIZE);
+  membersOffset += loaded;
+  membersLoading = false;
+  if(btn){
+    if(loaded < PAGE_SIZE){ btn.style.display='none'; membersExhausted=true; }
+    else{ btn.disabled=false; btn.innerHTML='<i class="fas fa-chevron-down"></i> Load More'; }
   }
+}
+
+function buildMemberRow(m){
+  const div = document.createElement('div');
+  div.className = 'member-row';
+  div.dataset.id = m.id;
+  div.innerHTML = `
+    <div class="mem-av">${(m.name||'?')[0].toUpperCase()}<span class="online-dot"></span></div>
+    <div class="mem-info">
+      <div class="mem-name">${escHtml(m.name)}</div>
+      <div class="mem-role ${m.role}">${m.role.charAt(0).toUpperCase()+m.role.slice(1)}</div>
+    </div>
+    ${m.role==='owner'?'<i class="fas fa-crown crown-icon" title="Owner"></i>':''}
+  `;
+  return div;
+}
+
+/* flash auto dismiss */
+document.querySelectorAll('.fb').forEach(el=>{
+  setTimeout(()=>el.style.opacity='0',3500);
+  setTimeout(()=>el.remove(),3800);
+});
+
+/* init */
+window.addEventListener('DOMContentLoaded',()=>{
+  const wrap=document.getElementById('messages-wrap');
+  if(wrap)wrap.scrollTop=wrap.scrollHeight;
+  if(CAN_POLL)setInterval(pollMessages,2500);
+
+  // Match chat card height to sidebar height
+  function syncChatHeight(){
+    const sidebar=document.querySelector('.sidebar');
+    const chatCard=document.querySelector('.chat-card');
+    if(sidebar&&chatCard){
+      chatCard.style.height=sidebar.offsetHeight+'px';
+    }
+  }
+  syncChatHeight();
+  window.addEventListener('resize',syncChatHeight);
 });
 </script>
 </body>

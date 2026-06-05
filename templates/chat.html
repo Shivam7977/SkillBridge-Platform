@@ -1,216 +1,336 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+<head>
+<link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chat with {{ receiver.name }} | SkillBridge</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
 <style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
 :root {
-  --bg: #f5f6fb;
-  --surface: #ffffff;
-  --primary: #8B5CF6;
-  --secondary: #EC4899;
-  --text-main: #0f172a;
-  --text-dim: #64748b;
-  --border: #e5e7eb;
+  --bg:        #f8f4ec;
+  --surface:   #ffffff;
+  --border:    #e5d9c0;
+  --text:      #1a1714;
+  --muted:     #7a7268;
+  --sent-bg:   #1a1714;
+  --sent-text: #f8f4ec;
+  --recv-bg:   #ffffff;
+  --recv-text: #1a1714;
+  --gold:      #c4973a;
+  --input-bg:  #f8f4ec;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* Dark mode */
+body.dark {
+  --bg:        #1a1714;
+  --surface:   #2c2820;
+  --border:    #3d3830;
+  --text:      #f0e9d8;
+  --muted:     #9c9488;
+  --sent-bg:   #c4973a;
+  --sent-text: #1a1714;
+  --recv-bg:   #3d3830;
+  --recv-text: #f0e9d8;
+  --input-bg:  #2c2820;
+}
+
 body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  background-color: var(--bg);
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* ---------- CHAT CONTAINER ---------- */
-.chat-wrapper {
-  width: 100%;
-  max-width: 500px;
-  height: 90vh;
-  background: var(--surface);
-  border-radius: 30px;
-  border: 1px solid var(--border);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  color: var(--text);
+  transition: background .3s, color .3s;
 }
 
-/* ---------- HEADER ---------- */
+/* ── HEADER ── */
 .chat-header {
-  padding: 1.2rem 1.5rem;
-  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  gap: 15px;
-  background: white;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  transition: background .3s, border-color .3s;
 }
-.back-link { color: var(--text-dim); text-decoration: none; font-size: 1.2rem; }
-.back-link:hover { color: var(--primary); }
+.back-link {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 1.1rem;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px;
+  transition: background .18s, color .18s;
+  flex-shrink: 0;
+}
+.back-link:hover { background: var(--bg); color: var(--text); }
 
 .receiver-img {
-  width: 45px; height: 45px;
-  border-radius: 14px;
+  width: 42px; height: 42px;
+  border-radius: 12px;
   object-fit: cover;
+  flex-shrink: 0;
+  border: 1.5px solid var(--border);
 }
-.receiver-info h3 { font-size: 1rem; font-weight: 800; }
-.receiver-info p { font-size: 0.75rem; color: #10b981; font-weight: 600; }
+.receiver-info h3 { font-size: .95rem; font-weight: 800; color: var(--text); }
+.receiver-info p  { font-size: .72rem; color: #10b981; font-weight: 600; }
 
-/* ---------- MESSAGES AREA ---------- */
+/* ── MESSAGES ── */
 .messages-box {
   flex: 1;
-  padding: 1.5rem;
   overflow-y: auto;
+  padding: 18px 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  background-color: #fafafa;
+  gap: 10px;
+  background: var(--bg);
+  transition: background .3s;
 }
+.messages-box::-webkit-scrollbar { width: 4px; }
+.messages-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
 .msg {
-  max-width: 80%;
-  padding: 12px 16px;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  max-width: min(78%, 380px);
+  padding: 10px 14px;
+  font-size: .88rem;
+  line-height: 1.55;
+  word-break: break-word;
 }
-
 .msg.sent {
   align-self: flex-end;
-  background: linear-gradient(135deg, var(--primary), #a78bfa);
-  color: white;
+  background: var(--sent-bg);
+  color: var(--sent-text);
   border-radius: 18px 18px 4px 18px;
 }
-
 .msg.received {
   align-self: flex-start;
-  background: white;
-  color: var(--text-main);
+  background: var(--recv-bg);
+  color: var(--recv-text);
   border: 1px solid var(--border);
   border-radius: 18px 18px 18px 4px;
 }
-
 .sender-label {
-  font-size: 0.7rem;
+  font-size: .68rem;
   font-weight: 700;
-  opacity: 0.8;
-  margin-bottom: 4px;
+  opacity: .75;
+  margin-bottom: 3px;
 }
-
 .timestamp {
-  font-size: 0.65rem;
-  margin-top: 6px;
+  font-size: .62rem;
+  margin-top: 5px;
   display: block;
-  opacity: 0.7;
+  opacity: .65;
   text-align: right;
 }
 
-/* ---------- INPUT ---------- */
+/* ── INPUT ── */
 .input-form {
-  padding: 1.2rem;
-  background: white;
-  border-top: 1px solid var(--border);
   display: flex;
   gap: 10px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  transition: background .3s, border-color .3s;
+  /* safe area for phones */
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
 }
-
 .input-form input {
   flex: 1;
-  padding: 12px 20px;
+  padding: 11px 18px;
   border-radius: 25px;
   border: 1.5px solid var(--border);
-  background: #f8fafc;
+  background: var(--input-bg);
   font-family: inherit;
+  font-size: .88rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color .18s, background .3s;
+  min-width: 0;
 }
-.input-form input:focus { border-color: var(--primary); background: white; }
+.input-form input:focus { border-color: var(--gold); background: var(--surface); }
+.input-form input::placeholder { color: var(--muted); }
 
 .send-btn {
-  width: 45px; height: 45px;
+  width: 44px; height: 44px; min-width: 44px;
   border-radius: 50%;
   border: none;
-  background: var(--primary);
-  color: white;
+  background: var(--sent-bg);
+  color: var(--sent-text);
   cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .95rem;
+  transition: transform .18s, opacity .18s;
 }
-.send-btn:hover { background: var(--secondary); }
+.send-btn:hover { opacity: .85; transform: scale(1.05); }
+.send-btn:active { transform: scale(.96); }
 
+/* ── EMPTY STATE ── */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: .85rem;
+}
+.empty-state i { font-size: 2rem; opacity: .35; }
 
-/* ── Fix overlapping widgets in chat layout ── */
-#sb-bubble {
-    bottom: 90px !important;  /* above the send button */
-}
-#sb-window {
-    bottom: 148px !important;
-}
-.notif-float-btn {
-    top: 14px !important;
-    right: 70px !important;  /* shift left — away from browser edge buttons */
-}
-.notif-dropdown {
-    top: 70px !important;
-    right: 70px !important;
-}
+/* ── Chatbot widget pushup fix ── */
+#sb-bubble { bottom: 90px !important; }
+#sb-window  { bottom: 148px !important; }
+.notif-float-btn { top: 14px !important; right: 70px !important; }
+.notif-dropdown  { top: 70px !important; right: 70px !important; }
 </style>
 </head>
 
 <body>
 
-<div class="chat-wrapper">
+<header class="chat-header">
+  <a href="{{ url_for('messages_list') }}" class="back-link">
+    <i class="fas fa-chevron-left"></i>
+  </a>
+  <img class="receiver-img"
+       src="{{ url_for('static', filename='profile_pics/' + receiver.profile_pic) }}"
+       alt="{{ receiver.name }}">
+  <div class="receiver-info">
+    <h3>{{ receiver.name }}</h3>
+    <p>Active Now</p>
+  </div>
+</header>
 
-  <header class="chat-header">
-    <a href="{{ url_for('messages_list') }}" class="back-link">
-      <i class="fas fa-chevron-left"></i>
-    </a>
-    <img class="receiver-img"
-         src="{{ url_for('static', filename='profile_pics/' + receiver.profile_pic) }}">
-    <div class="receiver-info">
-      <h3>{{ receiver.name }}</h3>
-      <p>Active Now</p>
-    </div>
-  </header>
-
-  <div class="messages-box" id="msgContainer">
+<div class="messages-box" id="msgContainer">
+  {% if messages %}
     {% for msg in messages %}
       {% set is_me = (msg.sender_id|string == current_user.id) %}
-      <div class="msg {{ 'sent' if is_me else 'received' }}">
-        
-        <!-- ✅ SENDER NAME LOGIC -->
-        <div class="sender-label">
-          {{ 'Me' if is_me else receiver.name }}
-        </div>
-
+      <div class="msg {{ 'sent' if is_me else 'received' }}"
+           data-id="{{ msg._id }}">
+        <div class="sender-label">{{ 'Me' if is_me else receiver.name }}</div>
         {{ msg.content }}
-        <span class="timestamp">{{ msg.timestamp_ist.strftime('%I:%M %p') + ' IST' if msg.timestamp_ist else msg.timestamp.strftime('%I:%M %p') }}</span>
+        <span class="timestamp">
+          {{ msg.timestamp_ist.strftime('%I:%M %p') + ' IST' if msg.timestamp_ist else msg.timestamp.strftime('%I:%M %p') }}
+        </span>
       </div>
     {% endfor %}
-  </div>
-
-  <form class="input-form"
-        action="{{ url_for('chat', receiver_id=receiver._id) }}"
-        method="POST">
-    <input type="text" name="content" placeholder="Type a message..." required autofocus>
-    <button type="submit" class="send-btn">
-      <i class="fas fa-paper-plane"></i>
-    </button>
-  </form>
-
+  {% else %}
+    <div class="empty-state" id="emptyState">
+      <i class="fas fa-comment-dots"></i>
+      <span>No messages yet. Say hi! 👋</span>
+    </div>
+  {% endif %}
 </div>
 
+<form class="input-form" id="msgForm"
+      action="{{ url_for('chat', receiver_id=receiver._id) }}"
+      method="POST">
+  <input type="text" name="content" id="msgInput"
+         placeholder="Type a message…" required autocomplete="off">
+  <button type="submit" class="send-btn">
+    <i class="fas fa-paper-plane"></i>
+  </button>
+</form>
+
+{% include 'notification_bell.html' %}
+{% include 'chatbot_widget.html' %}
+
 <script>
-  const container = document.getElementById('msgContainer');
-  container.scrollTop = container.scrollHeight;
+// ── Dark mode ────────────────────────────────────────────
+(function(){
+  var t = localStorage.getItem('sb-theme') || 'light';
+  t === 'dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark');
+})();
+
+// ── Scroll to bottom ─────────────────────────────────────
+const container = document.getElementById('msgContainer');
+function scrollBottom(){ container.scrollTop = container.scrollHeight; }
+scrollBottom();
+
+// ── Real-time polling ────────────────────────────────────
+const RECEIVER_ID = "{{ receiver._id }}";
+const MY_ID       = "{{ current_user.id }}";
+const RECV_NAME   = "{{ receiver.name }}";
+
+// track last message timestamp from initial load
+let lastTimestamp = null;
+const existingMsgs = container.querySelectorAll('.msg[data-id]');
+// We'll use the server time from the last rendered message — just poll all new ones
+// We track by storing ISO from API response
+let lastIso = null;
+
+async function pollMessages() {
+  try {
+    const url = `/api/dm/${RECEIVER_ID}/messages` + (lastIso ? `?since=${encodeURIComponent(lastIso)}` : '');
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data.messages || data.messages.length === 0) return;
+
+    const empty = document.getElementById('emptyState');
+    if (empty) empty.remove();
+
+    const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
+
+    data.messages.forEach(msg => {
+      // avoid duplicates
+      if (container.querySelector(`[data-id="${msg.id}"]`)) return;
+
+      const isMe = msg.sender_id === MY_ID;
+      const div = document.createElement('div');
+      div.className = `msg ${isMe ? 'sent' : 'received'}`;
+      div.dataset.id = msg.id;
+      div.innerHTML = `
+        <div class="sender-label">${isMe ? 'Me' : RECV_NAME}</div>
+        ${escapeHtml(msg.content)}
+        <span class="timestamp">${msg.timestamp_str}</span>
+      `;
+      container.appendChild(div);
+      lastIso = msg.timestamp_iso;
+    });
+
+    if (wasAtBottom) scrollBottom();
+  } catch(e) { /* silent fail */ }
+}
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Send via fetch (no page reload) ─────────────────────
+const form = document.getElementById('msgForm');
+const input = document.getElementById('msgInput');
+
+form.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const content = input.value.trim();
+  if (!content) return;
+
+  input.value = '';
+  input.focus();
+
+  try {
+    const fd = new FormData();
+    fd.append('content', content);
+    const res = await fetch(`/chat/${RECEIVER_ID}`, { method:'POST', body: fd });
+    // After sending, immediately poll for new messages
+    await pollMessages();
+  } catch(err) {
+    console.error('Send failed:', err);
+  }
+});
+
+// Start polling every 2.5s
+setInterval(pollMessages, 2500);
 </script>
 
 </body>
-{% include 'notification_bell.html' %}
-{% include 'chatbot_widget.html' %}
-<script>
-(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
-</script>
 </html>
+

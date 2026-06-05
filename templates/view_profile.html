@@ -1,323 +1,261 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var t=localStorage.getItem('sb-theme')||'light';if(t==='dark'){document.documentElement.style.background='#0f0f1a';}})();</script>
-<link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+<script>(function(){var t=localStorage.getItem('sb-theme')||'light';if(t==='dark'){document.documentElement.classList.add('dark');document.documentElement.style.background='#1a1714';}})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ profile.name }} · SkillBridge</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<title>{{ profile.name }} - SkillBridge</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Playfair Display', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
+      },
+      colors: {
+        cream: { 50:'#fdfcf8', 100:'#f8f4ec', 200:'#f0e9d8', 300:'#e5d9c0', 400:'#d4c4a0', 500:'#b8a07a' },
+        ink:   { 900:'#1a1714', 800:'#2c2820', 700:'#3d3830', 600:'#5c5548', 500:'#7a7268', 400:'#9c9488' },
+        gold:  '#c4973a',
+        skill: { purple:'#7c3aed', pink:'#ec4899' }
+      }
+    }
+  }
+}
+</script>
+
 <style>
-:root{
-  --primary:#7c3aed; --secondary:#ec4899;
-  --bg:#f4f6fb; --card:#ffffff; --text:#0f172a; --muted:#64748b; --border:#e5e7eb;
-}
-*{margin:0;padding:0;box-sizing:border-box}
-body{ font-family:Inter,system-ui; background:var(--bg); color:var(--text); }
-.wrapper{ max-width:1200px; margin:60px auto; padding:0 20px; }
+body { font-family: 'DM Sans', sans-serif; }
 
-/* HERO */
-.hero{ background:linear-gradient(135deg,var(--primary),var(--secondary)); border-radius:32px; padding:60px; color:white; display:grid; grid-template-columns:auto 1fr; gap:40px; align-items:center; box-shadow:0 40px 80px rgba(124,58,237,.35); }
-.avatar{ width:170px; height:170px; border-radius:28px; border:6px solid rgba(255,255,255,.6); object-fit:cover; background:white; }
-.hero h1{ font-size:3rem; font-weight:900; }
-.hero p{ margin-top:6px; font-size:1.15rem; opacity:.95; }
-.identity-bar{ display:flex; flex-wrap:wrap; gap:18px; margin-top:18px; }
-.identity-item{ display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.18); padding:12px 18px; border-radius:14px; font-weight:700; font-size:.95rem; }
-
-/* BADGE IN HERO */
-.hero-badge { display:inline-flex; align-items:center; gap:10px; background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.4); border-radius:20px; padding:8px 18px; margin-top:16px; font-weight:800; font-size:0.95rem; }
-.hero-badge-icon { font-size:1.4rem; }
-.hero-streak { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.3); border-radius:20px; padding:7px 16px; margin-top:10px; margin-left:10px; font-weight:700; font-size:0.88rem; }
-
-/* STATS */
-.stats{ margin-top:-40px; display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
-.stat-card{ background:var(--card); border-radius:22px; padding:26px; text-align:center; box-shadow:0 20px 40px rgba(15,23,42,.08); }
-.stat-card h3{ font-size:1.8rem; font-weight:800; }
-.stat-card span{ font-size:.75rem; font-weight:700; color:var(--muted); text-transform:uppercase; }
-
-/* XP STAT CARD */
-.stat-card.xp-card { border: 2px solid rgba(124,58,237,0.2); background: linear-gradient(135deg, #faf8ff, #fff); }
-.xp-card-bar-bg { width:100%; height:5px; background:rgba(124,58,237,0.12); border-radius:3px; overflow:hidden; margin-top:8px; }
-.xp-card-bar-fill { height:100%; background:linear-gradient(90deg,var(--primary),var(--secondary)); border-radius:3px; }
-.xp-card-next { font-size:0.62rem; color:var(--muted); font-weight:600; margin-top:4px; }
-
-/* MAIN */
-.main{ margin-top:60px; display:grid; grid-template-columns:2fr 1fr; gap:40px; }
-
-/* SECTIONS */
-.section{ background:var(--card); border-radius:26px; padding:36px; box-shadow:0 20px 50px rgba(0,0,0,.05); margin-bottom:30px; }
-.section h2{ font-size:1.2rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin-bottom:16px; }
-.section p{ line-height:1.7; color:#334155; }
-
-/* GAMIFICATION SECTION */
-.xp-section { background: linear-gradient(135deg, #faf8ff, #fdf2f8); border: 1.5px solid rgba(124,58,237,0.15); }
-.xp-section h2 { color: var(--primary) !important; }
-.xp-progress-wrap { margin-bottom: 20px; }
-.xp-progress-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-.xp-num { font-size:1.6rem; font-weight:900; color:var(--primary); }
-.xp-level-tag { font-size:0.75rem; font-weight:800; background:rgba(124,58,237,0.1); color:var(--primary); padding:4px 12px; border-radius:20px; }
-.xp-bar-bg { width:100%; height:10px; background:rgba(124,58,237,0.12); border-radius:6px; overflow:hidden; margin-bottom:6px; }
-.xp-bar-fill { height:100%; background:linear-gradient(90deg,var(--primary),var(--secondary)); border-radius:6px; }
-.xp-bar-labels { display:flex; justify-content:space-between; font-size:0.72rem; color:var(--muted); font-weight:700; }
-.xp-meta-row { display:flex; gap:12px; flex-wrap:wrap; margin-top:16px; }
-.xp-meta-badge { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:20px; font-size:0.82rem; font-weight:800; }
-.xp-meta-badge.level  { background:rgba(124,58,237,0.1); border:1.5px solid rgba(124,58,237,0.2); color:var(--primary); }
-.xp-meta-badge.streak-hot  { background:rgba(239,68,68,0.1); border:1.5px solid rgba(239,68,68,0.2); color:#dc2626; }
-.xp-meta-badge.streak-warm { background:rgba(245,158,11,0.1); border:1.5px solid rgba(245,158,11,0.2); color:#d97706; }
-.xp-meta-badge.streak-cold { background:rgba(100,116,139,0.08); border:1.5px solid var(--border); color:var(--muted); }
-
-/* SKILLS */
-.skills{ display:flex; flex-wrap:wrap; gap:12px; }
-.skill{ padding:10px 18px; border-radius:14px; font-weight:700; font-size:.85rem; background:#f8fafc; border:1px solid var(--border); }
-.skill.learning{ background:#fff1f2; color:var(--secondary); border-color:var(--secondary); }
-
-/* SIDEBAR */
-.side-card{ background:var(--card); border-radius:26px; padding:30px; box-shadow:0 20px 50px rgba(0,0,0,.05); margin-bottom:30px; }
-.row{ display:flex; justify-content:space-between; margin-bottom:14px; font-size:.95rem; }
-.row span{ color:var(--muted); font-weight:600; }
-.goal{ background:linear-gradient(135deg,#fff1f2,#fdf2f8); border-left:6px solid var(--secondary); padding:24px; border-radius:18px; font-weight:700; }
-
-/* CONTACT */
-.contact-primary{ display:flex; align-items:center; justify-content:center; gap:10px; background:linear-gradient(90deg,var(--primary),var(--secondary)); color:white; padding:14px; border-radius:14px; font-weight:800; text-decoration:none; margin-bottom:14px; }
-.contact-secondary{ display:flex; align-items:center; justify-content:center; gap:10px; background:#f8fafc; border:1px solid var(--border); padding:13px; border-radius:14px; font-weight:700; color:var(--text); text-decoration:none; margin-bottom:16px; }
-.contact-links{ display:flex; gap:12px; }
-.contact-links a{ flex:1; padding:12px; border-radius:14px; text-align:center; background:#f8fafc; border:1px solid var(--border); color:var(--muted); font-size:1.2rem; transition:.25s; }
-.contact-links a:hover{ background:var(--primary); color:white; }
-
-@media(max-width:1000px){
-  .hero{grid-template-columns:1fr;text-align:center}
-  .identity-bar{justify-content:center}
-  .stats{grid-template-columns:repeat(2,1fr)}
-  .main{grid-template-columns:1fr}
+.grain-bg {
+  background-color: #f8f4ec;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
-/* ── DARK MODE ── */
-body.dark {
-    background: #0f0f1a !important;
-    color: #e2e8f0 !important;
-    --bg: #0f0f1a;
-    --card: #1a1a2e;
-    --text: #e2e8f0;
-    --muted: #94a3b8;
-    --border: #2d2d44;
-}
-body.dark .wrapper { background: transparent !important; }
-body.dark .stat-card { background: #1a1a2e !important; box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important; }
-body.dark .stat-card h3 { color: #e2e8f0 !important; }
-body.dark .section { background: #1a1a2e !important; box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important; }
-body.dark .section p { color: #94a3b8 !important; }
-body.dark .section h2 { color: #64748b !important; }
-body.dark .xp-section { background: linear-gradient(135deg,#1a1a2e,#16162a) !important; border-color: #2d2d44 !important; }
-body.dark .xp-bar-bg { background: rgba(139,92,246,0.2) !important; }
-body.dark .xp-card-bar-bg { background: rgba(139,92,246,0.2) !important; }
-body.dark .side-card { background: #1a1a2e !important; box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important; }
-body.dark .row { color: #e2e8f0 !important; }
-body.dark .row span { color: #64748b !important; }
-body.dark .skill { background: #13131f !important; border-color: #2d2d44 !important; color: #e2e8f0 !important; }
-body.dark .skill.learning { background: rgba(236,72,153,0.1) !important; color: #f472b6 !important; }
-body.dark .goal { background: linear-gradient(135deg,rgba(236,72,153,0.1),rgba(124,58,237,0.1)) !important; }
-body.dark .contact-secondary { background: #13131f !important; border-color: #2d2d44 !important; color: #e2e8f0 !important; }
-body.dark .contact-links a { background: #13131f !important; border-color: #2d2d44 !important; color: #94a3b8 !important; }
-body.dark .stat-card.xp-card { background: linear-gradient(135deg,#1e1e35,#1a1a2e) !important; border-color: rgba(139,92,246,0.3) !important; }
-body.dark .xp-meta-badge.streak-cold { background: rgba(100,116,139,0.1) !important; border-color: #2d2d44 !important; }
+.custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #d4c4a0; border-radius: 10px; }
+
+.editorial-card { background:#fff; border:1px solid #f0e9d8; box-shadow:0 1px 2px rgba(26,23,20,.05); }
+.soft-panel { background:#fdfcf8; border:1px solid #f0e9d8; }
+.skill-pill { display:inline-flex; align-items:center; padding:.42rem .72rem; border-radius:999px; background:#f8f4ec; border:1px solid #f0e9d8; color:#5c5548; font-size:.78rem; font-weight:800; }
+.skill-pill.learning { color:#be185d; background:rgba(236,72,153,.08); border-color:rgba(236,72,153,.16); }
+.stat-card { min-height:96px; }
+.work-item + .work-item { border-top:1px solid #f0e9d8; }
+.project-card { transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.project-card:hover { transform: translateY(-2px); border-color:#d4c4a0; box-shadow:0 18px 42px rgba(26,23,20,.08); }
+
+.dark body, .dark .grain-bg { background-color:#1a1714; background-image:none; color:#f8f4ec; }
+.dark .editorial-card { background:#2c2820 !important; border-color:#3d3830 !important; color:#f0e9d8; }
+.dark .soft-panel, .dark .skill-pill { background:#1a1714; border-color:#3d3830; color:#d4c4a0; }
+.dark .skill-pill.learning { background:rgba(236,72,153,.1); border-color:rgba(236,72,153,.2); color:#f472b6; }
+.dark .work-item + .work-item { border-color:#3d3830; }
+.dark input { background:#1a1714 !important; border-color:#3d3830 !important; color:#f0e9d8 !important; }
 </style>
 </head>
-<body>
-<div class="wrapper">
 
-  <!-- HERO -->
-  <div class="hero">
-    <img src="{{ profile.profile_pic_url }}" class="avatar">
-    <div>
-      <h1>{{ profile.name }}</h1>
-      {% if profile.username %}
-        <div style="font-size:0.95rem;font-weight:700;opacity:0.85;margin-top:2px;">@{{ profile.username }}</div>
-      {% endif %}
-      <p style="margin-top:4px;">{{ profile.title or "SkillBridge Member" }}</p>
+<body class="grain-bg text-ink-900 min-h-screen custom-scroll antialiased">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
 
-      <div class="identity-bar">
-        <div class="identity-item"><i class="fa-solid fa-briefcase"></i>{{ profile.title or "Member" }}</div>
-        <div class="identity-item"><i class="fa-solid fa-location-dot"></i>{{ profile.location or "Remote" }}</div>
-        <div class="identity-item"><i class="fa-solid fa-chart-line"></i>{{ profile.experience_years or 0 }} Years Experience</div>
-      </div>
+  <header class="flex items-center justify-between gap-4 mb-6">
+    <button type="button" onclick="goBack()" class="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white dark:bg-ink-800 border border-cream-200 dark:border-ink-700 text-ink-900 dark:text-cream-100 shadow-sm hover:-translate-x-0.5 transition-transform" aria-label="Go back">
+      <i class="fa-solid fa-arrow-left"></i>
+    </button>
+    <a href="{{ url_for('main_page') }}" class="font-display text-2xl font-black text-ink-900 dark:text-cream-100 tracking-tight">SkillBridge</a>
+  </header>
 
-      <!-- BADGE + STREAK IN HERO -->
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center;">
-        <div class="hero-badge">
-          <span class="hero-badge-icon">{{ level_info.icon }}</span>
-          <span>Level {{ level_info.level }} · {{ level_info.badge }}</span>
-          <span style="opacity:0.8;font-size:0.78rem;">{{ xp }} XP</span>
-        </div>
-        {% if streak and streak >= 1 %}
-          <div class="hero-streak">
-            {% if streak >= 7 %}🔥{% else %}🔥{% endif %}
-            {{ streak }} day streak
+  <main class="space-y-6">
+    <section class="editorial-card rounded-3xl overflow-hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <div class="bg-ink-900 dark:bg-ink-900 p-7 sm:p-8 flex flex-col items-center justify-center text-center text-cream-100">
+          <img src="{{ profile.profile_pic_url }}" alt="{{ profile.name }}" class="w-36 h-36 sm:w-40 sm:h-40 rounded-3xl object-cover border-4 border-cream-100/70 shadow-lg">
+          <div class="mt-5 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cream-100/10 border border-cream-100/20 text-xs font-black uppercase tracking-wider">
+            <span>{{ level_info.icon }}</span>
+            <span>Level {{ level_info.level }}</span>
           </div>
+        </div>
+
+        <div class="p-7 sm:p-10 lg:p-12">
+          <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
+            <div class="min-w-0">
+              <p class="text-[10px] font-black tracking-[0.28em] uppercase text-gold">Public Profile</p>
+              <h1 class="font-display text-4xl sm:text-5xl font-black tracking-tight text-ink-900 dark:text-cream-100 mt-2 leading-tight">{{ profile.name }}</h1>
+              {% if profile.username %}
+                <p class="mt-1 text-sm font-black text-gold">@{{ profile.username }}</p>
+              {% endif %}
+              <p class="mt-3 text-lg font-bold text-ink-600 dark:text-ink-400">{{ profile.title or "SkillBridge Member" }}</p>
+              <div class="mt-5 flex flex-wrap gap-2">
+                <span class="skill-pill"><i class="fa-solid fa-location-dot mr-2 text-gold"></i>{{ profile.location or "Remote" }}</span>
+                <span class="skill-pill"><i class="fa-solid fa-briefcase mr-2 text-gold"></i>{{ profile.experience_years or 0 }} years</span>
+                <span class="skill-pill"><i class="fa-solid fa-medal mr-2 text-gold"></i>{{ level_info.badge }}</span>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row xl:flex-col gap-3 w-full xl:w-52">
+              <a href="{{ url_for('chat', receiver_id=profile.id) }}" class="inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-black text-sm hover:opacity-90 transition-opacity">
+                <i class="fa-solid fa-comment-dots"></i> Message
+              </a>
+              {% if profile.portfolio_url %}
+              <a href="{{ profile.portfolio_url }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl bg-white dark:bg-ink-800 border border-cream-300 dark:border-ink-700 text-ink-900 dark:text-cream-100 font-black text-sm hover:bg-cream-50 dark:hover:bg-ink-700 transition-colors">
+                <i class="fa-solid fa-globe"></i> Portfolio
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="editorial-card stat-card rounded-2xl p-5">
+        <p class="text-[10px] font-black tracking-[0.18em] uppercase text-ink-400 dark:text-ink-500">Skills</p>
+        <strong class="block mt-3 text-3xl font-black text-ink-900 dark:text-cream-100">{{ profile.known_skills|length }}</strong>
+      </div>
+      <div class="editorial-card stat-card rounded-2xl p-5">
+        <p class="text-[10px] font-black tracking-[0.18em] uppercase text-ink-400 dark:text-ink-500">Learning</p>
+        <strong class="block mt-3 text-3xl font-black text-ink-900 dark:text-cream-100">{{ profile.learning_skills|length }}</strong>
+      </div>
+      <div class="editorial-card stat-card rounded-2xl p-5">
+        <p class="text-[10px] font-black tracking-[0.18em] uppercase text-ink-400 dark:text-ink-500">Projects</p>
+        <strong class="block mt-3 text-3xl font-black text-ink-900 dark:text-cream-100">{{ projects|length }}</strong>
+      </div>
+      <div class="editorial-card stat-card rounded-2xl p-5">
+        <p class="text-[10px] font-black tracking-[0.18em] uppercase text-ink-400 dark:text-ink-500">XP</p>
+        <strong class="block mt-3 text-3xl font-black text-gold">{{ xp }}</strong>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
+      <div class="space-y-6">
+        <section class="editorial-card rounded-2xl p-6 sm:p-8">
+          <h2 class="font-display text-2xl font-black text-ink-900 dark:text-cream-100">About</h2>
+          <p class="mt-4 text-sm leading-7 text-ink-600 dark:text-ink-400">{{ profile.about_me or "This builder has not added an about section yet." }}</p>
+        </section>
+
+        {% if profile.work_experience %}
+        <section class="editorial-card rounded-2xl p-6 sm:p-8">
+          <h2 class="font-display text-2xl font-black text-ink-900 dark:text-cream-100">Work Experience</h2>
+          <div class="mt-4">
+            {% for exp in profile.work_experience %}
+            <div class="work-item py-4 first:pt-0 last:pb-0">
+              <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                <div>
+                  <h3 class="font-black text-ink-900 dark:text-cream-100">{{ exp.role }}</h3>
+                  <p class="text-sm font-bold text-gold mt-1">{{ exp.company }}</p>
+                </div>
+                <p class="text-xs font-bold text-ink-400 dark:text-ink-500">
+                  {{ exp.from_year }}{% if exp.from_year %} - {% endif %}{% if exp.is_current %}Present{% else %}{{ exp.to_year }}{% endif %}
+                </p>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
         {% endif %}
-      </div>
 
-    </div>
-  </div>
-
-  <!-- STATS — replaced last card with XP card -->
-  <div class="stats">
-    <div class="stat-card"><h3>{{ profile.known_skills|length }}</h3><span>Skills</span></div>
-    <div class="stat-card"><h3>{{ profile.learning_skills|length }}</h3><span>Learning</span></div>
-    <div class="stat-card"><h3>{{ profile.experience_years or 0 }}</h3><span>Years Exp</span></div>
-    <div class="stat-card xp-card">
-      <h3 style="color:var(--primary)">{{ xp }}</h3>
-      <span>XP Points</span>
-      <div class="xp-card-bar-bg">
-        <div class="xp-card-bar-fill" style="width:{{ progress_pct }}%"></div>
-      </div>
-      <div class="xp-card-next">
-        {% if level_info.next_xp == 'Max' %}🏆 Max Level
-        {% else %}{{ level_info.next_xp - xp }} XP to next level{% endif %}
-      </div>
-    </div>
-  </div>
-
-  <!-- MAIN -->
-  <div class="main">
-
-    <!-- LEFT -->
-    <div>
-
-      <!-- GAMIFICATION SECTION -->
-      <div class="section xp-section">
-        <h2>⚡ Gamification</h2>
-        <div class="xp-progress-wrap">
-          <div class="xp-progress-top">
+        <section class="editorial-card rounded-2xl p-6 sm:p-8">
+          <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
             <div>
-              <div style="font-size:1.8rem;line-height:1;">{{ level_info.icon }}</div>
-              <div style="font-weight:800;font-size:1rem;margin-top:4px;">{{ level_info.badge }}</div>
-            </div>
-            <div style="text-align:right">
-              <div class="xp-num">{{ xp }} XP</div>
-              <div class="xp-level-tag">Level {{ level_info.level }}</div>
+              <p class="text-[10px] font-black tracking-[0.22em] uppercase text-gold">Work</p>
+              <h2 class="font-display text-2xl font-black text-ink-900 dark:text-cream-100 mt-1">Projects</h2>
             </div>
           </div>
-          <div class="xp-bar-bg">
-            <div class="xp-bar-fill" style="width:{{ progress_pct }}%"></div>
-          </div>
-          <div class="xp-bar-labels">
-            <span>{{ xp }} XP earned</span>
-            <span>{% if level_info.next_xp == 'Max' %}🏆 Max Level reached!{% else %}Next level: {{ level_info.next_xp }} XP{% endif %}</span>
-          </div>
-        </div>
-
-        <div class="xp-meta-row">
-          <div class="xp-meta-badge level">{{ level_info.icon }} {{ level_info.badge }}</div>
-          {% if streak and streak >= 30 %}
-            <div class="xp-meta-badge streak-hot">🔥 {{ streak }} day streak</div>
-          {% elif streak and streak >= 7 %}
-            <div class="xp-meta-badge streak-hot">🔥 {{ streak }} day streak</div>
-          {% elif streak and streak >= 1 %}
-            <div class="xp-meta-badge streak-warm">🔥 {{ streak }} day streak</div>
-          {% else %}
-            <div class="xp-meta-badge streak-cold">❄️ No active streak</div>
-          {% endif %}
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>About</h2>
-        <p>{{ profile.about_me or "A passionate builder growing on SkillBridge." }}</p>
-      </div>
-
-      {% if profile.work_experience %}
-      <div class="section">
-        <h2>Work Experience</h2>
-        {% for exp in profile.work_experience %}
-        <div style="padding:.85rem 0;border-bottom:1px solid rgba(0,0,0,.07);{% if loop.last %}border-bottom:none;{% endif %}">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:.3rem;">
-            <div>
-              <div style="font-weight:700;font-size:.95rem;color:#0f172a;">{{ exp.role }}</div>
-              <div style="font-size:.85rem;color:var(--primary);font-weight:600;">{{ exp.company }}</div>
+          <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for project in projects %}
+            <a href="{{ url_for('view_project', project_id=project._id) }}" class="project-card soft-panel rounded-2xl p-5 text-left">
+              <h3 class="font-black text-ink-900 dark:text-cream-100 truncate">{{ project.title or "Untitled Project" }}</h3>
+              <p class="text-sm text-ink-500 dark:text-ink-400 mt-2 line-clamp-3">{{ project.description or "No description added." }}</p>
+              {% if project.skills_needed %}
+              <div class="mt-4 flex flex-wrap gap-2">
+                {% for skill in project.skills_needed[:3] %}
+                  <span class="skill-pill text-[11px]">{{ skill }}</span>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </a>
+            {% else %}
+            <div class="soft-panel rounded-2xl p-6 md:col-span-2 text-center">
+              <p class="font-black text-ink-900 dark:text-cream-100">No projects yet</p>
+              <p class="text-sm text-ink-500 dark:text-ink-400 mt-2">Projects from this builder will show here.</p>
             </div>
-            <div style="font-size:.78rem;color:var(--muted);font-weight:600;white-space:nowrap;">
-              {{ exp.from_year }}{% if exp.from_year %} — {% endif %}{% if exp.is_current %}Present{% else %}{{ exp.to_year }}{% endif %}
-            </div>
+            {% endfor %}
           </div>
-        </div>
-        {% endfor %}
-      </div>
-      {% endif %}
-
-      <div class="section">
-        <h2>Skills</h2>
-        <div class="skills">
-          {% for skill in profile.known_skills %}
-            <span class="skill">{{ skill }}</span>
-          {% else %}
-            <span class="skill">No skills listed</span>
-          {% endfor %}
-        </div>
+        </section>
       </div>
 
-      <div class="section">
-        <h2>Learning Now</h2>
-        <div class="skills">
-          {% for skill in profile.learning_skills %}
-            <span class="skill learning">{{ skill }}</span>
-          {% else %}
-            <span class="skill learning">No active learning</span>
-          {% endfor %}
-        </div>
-      </div>
+      <aside class="space-y-6">
+        <section class="editorial-card rounded-2xl p-6">
+          <h2 class="font-display text-xl font-black text-ink-900 dark:text-cream-100">Details</h2>
+          <div class="mt-5 space-y-4 text-sm">
+            <div class="flex justify-between gap-4"><span class="font-bold text-ink-400 dark:text-ink-500">Status</span><span class="font-black text-right">{{ profile.current_status or "Member" }}</span></div>
+            <div class="flex justify-between gap-4"><span class="font-bold text-ink-400 dark:text-ink-500">Availability</span><span class="font-black text-right">{{ profile.availability or "Flexible" }}</span></div>
+            <div class="flex justify-between gap-4"><span class="font-bold text-ink-400 dark:text-ink-500">Education</span><span class="font-black text-right">{{ profile.education_degree or "Not added" }}</span></div>
+            <div class="flex justify-between gap-4"><span class="font-bold text-ink-400 dark:text-ink-500">Streak</span><span class="font-black text-right">{% if streak and streak >= 1 %}{{ streak }} days{% else %}None{% endif %}</span></div>
+          </div>
+        </section>
 
-    </div>
-
-    <!-- RIGHT -->
-    <div>
-
-      {% if profile.career_goal %}
-      <div class="goal side-card">🎯 {{ profile.career_goal }}</div>
-      {% endif %}
-
-      <div class="side-card">
-        <div class="row"><span>Status</span>{{ profile.current_status or "Member" }}</div>
-        <div class="row"><span>Availability</span>{{ profile.availability or "Flexible" }}</div>
-        <div class="row"><span>Education</span>{{ profile.education_degree }}</div>
-        <div class="row"><span>Level</span>{{ level_info.icon }} {{ level_info.badge }}</div>
-        <div class="row">
-          <span>Streak</span>
-          {% if streak and streak >= 1 %}🔥 {{ streak }} days{% else %}❄️ None{% endif %}
-        </div>
-      </div>
-
-      <!-- CONTACT CARD -->
-      <div class="side-card">
-        <a href="{{ url_for('chat', receiver_id=profile.id) }}" class="contact-primary">
-          <i class="fas fa-comment-dots"></i> Message Builder
-        </a>
-        {% if profile.email %}
-        <a href="/cdn-cgi/l/email-protection#5c27277c2c2e333a3530397239313d35307c2121" class="contact-secondary">
-          <i class="fa-solid fa-envelope"></i> Email {{ profile.name }}
-        </a>
+        {% if profile.career_goal %}
+        <section class="editorial-card rounded-2xl p-6">
+          <p class="text-[10px] font-black tracking-[0.22em] uppercase text-gold">Goal</p>
+          <p class="mt-3 text-sm leading-6 font-bold text-ink-700 dark:text-ink-400">{{ profile.career_goal }}</p>
+        </section>
         {% endif %}
-        <div class="contact-links">
-          {% if profile.linkedin_url %}<a href="{{ profile.linkedin_url }}" target="_blank"><i class="fab fa-linkedin-in"></i></a>{% endif %}
-          {% if profile.github_url %}<a href="{{ profile.github_url }}" target="_blank"><i class="fab fa-github"></i></a>{% endif %}
-          {% if profile.portfolio_url %}<a href="{{ profile.portfolio_url }}" target="_blank"><i class="fa-solid fa-globe"></i></a>{% endif %}
-        </div>
-      </div>
 
-      <a href="{{ url_for('projects') }}" style="color:var(--muted);font-weight:600;text-decoration:none;">
-        ← Back to Community
-      </a>
+        <section class="editorial-card rounded-2xl p-6">
+          <h2 class="font-display text-xl font-black text-ink-900 dark:text-cream-100">Skills</h2>
+          <div class="mt-4 flex flex-wrap gap-2">
+            {% for skill in profile.known_skills %}
+              <span class="skill-pill">{{ skill }}</span>
+            {% else %}
+              <span class="skill-pill">No skills added</span>
+            {% endfor %}
+          </div>
+          <h3 class="mt-6 text-xs font-black uppercase tracking-[0.2em] text-ink-400 dark:text-ink-500">Learning</h3>
+          <div class="mt-3 flex flex-wrap gap-2">
+            {% for skill in profile.learning_skills %}
+              <span class="skill-pill learning">{{ skill }}</span>
+            {% else %}
+              <span class="skill-pill learning">Nothing listed</span>
+            {% endfor %}
+          </div>
+        </section>
 
-    </div>
-  </div>
+        <section class="editorial-card rounded-2xl p-6">
+          <h2 class="font-display text-xl font-black text-ink-900 dark:text-cream-100">Links</h2>
+          <div class="mt-4 grid grid-cols-3 gap-3">
+            {% if profile.linkedin_url %}<a href="{{ profile.linkedin_url }}" target="_blank" rel="noopener" class="soft-panel rounded-xl h-12 flex items-center justify-center text-lg text-ink-600 dark:text-cream-100 hover:text-gold"><i class="fab fa-linkedin-in"></i></a>{% endif %}
+            {% if profile.github_url %}<a href="{{ profile.github_url }}" target="_blank" rel="noopener" class="soft-panel rounded-xl h-12 flex items-center justify-center text-lg text-ink-600 dark:text-cream-100 hover:text-gold"><i class="fab fa-github"></i></a>{% endif %}
+            {% if profile.portfolio_url %}<a href="{{ profile.portfolio_url }}" target="_blank" rel="noopener" class="soft-panel rounded-xl h-12 flex items-center justify-center text-lg text-ink-600 dark:text-cream-100 hover:text-gold"><i class="fa-solid fa-globe"></i></a>{% endif %}
+            {% if profile.instagram_url %}<a href="{{ profile.instagram_url }}" target="_blank" rel="noopener" class="soft-panel rounded-xl h-12 flex items-center justify-center text-lg text-ink-600 dark:text-cream-100 hover:text-gold"><i class="fab fa-instagram"></i></a>{% endif %}
+            {% if profile.facebook_url %}<a href="{{ profile.facebook_url }}" target="_blank" rel="noopener" class="soft-panel rounded-xl h-12 flex items-center justify-center text-lg text-ink-600 dark:text-cream-100 hover:text-gold"><i class="fab fa-facebook-f"></i></a>{% endif %}
+          </div>
+        </section>
+      </aside>
+    </section>
+  </main>
 </div>
 
 <script>
-(function(){ 
-    var t=localStorage.getItem('sb-theme')||'light'; 
-    if(t==='dark') document.body.classList.add('dark');
-    else document.body.classList.remove('dark');
-})();
+function goBack() {
+  if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    window.location.href = "{{ url_for('projects') }}";
+  }
+}
+
+applyTheme(localStorage.getItem('sb-theme') || 'light');
+function applyTheme(t){
+  t === 'dark'
+    ? document.documentElement.classList.add('dark')
+    : document.documentElement.classList.remove('dark');
+}
 </script>
 </body>
 </html>
