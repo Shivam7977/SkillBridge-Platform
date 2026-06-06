@@ -7,101 +7,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ roadmap.goal }} - SkillBridge</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Light Theme Variables matching mainpage.html */
         :root {
-            --color-background: #f8f9fa;
+            --color-background: #f8f4ec;
             --color-surface: #ffffff;
             --color-sidebar-bg: #ffffff;
-            --color-sidebar-border: #dee2e6;
-            --color-primary: #8B5CF6; /* Vibrant purple */
-            --color-secondary: #EC4899; /* Vibrant pink */
-            --color-text-primary: #1F2937; /* Darker text */
-            --color-text-secondary: #6B7280; /* Gray text */
-            --color-input-bg: #F9FAFB;
-            --color-input-border: #D1D5DB;
-            --color-success: #10B981; /* Green */
+            --color-sidebar-border: #e5d9c0;
+            --color-primary: #1a1714;
+            --color-secondary: #c4973a;
+            --color-text-primary: #1a1714;
+            --color-text-secondary: #7a7268;
+            --color-input-bg: #f8f4ec;
+            --color-input-border: #e5d9c0;
+            --color-success: #10B981;
             --color-success-dark: #0f9a6f;
-            --color-completed-bg: rgba(16, 185, 129, 0.1);
-            --border-radius-lg: 12px;
-            --border-radius-md: 8px;
-            --box-shadow-card: 0 6px 20px rgba(0, 0, 0, 0.06);
-            --box-shadow-widget: 0 4px 15px rgba(0, 0, 0, 0.05);
-            --box-shadow-button: 0 6px 20px rgba(139, 92, 246, 0.3);
+            --color-completed-bg: rgba(16,185,129,0.08);
+            --border-radius-lg: 14px;
+            --border-radius-md: 10px;
+            --box-shadow-card: 0 6px 20px rgba(0,0,0,0.05);
+            --box-shadow-widget: 0 4px 15px rgba(0,0,0,0.04);
+            --box-shadow-button: 0 6px 20px rgba(26,23,20,0.18);
+        }
+        body.dark {
+            --color-background: #1a1714;
+            --color-surface: #2c2820;
+            --color-sidebar-border: #3d3830;
+            --color-primary: #f0e9d8;
+            --color-secondary: #c4973a;
+            --color-text-primary: #f0e9d8;
+            --color-text-secondary: #9c9488;
+            --color-input-bg: #23201c;
+            --color-input-border: #3d3830;
         }
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'DM Sans', sans-serif;
             background-color: var(--color-background);
             color: var(--color-text-primary);
             margin: 0;
             line-height: 1.6;
         }
-        .dashboard-container { display: flex; }
+        /* ── Topbar ── */
+        .topbar {
+            position:sticky; top:0; z-index:50;
+            background:var(--color-surface); border-bottom:1px solid var(--color-sidebar-border);
+            padding:14px clamp(1rem,5vw,3rem);
+            display:flex; align-items:center; gap:14px;
+            transition:background .3s,border-color .3s;
+        }
+        .back-btn {
+            display:inline-flex; align-items:center; gap:7px;
+            color:var(--color-text-secondary); text-decoration:none;
+            font-size:.87rem; font-weight:600;
+            padding:8px 14px; border-radius:10px;
+            border:1.5px solid var(--color-sidebar-border);
+            background:var(--color-surface); transition:.18s; flex-shrink:0;
+        }
+        .back-btn:hover { background:var(--color-background); color:var(--color-text-primary); }
+        .topbar-logo {
+            font-family:'Playfair Display',serif; font-size:1.4rem;
+            font-weight:900; color:var(--color-text-primary); text-decoration:none;
+        }
 
-        /* --- Sidebar --- */
-        .sidebar {
-            width: 250px;
-            background: var(--color-sidebar-bg);
-            border-right: 1px solid var(--color-sidebar-border);
-            height: 100vh;
-            padding: 2rem 1.5rem;
-            position: fixed;
-            box-sizing: border-box;
-            z-index: 10;
+        /* ── Hero ── */
+        .hero-section {
+            background:var(--color-surface);
+            border-bottom:1px solid var(--color-sidebar-border);
+            padding:2rem clamp(1rem,5vw,3rem);
         }
-        .sidebar .logo {
-            font-size: 1.9em;
-            font-weight: 800;
-            margin-bottom: 3rem;
-            color: var(--color-primary);
-            text-decoration: none;
-            letter-spacing: -1px;
-            display: block;
+        .hero-inner {
+            max-width:900px; margin:0 auto;
+            display:flex; align-items:center;
+            justify-content:space-between; flex-wrap:wrap; gap:1rem;
         }
-        .sidebar nav { height: calc(100% - 5rem); }
-        .sidebar nav ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; height: 100%; }
-        .sidebar nav li a {
-            display: block;
-            color: var(--color-text-secondary);
-            text-decoration: none;
-            padding: 0.9rem 1rem;
-            margin-bottom: .5rem;
-            border-radius: var(--border-radius-md);
-            font-weight: 500;
-            transition: all .2s ease-in-out;
+        .hero-text h1 {
+            font-family:'Playfair Display',serif;
+            font-size:clamp(1.5rem,3vw,2rem); font-weight:900;
+            color:var(--color-text-primary); margin:0 0 .3rem;
         }
-        .sidebar nav li a:hover {
-            background-color: #f1f3f5;
-            color: var(--color-text-primary);
-            transform: translateX(4px);
+        .hero-text p { color:var(--color-text-secondary); font-size:.93rem; margin:0; }
+        .new-roadmap-btn {
+            display:inline-flex; align-items:center; gap:8px;
+            background:var(--color-primary); color:var(--color-background);
+            padding:10px 20px; border-radius:12px;
+            font-weight:700; font-size:.88rem; text-decoration:none;
+            transition:.18s; white-space:nowrap;
         }
-        .sidebar nav li a.active {
-            background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
-            color: #fff;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
-            transform: translateX(0);
-        }
-        .sidebar .logout-link { margin-top: auto; }
-        .sidebar .logout-link a { color: #dc3545; }
+        .new-roadmap-btn:hover { opacity:.88; transform:translateY(-1px); }
 
-        /* --- Main Content --- */
-        .main-content { margin-left: 250px; padding: 2.5rem 3.5rem; width: calc(100% - 250px); box-sizing: border-box; }
+        /* ── Main Content ── */
+        .main-content { max-width:960px; margin:0 auto; padding:2rem clamp(1rem,5vw,2.5rem); box-sizing:border-box; }
         .timeline-container { max-width: 900px; margin: auto; }
-        .timeline-header h1 { font-size: 2.5em; margin-bottom: 0.5rem; text-align: center; color: var(--color-text-primary); text-transform: capitalize; }
+        .timeline-header h1 { font-size: clamp(1.4rem,3vw,2.2em); margin-bottom: 0.5rem; text-align: center; color: var(--color-text-primary); font-family:'Playfair Display',serif; text-transform: capitalize; }
         
         /* --- Progress Bar --- */
         .progress-section { text-align: center; margin-bottom: 2.5rem; }
         .progress-bar-container { width: 100%; height: 12px; background-color: #e9ecef; border-radius: 6px; overflow: hidden; margin-top: 0.5rem; }
-        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); border-radius: 6px; transition: width 0.5s ease-in-out; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #1a1714, #c4973a); border-radius: 6px; transition: width 0.5s ease-in-out; }
         
         /* --- Timeline --- */
         .timeline { position: relative; padding: 2rem 0; }
         .timeline::before { content: ''; position: absolute; top: 0; left: 20px; height: 100%; width: 4px; background: var(--color-sidebar-border); border-radius: 2px; }
         .timeline-item { margin-bottom: 1.5rem; position: relative; padding-left: 60px; }
-        .timeline-item::before { content: ''; position: absolute; left: 8px; top: 5px; height: 25px; width: 25px; border: 4px solid var(--color-background); background: var(--color-secondary); border-radius: 50%; z-index: 1; transition: background-color 0.3s; }
+        .timeline-item::before { content: ''; position: absolute; left: 8px; top: 5px; height: 25px; width: 25px; border: 4px solid var(--color-background); background: #c4973a; border-radius: 50%; z-index: 1; transition: background-color 0.3s; }
         .timeline-item.completed::before { background-color: var(--color-success); }
         
         .timeline-content {
@@ -116,15 +126,15 @@
         .timeline-item:hover .timeline-content {
             transform: scale(1.01); 
             box-shadow: var(--box-shadow-card);
-            border-color: var(--color-primary);
+            border-color: var(--color-secondary);
         }
-        .timeline-content h3 { margin-top: 0; font-size: 1.4em; color: var(--color-primary); }
+        .timeline-content h3 { margin-top: 0; font-size: 1.4em; color: var(--color-text-primary); font-family: 'Playfair Display', serif; }
         
         .completion-status { margin-top: 1rem; }
         .complete-button {
             display: inline-block;
-            background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
-            color: #fff;
+            background: #1a1714;
+            color: #f8f4ec;
             padding: 8px 20px;
             border-radius: 20px;
             text-decoration: none;
@@ -151,33 +161,54 @@
         .module h4 { margin-top: 0; font-size: 1.1em; color: var(--color-text-primary); }
         .resource-link { color: var(--color-success); text-decoration: none; font-weight: 600; }
 
-        .capstone-project { background: linear-gradient(90deg, var(--color-primary), #a55eea); color: white; border-radius: var(--border-radius-lg); padding: 2rem; margin-top: 2.5rem; box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3); }
+        .capstone-project { background: linear-gradient(135deg, #1a1714, #2c2820); color: #f8f4ec; border-radius: var(--border-radius-lg); padding: 2rem; margin-top: 2.5rem; box-shadow: 0 8px 25px rgba(26,23,20,0.2); }
         .next-steps { text-align: center; margin-top: 2.5rem; border-top: 1px solid var(--color-sidebar-border); padding-top: 2rem; }
 
+
+        @media (max-width:768px) {
+            .hero-inner { flex-direction:column; align-items:flex-start; }
+            .timeline::before { left:14px; }
+            .timeline-item { padding-left:46px; }
+            .timeline-item::before { left:3px; width:20px; height:20px; }
+            .timeline-content { padding:1.1rem; }
+            .timeline-content h3 { font-size:1.15em; }
+        }
+        @media (max-width:480px) {
+            .topbar { padding:12px 1rem; }
+            .back-btn { padding:6px 10px; font-size:.8rem; }
+            .hero-section { padding:1.25rem 1rem; }
+            .hero-text h1 { font-size:1.35rem; }
+            .main-content { padding:1.25rem 1rem; }
+            .timeline-content { padding:.9rem; }
+        }
         .flash-messages { position: fixed; top: 20px; right: 20px; z-index: 1001; display: flex; flex-direction: column; gap: 10px; width: 300px; }
         .flash-banner { padding: 1rem; border-radius: var(--border-radius-md); color: #fff; animation: popDown .4s forwards; }
         @keyframes popDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <aside class="sidebar">
-            <div class="logo">SkillBridge</div>
-            <nav>
-                <ul>
-                    <li><a href="{{ url_for('main_page') }}">Dashboard</a></li>
-                    <li><a href="{{ url_for('projects') }}">Community Projects</a></li>
-                    <li><a href="{{ url_for('my_projects') }}">My Projects</a></li>
-                    <li><a href="{{ url_for('profile') }}">My Profile</a></li>
-                    <li><a href="{{ url_for('roadmap_generator') }}">Roadmap Generator</a></li>
-                    <li><a href="{{ url_for('my_roadmaps') }}" class="active">My Saved Roadmaps</a></li>
-                    <li><a href="{{ url_for('portfolio_builder') }}">Portfolio Builder</a></li>
-                    <li class="logout-link"><a href="{{ url_for('logout') }}">Logout</a></li>
-                </ul>
-            </nav>
-        </aside>
+    <!-- Topbar -->
+    <div class="topbar">
+      <a href="javascript:history.back()" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back
+      </a>
+      <a href="{{ url_for('main_page') }}" class="topbar-logo">SkillBridge</a>
+    </div>
 
-        <main class="main-content">
+    <!-- Hero section -->
+    <div class="hero-section">
+      <div class="hero-inner">
+        <div class="hero-text">
+          <h1>🗺️ My Roadmaps</h1>
+          <p>Your saved AI-generated learning roadmaps.</p>
+        </div>
+        <a href="{{ url_for('roadmap_generator') }}" class="new-roadmap-btn">
+          <i class="fas fa-plus"></i> New Roadmap
+        </a>
+      </div>
+    </div>
+
+    <main class="main-content">
             {% with messages = get_flashed_messages(with_categories=true) %}
               {% if messages %}
                 <div class="flash-messages">
@@ -258,8 +289,7 @@
                 </div>
                 {% endif %}
             </div>
-        </main>
-    </div>
+    </main>
     {% include 'notification_bell.html' %}
     {% include 'chatbot_widget.html' %}
     <script>

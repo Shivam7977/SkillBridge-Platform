@@ -4,49 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ project.title }} - SkillBridge</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Light Theme Variables */
         :root {
-            --color-background: #f8f9fa;
+            --color-background: #f8f4ec;
             --color-surface: #ffffff;
             --color-sidebar-bg: #ffffff;
-            --color-sidebar-border: #dee2e6;
-            --color-primary: #8B5CF6;
-            --color-secondary: #EC4899;
-            --color-text-primary: #1F2937;
-            --color-text-secondary: #6B7280;
-            --color-input-bg: #F9FAFB;
-            --color-input-border: #D1D5DB;
-            --border-radius-lg: 12px;
-            --border-radius-md: 8px;
-            --box-shadow-card: 0 6px 20px rgba(0, 0, 0, 0.06);
-            --box-shadow-widget: 0 4px 15px rgba(0, 0, 0, 0.05);
-            --box-shadow-button: 0 6px 20px rgba(139, 92, 246, 0.3);
+            --color-sidebar-border: #e5d9c0;
+            --color-primary: #1a1714;
+            --color-secondary: #c4973a;
+            --color-text-primary: #1a1714;
+            --color-text-secondary: #7a7268;
+            --color-input-bg: #f8f4ec;
+            --color-input-border: #e5d9c0;
+            --border-radius-lg: 14px;
+            --border-radius-md: 10px;
+            --box-shadow-card: 0 6px 20px rgba(0,0,0,0.05);
+            --box-shadow-widget: 0 4px 15px rgba(0,0,0,0.04);
+            --box-shadow-button: 0 6px 20px rgba(26,23,20,0.18);
         }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--color-background); color: var(--color-text-primary); margin: 0; line-height: 1.6; }
+        body.dark {
+            --color-background: #1a1714;
+            --color-surface: #2c2820;
+            --color-sidebar-bg: #2c2820;
+            --color-sidebar-border: #3d3830;
+            --color-primary: #f0e9d8;
+            --color-secondary: #c4973a;
+            --color-text-primary: #f0e9d8;
+            --color-text-secondary: #9c9488;
+            --color-input-bg: #23201c;
+            --color-input-border: #3d3830;
+        }
+        body { font-family: 'DM Sans', sans-serif; background-color: var(--color-background); color: var(--color-text-primary); margin: 0; line-height: 1.6; }
         .dashboard-container { display: flex; }
-        /* Sidebar */
-        .sidebar { width: 250px; background: var(--color-sidebar-bg); border-right: 1px solid var(--color-sidebar-border); height: 100vh; padding: 2rem 1.5rem; position: fixed; box-sizing: border-box; z-index: 10; }
-        .sidebar .logo { font-size: 1.9em; font-weight: 800; margin-bottom: 3rem; color: var(--color-primary); text-decoration: none; letter-spacing: -1px; display: block; }
-        .sidebar nav { height: calc(100% - 5rem); }
-        .sidebar nav ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; height: 100%; }
-        .sidebar nav li a { display: block; color: var(--color-text-secondary); text-decoration: none; padding: 0.9rem 1rem; margin-bottom: .5rem; border-radius: var(--border-radius-md); font-weight: 500; transition: all .2s ease-in-out; }
-        .sidebar nav li a:hover { background-color: #f1f3f5; color: var(--color-text-primary); transform: translateX(4px); }
-        .sidebar nav li a.active { background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); color: #fff; font-weight: 600; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2); transform: translateX(0); }
-        .sidebar .logout-link { margin-top: auto; }
-        .sidebar .logout-link a { color: #dc3545; }
-        .sidebar .logout-link a:hover { background-color: rgba(220, 53, 69, 0.1); color: #b02a37; }
         /* Main Content */
-        .main-content { margin-left: 250px; padding: 2.5rem 3.5rem; width: calc(100% - 250px); box-sizing: border-box; }
-        .main-content.no-sidebar { margin-left: 0; padding: 2.5rem 4rem; width: 100%; }
+        .main-content { margin-left: 0; padding: 2.5rem clamp(1rem, 5vw, 4rem); width: 100%; box-sizing: border-box; }
+        .main-content.no-sidebar { margin-left: 0; padding: 2.5rem clamp(1rem, 5vw, 4rem); width: 100%; }
         h1 { font-size: 2.5em; font-weight: 700; color: var(--color-text-primary); }
-        h2 { font-size: 1.5em; color: var(--color-primary); margin-top: 2rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-sidebar-border); }
+        h2 { font-size: 1.5em; color: var(--color-text-primary); font-family: 'Playfair Display', serif; margin-top: 2rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-sidebar-border); }
         p { color: var(--color-text-secondary); line-height: 1.6; }
-        .cta-button { background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); color: #fff; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all .2s; font-size: 0.9em; text-decoration: none; display: inline-block; white-space: nowrap; box-shadow: var(--box-shadow-button); }
-        .cta-button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(109, 40, 217, .25); }
-        .skill-tag { display: inline-block; background-color: rgba(139, 92, 246, 0.1); color: var(--color-primary); border: 1px solid rgba(139, 92, 246, 0.2); padding: 4px 10px; border-radius: 15px; font-size: .8em; font-weight: 500; margin-right: .5rem; margin-bottom: .5rem; }
+        .cta-button { background: #1a1714; color: #f8f4ec; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all .2s; font-size: 0.9em; text-decoration: none; display: inline-block; white-space: nowrap; box-shadow: var(--box-shadow-button); }
+        .cta-button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(26,23,20,.2); opacity:.88; }
+        .skill-tag { display: inline-block; background-color: var(--color-input-bg); color: var(--color-text-secondary); border: 1px solid var(--color-sidebar-border); padding: 4px 10px; border-radius: 15px; font-size: .8em; font-weight: 500; margin-right: .5rem; margin-bottom: .5rem; }
         /* Flash Messages */
         .flash-messages { position: fixed; top: 20px; right: 20px; z-index: 1001; display: flex; flex-direction: column; gap: 10px; width: calc(100% - 40px); max-width: 380px; }
         .flash-banner { padding: 1rem 1.5rem; border-radius: var(--border-radius-md); color: #fff; font-weight: 500; box-shadow: 0 5px 20px rgba(0,0,0,0.15); opacity: 0; transform: translateY(-20px) scale(0.95); animation: popDown .4s 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; border-left: 5px solid; }
@@ -169,9 +170,54 @@
         #sb-bubble       { z-index: 9999 !important; }
         #sb-window       { z-index: 9998 !important; }
 
+        /* ── Responsive ── */
         @media (max-width: 768px) {
-            .sidebar { display: none !important; }
-            .main-content { margin-left: 0 !important; width: 100% !important; padding: 1.5rem !important; }
+            .main-content { padding: 1rem !important; }
+            .project-detail-container { padding: 1.25rem !important; border-radius: 12px !important; }
+            h1 { font-size: 1.6em !important; }
+            h2 { font-size: 1.2em !important; }
+            .project-header { flex-direction: column; align-items: flex-start; }
+            .project-stats { flex-wrap: wrap; gap: 12px; }
+            .btn-group, .comment-form-actions, .reply-form-actions { flex-wrap: wrap; }
+            .cta-button { width: 100%; text-align: center; justify-content: center; }
+            .history-item { flex-direction: column; align-items: flex-start; }
+            .comment-card, .reply-card { padding: .75rem .9rem; }
+            .flash-messages { width: calc(100% - 24px); right: 12px; top: 12px; }
+        }
+        @media (max-width: 480px) {
+            .project-detail-container { padding: 1rem !important; border-radius: 10px !important; }
+            h1 { font-size: 1.35em !important; }
+            .project-description { font-size: 1em !important; }
+            .stat-pill, .like-btn { font-size: .82rem; }
+            .comment-avatar { width: 28px; height: 28px; }
+        }
+
+
+        /* ── Collapsible sections ── */
+        .section-toggle {
+            display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; user-select: none;
+            padding-bottom: 0.5rem; margin-top: 2rem; margin-bottom: 0;
+            border-bottom: 1px solid var(--color-sidebar-border);
+        }
+        .section-toggle h2 {
+            margin: 0; border: none; padding: 0; font-size: 1.5em;
+            color: var(--color-text-primary); font-family: 'Playfair Display', serif;
+        }
+        .toggle-icon {
+            font-size: .85rem; color: var(--color-text-secondary);
+            transition: transform .25s; flex-shrink: 0;
+        }
+        .toggle-icon.open { transform: rotate(180deg); }
+        .collapsible-body {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height .35s ease, opacity .3s ease;
+            opacity: 0;
+        }
+        .collapsible-body.open {
+            max-height: 9999px;
+            opacity: 1;
         }
 
         /* ── COMMENTS SECTION ── */
@@ -190,11 +236,9 @@
             background: none; border: 1.5px solid var(--color-input-border);
             border-radius: 20px; padding: 5px 14px; font-size: .8rem; font-weight: 600;
             cursor: pointer; color: var(--color-text-secondary); transition: all .2s;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'DM Sans', sans-serif;
         }
-        .sort-btn.active, .sort-btn:hover {
-            background: var(--color-primary); color: #fff; border-color: var(--color-primary);
-        }
+        .sort-btn.active, .sort-btn:hover { background: #1a1714; color: #f8f4ec; border-color: #1a1714; }
 
         /* Comment form */
         .comment-form-wrap { margin-bottom: 1.5rem; }
@@ -202,12 +246,12 @@
             width: 100%; box-sizing: border-box;
             border: 1.5px solid var(--color-input-border);
             border-radius: var(--border-radius-md);
-            padding: .75rem 1rem; font-family: 'Poppins', sans-serif;
+            padding: .75rem 1rem; font-family: 'DM Sans', sans-serif;
             font-size: .9rem; resize: vertical; min-height: 80px;
             background: var(--color-input-bg); color: var(--color-text-primary);
             transition: border-color .2s;
         }
-        .comment-form-wrap textarea:focus { outline: none; border-color: var(--color-primary); }
+        .comment-form-wrap textarea:focus { outline: none; border-color: #c4973a; }
         .comment-form-actions {
             display: flex; justify-content: space-between; align-items: center;
             margin-top: .5rem;
@@ -225,7 +269,7 @@
         }
         .comment-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,.06); }
         .comment-card.is-owner-comment {
-            border-left: 3px solid var(--color-primary);
+            border-left: 3px solid #c4973a;
         }
         .comment-card.deleted-comment {
             opacity: .55;
@@ -243,8 +287,7 @@
             display: flex; align-items: center; gap: .4rem; flex-wrap: wrap;
         }
         .owner-badge {
-            font-size: .7rem; background: rgba(139,92,246,.15);
-            color: var(--color-primary); border: 1px solid rgba(139,92,246,.3);
+            font-size: .7rem; background: rgba(196,151,58,.12); color: #c4973a; border: 1px solid rgba(196,151,58,.3);
             border-radius: 10px; padding: 1px 8px; font-weight: 600;
         }
         .comment-date { font-size: .78rem; color: var(--color-text-secondary); }
@@ -259,9 +302,9 @@
             background: none; border: none; cursor: pointer; padding: 4px 8px;
             border-radius: 8px; font-size: .8rem; font-weight: 600;
             color: var(--color-text-secondary); display: flex; align-items: center;
-            gap: 5px; transition: all .2s; font-family: 'Poppins', sans-serif;
+            gap: 5px; transition: all .2s; font-family: 'DM Sans', sans-serif;
         }
-        .cmt-action-btn:hover { background: rgba(139,92,246,.08); color: var(--color-primary); }
+        .cmt-action-btn:hover { background: var(--color-input-bg); color: var(--color-text-primary); }
         .cmt-action-btn.liked { color: #ef4444; }
         .cmt-action-btn.liked i { color: #ef4444; }
         .cmt-action-btn.delete-btn:hover { background: rgba(239,68,68,.08); color: #ef4444; }
@@ -277,22 +320,22 @@
             border-radius: var(--border-radius-md);
             padding: .75rem 1rem; margin-bottom: .5rem;
         }
-        .reply-card.is-owner-comment { border-left: 3px solid var(--color-primary); }
+        .reply-card.is-owner-comment { border-left: 3px solid #c4973a; }
         .reply-form-wrap { margin-top: .6rem; display: none; }
         .reply-form-wrap textarea {
             width: 100%; box-sizing: border-box;
             border: 1.5px solid var(--color-input-border);
             border-radius: var(--border-radius-md);
-            padding: .6rem .85rem; font-family: 'Poppins', sans-serif;
+            padding: .6rem .85rem; font-family: 'DM Sans', sans-serif;
             font-size: .85rem; resize: none; height: 60px;
             background: var(--color-input-bg); color: var(--color-text-primary);
         }
-        .reply-form-wrap textarea:focus { outline: none; border-color: var(--color-primary); }
+        .reply-form-wrap textarea:focus { outline: none; border-color: #c4973a; }
         .reply-form-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .4rem; }
         .cancel-reply-btn {
             background: none; border: 1px solid var(--color-input-border);
             border-radius: 6px; padding: 5px 12px; cursor: pointer;
-            font-size: .8rem; color: var(--color-text-secondary); font-family: 'Poppins', sans-serif;
+            font-size: .8rem; color: var(--color-text-secondary); font-family: 'DM Sans', sans-serif;
         }
         .no-comments-msg {
             text-align: center; padding: 2rem; color: var(--color-text-secondary);
@@ -305,35 +348,14 @@
             border-radius: var(--border-radius-md); color: var(--color-text-secondary);
             font-size: .9rem; margin-bottom: 1.5rem;
         }
-        .login-to-comment a { color: var(--color-primary); font-weight: 600; }
+        .login-to-comment a { color: #c4973a; font-weight: 600; }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
-        {% if current_user.is_authenticated %}
-        <aside class="sidebar">
-            <div class="logo">SkillBridge</div>
-            <nav>
-                <ul>
-                    <li><a href="{{ url_for('main_page') }}">Dashboard</a></li>
-                    {% if is_owner %}
-                        <li><a href="{{ url_for('projects') }}">Community Projects</a></li>
-                        <li><a href="{{ url_for('my_projects') }}" class="active">My Projects</a></li>
-                    {% else %}
-                        <li><a href="{{ url_for('projects') }}" class="active">Community Projects</a></li>
-                        <li><a href="{{ url_for('my_projects') }}">My Projects</a></li>
-                    {% endif %}
-                    <li><a href="{{ url_for('profile') }}">My Profile</a></li>
-                    <li><a href="{{ url_for('roadmap_generator') }}">Roadmap Generator</a></li>
-                    <li><a href="{{ url_for('my_roadmaps') }}">My Saved Roadmaps</a></li>
-                    <li><a href="{{ url_for('portfolio_builder') }}">Portfolio Builder</a></li>
-                    <li class="logout-link"><a href="{{ url_for('logout') }}">Logout</a></li>
-                </ul>
-            </nav>
-        </aside>
-        {% endif %}
 
-        <main class="main-content {% if not current_user.is_authenticated %}no-sidebar{% endif %}">
+
+        <main class="main-content no-sidebar">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                   <div class="flash-messages">
@@ -344,6 +366,11 @@
                 {% endif %}
             {% endwith %}
 
+            <div style="margin-bottom:1.25rem;">
+                <a href="javascript:history.back()" style="display:inline-flex;align-items:center;gap:8px;color:var(--color-text-secondary);text-decoration:none;font-size:.88rem;font-weight:600;padding:8px 14px;border-radius:10px;border:1.5px solid var(--color-sidebar-border);background:var(--color-surface);transition:.18s;" onmouseover="this.style.background='var(--color-background)';this.style.color='var(--color-text-primary)'" onmouseout="this.style.background='var(--color-surface)';this.style.color='var(--color-text-secondary)'">
+                  <i class="fas fa-arrow-left" style="font-size:.85rem;"></i> Back
+                </a>
+              </div>
             <div class="project-detail-container">
                 <div class="project-header">
                     <div>
@@ -361,7 +388,7 @@
                 <div class="project-stats">
                     <!-- View Count -->
                     <div class="stat-pill">
-                        <i class="fas fa-eye" style="color:#8B5CF6"></i>
+                        <i class="fas fa-eye" style="color:#c4973a"></i>
                         <span id="view-count">{{ project.views or 0 }}</span> views
                     </div>
 
@@ -402,9 +429,7 @@
 
                 <div class="project-body">
                     <h2>Project Description</h2>
-                    <p class="project-description">
-                        {{ project.description }}
-                    </p>
+                    <p class="project-description">{{- project.description -}}</p>
 
                     <div class="skills-section">
                         <h2>Skills Needed</h2>
@@ -420,8 +445,12 @@
                     </div>
 
                     {% if is_owner %}
-                    <h2>Project History</h2>
-                    <ul class="history-list">
+                    <div class="section-toggle" onclick="toggleSection('history-body', this)">
+                      <h2>Project History</h2>
+                      <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="collapsible-body" id="history-body">
+                    <ul class="history-list" style="margin-top:.75rem;">
                         {% for commit in commits %}
                         <li class="history-item">
                             <div class="history-item-info">
@@ -441,6 +470,7 @@
                         </li>
                         {% endfor %}
                     </ul>
+                    </div><!-- /history-body -->
                     {% endif %}
                 </div>
 
@@ -448,18 +478,21 @@
                      COMMENTS SECTION
                 ═══════════════════════════════════ -->
                 <div class="comments-section" id="comments-section">
-                    <div class="comments-header">
-                        <h2 style="font-size:1.25rem">
-                            💬 Comments
-                            <span id="comment-count-badge" style="font-size:.85rem;color:var(--color-text-secondary);font-weight:500">
-                                ({{ comment_count }})
-                            </span>
-                        </h2>
+                    <!-- Comments toggle header -->
+                    <div class="section-toggle" onclick="toggleSection('comments-body', this)" style="margin-top:2rem;">
+                      <h2 style="font-size:1.25rem;">
+                        💬 Comments
+                        <span id="comment-count-badge" style="font-size:.85rem;color:var(--color-text-secondary);font-weight:500;">({{ comment_count }})</span>
+                      </h2>
+                      <div style="display:flex;align-items:center;gap:.75rem;" onclick="event.stopPropagation()">
                         <div class="sort-toggle">
-                            <button class="sort-btn active" id="sort-recent" onclick="loadSorted('recent')">Recent</button>
-                            <button class="sort-btn" id="sort-top" onclick="loadSorted('top')">Top</button>
+                          <button class="sort-btn active" id="sort-recent" onclick="loadSorted('recent')">Recent</button>
+                          <button class="sort-btn" id="sort-top" onclick="loadSorted('top')">Top</button>
                         </div>
+                        <i class="fas fa-chevron-down toggle-icon" id="comments-chevron"></i>
+                      </div>
                     </div>
+                    <div class="collapsible-body" id="comments-body">
 
                     {% if current_user.is_authenticated %}
                     <!-- New Comment Box -->
@@ -580,7 +613,8 @@
                         </div>
                         {% endif %}
                     </div>
-                </div>
+                    </div><!-- /comments-body -->
+                </div><!-- /comments-section -->
 
             </div>
         </main>
@@ -882,6 +916,23 @@ function updateCommentCount(delta) {
     const current = parseInt(badge.textContent.replace(/\D/g, '')) || 0;
     badge.textContent = `(${Math.max(0, current + delta)})`;
 }
+</script>
+
+<script>
+function toggleSection(id, toggleEl) {
+  const body = document.getElementById(id);
+  const icon = toggleEl.querySelector('.toggle-icon');
+  if (!body) return;
+  body.classList.toggle('open');
+  if (icon) icon.classList.toggle('open');
+}
+</script>
+
+<script>
+(function(){
+  var t = localStorage.getItem('sb-theme') || 'light';
+  t === 'dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark');
+})();
 </script>
 </body>
 </html>

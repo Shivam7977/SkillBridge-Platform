@@ -2300,6 +2300,38 @@ def chat(receiver_id):
     except Exception as e:
         print(f"Chat Error: {e}"); return redirect(url_for('messages_list'))
 
+@app.route('/api/dm/<receiver_id>/messages')
+@login_required
+def api_dm_messages(receiver_id):
+    try:
+        r_id = ObjectId(receiver_id)
+        u_id = ObjectId(current_user.id)
+        since_str = request.args.get('since')
+        query = {"$or": [{"sender_id": u_id, "receiver_id": r_id}, {"sender_id": r_id, "receiver_id": u_id}]}
+        if since_str:
+            try:
+                since_dt = datetime.fromisoformat(since_str)
+                query["timestamp"] = {"$gt": since_dt}
+            except Exception:
+                pass
+        msgs = list(messages_collection.find(query).sort("timestamp", 1))
+        # Mark incoming as read
+        messages_collection.update_many({"sender_id": r_id, "receiver_id": u_id, "is_read": False}, {"$set": {"is_read": True}})
+        result = []
+        for m in msgs:
+            ts = m.get("timestamp")
+            ts_str = ts.strftime('%I:%M %p') + ' IST' if ts else ''
+            result.append({
+                "id": str(m["_id"]),
+                "content": m.get("content", ""),
+                "sender_id": str(m["sender_id"]),
+                "timestamp_str": ts_str,
+                "timestamp_iso": ts.isoformat() if ts else ""
+            })
+        return jsonify({"messages": result})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/community/<community_id>')
 @login_required
 def view_community(community_id):

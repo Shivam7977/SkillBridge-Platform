@@ -5,145 +5,491 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Roadmaps — SkillBridge</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    :root {
-      --primary: #8B5CF6; --secondary: #EC4899;
-      --bg: #f8f9fa; --surface: #fff;
-      --border: #dee2e6; --text: #1F2937; --muted: #6B7280;
-      --radius: 12px; --shadow: 0 4px 15px rgba(0,0,0,0.05);
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f8f4ec;
+      color: #1a1714;
+      min-height: 100vh;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); }
-    .dashboard-container { display: flex; }
 
-    /* SIDEBAR */
-    .sidebar { width: 250px; background: var(--surface); border-right: 1px solid var(--border); height: 100vh; padding: 2rem 1.5rem; position: fixed; z-index: 10; display: flex; flex-direction: column; overflow-y: auto; }
-    .sidebar .logo { font-size: 1.9em; font-weight: 800; color: var(--primary); text-decoration: none; letter-spacing: -1px; display: block; margin-bottom: 3rem; }
-    .sidebar nav ul { list-style: none; display: flex; flex-direction: column; height: 100%; }
-    .sidebar nav li a { display: flex; align-items: center; gap: 10px; color: var(--muted); text-decoration: none; padding: 0.9rem 1rem; margin-bottom: .5rem; border-radius: 8px; font-weight: 500; transition: all .2s; }
-    .sidebar nav li a:hover { background: #f1f3f5; color: var(--text); transform: translateX(4px); }
-    .sidebar nav li a.active { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; font-weight: 600; box-shadow: 0 4px 15px rgba(139,92,246,0.2); }
+    /* ── GRAIN BG ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
 
-    /* MAIN */
-    .main-content { margin-left: 250px; padding: 2.5rem 3.5rem; width: calc(100% - 250px); }
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
-    .page-header h1 { font-size: 2.2em; font-weight: 700; }
-    .page-header p { color: var(--muted); font-size: 1.05em; margin-top: 4px; }
-    .btn-primary { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1em; text-decoration: none; display: inline-block; box-shadow: 0 6px 20px rgba(139,92,246,0.3); transition: transform .2s, box-shadow .3s; }
-    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(139,92,246,0.4); }
+    /* ── DARK MODE ── */
+    body.dark { background: #1a1714; color: #f8f4ec; }
+    body.dark .topbar { background: #2c2820; border-bottom-color: #3d3830; }
+    body.dark .back-btn { background: #1a1714; border-color: #3d3830; color: #f0e9d8; }
+    body.dark .back-btn:hover { border-color: #c4973a; color: #c4973a; background: #2c2820; }
+    body.dark .hero-section { background: #2c2820; border-color: #3d3830; }
+    body.dark .hero-title { color: #f0e9d8; }
+    body.dark .hero-sub { color: #9c9488; }
+    body.dark .new-btn { background: #f0e9d8; color: #1a1714; }
+    body.dark .new-btn:hover { background: #fff; }
+    body.dark .roadmap-card { background: #2c2820; border-color: #3d3830; }
+    body.dark .roadmap-card:hover { border-color: #c4973a; }
+    body.dark .roadmap-title { color: #f0e9d8; }
+    body.dark .roadmap-title:hover { color: #c4973a; }
+    body.dark .card-date { color: #7a7268; }
+    body.dark .progress-bar-bg { background: #3d3830; }
+    body.dark .progress-label { color: #7a7268; }
+    body.dark .stage-dot.todo { background: #3d3830; border-color: #3d3830; }
+    body.dark .btn-view { background: #1a1714; color: #c4973a; border-color: #c4973a; }
+    body.dark .btn-view:hover { background: #c4973a; color: #1a1714; }
+    body.dark .btn-delete { background: #1a1714; }
+    body.dark .empty-state { background: #2c2820; border-color: #3d3830; }
+    body.dark .empty-state h3 { color: #f0e9d8; }
+    body.dark .empty-state p { color: #9c9488; }
+    body.dark .modal-box { background: #2c2820; color: #f0e9d8; }
+    body.dark .modal-box p { color: #9c9488; }
+    body.dark .btn-cancel-modal { background: #1a1714; color: #9c9488; border-color: #3d3830; }
+    body.dark .btn-cancel-modal:hover { background: #3d3830; }
+    body.dark .flash-banner { opacity: 1; }
 
-    /* CARDS */
-    .roadmap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem; }
-    .roadmap-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow); transition: all .2s; }
-    .roadmap-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 8px 24px rgba(139,92,246,0.12); }
-    .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-    .roadmap-title { font-size: 1.15em; font-weight: 700; color: var(--text); text-decoration: none; flex: 1; }
-    .roadmap-title:hover { color: var(--primary); }
-    .card-date { font-size: 0.75em; color: var(--muted); white-space: nowrap; }
+    /* ── TOPBAR ── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #f8f4ec;
+      border-bottom: 1px solid #e5d9c0;
+      padding: 0 clamp(1rem, 5vw, 3rem);
+      height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      backdrop-filter: blur(12px);
+    }
 
-    /* PROGRESS BAR */
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 50px;
+      border: 1.5px solid #e5d9c0;
+      background: #fff;
+      color: #1a1714;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .back-btn:hover {
+      border-color: #1a1714;
+      background: #f8f4ec;
+      transform: translateX(-2px);
+    }
+    .back-btn i { font-size: 0.8rem; }
+
+    .topbar-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: #1a1714;
+      text-decoration: none;
+      letter-spacing: -0.02em;
+      flex: 1;
+    }
+    body.dark .topbar-logo { color: #f0e9d8; }
+
+    /* ── PAGE WRAPPER ── */
+    .page-wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 5vw, 3.5rem);
+    }
+
+    /* ── HERO SECTION ── */
+    .hero-section {
+      background: #fff;
+      border: 1px solid #e5d9c0;
+      border-radius: 24px;
+      padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 5vw, 3rem);
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* subtle grid lines like mainpage editorial card */
+    .hero-section::before {
+      content: '';
+      position: absolute;
+      left: 33%;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: #1a1714;
+      opacity: 0.02;
+      pointer-events: none;
+    }
+    .hero-section::after {
+      content: '';
+      position: absolute;
+      left: 66%;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: #1a1714;
+      opacity: 0.02;
+      pointer-events: none;
+    }
+
+    .hero-text { position: relative; z-index: 1; }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 900;
+      color: #1a1714;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-sub {
+      font-size: 0.9rem;
+      color: #9c9488;
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    .new-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 14px;
+      border: none;
+      background: #1a1714;
+      color: #f8f4ec;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 4px 16px rgba(26,23,20,0.15);
+    }
+    .new-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(26,23,20,0.2);
+    }
+
+    /* ── ROADMAP GRID ── */
+    .roadmap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+      gap: 1.25rem;
+    }
+
+    .roadmap-card {
+      background: #fff;
+      border: 1.5px solid #e5d9c0;
+      border-radius: 18px;
+      padding: 1.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.2s;
+    }
+    .roadmap-card:hover {
+      transform: translateY(-4px);
+      border-color: #c4973a;
+      box-shadow: 0 8px 32px rgba(196,151,58,0.12);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .roadmap-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a1714;
+      text-decoration: none;
+      flex: 1;
+      line-height: 1.4;
+      transition: color 0.2s;
+    }
+    .roadmap-title:hover { color: #c4973a; }
+
+    .card-date {
+      font-size: 0.72rem;
+      color: #9c9488;
+      white-space: nowrap;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    /* PROGRESS */
     .progress-wrap { display: flex; align-items: center; gap: 10px; }
-    .progress-bar-bg { flex: 1; height: 8px; background: #f1f3f5; border-radius: 4px; overflow: hidden; }
-    .progress-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--primary), var(--secondary)); transition: width 0.6s ease; }
-    .progress-label { font-size: 0.78em; font-weight: 600; color: var(--muted); white-space: nowrap; }
+    .progress-bar-bg {
+      flex: 1;
+      height: 6px;
+      background: #f0e9d8;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #c4973a, #1a1714);
+      transition: width 0.6s ease;
+    }
+    .progress-label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: #9c9488;
+      white-space: nowrap;
+    }
 
-    /* STAGES PREVIEW */
-    .stages-preview { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
-    .stage-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border); }
-    .stage-dot.done { background: var(--primary); border-color: var(--primary); }
-    .stage-dot.todo { background: #f1f3f5; }
+    /* STAGE DOTS */
+    .stages-preview { display: flex; flex-wrap: wrap; gap: 5px; }
+    .stage-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 1.5px solid #e5d9c0;
+    }
+    .stage-dot.done { background: #c4973a; border-color: #c4973a; }
+    .stage-dot.todo { background: #f0e9d8; }
 
     /* ACTION BUTTONS */
-    .card-actions { display: flex; gap: 8px; margin-top: 4px; }
-    .btn-view { flex: 2; padding: 8px 14px; border-radius: 7px; border: 1.5px solid var(--primary); background: #fff; color: var(--primary); font-weight: 600; font-size: 0.8rem; cursor: pointer; font-family: inherit; transition: .2s; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; }
-    .btn-view:hover { background: var(--primary); color: #fff; }
-    .btn-delete { flex: 1; padding: 8px 14px; border-radius: 7px; border: 1.5px solid #ef4444; background: #fff; color: #ef4444; font-weight: 600; font-size: 0.8rem; cursor: pointer; font-family: inherit; transition: .2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .card-actions { display: flex; gap: 8px; margin-top: 2px; }
+    .btn-view {
+      flex: 2;
+      padding: 9px 14px;
+      border-radius: 10px;
+      border: 1.5px solid #c4973a;
+      background: transparent;
+      color: #c4973a;
+      font-weight: 700;
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-view:hover { background: #c4973a; color: #fff; }
+
+    .btn-delete {
+      flex: 1;
+      padding: 9px 14px;
+      border-radius: 10px;
+      border: 1.5px solid #ef4444;
+      background: transparent;
+      color: #ef4444;
+      font-weight: 700;
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
     .btn-delete:hover { background: #ef4444; color: #fff; }
 
-    /* EMPTY */
-    .empty-state { text-align: center; padding: 4rem 2rem; background: var(--surface); border: 2px dashed var(--border); border-radius: var(--radius); }
-    .empty-state i { font-size: 3rem; color: var(--muted); margin-bottom: 1rem; }
-    .empty-state h3 { font-weight: 700; margin-bottom: 0.5rem; }
-    .empty-state p { color: var(--muted); margin-bottom: 1.5rem; }
+    /* EMPTY STATE */
+    .empty-state {
+      text-align: center;
+      padding: clamp(2rem, 6vw, 4rem) 2rem;
+      background: #fff;
+      border: 2px dashed #e5d9c0;
+      border-radius: 20px;
+    }
+    .empty-state i { font-size: 2.8rem; color: #d4c4a0; margin-bottom: 1rem; display: block; }
+    .empty-state h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: #1a1714; }
+    .empty-state p { color: #9c9488; margin-bottom: 1.5rem; font-size: 0.9rem; line-height: 1.6; }
 
-    /* DELETE CONFIRM MODAL */
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
+    /* MODAL */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(26,23,20,0.6);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      backdrop-filter: blur(4px);
+    }
     .modal-overlay.open { display: flex; }
-    .modal-box { background: var(--surface); border-radius: 16px; padding: 2rem; width: 100%; max-width: 420px; margin: 1rem; box-shadow: 0 20px 60px rgba(0,0,0,0.25); text-align: center; }
-    .modal-icon { font-size: 2.5rem; margin-bottom: 1rem; }
-    .modal-box h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
-    .modal-box p { font-size: 0.88rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.5; }
-    .modal-actions { display: flex; gap: 10px; justify-content: center; }
-    .btn-cancel-modal { padding: 10px 22px; border-radius: 8px; border: 1.5px solid var(--border); background: #fff; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 0.9rem; color: var(--muted); }
-    .btn-cancel-modal:hover { background: #f8f9fa; }
-    .btn-confirm-delete { padding: 10px 28px; border-radius: 8px; border: none; background: #ef4444; color: #fff; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.9rem; transition: .2s; }
+    .modal-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: clamp(1.5rem, 4vw, 2rem);
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    .modal-icon { font-size: 2.4rem; margin-bottom: 1rem; }
+    .modal-box h3 { font-size: 1.05rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .modal-box p { font-size: 0.85rem; color: #9c9488; margin-bottom: 1.5rem; line-height: 1.6; }
+    .modal-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .btn-cancel-modal {
+      padding: 10px 22px;
+      border-radius: 10px;
+      border: 1.5px solid #e5d9c0;
+      background: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.88rem;
+      color: #9c9488;
+      transition: 0.2s;
+    }
+    .btn-cancel-modal:hover { background: #f8f4ec; }
+    .btn-confirm-delete {
+      padding: 10px 26px;
+      border-radius: 10px;
+      border: none;
+      background: #ef4444;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.88rem;
+      transition: 0.2s;
+    }
     .btn-confirm-delete:hover { background: #dc2626; }
 
     /* TOAST */
-    .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; font-size: .85em; font-weight: 600; z-index: 99999; opacity: 0; transform: translateY(10px); transition: all .35s cubic-bezier(.34,1.56,.64,1); pointer-events: none; color: #fff; max-width: 340px; }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      z-index: 99999;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.35s cubic-bezier(.34,1.56,.64,1);
+      pointer-events: none;
+      color: #fff;
+      max-width: 320px;
+      font-family: 'DM Sans', sans-serif;
+    }
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast.success { background: linear-gradient(90deg, #059669, #10b981); }
-    .toast.error { background: linear-gradient(90deg, #dc2626, #ef4444); }
-    .toast.levelup { background: linear-gradient(90deg, var(--primary), var(--secondary)); }
+    .toast.error   { background: linear-gradient(90deg, #dc2626, #ef4444); }
+    .toast.levelup { background: linear-gradient(90deg, #c4973a, #1a1714); }
 
     /* FLASH */
-    .flash-messages { position: fixed; top: 20px; right: 20px; z-index: 1001; display: flex; flex-direction: column; gap: 10px; max-width: 380px; }
-    .flash-banner { padding: 1rem 1.5rem; border-radius: 8px; color: #fff; font-weight: 500; box-shadow: 0 5px 20px rgba(0,0,0,0.15); animation: popDown .4s cubic-bezier(0.175,0.885,0.32,1.275) forwards; border-left: 5px solid; opacity: 0; }
-    @keyframes popDown { to { opacity: 1; transform: none; } }
-    .flash-success { background: #28a745; border-left-color: #1e7e34; }
-    .flash-error   { background: #dc3545; border-left-color: #b02a37; }
-    .flash-info    { background: #6B7280; border-left-color: #4B5563; }
+    .flash-messages {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1001;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 360px;
+    }
+    .flash-banner {
+      padding: 0.9rem 1.3rem;
+      border-radius: 12px;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.86rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      animation: slideIn 0.35s ease forwards;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .flash-success { background: #10b981; }
+    .flash-error   { background: #ef4444; }
+    .flash-info    { background: #6b7280; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .hero-section { flex-direction: column; align-items: flex-start; }
+      .new-btn { width: 100%; justify-content: center; }
+      .modal-actions { flex-direction: column; }
+      .btn-cancel-modal, .btn-confirm-delete { width: 100%; }
+      .toast { left: 16px; right: 16px; bottom: 16px; max-width: none; }
+    }
   </style>
 </head>
 <body>
-<div class="dashboard-container">
-  <aside class="sidebar">
-    <a href="{{ url_for('main_page') }}" class="logo">SkillBridge</a>
-    <nav><ul>
-      <li><a href="{{ url_for('main_page') }}"><i class="fas fa-home"></i> Dashboard</a></li>
-      <li><a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a></li>
-      <li><a href="{{ url_for('my_projects') }}"><i class="fas fa-layer-group"></i> My Projects</a></li>
-      <li><a href="{{ url_for('roadmap_generator') }}"><i class="fas fa-magic"></i> Roadmap AI</a></li>
-      <li><a href="{{ url_for('my_roadmaps') }}" class="active"><i class="fas fa-map"></i> My Roadmaps</a></li>
-      <li><a href="{{ url_for('resume_builder') }}"><i class="fas fa-file-alt"></i> Resume Builder</a></li>
-      <li><a href="{{ url_for('portfolio_builder') }}"><i class="fas fa-briefcase"></i> Portfolio Builder</a></li>
-      <li><a href="{{ url_for('projects') }}"><i class="fas fa-globe"></i> Community</a></li>
-      <li><a href="{{ url_for('find_communities') }}"><i class="fas fa-users"></i> All Communities</a></li>
-      <li><a href="{{ url_for('messages_list') }}"><i class="fas fa-comment-dots"></i> Messages</a></li>
-    <a href="{{ url_for('leaderboard') }}"><i class="fas fa-trophy"></i> Leaderboard</a>
-      <li style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border)">
-        <a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a>
-      </li>
-    </ul></nav>
-  </aside>
 
-  <main class="main-content">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="flash-messages">
-          {% for category, message in messages %}
-            <div class="flash-banner flash-{{ category }}">{{ message }}</div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
+<!-- ── TOPBAR ── -->
+<div class="topbar">
+  <a href="{{ url_for('main_page') }}" class="back-btn">
+    <i class="fas fa-arrow-left"></i> Back
+  </a>
+  <a href="{{ url_for('main_page') }}" class="topbar-logo">SkillBridge</a>
+</div>
 
-    <div class="page-header">
-      <div>
-        <h1>🗺️ My Roadmaps</h1>
-        <p>Your saved AI-generated learning roadmaps.</p>
-      </div>
-      <a href="{{ url_for('roadmap_generator') }}" class="btn-primary"><i class="fas fa-plus"></i> New Roadmap</a>
+<!-- ── FLASH MESSAGES ── -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-messages">
+      {% for category, message in messages %}
+        <div class="flash-banner flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
     </div>
+  {% endif %}
+{% endwith %}
 
-    {% if roadmaps %}
-    <div class="roadmap-grid">
-      {% for roadmap in roadmaps %}
+<!-- ── PAGE CONTENT ── -->
+<div class="page-wrap">
+
+  <!-- HERO -->
+  <div class="hero-section">
+    <div class="hero-text">
+      <div class="hero-title">🗺️ My Roadmaps</div>
+      <div class="hero-sub">Your saved AI-generated learning roadmaps.</div>
+    </div>
+    <a href="{{ url_for('roadmap_generator') }}" class="new-btn">
+      <i class="fas fa-plus"></i> New Roadmap
+    </a>
+  </div>
+
+  <!-- ROADMAP CARDS -->
+  {% if roadmaps %}
+  <div class="roadmap-grid">
+    {% for roadmap in roadmaps %}
       {% set stages = roadmap.roadmap_content.stages if roadmap.roadmap_content and roadmap.roadmap_content.stages else [] %}
-      {% set total = stages | length %}
-      {% set done = stages | selectattr('completed', 'equalto', True) | list | length %}
+      {% set total = stages|length %}
+      {% set done = stages|selectattr('completed','equalto',true)|list|length %}
       {% set pct = ((done / total) * 100) | int if total > 0 else 0 %}
 
       <div class="roadmap-card" id="roadmap-card-{{ roadmap._id }}">
@@ -166,7 +512,8 @@
         {% if stages %}
         <div class="stages-preview">
           {% for s in stages %}
-            <div class="stage-dot {% if s.completed %}done{% else %}todo{% endif %}" title="{{ s.title if s.title else 'Stage' }}"></div>
+            <div class="stage-dot {% if s.completed %}done{% else %}todo{% endif %}"
+                 title="{{ s.title if s.title else 'Stage' }}"></div>
           {% endfor %}
         </div>
         {% endif %}
@@ -181,21 +528,23 @@
           </button>
         </div>
       </div>
-      {% endfor %}
-    </div>
+    {% endfor %}
+  </div>
 
-    {% else %}
-    <div class="empty-state">
-      <i class="fas fa-map-signs"></i>
-      <h3>No roadmaps yet</h3>
-      <p>Generate your first AI roadmap and start tracking your learning journey.</p>
-      <a href="{{ url_for('roadmap_generator') }}" class="btn-primary"><i class="fas fa-magic"></i> Generate Roadmap</a>
-    </div>
-    {% endif %}
-  </main>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-map-signs"></i>
+    <h3>No roadmaps yet</h3>
+    <p>Generate your first AI roadmap and start tracking your learning journey.</p>
+    <a href="{{ url_for('roadmap_generator') }}" class="new-btn" style="display:inline-flex;">
+      <i class="fas fa-magic"></i> Generate Roadmap
+    </a>
+  </div>
+  {% endif %}
+
 </div>
 
-<!-- Delete Confirm Modal -->
+<!-- ── DELETE CONFIRM MODAL ── -->
 <div class="modal-overlay" id="delete-modal">
   <div class="modal-box">
     <div class="modal-icon">🗺️</div>
@@ -203,7 +552,9 @@
     <p id="delete-modal-msg">This action cannot be undone.</p>
     <div class="modal-actions">
       <button class="btn-cancel-modal" onclick="closeDeleteModal()">Cancel</button>
-      <button class="btn-confirm-delete" onclick="confirmDelete()"><i class="fas fa-trash-alt"></i> Yes, Delete</button>
+      <button class="btn-confirm-delete" onclick="confirmDelete()">
+        <i class="fas fa-trash-alt"></i> Yes, Delete
+      </button>
     </div>
   </div>
 </div>
@@ -211,6 +562,16 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Theme ──
+(function(){
+  var t = localStorage.getItem('sb-theme') || 'light';
+  applyTheme(t);
+})();
+function applyTheme(t) {
+  t === 'dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark');
+}
+
+// ── Delete modal logic (unchanged) ──
 let deleteTargetId = null;
 
 function openDeleteModal(id, goal, completedStages) {
@@ -221,10 +582,12 @@ function openDeleteModal(id, goal, completedStages) {
   document.getElementById('delete-modal-msg').innerHTML = msg;
   document.getElementById('delete-modal').classList.add('open');
 }
+
 function closeDeleteModal() {
   document.getElementById('delete-modal').classList.remove('open');
   deleteTargetId = null;
 }
+
 document.getElementById('delete-modal').addEventListener('click', function(e) {
   if (e.target === this) closeDeleteModal();
 });
@@ -234,7 +597,10 @@ async function confirmDelete() {
   const id = deleteTargetId;
   closeDeleteModal();
   try {
-    const res = await fetch(`/roadmap/delete/${id}`, { method: 'POST', headers: {'Content-Type': 'application/json'} });
+    const res = await fetch(`/roadmap/delete/${id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
     const data = await res.json();
     if (data.success) {
       const card = document.getElementById(`roadmap-card-${id}`);
@@ -250,17 +616,23 @@ async function confirmDelete() {
               <i class="fas fa-map-signs"></i>
               <h3>No roadmaps yet</h3>
               <p>Generate your first AI roadmap and start tracking your learning journey.</p>
-              <a href="/roadmap_generator" class="btn-primary"><i class="fas fa-magic"></i> Generate Roadmap</a>
+              <a href="/roadmap_generator" class="new-btn" style="display:inline-flex;">
+                <i class="fas fa-magic"></i> Generate Roadmap
+              </a>
             </div>`;
           }
         }, 300);
       }
-      const msg = data.deducted > 0 ? `🗺️ Roadmap deleted. -${data.deducted} XP` : '🗺️ Roadmap deleted.';
+      const msg = data.deducted > 0
+        ? `🗺️ Roadmap deleted. -${data.deducted} XP`
+        : '🗺️ Roadmap deleted.';
       showToast(msg, 'error');
     } else {
       showToast(data.error || 'Failed to delete roadmap', 'error');
     }
-  } catch(e) { showToast('Error deleting roadmap', 'error'); }
+  } catch(e) {
+    showToast('Error deleting roadmap', 'error');
+  }
 }
 
 function showToast(msg, type = 'success') {
@@ -270,19 +642,16 @@ function showToast(msg, type = 'success') {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// Level-up toast check
+// ── Level-up check (unchanged) ──
 {% if current_user.is_authenticated %}
 fetch('/api/check_levelup').then(r => r.json()).then(d => {
   if (d.levelup) showToast(`🎉 Level Up! You are now <strong>${d.badge}</strong>!`, 'levelup');
 });
 {% endif %}
 </script>
+
 {% include 'notification_bell.html' %}
 {% include 'chatbot_widget.html' %}
 
-<script>
-applyTheme(localStorage.getItem('sb-theme') || 'light');
-function applyTheme(t) { t === 'dark' ? document.body.classList.add('dark') : document.body.classList.remove('dark'); }
-</script>
 </body>
 </html>
