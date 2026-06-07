@@ -31,16 +31,16 @@
     body.dark { background: #1a1714; color: #f8f4ec; }
     body.dark .topbar { background: #2c2820; border-bottom-color: #3d3830; }
     body.dark .back-btn { background: #1a1714; border-color: #3d3830; color: #f0e9d8; }
-    body.dark .back-btn:hover { border-color: #c4973a; color: #c4973a; background: #2c2820; }
+    body.dark .back-btn:hover { border-color: #f0e9d8; color: #f0e9d8; background: #2c2820; }
     body.dark .hero-section { background: #2c2820; border-color: #3d3830; }
     body.dark .hero-title { color: #f0e9d8; }
     body.dark .hero-sub { color: #9c9488; }
     body.dark .new-btn { background: #f0e9d8; color: #1a1714; }
     body.dark .new-btn:hover { background: #fff; }
     body.dark .roadmap-card { background: #2c2820; border-color: #3d3830; }
-    body.dark .roadmap-card:hover { border-color: #c4973a; }
+    body.dark .roadmap-card:hover { border-color: #f0e9d8; }
     body.dark .roadmap-title { color: #f0e9d8; }
-    body.dark .roadmap-title:hover { color: #c4973a; }
+    body.dark .roadmap-title:hover { color: #f0e9d8; }
     body.dark .card-date { color: #7a7268; }
     body.dark .progress-bar-bg { background: #3d3830; }
     body.dark .progress-label { color: #7a7268; }
@@ -217,8 +217,8 @@
       transition: all 0.2s;
     }
     .roadmap-card:hover {
-      transform: translateY(-4px);
-      border-color: #c4973a;
+      transform: translateY(-3px);
+      border-color: #1a1714;
       box-shadow: 0 8px 32px rgba(196,151,58,0.12);
     }
 
@@ -238,7 +238,7 @@
       line-height: 1.4;
       transition: color 0.2s;
     }
-    .roadmap-title:hover { color: #c4973a; }
+    .roadmap-title:hover { color: #1a1714; }
 
     .card-date {
       font-size: 0.72rem;
@@ -439,12 +439,25 @@
     .flash-info    { background: #6b7280; }
 
     /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .cards-grid { grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap:1rem; }
+      .hero-content { padding:1.5rem; }
+    }
     @media (max-width: 600px) {
       .hero-section { flex-direction: column; align-items: flex-start; }
       .new-btn { width: 100%; justify-content: center; }
       .modal-actions { flex-direction: column; }
       .btn-cancel-modal, .btn-confirm-delete { width: 100%; }
       .toast { left: 16px; right: 16px; bottom: 16px; max-width: none; }
+      .cards-grid { grid-template-columns: 1fr; }
+      .topbar { padding:12px 1rem; }
+      .back-btn { padding:6px 10px; font-size:.8rem; }
+      .roadmap-title { font-size:1rem; }
+      .btn-view, .btn-delete { padding:8px 12px; font-size:.78rem; }
+    }
+    @media (max-width:400px) {
+      .hero-content h1 { font-size:1.3rem; }
+      .roadmap-card { padding:1rem; }
     }
   </style>
 </head>

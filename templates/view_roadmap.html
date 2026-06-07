@@ -126,7 +126,7 @@
         .timeline-item:hover .timeline-content {
             transform: scale(1.01); 
             box-shadow: var(--box-shadow-card);
-            border-color: var(--color-secondary);
+            border-color: var(--color-primary);
         }
         .timeline-content h3 { margin-top: 0; font-size: 1.4em; color: var(--color-text-primary); font-family: 'Playfair Display', serif; }
         
@@ -165,25 +165,44 @@
         .next-steps { text-align: center; margin-top: 2.5rem; border-top: 1px solid var(--color-sidebar-border); padding-top: 2rem; }
 
 
+        @media (max-width:900px) {
+            .main-content { padding:1.5rem clamp(.75rem,3vw,2rem); }
+        }
         @media (max-width:768px) {
-            .hero-inner { flex-direction:column; align-items:flex-start; }
+            .hero-inner { flex-direction:column; align-items:flex-start; gap:.75rem; }
+            .new-roadmap-btn { width:100%; justify-content:center; }
             .timeline::before { left:14px; }
             .timeline-item { padding-left:46px; }
             .timeline-item::before { left:3px; width:20px; height:20px; }
             .timeline-content { padding:1.1rem; }
             .timeline-content h3 { font-size:1.15em; }
+            .progress-bar-container { height:9px; }
         }
         @media (max-width:480px) {
             .topbar { padding:12px 1rem; }
             .back-btn { padding:6px 10px; font-size:.8rem; }
-            .hero-section { padding:1.25rem 1rem; }
-            .hero-text h1 { font-size:1.35rem; }
-            .main-content { padding:1.25rem 1rem; }
-            .timeline-content { padding:.9rem; }
+            .hero-section { padding:1rem; }
+            .hero-text h1 { font-size:1.25rem; }
+            .main-content { padding:1rem; }
+            .timeline-content { padding:.85rem; }
+            .timeline-content h3 { font-size:1.05em; }
+            .complete-button { display:block; text-align:center; width:100%; }
+            .capstone-project { padding:1.25rem; }
+            .capstone-project h3 { font-size:1.05em; }
+        }
+        @media (max-width:360px) {
+            .timeline-item { padding-left:38px; }
+            .timeline::before { left:10px; }
+            .timeline-item::before { left:0; width:17px; height:17px; }
         }
         .flash-messages { position: fixed; top: 20px; right: 20px; z-index: 1001; display: flex; flex-direction: column; gap: 10px; width: 300px; }
-        .flash-banner { padding: 1rem; border-radius: var(--border-radius-md); color: #fff; animation: popDown .4s forwards; }
-        @keyframes popDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .flash-messages { position:fixed; top:20px; right:20px; z-index:1001; display:flex; flex-direction:column; gap:10px; width:300px; }
+        .flash-banner { padding:1rem 1.25rem; border-radius:var(--border-radius-md); color:#fff; font-weight:600; font-size:.88rem; box-shadow:0 4px 16px rgba(0,0,0,.15); animation:popDown .4s forwards; border-left:4px solid rgba(255,255,255,.4); }
+        .flash-success { background:#1a7a4a; }
+        .flash-error   { background:#dc3545; }
+        .flash-info    { background:#1a1714; }
+        .flash-warning { background:#c4973a; color:#1a1714; }
+        @keyframes popDown { from { transform:translateY(-20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
     </style>
 </head>
 <body>

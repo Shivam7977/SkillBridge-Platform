@@ -1,127 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Version - {{ project.title }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-         /* Light Theme Variables */
-        :root {
-            --color-background: #f8f9fa;
-            --color-surface: #ffffff;
-            --color-sidebar-bg: #ffffff;
-            --color-sidebar-border: #dee2e6;
-            --color-primary: #8B5CF6; /* Vibrant purple */
-            --color-secondary: #EC4899; /* Vibrant pink */
-            --color-text-primary: #1F2937; /* Darker text */
-            --color-text-secondary: #6B7280; /* Gray text */
-            --color-input-bg: #F9FAFB;
-            --color-input-border: #D1D5DB;
-            --color-input-focus-border: var(--color-primary);
-            --color-input-focus-shadow: rgba(139, 92, 246, 0.15);
-            --border-radius-lg: 12px;
-            --border-radius-md: 8px;
-            --box-shadow-card: 0 6px 20px rgba(0, 0, 0, 0.06);
-            --box-shadow-button: 0 6px 20px rgba(139, 92, 246, 0.3);
-        }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--color-background); color: var(--color-text-primary); margin: 0; }
-        .dashboard-container { display: flex; }
-        /* Sidebar */
-        .sidebar { width: 250px; background: var(--color-sidebar-bg); border-right: 1px solid var(--color-sidebar-border); height: 100vh; padding: 2rem 1.5rem; position: fixed; box-sizing: border-box; z-index: 10; }
-        .sidebar .logo { font-size: 1.9em; font-weight: 800; margin-bottom: 3rem; color: var(--color-primary); text-decoration: none; letter-spacing: -1px; display: block; }
-        .sidebar nav { height: calc(100% - 5rem); }
-        .sidebar nav ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; height: 100%; }
-        .sidebar nav li a { display: block; color: var(--color-text-secondary); text-decoration: none; padding: 0.9rem 1rem; margin-bottom: .5rem; border-radius: var(--border-radius-md); font-weight: 500; transition: all .2s ease-in-out; }
-        .sidebar nav li a:hover { background-color: #f1f3f5; color: var(--color-text-primary); transform: translateX(4px); }
-        .sidebar nav li a.active { background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); color: #fff; font-weight: 600; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2); transform: translateX(0); }
-        .sidebar .logout-link { margin-top: auto; }
-        .sidebar .logout-link a { color: #dc3545; }
-        .sidebar .logout-link a:hover { background-color: rgba(220, 53, 69, 0.1); color: #b02a37; }
-        /* Main content */
-        .main-content { margin-left: 250px; padding: 2.5rem 3.5rem; width: calc(100% - 250px); box-sizing: border-box; }
-        /* CTA Button */
-        .cta-button { background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); color: #fff; padding: 12px 28px; border: none; border-radius: var(--border-radius-md); font-weight: 600; cursor: pointer; transition: transform .2s, box-shadow .3s; font-size: 1.05em; text-decoration: none; display: inline-block; box-shadow: var(--box-shadow-button); }
-        .cta-button:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4); }
-        /* Flash Message */
-        .flash-messages { position: fixed; top: 20px; right: 20px; z-index: 1001; display: flex; flex-direction: column; gap: 10px; width: calc(100% - 40px); max-width: 380px; }
-        .flash-banner { padding: 1rem 1.5rem; border-radius: var(--border-radius-md); color: #fff; font-weight: 500; box-shadow: 0 5px 20px rgba(0,0,0,0.15); opacity: 0; transform: translateY(-20px) scale(0.95); animation: popDown .4s 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; border-left: 5px solid; }
-        @keyframes popDown { to { opacity: 1; transform: translateY(0) scale(1); } }
-        .flash-error { background-color: #dc3545; border-left-color: #b02a37; }
+<head>
+<link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload Version - {{ project.title }}</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --bg: #f8f4ec; --surface: #fff; --primary: #1a1714; --secondary: #c4973a;
+  --text: #1a1714; --muted: #7a7268; --border: #e5d9c0;
+  --input-bg: #f8f4ec; --radius: 14px; --radius-sm: 10px;
+}
+body.dark {
+  --bg: #1a1714; --surface: #2c2820; --primary: #f0e9d8; --secondary: #c4973a;
+  --text: #f0e9d8; --muted: #9c9488; --border: #3d3830; --input-bg: #23201c;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:background .3s,color .3s; }
 
-        /* Form specific styles */
-        .form-container { max-width: 800px; margin: 0 auto; padding: 3rem; background: var(--color-surface); border-radius: var(--border-radius-lg); box-shadow: var(--box-shadow-card); border: 1px solid var(--color-sidebar-border); }
-        .form-container h1 { text-align: center; margin-bottom: 0.5rem; color: var(--color-text-primary); font-size: 2em; font-weight: 700; }
-        .form-container .project-title { text-align: center; font-size: 1.2em; color: var(--color-text-secondary); margin-bottom: 2.5rem; font-weight: 500; }
-        .form-group { margin-bottom: 1.8rem; }
-        .form-group label { display: block; margin-bottom: 0.6rem; font-weight: 600; color: var(--color-text-primary); font-size: 0.95em; }
-        .form-group input[type="text"], .form-group input[type="file"] { width: 100%; padding: 14px 16px; border-radius: var(--border-radius-md); border: 1px solid var(--color-input-border); background: var(--color-input-bg); color: var(--color-text-primary); font-family: 'Poppins', sans-serif; font-size: 1em; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; }
-        .form-group input[type="text"]:focus, .form-group input[type="file"]:focus { border-color: var(--color-input-focus-border); box-shadow: 0 0 0 3px var(--color-input-focus-shadow); outline: none; }
-        .form-group input[type="file"] { padding: 10px; cursor: pointer; background-color: var(--color-surface); }
-        .form-group ::file-selector-button { background: var(--color-primary); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; margin-right: 10px; transition: background-color 0.2s; }
-        .form-group ::file-selector-button:hover { background: var(--color-secondary); }
-        .form-group small { display: block; margin-top: 0.5rem; font-size: 0.85em; color: var(--color-text-secondary); }
-        .button-container { text-align: center; margin-top: 2.5rem; }
-    </style>
+/* ── Topbar ── */
+.topbar {
+  position:sticky; top:0; z-index:50;
+  background:var(--surface); border-bottom:1px solid var(--border);
+  padding:14px clamp(1rem,5vw,3rem);
+  display:flex; align-items:center; gap:14px;
+}
+.back-btn {
+  display:inline-flex; align-items:center; gap:7px;
+  color:var(--muted); text-decoration:none; font-size:.87rem; font-weight:600;
+  padding:8px 14px; border-radius:10px;
+  border:1.5px solid var(--border); background:var(--surface); transition:.18s;
+}
+.back-btn:hover { background:var(--bg); color:var(--text); }
+.topbar-logo { font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:900; color:var(--text); text-decoration:none; }
+
+/* ── Page ── */
+.page { display:flex; align-items:flex-start; justify-content:center; padding:clamp(1.5rem,5vw,3rem) clamp(1rem,5vw,2rem); min-height:calc(100vh - 60px); }
+
+/* ── Card ── */
+.card {
+  width:100%; max-width:600px;
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--radius); padding:clamp(1.5rem,5vw,2.5rem);
+  box-shadow:0 8px 30px rgba(0,0,0,.06);
+}
+
+.card-header { margin-bottom:2rem; }
+.card-header h1 {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.4rem,3vw,1.9rem); font-weight:900;
+  color:var(--text); margin-bottom:.4rem;
+}
+.card-header .project-name {
+  font-size:.9rem; color:var(--muted); font-weight:600;
+  display:flex; align-items:center; gap:6px;
+}
+.divider { width:100%; height:1px; background:var(--border); margin:1.5rem 0; }
+
+/* ── Flash ── */
+.flash-wrap { margin-bottom:1.25rem; display:flex; flex-direction:column; gap:8px; }
+.flash-banner { padding:.85rem 1.1rem; border-radius:var(--radius-sm); color:#fff; font-weight:600; font-size:.85rem; border-left:4px solid rgba(255,255,255,.3); }
+.flash-success { background:#1a7a4a; }
+.flash-error   { background:#dc3545; }
+.flash-info    { background:#1a1714; }
+.flash-warning { background:#c4973a; color:#1a1714; }
+
+/* ── Form ── */
+.form-group { margin-bottom:1.5rem; }
+.form-group label {
+  display:block; margin-bottom:.5rem;
+  font-weight:700; color:var(--text); font-size:.88rem;
+}
+.form-group input[type="text"],
+.form-group input[type="file"] {
+  width:100%; padding:13px 16px;
+  border-radius:var(--radius-sm);
+  border:1.5px solid var(--border);
+  background:var(--input-bg); color:var(--text);
+  font-family:'DM Sans',sans-serif; font-size:.93rem;
+  transition:border-color .2s, box-shadow .2s; outline:none;
+}
+.form-group input[type="text"]:focus,
+.form-group input[type="file"]:focus {
+  border-color:var(--text);
+  box-shadow:0 0 0 3px rgba(26,23,20,.08);
+}
+.form-group input[type="text"]::placeholder { color:var(--muted); }
+.form-group input[type="file"] { padding:10px 14px; cursor:pointer; }
+.form-group ::file-selector-button {
+  background:var(--primary); color:var(--bg);
+  border:none; padding:7px 12px; border-radius:7px;
+  cursor:pointer; margin-right:10px; font-family:'DM Sans',sans-serif;
+  font-weight:700; font-size:.82rem; transition:.18s;
+}
+.form-group ::file-selector-button:hover { opacity:.85; }
+.form-group small { display:block; margin-top:.45rem; font-size:.8rem; color:var(--muted); line-height:1.5; }
+
+/* ── Submit ── */
+.submit-btn {
+  width:100%; padding:14px;
+  background:var(--primary); color:var(--bg);
+  border:none; border-radius:var(--radius-sm);
+  font-family:'DM Sans',sans-serif; font-weight:700; font-size:.95rem;
+  cursor:pointer; transition:.2s; margin-top:.5rem;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.submit-btn:hover { opacity:.88; transform:translateY(-1px); }
+
+/* ── Info box ── */
+.info-box {
+  margin-top:1.5rem; padding:1rem 1.1rem;
+  background:rgba(196,151,58,.08); border:1px solid rgba(196,151,58,.25);
+  border-radius:var(--radius-sm); font-size:.82rem; color:var(--muted); line-height:1.6;
+}
+.info-box i { color:var(--secondary); margin-right:4px; }
+
+@media (max-width:480px) {
+  .card { border-radius:12px; }
+  .topbar { padding:12px 1rem; }
+}
+</style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <aside class="sidebar">
-            <div class="logo">SkillBridge</div>
-            <nav>
-                <ul>
-                    <li><a href="{{ url_for('main_page') }}">Dashboard</a></li>
-                    <li><a href="{{ url_for('projects') }}">Community Projects</a></li>
-                    <li><a href="{{ url_for('my_projects') }}" class="active">My Projects</a></li>
-                    <li><a href="{{ url_for('profile') }}">My Profile</a></li>
-                    <li><a href="{{ url_for('roadmap_generator') }}">Roadmap Generator</a></li>
-                    <li><a href="{{ url_for('my_roadmaps') }}">My Saved Roadmaps</a></li>
-                    <li><a href="{{ url_for('portfolio_builder') }}">Portfolio Builder</a></li>
-                    <li class="logout-link"><a href="{{ url_for('logout') }}">Logout</a></li>
-                </ul>
-            </nav>
-        </aside>
 
-        <main class="main-content">
-            <div class="form-container">
-                <h1>Upload New Version</h1>
-                <p class="project-title">{{ project.title }}</p>
+<div class="topbar">
+  <a href="javascript:history.back()" class="back-btn">
+    <i class="fas fa-arrow-left"></i> Back
+  </a>
+  <a href="{{ url_for('main_page') }}" class="topbar-logo">SkillBridge</a>
+</div>
 
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <div class="flash-messages" style="position: static; margin-bottom: 1.5rem; max-width: 100%;">
-                        {% for category, message in messages %}
-                            <div class="flash-banner flash-{{ category }}">{{ message }}</div>
-                        {% endfor %}
-                        </div>
-                    {% endif %}
-                {% endwith %}
-
-                <form method="POST" action="{{ url_for('upload_version', project_id=project._id) }}" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label for="message">Version Message *</label>
-                        <input type="text" id="message" name="message" placeholder='e.g., Initial commit, Added login feature, Fixed CSS bug' required>
-                        <small>Briefly describe the changes in this version.</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="project_file">Project File (.zip only) *</label>
-                        <input type="file" id="project_file" name="project_file" accept=".zip" required>
-                         <small>Select the .zip archive containing your project files for this version.</small>
-                    </div>
-
-                    <div class="button-container">
-                        <button type="submit" class="cta-button">Upload Version</button>
-                    </div>
-                </form>
-            </div>
-        </main>
+<div class="page">
+  <div class="card">
+    <div class="card-header">
+      <h1>Upload New Version</h1>
+      <div class="project-name">
+        <i class="fas fa-layer-group" style="color:var(--secondary);font-size:.85rem;"></i>
+        {{ project.title }}
+      </div>
     </div>
+    <div class="divider"></div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-wrap">
+          {% for category, message in messages %}
+            <div class="flash-banner flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('upload_version', project_id=project._id) }}" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="message">Version Message <span style="color:#dc3545;">*</span></label>
+        <input type="text" id="message" name="message"
+               placeholder="e.g., Initial commit, Added login feature, Fixed CSS bug" required>
+        <small>Briefly describe what changed in this version.</small>
+      </div>
+
+      <div class="form-group">
+        <label for="project_file">Project File (.zip only) <span style="color:#dc3545;">*</span></label>
+        <input type="file" id="project_file" name="project_file" accept=".zip" required>
+        <small>Select the .zip archive containing your project files.</small>
+      </div>
+
+      <button type="submit" class="submit-btn">
+        <i class="fas fa-upload"></i> Upload Version
+      </button>
+    </form>
+
+    <div class="info-box">
+      <i class="fas fa-info-circle"></i>
+      Only <strong>.zip</strong> files are accepted. Make sure your archive contains all project files before uploading.
+    </div>
+  </div>
+</div>
+
 {% include 'notification_bell.html' %}
 {% include 'chatbot_widget.html' %}
-    <script>
+<script>
 (function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
 </script>
-
 </body>
 </html>
