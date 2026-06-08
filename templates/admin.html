@@ -285,12 +285,9 @@
 
     /* ── RESPONSIVE ── */
     @media(max-width:1023px){
-      .sidebar{display:none;position:fixed;top:0;left:0;height:100vh;z-index:200;width:240px!important;}
-      .sidebar.open{display:flex!important;animation:sidebarIn .25s ease forwards;}
-      @keyframes sidebarIn{from{transform:translateX(-100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+      .sidebar{display:none;position:fixed;top:0;left:0;height:100vh;z-index:200;width:240px!important;transition:opacity .2s;}
       .mob-header{display:flex;}
       .main-area{padding:20px 16px!important;}
-      #admin-close-btn{display:block!important;}
     }
     @media(max-width:768px){
       .stats-grid{grid-template-columns:repeat(2,1fr)!important;}
@@ -778,14 +775,24 @@ applyTheme(localStorage.getItem('sb-theme')||'light');
 
 // ── SIDEBAR ──────────────────────────────────────
 function openSidebar(){
-  document.getElementById('admin-sidebar').classList.add('open');
-  document.getElementById('mob-overlay').classList.add('show');
-  document.body.style.overflow='hidden';
+  var sb = document.getElementById('admin-sidebar');
+  var ov = document.getElementById('mob-overlay');
+  sb.style.display = 'flex';
+  sb.style.flexDirection = 'column';
+  sb.style.transform = 'translateX(0)';
+  if(ov) { ov.style.display = 'block'; ov.classList.add('show'); }
+  document.body.style.overflow = 'hidden';
+  var cb = document.getElementById('admin-close-btn') || document.getElementById('sidebar-close-btn');
+  if(cb) cb.style.display = 'block';
 }
 function closeSidebar(){
-  document.getElementById('admin-sidebar').classList.remove('open');
-  document.getElementById('mob-overlay').classList.remove('show');
-  document.body.style.overflow='';
+  var sb = document.getElementById('admin-sidebar');
+  var ov = document.getElementById('mob-overlay');
+  sb.style.display = '';
+  if(ov) { ov.style.display = ''; ov.classList.remove('show'); }
+  document.body.style.overflow = '';
+  var cb = document.getElementById('admin-close-btn') || document.getElementById('sidebar-close-btn');
+  if(cb) cb.style.display = 'none';
 }
 window.addEventListener('resize',()=>{if(window.innerWidth>=1024)closeSidebar();});
 
