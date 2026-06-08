@@ -99,7 +99,7 @@
     .dark .section-header{border-color:#3d3830;}
     .section-header:hover{background:#fdfcf8;}
     .dark .section-header:hover{background:#3d3830;}
-    .section-title{font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px;color:#1a1714;}
+    .section-title{font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px;color:#1a1714;font-family:'DM Sans',sans-serif;}
     .dark .section-title{color:#f0e9d8;}
 
     /* ── COUNT BADGE ── */
@@ -128,6 +128,7 @@
     .dark .adm-table td{border-color:#3d3830;color:#d4c4a0;}
     .adm-table tr:last-child td{border-bottom:none;}
     .adm-table tbody tr{transition:background 0.12s;}
+    .adm-table tbody tr{transition:background .12s;}
     .adm-table tbody tr:hover td{background:#fdfcf8;}
     .dark .adm-table tbody tr:hover td{background:#3d3830;}
     .pending-row td{background:rgba(196,151,58,0.03);}
@@ -192,8 +193,8 @@
     }
     .tab-btn:hover{color:#1a1714;background:#f8f4ec;border-radius:6px 6px 0 0;}
     .dark .tab-btn:hover{color:#f0e9d8;background:#3d3830;border-radius:6px 6px 0 0;}
-    .tab-btn.active{color:#1a1714;border-bottom-color:#1a1714;}
-    .dark .tab-btn.active{color:#f0e9d8;border-bottom-color:#f0e9d8;}
+    .tab-btn.active{color:#1a1714;border-bottom-color:#1a1714;font-weight:800;}
+    .dark .tab-btn.active{color:#f0e9d8;border-bottom-color:#f0e9d8;font-weight:800;}
     .tab-pane{display:none;}
     .tab-pane.active{display:block;}
 
@@ -284,17 +285,32 @@
 
     /* ── RESPONSIVE ── */
     @media(max-width:1023px){
-      .sidebar{display:none;position:fixed;top:0;left:0;height:100vh;z-index:200;transform:translateX(-100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);}
-      .sidebar.open{display:flex;transform:translateX(0);}
+      .sidebar{display:none;position:fixed;top:0;left:0;height:100vh;z-index:200;width:240px!important;}
+      .sidebar.open{display:flex!important;animation:sidebarIn .25s ease forwards;}
+      @keyframes sidebarIn{from{transform:translateX(-100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
       .mob-header{display:flex;}
       .main-area{padding:20px 16px!important;}
+      #admin-close-btn{display:block!important;}
+    }
+    @media(max-width:768px){
+      .stats-grid{grid-template-columns:repeat(2,1fr)!important;}
+      .overview-hero h1{font-size:1.4rem!important;}
     }
     @media(max-width:640px){
       .stats-grid{grid-template-columns:repeat(2,1fr)!important;}
       .hide-mobile{display:none!important;}
+      .tab-nav{gap:0;}
+      .tab-btn{padding:10px 12px;font-size:12px;}
     }
     @media(max-width:480px){
-      .adm-table th,.adm-table td{padding:8px 12px;}
+      .adm-table th,.adm-table td{padding:7px 10px;font-size:11.5px;}
+      .stats-grid{grid-template-columns:repeat(2,1fr)!important;}
+      .stat-card{padding:14px!important;}
+      .overview-hero{padding:16px!important;}
+    }
+    @media(max-width:380px){
+      .tab-btn{padding:8px 8px;font-size:11px;}
+      .adm-table th,.adm-table td{padding:6px 8px;font-size:11px;}
     }
   </style>
 </head>
@@ -310,7 +326,7 @@
   <aside class="sidebar custom-scroll" id="admin-sidebar">
 
     <!-- close btn (mobile) -->
-    <button onclick="closeSidebar()" class="lg:hidden absolute top-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center text-ink-400 hover:bg-cream-200 dark:hover:bg-ink-700 transition-colors border-0 bg-transparent cursor-pointer" style="font-size:12px;">
+    <button onclick="closeSidebar()" id="admin-close-btn" style="position:absolute;top:10px;right:10px;display:none;background:none;border:none;cursor:pointer;font-size:12px;color:#9c9488;padding:4px;border-radius:6px;">
       <i class="fas fa-times"></i>
     </button>
 

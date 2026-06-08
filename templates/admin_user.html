@@ -113,7 +113,7 @@
     .dark .info-row{border-color:#3d3830;}
     .info-row:last-child{border-bottom:none;}
     .info-label{color:#7a7268;font-weight:600;flex-shrink:0;}
-    .info-value{font-weight:700;text-align:right;word-break:break-all;color:#1a1714;}
+    .info-value{font-weight:600;text-align:right;word-break:break-word;overflow-wrap:anywhere;color:#1a1714;max-width:55%;}
     .dark .info-value{color:#f0e9d8;}
     .info-value a{color:#c4973a;text-decoration:none;}
     .info-value a:hover{text-decoration:underline;}
@@ -187,13 +187,20 @@
     .toast.show{transform:translateY(0);opacity:1;}
 
     .empty{padding:1.25rem;text-align:center;color:#9c9488;font-size:.83rem;}
+    .dark-about{color:#1a1714;}
+    .dark .dark-about{color:#f0e9d8 !important;}
+    .dark [style*="border-bottom:1px solid #f0e9d8"]{border-color:#3d3830!important;}
+    .dark [style*="background:#f0e9d8"]{background:#3d3830!important;color:#f0e9d8!important;border-color:#5c5548!important;}
+    .dark [style*="background:rgba(196"]{border-color:rgba(196,151,58,.3)!important;}
 
     /* ── RESPONSIVE ── */
     @media(max-width:1023px){
-      .sidebar{display:none;position:fixed;top:0;left:0;height:100vh;z-index:200;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);}
-      .sidebar.open{display:flex;transform:translateX(0);}
+      .sidebar{display:none;position:fixed;top:0;left:0;height:100vh;z-index:200;width:240px !important;}
+      .sidebar.open{display:flex !important;animation:slideInSidebar .25s ease forwards;}
+      @keyframes slideInSidebar{from{transform:translateX(-100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
       .mob-header{display:flex;}
       .main{padding:16px!important;}
+      #sidebar-close-btn{display:block !important;}
     }
     @media(max-width:768px){
       .info-grid{grid-template-columns:1fr;}
@@ -205,14 +212,20 @@
       .hero-card{flex-direction:column;gap:14px;}
       .hero-avatar{width:64px;height:64px;}
       .hero-name{font-size:1.2rem;}
-      .adm-table th,.adm-table td{padding:8px 10px;font-size:11.5px;}
+      .adm-table th,.adm-table td{padding:7px 10px;font-size:11.5px;}
       .hide-sm{display:none!important;}
       .xp-banner{grid-template-columns:1fr 1fr;}
-      .modal-box{padding:18px;}
+      .xp-stat .val{font-size:1.2rem;}
+      .modal-box{padding:16px;}
+      .hero-actions{gap:5px;}
+      .card-toggle{padding:12px 14px;}
     }
     @media(max-width:360px){
       .hero-actions .btn span{display:none;}
       .main{padding:10px!important;}
+      .xp-banner{padding:14px 12px;}
+      .hero-name{font-size:1.05rem;}
+      .info-grid{gap:10px;}
     }
   </style>
 </head>
@@ -224,7 +237,7 @@
 
   <!-- ══ SIDEBAR ══ -->
   <aside class="sidebar" id="admin-sidebar">
-    <button onclick="closeSidebar()" class="lg:hidden" style="position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;font-size:12px;color:#9c9488;padding:4px;"><i class="fas fa-times"></i></button>
+    <button onclick="closeSidebar()" id="sidebar-close-btn" style="position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;font-size:12px;color:#9c9488;padding:4px;display:none;"><i class="fas fa-times"></i></button>
     <a href="{{ url_for('admin_panel') }}" class="sidebar-logo">SkillBridge</a>
     <span class="admin-badge">🛡️ ADMIN PANEL</span>
     <nav style="flex:1;display:flex;flex-direction:column;gap:2px;">
@@ -311,9 +324,22 @@
         <div class="card">
           <div class="card-header"><h3><i class="fas fa-code" style="color:#c4973a;"></i> Skills & Stats</h3></div>
           <div class="card-body">
-            <div class="info-row"><span class="info-label">About</span><span class="info-value" style="font-size:.78rem;max-width:180px;">{{ user.about_me or '—' }}</span></div>
-            <div class="info-row"><span class="info-label">Known Skills</span><span class="info-value" style="font-size:.76rem;">{{ user.known_skills|join(', ') if user.known_skills else '—' }}</span></div>
-            <div class="info-row"><span class="info-label">Learning</span><span class="info-value" style="font-size:.76rem;">{{ user.learning_skills|join(', ') if user.learning_skills else '—' }}</span></div>
+            <div style="padding:.5rem 0;border-bottom:1px solid #f0e9d8;font-size:.8rem;">
+              <div style="font-weight:600;color:#7a7268;margin-bottom:5px;">About</div>
+              <div style="color:#1a1714;line-height:1.6;font-weight:500;" class="dark-about">{{ user.about_me or '—' }}</div>
+            </div>
+            <div style="padding:.5rem 0;border-bottom:1px solid #f0e9d8;">
+              <div style="font-weight:600;color:#7a7268;font-size:.8rem;margin-bottom:5px;">Known Skills</div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                {% if user.known_skills %}{% for sk in user.known_skills %}<span style="background:#f0e9d8;border:1px solid #e5d9c0;color:#1a1714;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:6px;">{{ sk }}</span>{% endfor %}{% else %}<span style="color:#9c9488;">—</span>{% endif %}
+              </div>
+            </div>
+            <div style="padding:.5rem 0;border-bottom:1px solid #f0e9d8;">
+              <div style="font-weight:600;color:#7a7268;font-size:.8rem;margin-bottom:5px;">Learning</div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                {% if user.learning_skills %}{% for sk in user.learning_skills %}<span style="background:rgba(196,151,58,.1);border:1px solid rgba(196,151,58,.2);color:#c4973a;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:6px;">{{ sk }}</span>{% endfor %}{% else %}<span style="color:#9c9488;">—</span>{% endif %}
+              </div>
+            </div>
             <div class="info-row"><span class="info-label">Projects</span><span class="info-value">{{ projects|length }}</span></div>
             <div class="info-row"><span class="info-label">Roadmaps</span><span class="info-value">{{ roadmaps|length }}</span></div>
             <div class="info-row"><span class="info-label">Certificates</span><span class="info-value">{{ certificates|length }}</span></div>
@@ -378,10 +404,17 @@
         </div>
       </div>
 
-      <!-- ── CERTIFICATES ── -->
+      <!-- ── CERTIFICATES (collapsible) ── -->
       <div class="card">
-        <div class="card-header"><h3><i class="fas fa-certificate" style="color:#c4973a;"></i> Certificates ({{ certificates|length }})</h3></div>
-        <div class="card-body">
+        <div class="card-toggle" onclick="toggleSection('certs-body','certs-chev')">
+          <h3><i class="fas fa-certificate" style="color:#c4973a;"></i> Certificates</h3>
+          <div class="toggle-right">
+            <span class="cnt-badge">{{ certificates|length }}</span>
+            <i class="fas fa-chevron-down chev" id="certs-chev"></i>
+          </div>
+        </div>
+        <div class="card-body-collapse closed" id="certs-body" style="max-height:0;">
+          <div class="card-body">
           {% if certificates %}
             {% for c in certificates %}
             <div class="cert-item">
@@ -390,6 +423,7 @@
             </div>
             {% endfor %}
           {% else %}<div class="empty">No certificates.</div>{% endif %}
+          </div>
         </div>
       </div>
 
