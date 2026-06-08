@@ -135,7 +135,7 @@ body { font-family: 'DM Sans', sans-serif; }
   </header>
 
   <!-- NAVIGATION SIDEBAR -->
-  <aside id="app-sidebar" class="hidden lg:flex fixed lg:sticky top-0 left-0 w-full lg:w-64 bg-white border-r border-cream-200 p-6 flex-col h-screen z-50 overflow-y-auto custom-scroll transition-all duration-300 flex-shrink-0">
+  <aside id="app-sidebar" class="hidden lg:flex fixed lg:sticky top-0 left-0 w-full lg:w-64 bg-white border-r border-cream-200 px-6 pt-6 pb-16 flex-col h-screen z-50 overflow-y-auto custom-scroll transition-all duration-300 flex-shrink-0">
     <div class="flex items-center justify-between mb-8">
       <a href="{{ url_for('main_page') }}" class="font-display text-3xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
       <button class="w-9 h-9 rounded-full border border-cream-200 dark:border-ink-700 flex items-center justify-center relative text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-cream-50 transition-colors" id="desktop-notif-btn" onclick="toggleNotifDropdown(event)">
@@ -359,13 +359,13 @@ function toggleSidebarMenu() {
   const icon = document.getElementById('menu-icon');
   if(sidebar.classList.contains('hidden')) {
     sidebar.classList.remove('hidden');
-    sidebar.classList.add('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
+    sidebar.classList.add('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]', '!h-[calc(100vh-73px)]', 'overflow-y-auto');
     icon.classList.remove('fa-bars');
     icon.classList.add('fa-times');
     document.body.classList.add('overflow-hidden');
   } else {
     sidebar.classList.add('hidden');
-    sidebar.classList.remove('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
+    sidebar.classList.remove('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]', '!h-[calc(100vh-73px)]', 'overflow-y-auto');
     icon.classList.remove('fa-times');
     icon.classList.add('fa-bars');
     document.body.classList.remove('overflow-hidden');
