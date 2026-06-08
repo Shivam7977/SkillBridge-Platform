@@ -260,7 +260,7 @@ nav.sidebar, .dashboard-container > aside.sidebar, body > aside.sidebar { displa
         {% endif %}
     </div>
 
-    <div class="tab-pane hidden space-y-4" id="pane-saved">
+    <div class="tab-pane space-y-4" id="pane-saved">
         {% if bookmarked_projects is defined and bookmarked_projects %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {% for p in bookmarked_projects %}
@@ -339,13 +339,13 @@ function toggleSidebarMenu() {
   const icon = document.getElementById('menu-icon');
   if(sidebar.classList.contains('hidden')) {
     sidebar.classList.remove('hidden');
-    sidebar.classList.add('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
+    sidebar.classList.add('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]', '!h-[calc(100vh-73px)]', 'overflow-y-auto');
     icon.classList.remove('fa-bars');
     icon.classList.add('fa-times');
     document.body.classList.add('overflow-hidden');
   } else {
     sidebar.classList.add('hidden');
-    sidebar.classList.remove('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]');
+    sidebar.classList.remove('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]', '!h-[calc(100vh-73px)]', 'overflow-y-auto');
     icon.classList.remove('fa-times');
     icon.classList.add('fa-bars');
     document.body.classList.remove('overflow-hidden');
@@ -358,13 +358,13 @@ function switchTab(tab) {
         b.classList.remove('active', 'border-ink-900', 'dark:border-gold', 'text-ink-900', 'dark:text-gold');
         b.classList.add('border-transparent', 'text-ink-500', 'dark:text-ink-400');
     });
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
-    
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
     const activeBtn = document.getElementById('tab-' + tab);
     activeBtn.classList.add('active', 'border-ink-900', 'dark:border-gold', 'text-ink-900', 'dark:text-gold');
     activeBtn.classList.remove('border-transparent', 'text-ink-500', 'dark:text-ink-400');
-    
-    document.getElementById('pane-' + tab).classList.remove('hidden');
+
+    document.getElementById('pane-' + tab).classList.add('active');
 }
 
 // MODAL CONTROLS BACKBONE FUNCTIONS

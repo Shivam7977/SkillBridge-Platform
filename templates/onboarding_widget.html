@@ -1,126 +1,168 @@
 <!-- ONBOARDING WIDGET — include on mainpage.html only -->
 
 <style>
+/* ── Onboarding Widget — SkillBridge design system ── */
 .onb-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(15,23,42,0.6);
+    background: rgba(26,23,20,0.55);
     z-index: 99990;
     align-items: center;
     justify-content: center;
     backdrop-filter: blur(4px);
+    padding: clamp(.75rem, 4vw, 1.5rem);
 }
 .onb-overlay.open { display: flex; }
 
 .onb-modal {
     background: #fff;
-    border-radius: 28px;
-    padding: 2.5rem;
+    border-radius: 24px;
+    padding: clamp(1.5rem, 5vw, 2.5rem);
     width: 100%;
     max-width: 520px;
-    margin: 1rem;
-    box-shadow: 0 40px 80px rgba(0,0,0,0.2);
+    border: 1.5px solid #e5d9c0;
+    box-shadow: 0 40px 80px rgba(26,23,20,0.18);
     animation: onbIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 @keyframes onbIn {
-    from { transform: scale(0.88) translateY(20px); opacity: 0; }
+    from { transform: scale(0.9) translateY(16px); opacity: 0; }
     to   { transform: none; opacity: 1; }
 }
 
+/* Close button */
+.onb-close {
+    position: absolute; top: 16px; right: 16px;
+    width: 32px; height: 32px;
+    border-radius: 8px; border: 1.5px solid #e5d9c0;
+    background: #f8f4ec; color: #7a7268;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: .85rem; transition: .18s;
+    font-family: inherit;
+}
+.onb-close:hover { background: #1a1714; color: #f8f4ec; border-color: #1a1714; }
+
 /* HEADER */
-.onb-header { text-align: center; margin-bottom: 2rem; }
-.onb-wave { font-size: 3rem; display: block; margin-bottom: 12px; }
-.onb-header h2 { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
-.onb-header p { font-size: 0.88rem; color: #64748b; line-height: 1.5; }
+.onb-header { text-align: center; margin-bottom: 1.75rem; padding-right: 1.5rem; }
+.onb-wave { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+.onb-header h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+    font-weight: 900; color: #1a1714; margin-bottom: 5px;
+}
+.onb-header p { font-size: .85rem; color: #7a7268; line-height: 1.55; }
 
 /* PROGRESS BAR */
 .onb-progress-wrap { margin-bottom: 1.5rem; }
-.onb-progress-top { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 6px; }
-.onb-progress-bar { height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden; }
-.onb-progress-fill { height: 100%; background: linear-gradient(90deg, #8B5CF6, #EC4899); border-radius: 4px; transition: width 0.6s ease; }
+.onb-progress-top { display: flex; justify-content: space-between; font-size: .73rem; font-weight: 700; color: #7a7268; margin-bottom: 6px; }
+.onb-progress-bar { height: 7px; background: #e5d9c0; border-radius: 4px; overflow: hidden; }
+.onb-progress-fill { height: 100%; background: linear-gradient(90deg, #1a1714, #c4973a); border-radius: 4px; transition: width 0.6s ease; }
 
 /* STEPS */
-.onb-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
+.onb-steps { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.5rem; }
 .onb-step {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 14px 16px;
-    border-radius: 16px;
-    border: 1.5px solid #e5e7eb;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1.5px solid #e5d9c0;
+    background: #fdfcf8;
     text-decoration: none;
     transition: all 0.2s;
     cursor: pointer;
 }
-.onb-step:hover { border-color: #8B5CF6; background: rgba(139,92,246,0.03); transform: translateX(3px); }
+.onb-step:hover { border-color: #1a1714; background: #f8f4ec; transform: translateX(3px); }
 .onb-step.done { border-color: #10b981; background: rgba(16,185,129,0.04); }
-.onb-step.done:hover { border-color: #059669; background: rgba(16,185,129,0.08); }
+.onb-step.done:hover { border-color: #059669; background: rgba(16,185,129,0.08); transform: translateX(3px); }
 
 .onb-step-icon {
-    width: 40px; height: 40px;
-    border-radius: 12px;
+    width: 38px; height: 38px;
+    border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.95rem;
-    flex-shrink: 0;
-    background: rgba(139,92,246,0.1);
-    color: #8B5CF6;
+    font-size: .9rem; flex-shrink: 0;
+    background: #f0e9d8; color: #7a7268;
 }
 .onb-step.done .onb-step-icon { background: rgba(16,185,129,0.1); color: #10b981; }
 
 .onb-step-body { flex: 1; min-width: 0; }
-.onb-step-title { font-size: 0.88rem; font-weight: 800; color: #0f172a; }
-.onb-step-desc { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+.onb-step-title { font-size: .86rem; font-weight: 800; color: #1a1714; }
+.onb-step-desc { font-size: .73rem; color: #7a7268; margin-top: 2px; line-height: 1.4; }
 .onb-step.done .onb-step-title { color: #059669; }
 
 .onb-step-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
 .onb-xp-badge {
-    font-size: 0.68rem; font-weight: 800;
-    background: rgba(139,92,246,0.1);
-    color: #8B5CF6;
+    font-size: .67rem; font-weight: 800;
+    background: rgba(196,151,58,.12); color: #c4973a;
     padding: 2px 8px; border-radius: 20px;
+    border: 1px solid rgba(196,151,58,.2);
 }
-.onb-step.done .onb-xp-badge { background: rgba(16,185,129,0.1); color: #10b981; }
-.onb-check { font-size: 1rem; color: #10b981; display: none; }
+.onb-step.done .onb-xp-badge { background: rgba(16,185,129,0.1); color: #10b981; border-color: rgba(16,185,129,0.2); }
+.onb-check { font-size: .95rem; color: #10b981; display: none; }
 .onb-step.done .onb-check { display: block; }
-.onb-arrow { font-size: 0.75rem; color: #94a3b8; }
+.onb-arrow { font-size: .72rem; color: #9c9488; }
 .onb-step.done .onb-arrow { display: none; }
 
-/* FOOTER BUTTONS */
+/* FOOTER */
 .onb-footer { display: flex; gap: 10px; }
 .onb-skip {
-    flex: 1; padding: 12px;
-    border-radius: 12px; border: 1.5px solid #e5e7eb;
-    background: #fff; color: #64748b;
-    font-weight: 700; font-size: 0.88rem;
-    cursor: pointer; font-family: inherit;
-    transition: 0.2s;
+    flex: 1; padding: 11px;
+    border-radius: 11px; border: 1.5px solid #e5d9c0;
+    background: #fff; color: #7a7268;
+    font-weight: 700; font-size: .85rem;
+    cursor: pointer; font-family: inherit; transition: .2s;
 }
-.onb-skip:hover { background: #f8fafc; border-color: #94a3b8; }
+.onb-skip:hover { background: #f8f4ec; border-color: #1a1714; color: #1a1714; }
 .onb-cta {
-    flex: 2; padding: 12px;
-    border-radius: 12px; border: none;
-    background: linear-gradient(90deg, #8B5CF6, #EC4899);
-    color: #fff; font-weight: 800; font-size: 0.88rem;
-    cursor: pointer; font-family: inherit;
-    transition: 0.2s;
+    flex: 2; padding: 11px;
+    border-radius: 11px; border: none;
+    background: #1a1714; color: #f8f4ec;
+    font-weight: 800; font-size: .85rem;
+    cursor: pointer; font-family: inherit; transition: .2s;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
 }
-.onb-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139,92,246,0.35); }
+.onb-cta:hover { opacity: .88; transform: translateY(-1px); }
 
 /* DARK MODE */
-body.dark .onb-modal { background: #1a1a2e !important; }
-body.dark .onb-header h2 { color: #e2e8f0 !important; }
-body.dark .onb-step { border-color: #2d2d44 !important; background: #13131f !important; }
-body.dark .onb-step:hover { border-color: #a78bfa !important; background: rgba(139,92,246,0.08) !important; }
+body.dark .onb-modal { background: #2c2820 !important; border-color: #3d3830 !important; }
+body.dark .onb-header h2 { color: #f0e9d8 !important; }
+body.dark .onb-header p { color: #9c9488 !important; }
+body.dark .onb-close { background: #1a1714 !important; border-color: #3d3830 !important; color: #9c9488 !important; }
+body.dark .onb-close:hover { background: #f0e9d8 !important; color: #1a1714 !important; }
+body.dark .onb-step { border-color: #3d3830 !important; background: #23201c !important; }
+body.dark .onb-step:hover { border-color: #f0e9d8 !important; background: #2c2820 !important; }
 body.dark .onb-step.done { border-color: #059669 !important; background: rgba(16,185,129,0.06) !important; }
-body.dark .onb-step-title { color: #e2e8f0 !important; }
-body.dark .onb-progress-bar { background: #2d2d44 !important; }
-body.dark .onb-skip { background: #13131f !important; border-color: #2d2d44 !important; color: #94a3b8 !important; }
-body.dark .onb-skip:hover { background: #0f0f1a !important; }
+body.dark .onb-step-title { color: #f0e9d8 !important; }
+body.dark .onb-step-desc { color: #9c9488 !important; }
+body.dark .onb-step-icon { background: #1a1714 !important; color: #9c9488 !important; }
+body.dark .onb-progress-bar { background: #3d3830 !important; }
+body.dark .onb-progress-top { color: #9c9488 !important; }
+body.dark .onb-skip { background: #23201c !important; border-color: #3d3830 !important; color: #9c9488 !important; }
+body.dark .onb-skip:hover { background: #2c2820 !important; border-color: #f0e9d8 !important; color: #f0e9d8 !important; }
+body.dark .onb-cta { background: #f0e9d8 !important; color: #1a1714 !important; }
+
+/* RESPONSIVE */
+@media (max-width: 480px) {
+    .onb-modal { border-radius: 18px; padding: 1.5rem 1.25rem; }
+    .onb-step { padding: 10px 12px; gap: 10px; }
+    .onb-step-icon { width: 34px; height: 34px; font-size: .82rem; }
+    .onb-footer { flex-direction: column; }
+    .onb-skip, .onb-cta { flex: none; width: 100%; }
+}
+@media (max-width: 360px) {
+    .onb-wave { font-size: 2rem; }
+    .onb-header h2 { font-size: 1.1rem; }
+    .onb-step-title { font-size: .8rem; }
+    .onb-step-desc { font-size: .7rem; }
+}
 </style>
 
 <div class="onb-overlay" id="onb-overlay">
     <div class="onb-modal">
+        <button class="onb-close" onclick="dismissOnboarding()" aria-label="Close"><i class="fas fa-times"></i></button>
         <div class="onb-header">
             <span class="onb-wave">👋</span>
             <h2>Welcome to SkillBridge!</h2>
