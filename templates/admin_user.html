@@ -194,9 +194,11 @@
     .dark [style*="background:rgba(196"]{border-color:rgba(196,151,58,.3)!important;}
 
     /* ── RESPONSIVE ── */
+    @media(min-width:1024px){ .sidebar{transform:none!important;position:sticky!important;} }
     @media(max-width:1023px){
-      .sidebar{display:none;position:fixed;top:0;left:0;height:100vh;z-index:200;width:240px!important;transition:opacity .2s;}
-      .mob-header{display:flex;}
+      .sidebar{transform:translateX(-100%);position:fixed!important;top:0;left:0;height:100vh!important;z-index:200;width:240px!important;transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding-bottom:4rem;}
+      .sidebar.open{transform:translateX(0)!important;}
+      .mob-header{display:flex!important;}
       .main{padding:16px!important;}
     }
     @media(max-width:768px){
@@ -251,7 +253,7 @@
   <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
 
     <!-- Mobile header -->
-    <header class="mob-header">
+    <header class="mob-header" id="mob-header-el">
       <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="openSidebar()" class="mob-menu-btn"><i class="fas fa-bars"></i></button>
         <span style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:900;color:#1a1714;" class="dark:text-cream-100">SkillBridge</span>
@@ -520,23 +522,21 @@ function toggleTheme(){
 function openSidebar(){
   var sb = document.getElementById('admin-sidebar');
   var ov = document.getElementById('mob-overlay');
-  sb.style.display = 'flex';
-  sb.style.flexDirection = 'column';
-  if(ov) { ov.style.display = 'block'; ov.classList.add('show'); }
-  document.body.style.overflow = 'hidden';
-  var cb = document.getElementById('sidebar-close-btn');
-  if(cb) cb.style.display = 'block';
+  sb.classList.add('open');
+  if(ov){ ov.style.display='block'; ov.classList.add('show'); }
+  document.body.style.overflow='hidden';
+  var cb=document.getElementById('sidebar-close-btn');
+  if(cb) cb.style.display='block';
 }
 function closeSidebar(){
   var sb = document.getElementById('admin-sidebar');
   var ov = document.getElementById('mob-overlay');
-  sb.style.display = '';
-  if(ov) { ov.style.display = ''; ov.classList.remove('show'); }
-  document.body.style.overflow = '';
-  var cb = document.getElementById('sidebar-close-btn');
-  if(cb) cb.style.display = 'none';
+  sb.classList.remove('open');
+  if(ov){ ov.style.display=''; ov.classList.remove('show'); }
+  document.body.style.overflow='';
+  var cb=document.getElementById('sidebar-close-btn');
+  if(cb) cb.style.display='none';
 }
-function closeSidebar(){ document.getElementById('admin-sidebar').classList.remove('open'); document.getElementById('mob-overlay').classList.remove('show'); }
 
 // Collapsible
 function toggleSection(bodyId, chevId){

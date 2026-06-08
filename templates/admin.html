@@ -162,8 +162,31 @@
       font-size:12px;font-weight:700;cursor:pointer;
       font-family:'DM Sans',sans-serif;text-decoration:none;
       transition:all 0.15s;white-space:nowrap;
+      position:relative;
     }
     .btn:hover{transform:translateY(-1px);}
+
+    /* ── TOOLTIP ── */
+    .btn[data-tip]::after{
+      content:attr(data-tip);
+      position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%) scale(.85);
+      background:#1a1714;color:#f8f4ec;
+      font-size:10px;font-weight:700;white-space:nowrap;
+      padding:3px 8px;border-radius:6px;
+      opacity:0;pointer-events:none;
+      transition:opacity .15s,transform .15s;
+      z-index:9999;
+    }
+    .dark .btn[data-tip]::after{background:#f0e9d8;color:#1a1714;}
+    .btn[data-tip]::before{
+      content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%) scale(.85);
+      border:4px solid transparent;border-top-color:#1a1714;
+      opacity:0;pointer-events:none;transition:opacity .15s,transform .15s;z-index:9999;
+    }
+    .dark .btn[data-tip]::before{border-top-color:#f0e9d8;}
+    .btn[data-tip]:hover::after,.btn[data-tip]:hover::before{
+      opacity:1;transform:translateX(-50%) scale(1);
+    }
     .btn-view{background:#1a1714;color:#f8f4ec;border-color:#1a1714;}
     .btn-view:hover{background:#2c2820;}
     .dark .btn-view{background:#f0e9d8;color:#1a1714;}
@@ -284,9 +307,11 @@
     .modal-body{overflow-y:auto;padding:12px 16px;flex:1;}
 
     /* ── RESPONSIVE ── */
+    @media(min-width:1024px){ .sidebar{transform:none!important;position:sticky!important;} }
     @media(max-width:1023px){
-      .sidebar{display:none;position:fixed;top:0;left:0;height:100vh;z-index:200;width:240px!important;transition:opacity .2s;}
-      .mob-header{display:flex;}
+      .sidebar{transform:translateX(-100%);position:fixed!important;top:0;left:0;height:100vh;z-index:200;width:240px!important;transition:transform .25s cubic-bezier(.4,0,.2,1);}
+      .sidebar.open{transform:translateX(0)!important;}
+      .mob-header{display:flex!important;}
       .main-area{padding:20px 16px!important;}
     }
     @media(max-width:768px){
@@ -298,16 +323,30 @@
       .hide-mobile{display:none!important;}
       .tab-nav{gap:0;}
       .tab-btn{padding:10px 12px;font-size:12px;}
+
+      /* Make all table wrappers scrollable */
+      .adm-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+
+      /* Action buttons — icon only on mobile */
+      .btn .btn-label{display:none;}
+      .btn{padding:6px 8px!important;min-width:30px;justify-content:center;}
+      .btn i{font-size:11px!important;margin:0!important;}
+
+      /* Tighten action cell */
+      .adm-table td:last-child{white-space:nowrap;}
+      .adm-table th,.adm-table td{padding:7px 8px;font-size:11.5px;}
+
+      /* Hide less-important columns on mobile */
+      .hide-sm{display:none!important;}
     }
     @media(max-width:480px){
-      .adm-table th,.adm-table td{padding:7px 10px;font-size:11.5px;}
       .stats-grid{grid-template-columns:repeat(2,1fr)!important;}
       .stat-card{padding:14px!important;}
       .overview-hero{padding:16px!important;}
     }
     @media(max-width:380px){
       .tab-btn{padding:8px 8px;font-size:11px;}
-      .adm-table th,.adm-table td{padding:6px 8px;font-size:11px;}
+      .adm-table th,.adm-table td{padding:6px 7px;font-size:11px;}
     }
   </style>
 </head>
@@ -357,7 +396,7 @@
   <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
 
     <!-- mobile header -->
-    <header class="mob-header">
+    <header class="mob-header" id="mob-header-el">
       <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="openSidebar()" class="mob-menu-btn"><i class="fas fa-bars"></i></button>
         <span class="font-display mob-logo">SkillBridge</span>
@@ -430,7 +469,7 @@
         </div>
         <div class="acc-body open" id="acc-approvals" style="max-height:9999px;">
           {% if pending_commits %}
-          <div style="overflow-x:auto;">
+          <div class="adm-table-wrap">
             <table class="adm-table">
               <thead><tr>
                 <th>User</th><th>Project</th>
@@ -450,13 +489,13 @@
                   <td class="hide-mobile" style="white-space:nowrap;">{{ c.timestamp.strftime('%b %d, %Y') if c.timestamp else 'N/A' }}</td>
                   <td>
                     {% if c.filename %}
-                    <a href="{{ url_for('download_project', filename=c.filename) }}" class="btn btn-purple"><i class="fas fa-download" style="font-size:9px;"></i> View</a>
+                    <a href="{{ url_for('download_project', filename=c.filename) }}" class="btn btn-purple"><i class="fas fa-download" style="font-size:9px;"></i> <span class="btn-label">View</span></a>
                     {% else %}<span style="color:#9c9488;">—</span>{% endif %}
                   </td>
                   <td>
                     <div style="display:flex;gap:5px;flex-wrap:wrap;">
-                      <button class="btn btn-success" onclick="approveCommit('{{ c._id }}')"><i class="fas fa-check" style="font-size:9px;"></i> Approve +50XP</button>
-                      <button class="btn btn-danger" onclick="rejectCommit('{{ c._id }}')"><i class="fas fa-times" style="font-size:9px;"></i> Reject</button>
+                      <button class="btn btn-success" data-tip="Approve +50XP" onclick="approveCommit('{{ c._id }}')"><i class="fas fa-check" style="font-size:9px;"></i> <span class="btn-label">Approve +50XP</span></button>
+                      <button class="btn btn-danger" data-tip="Reject" onclick="rejectCommit('{{ c._id }}')"><i class="fas fa-times" style="font-size:9px;"></i> <span class="btn-label">Reject</span></button>
                     </div>
                   </td>
                 </tr>
@@ -496,13 +535,13 @@
 
           <!-- ALL -->
           <div class="tab-pane active" id="users-tab-all">
-            <div style="overflow-x:auto;">
+            <div class="adm-table-wrap">
               <table class="adm-table" id="users-all-table">
                 <thead><tr>
                   <th>User</th><th>XP</th>
                   <th class="hide-mobile">Badge</th>
                   <th class="hide-mobile">Streak</th>
-                  <th style="min-width:100px;">🤖 AI</th>
+                  <th class="hide-sm" style="min-width:100px;">🤖 AI</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr></thead>
@@ -521,7 +560,7 @@
                     <td style="font-weight:800;color:#1a1714;" class="dark:text-cream-100">{{ u.xp }}</td>
                     <td class="hide-mobile" style="color:#9c9488;font-size:10px;">{{ u.badge or 'Bronze Builder' }}</td>
                     <td class="hide-mobile" style="font-weight:600;">🔥 {{ u.streak_count }}</td>
-                    <td>
+                    <td class="hide-sm">
                       <div style="display:flex;flex-direction:column;gap:4px;min-width:90px;">
                         <div style="display:flex;align-items:center;gap:5px;">
                           <span style="font-size:10px;">💬</span>
@@ -541,14 +580,14 @@
                       {% else %}<span class="pill pill-active">Active</span>{% endif %}
                     </td>
                     <td>
-                      <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                        <a href="{{ url_for('admin_user_detail', user_id=u._id) }}" class="btn btn-view"><i class="fas fa-eye" style="font-size:9px;"></i> View</a>
+                      <div style="display:flex;gap:4px;flex-wrap:nowrap;align-items:center;">
+                        <a href="{{ url_for('admin_user_detail', user_id=u._id) }}" class="btn btn-view" data-tip="View"><i class="fas fa-eye" style="font-size:9px;"></i> <span class="btn-label">View</span></a>
                         {% if u.is_banned %}
-                        <button class="btn btn-success" onclick="unbanUser('{{ u._id }}')"><i class="fas fa-unlock" style="font-size:9px;"></i> Unban</button>
+                        <button class="btn btn-success" data-tip="Unban User" onclick="unbanUser('{{ u._id }}')"><i class="fas fa-unlock" style="font-size:9px;"></i> <span class="btn-label">Unban</span></button>
                         {% else %}
-                        <button class="btn btn-warning" onclick="banUser('{{ u._id }}')"><i class="fas fa-ban" style="font-size:9px;"></i> Ban</button>
+                        <button class="btn btn-warning" data-tip="Ban User" onclick="banUser('{{ u._id }}')"><i class="fas fa-ban" style="font-size:9px;"></i> <span class="btn-label">Ban</span></button>
                         {% endif %}
-                        <button class="btn btn-danger" onclick="deleteUser('{{ u._id }}','{{ u.name }}')"><i class="fas fa-trash" style="font-size:9px;"></i></button>
+                        <button class="btn btn-danger" data-tip="Delete User" onclick="deleteUser('{{ u._id }}','{{ u.name }}')"><i class="fas fa-trash" style="font-size:9px;"></i></button>
                       </div>
                     </td>
                   </tr>
@@ -560,7 +599,7 @@
 
           <!-- ACTIVE -->
           <div class="tab-pane" id="users-tab-active">
-            <div style="overflow-x:auto;">
+            <div class="adm-table-wrap">
               <table class="adm-table">
                 <thead><tr><th>User</th><th>XP</th><th class="hide-mobile">Badge</th><th class="hide-mobile">Streak</th><th>🤖 AI</th><th>Actions</th></tr></thead>
                 <tbody>
@@ -576,7 +615,7 @@
                         <div style="display:flex;align-items:center;gap:5px;"><span style="font-size:10px;">🗺️</span><div class="ai-bar-track"><div class="ai-bar-fill" style="width:{{ [(u.ai_roadmap_today/10*100)|int,100]|min }}%;background:{% if u.ai_roadmap_today>=10 %}#dc2626{% else %}#c4973a{% endif %};"></div></div><span style="font-size:9px;font-weight:700;color:#9c9488;">{{ u.ai_roadmap_today }}/10</span></div>
                       </div>
                     </td>
-                    <td><div style="display:flex;gap:4px;flex-wrap:wrap;"><a href="{{ url_for('admin_user_detail', user_id=u._id) }}" class="btn btn-view"><i class="fas fa-eye" style="font-size:9px;"></i> View</a><button class="btn btn-warning" onclick="banUser('{{ u._id }}')"><i class="fas fa-ban" style="font-size:9px;"></i> Ban</button><button class="btn btn-danger" onclick="deleteUser('{{ u._id }}','{{ u.name }}')"><i class="fas fa-trash" style="font-size:9px;"></i></button></div></td>
+                    <td><div style="display:flex;gap:4px;flex-wrap:wrap;"><a href="{{ url_for('admin_user_detail', user_id=u._id) }}" class="btn btn-view" data-tip="View"><i class="fas fa-eye" style="font-size:9px;"></i> <span class="btn-label">View</span></a><button class="btn btn-warning" data-tip="Ban User" onclick="banUser('{{ u._id }}')"><i class="fas fa-ban" style="font-size:9px;"></i> <span class="btn-label">Ban</span></button><button class="btn btn-danger" data-tip="Delete User" onclick="deleteUser('{{ u._id }}','{{ u.name }}')"><i class="fas fa-trash" style="font-size:9px;"></i></button></div></td>
                   </tr>
                   {% endfor %}
                 </tbody>
@@ -588,14 +627,14 @@
           <div class="tab-pane" id="users-tab-banned">
             {% set banned_list = users|selectattr('is_banned')|list %}
             {% if banned_list %}
-            <div style="overflow-x:auto;"><table class="adm-table">
+            <div class="adm-table-wrap"><table class="adm-table">
               <thead><tr><th>User</th><th>XP</th><th>Actions</th></tr></thead>
               <tbody>
                 {% for u in banned_list %}
                 <tr id="banned-row-{{ u._id }}">
                   <td><div class="user-cell"><img src="{{ u.profile_pic_url }}" class="avatar" alt="" onerror="this.src='/static/profile_pics/default.jpg'"><div><div class="uname">{{ u.name }}{% if u.username %} <span class="uhandle">@{{ u.username }}</span>{% endif %}</div><div class="uemail">{{ u.email }}</div></div></div></td>
                   <td style="font-weight:800;">{{ u.xp }}</td>
-                  <td><div style="display:flex;gap:4px;"><button class="btn btn-success" onclick="unbanUser('{{ u._id }}')"><i class="fas fa-unlock" style="font-size:9px;"></i> Unban</button><button class="btn btn-danger" onclick="deleteUser('{{ u._id }}','{{ u.name }}')"><i class="fas fa-trash" style="font-size:9px;"></i> Delete</button></div></td>
+                  <td><div style="display:flex;gap:4px;"><button class="btn btn-success" data-tip="Unban User" onclick="unbanUser('{{ u._id }}')"><i class="fas fa-unlock" style="font-size:9px;"></i> <span class="btn-label">Unban</span></button><button class="btn btn-danger" data-tip="Delete User" onclick="deleteUser('{{ u._id }}','{{ u.name }}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete</span></button></div></td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -605,14 +644,14 @@
 
           <!-- ADMINS -->
           <div class="tab-pane" id="users-tab-admins">
-            <div style="overflow-x:auto;"><table class="adm-table">
+            <div class="adm-table-wrap"><table class="adm-table">
               <thead><tr><th>User</th><th>XP</th><th>Actions</th></tr></thead>
               <tbody>
                 {% for u in users if u.is_admin %}
                 <tr>
                   <td><div class="user-cell"><img src="{{ u.profile_pic_url }}" class="avatar" alt="" onerror="this.src='/static/profile_pics/default.jpg'"><div><div class="uname">{{ u.name }}{% if u.username %} <span class="uhandle">@{{ u.username }}</span>{% endif %}</div><div class="uemail">{{ u.email }}</div></div></div></td>
                   <td style="font-weight:800;">{{ u.xp }}</td>
-                  <td><a href="{{ url_for('admin_user_detail', user_id=u._id) }}" class="btn btn-view"><i class="fas fa-eye" style="font-size:9px;"></i> View All</a></td>
+                  <td><a href="{{ url_for('admin_user_detail', user_id=u._id) }}" class="btn btn-view" data-tip="View"><i class="fas fa-eye" style="font-size:9px;"></i> <span class="btn-label">View All</span></a></td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -634,7 +673,7 @@
         </div>
         <div class="acc-body closed" id="acc-projects" style="max-height:0;">
           <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Search projects…" oninput="filterTable('proj-table',this.value)"></div>
-          <div style="overflow-x:auto;">
+          <div class="adm-table-wrap">
             <table class="adm-table" id="proj-table">
               <thead><tr>
                 <th>Title</th><th>Creator</th>
@@ -652,10 +691,10 @@
                   <td class="hide-mobile" style="color:#9c9488;max-width:120px;" class="truncate">{{ p.skills_needed|join(', ') if p.skills_needed else '—' }}</td>
                   <td style="font-weight:800;color:#c4973a;">{{ p.views or 0 }}</td>
                   <td style="font-weight:800;color:#dc2626;">{{ p.like_count or 0 }}</td>
-                  <td><button class="btn btn-purple" onclick="openCommentsModal('{{ p._id }}','{{ p.title | e }}')"><i class="fas fa-comments" style="font-size:9px;"></i> {{ p.comment_count or 0 }}</button></td>
+                  <td><button class="btn btn-purple" data-tip="View Comments" onclick="openCommentsModal('{{ p._id }}','{{ p.title | e }}')"><i class="fas fa-comments" style="font-size:9px;"></i> {{ p.comment_count or 0 }}</button></td>
                   <td class="hide-mobile" style="font-weight:800;color:#c4973a;">{{ p.bookmark_count or 0 }}</td>
                   <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;">{{ p.created_at.strftime('%b %d, %Y') if p.created_at else 'N/A' }}</td>
-                  <td><button class="btn btn-danger" onclick="deleteProject('{{ p._id }}','{{ p.title }}')"><i class="fas fa-trash" style="font-size:9px;"></i> Delete</button></td>
+                  <td><button class="btn btn-danger" data-tip="Delete Project" onclick="deleteProject('{{ p._id }}','{{ p.title }}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete</span></button></td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -675,7 +714,7 @@
           <i class="fas fa-chevron-down chev" id="chev-roadmaps"></i>
         </div>
         <div class="acc-body closed" id="acc-roadmaps" style="max-height:0;">
-          <div style="overflow-x:auto;">
+          <div class="adm-table-wrap">
             <table class="adm-table">
               <thead><tr>
                 <th>Goal</th><th>User</th>
@@ -692,7 +731,7 @@
                   <td class="hide-mobile" style="font-weight:600;">{{ r.stage_count }}</td>
                   <td class="hide-mobile"><span style="font-weight:800;color:#c4973a;">{{ r.completed_stages }}</span><span style="color:#9c9488;">/{{ r.stage_count }}</span></td>
                   <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;">{{ r.created_at.strftime('%b %d, %Y') if r.created_at else 'N/A' }}</td>
-                  <td><button class="btn btn-danger" onclick="deleteRoadmap('{{ r._id }}','{{ r.goal }}')"><i class="fas fa-trash" style="font-size:9px;"></i> Delete</button></td>
+                  <td><button class="btn btn-danger" data-tip="Delete Roadmap" onclick="deleteRoadmap('{{ r._id }}','{{ r.goal }}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete</span></button></td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -712,7 +751,7 @@
           <i class="fas fa-chevron-down chev" id="chev-communities"></i>
         </div>
         <div class="acc-body closed" id="acc-communities" style="max-height:0;">
-          <div style="overflow-x:auto;">
+          <div class="adm-table-wrap">
             <table class="adm-table">
               <thead><tr>
                 <th>Community</th><th>Owner</th>
@@ -729,7 +768,7 @@
                   <td class="hide-mobile" style="font-weight:600;">{{ c.member_count }}</td>
                   <td class="hide-mobile"><span style="font-size:10px;font-weight:700;{% if c.visibility=='public' %}color:#15803d;{% else %}color:#9c9488;{% endif %}">{{ c.visibility|capitalize }}</span></td>
                   <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;">{{ c.created_at.strftime('%b %d, %Y') if c.created_at else 'N/A' }}</td>
-                  <td><button class="btn btn-danger" onclick="deleteCommunity('{{ c._id }}','{{ c.project_title }}')"><i class="fas fa-trash" style="font-size:9px;"></i> Delete</button></td>
+                  <td><button class="btn btn-danger" data-tip="Delete Community" onclick="deleteCommunity('{{ c._id }}','{{ c.project_title }}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete</span></button></td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -777,24 +816,24 @@ applyTheme(localStorage.getItem('sb-theme')||'light');
 function openSidebar(){
   var sb = document.getElementById('admin-sidebar');
   var ov = document.getElementById('mob-overlay');
-  sb.style.display = 'flex';
-  sb.style.flexDirection = 'column';
   sb.style.transform = 'translateX(0)';
-  if(ov) { ov.style.display = 'block'; ov.classList.add('show'); }
-  document.body.style.overflow = 'hidden';
-  var cb = document.getElementById('admin-close-btn') || document.getElementById('sidebar-close-btn');
-  if(cb) cb.style.display = 'block';
+  sb._isOpen = true;
+  if(ov){ ov.style.display='block'; ov.classList.add('show'); }
+  document.body.style.overflow='hidden';
+  var cb=document.getElementById('admin-close-btn')||document.getElementById('sidebar-close-btn');
+  if(cb) cb.style.display='block';
 }
 function closeSidebar(){
   var sb = document.getElementById('admin-sidebar');
   var ov = document.getElementById('mob-overlay');
-  sb.style.display = '';
-  if(ov) { ov.style.display = ''; ov.classList.remove('show'); }
-  document.body.style.overflow = '';
-  var cb = document.getElementById('admin-close-btn') || document.getElementById('sidebar-close-btn');
-  if(cb) cb.style.display = 'none';
+  sb.style.transform = 'translateX(-100%)';
+  sb._isOpen = false;
+  if(ov){ ov.style.display=''; ov.classList.remove('show'); }
+  document.body.style.overflow='';
+  var cb=document.getElementById('admin-close-btn')||document.getElementById('sidebar-close-btn');
+  if(cb) cb.style.display='none';
 }
-window.addEventListener('resize',()=>{if(window.innerWidth>=1024)closeSidebar();});
+window.addEventListener('resize',()=>{ var sb=document.getElementById('admin-sidebar'); if(window.innerWidth>=1024){ sb.style.transform=''; sb._isOpen=false; document.body.style.overflow=''; var ov=document.getElementById('mob-overlay'); if(ov){ov.style.display='';ov.classList.remove('show');} } else { if(!sb._isOpen) sb.style.transform='translateX(-100%)'; } });
 
 // ── ACCORDION ────────────────────────────────────
 function toggleAcc(bodyId,chevId){
@@ -887,7 +926,7 @@ function buildComment(c){
     ?'<span style="font-size:8px;font-weight:800;color:#0891b2;background:rgba(8,145,178,.1);padding:1px 6px;border-radius:10px;">↩ Reply</span>'
     :'<span style="font-size:8px;font-weight:800;color:#c4973a;background:rgba(196,151,58,.1);padding:1px 6px;border-radius:10px;">Top</span>';
   const delBtn=!c.is_deleted
-    ?`<button onclick="adminDeleteComment('${c._id}')" class="btn btn-danger" style="font-size:9px;padding:3px 8px;"><i class="fas fa-trash" style="font-size:8px;"></i> Delete</button>`
+    ?`<button onclick="adminDeleteComment('${c._id}')" class="btn btn-danger" style="font-size:9px;padding:3px 8px;"><i class="fas fa-trash" style="font-size:8px;"></i> <span class="btn-label">Delete</span></button>`
     :'<span style="font-size:9px;color:#9c9488;">Deleted</span>';
   return`<div id="acmt-${c._id}" style="${indent}${c.is_deleted?'opacity:.5;':''}background:#fdfcf8;border:1px solid #f0e9d8;border-radius:9px;padding:10px 12px;">
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap;">
