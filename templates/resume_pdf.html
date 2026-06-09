@@ -648,10 +648,23 @@ body {
   .print-bar { display: none !important; }
   html { background: #fff; }
   body { padding-top: 0; background: #fff; }
+
+  /* Reset any mobile scale transform for print */
+  #scaleWrapper {
+    display: contents !important;
+    height: auto !important;
+    width: auto !important;
+    overflow: visible !important;
+  }
+  #pageWrap {
+    transform: none !important;
+    transform-origin: unset !important;
+  }
+
   .page-wrap { margin: 0; box-shadow: none; width: 210mm; }
   .rt.on {
     width: 210mm !important;
-    min-height: 297mm !important;
+    min-height: auto !important;
   }
   @page {
     size: A4 portrait;
@@ -684,7 +697,7 @@ body {
 </div>
 
 <!-- Resume page -->
-<div class="page-wrap">
+<div id="scaleWrapper" style="display:contents"><div class="page-wrap" id="pageWrap">
 <div id="t1" class="rt on">
   <div class="h">
     <div class="h-name">{{ user.name or 'Your Name' }}</div>
@@ -1288,6 +1301,8 @@ body {
 </div>
 </div>
 
+</div><!-- /scaleWrapper -->
+
 <script>
 // Show only the selected template
 const num = {{ template_num | default(1) }};
@@ -1299,6 +1314,45 @@ if (target) target.classList.add('on');
 if (new URLSearchParams(window.location.search).get('print') === '1') {
   window.addEventListener('load', () => setTimeout(() => window.print(), 800));
 }
+
+// ── MOBILE SCALE (preview only, not print) ──
+(function() {
+  function applyScale() {
+    var sw = window.innerWidth;
+    var wrapper = document.getElementById('scaleWrapper');
+    var page = document.getElementById('pageWrap');
+    if (!wrapper || !page) return;
+
+    if (sw >= 600) {
+      // Desktop: reset everything
+      wrapper.style.display = 'contents';
+      page.style.transform = '';
+      page.style.transformOrigin = '';
+      return;
+    }
+
+    // Mobile: scale resume to fit screen width
+    var scale = sw / 794;
+
+    // Set wrapper to block so it holds space
+    wrapper.style.display = 'block';
+    wrapper.style.width = sw + 'px';
+    wrapper.style.overflow = 'hidden';
+
+    // Apply scale — origin top left
+    page.style.transformOrigin = 'top left';
+    page.style.transform = 'scale(' + scale + ')';
+
+    // Calculate visible height after scale
+    // We must measure ORIGINAL height before any scale effect
+    // page.offsetHeight gives us pre-scale height since transform doesn't affect layout
+    var h = page.offsetHeight;
+    wrapper.style.height = Math.ceil(h * scale) + 'px';
+  }
+
+  window.addEventListener('load', applyScale);
+  window.addEventListener('resize', applyScale);
+})();
 </script>
 </body>
 </html>
