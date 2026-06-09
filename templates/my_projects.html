@@ -218,7 +218,7 @@ nav.sidebar, .dashboard-container > aside.sidebar, body > aside.sidebar { displa
                                 <i class="fas fa-pen text-[10px]"></i> Edit
                             </button>
                             <button class="px-3 py-1.5 border border-rose-200 dark:border-rose-950/40 bg-white hover:bg-rose-50 text-xs font-bold text-rose-600 rounded-lg transition-transform active:scale-95 delete-btn"
-                                onclick="openDeleteModal('{{ project._id }}', '{{ project.title | e }}')">
+                                onclick="openDeleteModal('{{ project._id }}', '{{ project.title | e }}', '{{ project.community_id or '' }}')">
                                 <i class="fas fa-trash-alt text-[10px]"></i> Delete
                             </button>
                         </div>
@@ -319,6 +319,15 @@ nav.sidebar, .dashboard-container > aside.sidebar, body > aside.sidebar { displa
         <div class="text-3xl delete-icon">🗑️</div>
         <h3 class="font-display text-lg font-black text-ink-900 dark:text-cream-50">Delete Project?</h3>
         <p class="text-xs text-ink-500 dark:text-ink-400 font-body leading-relaxed" id="delete-modal-msg">This will permanently delete this project and cannot be undone. You will lose <strong>10 XP</strong>.</p>
+        <!-- Community option — only shown when project has a community -->
+        <div id="community-delete-option" class="hidden text-left bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 rounded-xl p-3 space-y-1.5">
+            <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                <input type="checkbox" id="delete-community-checkbox" class="mt-0.5 w-4 h-4 rounded border-rose-300 accent-rose-600 flex-shrink-0">
+                <span class="text-xs font-bold text-rose-700 dark:text-rose-400 leading-snug">
+                    Also permanently delete the linked community and notify all members.
+                </span>
+            </label>
+        </div>
         <div class="flex gap-3 pt-2 font-body delete-modal-actions">
             <button class="px-4 py-2.5 border border-cream-300 dark:border-ink-700 bg-white rounded-xl font-semibold text-ink-500 text-xs active:scale-95 transition-all delete-cancel-btn" onclick="closeDeleteModal()">Cancel</button>
             <button class="flex-1 py-2.5 bg-rose-600 text-white font-bold text-xs rounded-xl tracking-wide active:scale-95 transition-all delete-confirm-btn" onclick="confirmDelete()"><i class="fas fa-trash-alt mr-1"></i> Yes, Delete</button>
@@ -420,9 +429,21 @@ async function saveEdit() {
 }
 
 let deleteTargetId = null;
-function openDeleteModal(projectId, projectTitle) {
+let deleteTargetCommunityId = null;
+function openDeleteModal(projectId, projectTitle, communityId) {
     deleteTargetId = projectId;
+    deleteTargetCommunityId = communityId || null;
     document.getElementById('delete-modal-msg').innerHTML = `"<strong>${projectTitle}</strong>" will be permanently deleted and cannot be undone. You will lose <strong>10 XP</strong>.`;
+    // Show/hide community option
+    const commOpt = document.getElementById('community-delete-option');
+    const commChk = document.getElementById('delete-community-checkbox');
+    if (communityId) {
+        commOpt.classList.remove('hidden');
+        commChk.checked = false;
+    } else {
+        commOpt.classList.add('hidden');
+        commChk.checked = false;
+    }
     document.getElementById('delete-modal').classList.remove('hidden');
     document.getElementById('delete-modal').classList.add('flex');
 }
@@ -430,15 +451,23 @@ function closeDeleteModal() {
     document.getElementById('delete-modal').classList.remove('flex');
     document.getElementById('delete-modal').classList.add('hidden');
     deleteTargetId = null;
+    deleteTargetCommunityId = null;
 }
 document.getElementById('delete-modal').addEventListener('click', function(e) { if (e.target === this) closeDeleteModal(); });
 
 async function confirmDelete() {
     if (!deleteTargetId) return;
     const id = deleteTargetId;
+    const alsoDeleteCommunity = deleteTargetCommunityId
+        ? document.getElementById('delete-community-checkbox').checked
+        : false;
     closeDeleteModal();
     try {
-        const res = await fetch(`/projects/delete/${id}`, { method: 'POST', headers: {'Content-Type': 'application/json'} });
+        const res = await fetch(`/projects/delete/${id}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ delete_community: alsoDeleteCommunity })
+        });
         const data = await res.json();
         if (data.success) {
             const card = document.getElementById(`card-${id}`);
@@ -454,7 +483,10 @@ async function confirmDelete() {
                     }
                 }, 300);
             }
-            showToast('🗑️ Project deleted. -10 XP', false);
+            const msg = alsoDeleteCommunity && data.community_deleted
+                ? '🗑️ Project & community deleted. -10 XP'
+                : '🗑️ Project deleted. -10 XP';
+            showToast(msg, false);
         } else { showToast(data.error || 'Failed to delete project', false); }
     } catch(e) { showToast('Error deleting project', false); }
 }

@@ -265,6 +265,7 @@ body { font-family: 'DM Sans', sans-serif; }
             {% if c.pending_requests %}<span><i class="fas fa-clock"></i> {{ c.pending_requests|length }} pending</span>{% endif %}
           </div>
           <a href="{{ url_for('view_community', community_id=c._id) }}" class="card-action btn-primary"><i class="fas fa-cog"></i> Manage Community</a>
+          <button onclick="openCommDeleteModal('{{ c._id }}', '{{ c.project_title | e }}')" class="card-action btn-ghost mt-2" style="color:#dc2626;border-color:#fecaca;background:rgba(220,38,38,0.05);"><i class="fas fa-trash-alt" style="font-size:.65rem;"></i> Delete Community</button>
         </div>
         {% endfor %}
       </div>
@@ -357,6 +358,19 @@ body { font-family: 'DM Sans', sans-serif; }
       {% endif %}
     </section>
   </main>
+</div>
+
+<!-- COMMUNITY DELETE MODAL -->
+<div class="fixed inset-0 bg-ink-900/40 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4" id="comm-delete-modal">
+    <div class="bg-white border border-cream-200 dark:bg-ink-800 dark:border-ink-700 w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center space-y-4">
+        <div class="text-3xl">🗑️</div>
+        <h3 class="font-display text-lg font-black text-ink-900 dark:text-cream-50">Delete Community?</h3>
+        <p class="text-xs text-ink-500 dark:text-ink-400 font-body leading-relaxed" id="comm-delete-msg">This community will be permanently deleted. All members will be notified.</p>
+        <div class="flex gap-3 pt-2 font-body">
+            <button class="px-4 py-2.5 border border-cream-300 dark:border-ink-700 bg-white dark:bg-ink-800 rounded-xl font-semibold text-ink-500 dark:text-ink-400 text-xs active:scale-95 transition-all" onclick="closeCommDeleteModal()">Cancel</button>
+            <button class="flex-1 py-2.5 bg-rose-600 text-white font-bold text-xs rounded-xl tracking-wide active:scale-95 transition-all" onclick="confirmCommDelete()"><i class="fas fa-trash-alt mr-1"></i> Yes, Delete</button>
+        </div>
+    </div>
 </div>
 
 {% include 'notification_bell.html' %}
@@ -489,6 +503,56 @@ async function loadMore() {
     btn.disabled = false;
   }
   isLoading = false;
+}
+
+// ── COMMUNITY DELETE ────────────────────────────────────────
+let commDeleteTargetId = null;
+function openCommDeleteModal(communityId, communityTitle) {
+    commDeleteTargetId = communityId;
+    document.getElementById('comm-delete-msg').innerHTML =
+        `"<strong>${communityTitle}</strong>" will be permanently deleted. All messages will be erased and all members will be notified.`;
+    const modal = document.getElementById('comm-delete-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+function closeCommDeleteModal() {
+    const modal = document.getElementById('comm-delete-modal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+    commDeleteTargetId = null;
+}
+document.getElementById('comm-delete-modal').addEventListener('click', function(e) { if (e.target === this) closeCommDeleteModal(); });
+
+async function confirmCommDelete() {
+    if (!commDeleteTargetId) return;
+    const id = commDeleteTargetId;
+    closeCommDeleteModal();
+    try {
+        const res = await fetch(`/community/${id}/delete`, { method: 'POST', headers: {'Content-Type': 'application/json'} });
+        const data = await res.json();
+        if (data.success) {
+            // Find and remove card by scanning for matching delete button
+            document.querySelectorAll('.comm-card[data-section="mine"]').forEach(card => {
+                if (card.querySelector(`button[onclick*="${id}"]`)) {
+                    card.style.transition = 'opacity 0.3s, transform 0.3s';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.95)';
+                    setTimeout(() => card.remove(), 300);
+                }
+            });
+            showCommToast('🗑️ Community permanently deleted.');
+        } else {
+            showCommToast(data.error || 'Failed to delete community.', false);
+        }
+    } catch(e) { showCommToast('Error deleting community.', false); }
+}
+
+function showCommToast(msg, success=true) {
+    let t = document.getElementById('comm-toast');
+    if (!t) { t = document.createElement('div'); t.id = 'comm-toast'; document.body.appendChild(t); }
+    t.textContent = msg;
+    t.style.cssText = `position:fixed;bottom:28px;left:50%;transform:translateX(-50%);color:#fff;padding:12px 24px;border-radius:12px;font-weight:700;font-size:0.85rem;z-index:99999;opacity:1;transition:opacity 0.35s;background:${success ? '#166534' : '#dc2626'}`;
+    setTimeout(() => { t.style.opacity = '0'; }, 2800);
 }
 
 applyFilters();

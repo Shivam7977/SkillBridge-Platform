@@ -1243,6 +1243,9 @@ def my_projects():
             p['view_count'] = p.get('views', 0)
             p['comment_count'] = comment_counts.get(pid, 0)
             p['skills_needed'] = p.get('skills_needed', [])
+            # Expose community_id as string so template can offer community-delete option
+            raw_cid = p.get('community_id')
+            p['community_id'] = str(raw_cid) if raw_cid else None
 
         total_pages = max(1, (total + PER_PAGE - 1) // PER_PAGE)
 
@@ -1372,19 +1375,47 @@ def edit_project(project_id):
 @app.route('/projects/delete/<project_id>', methods=['POST'])
 @login_required
 def delete_project(project_id):
-    """Delete a project and deduct XP to prevent create-delete abuse"""
+    """Delete a project and deduct XP to prevent create-delete abuse.
+    Optional: also delete linked community if delete_community=true in JSON body."""
     try:
         project = projects_collection.find_one(
             {'_id': ObjectId(project_id), 'created_by_id': ObjectId(current_user.id)}
         )
-        if project:
-            projects_collection.delete_one({'_id': ObjectId(project_id)})
-            if not project.get('pre_gamification'):
-                deduct_xp(current_user.id, 10, "Project Deleted")
-                flash("Project deleted. -10 XP", "info")
-            else:
-                flash("Project deleted.", "info")
-        return jsonify({'success': True})
+        if not project:
+            return jsonify({'success': False, 'error': 'Project not found'}), 404
+
+        # Check if caller wants community deleted too
+        data = request.get_json(silent=True) or {}
+        also_delete_community = data.get('delete_community', False)
+
+        # Delete linked community if requested and it exists
+        community_deleted = False
+        community_id = project.get('community_id')
+        if also_delete_community and community_id:
+            community = communities_collection.find_one({'_id': ObjectId(str(community_id))})
+            if community:
+                comm_title = community.get('project_title', 'a community')
+                owner_id_obj = community.get('owner_id')
+                # Notify all members (exclude owner — they initiated this)
+                for mid in community.get('members', []):
+                    if mid != owner_id_obj:
+                        create_notification(
+                            str(mid), 'declined',
+                            f'The community "{comm_title}" was deleted by the owner.',
+                            url_for('find_communities')
+                        )
+                communities_collection.delete_one({'_id': ObjectId(str(community_id))})
+                community_messages_collection.delete_many({'community_id': ObjectId(str(community_id))})
+                community_deleted = True
+
+        # Delete the project itself
+        projects_collection.delete_one({'_id': ObjectId(project_id)})
+        commits_collection.delete_many({'project_id': ObjectId(project_id)})
+
+        if not project.get('pre_gamification'):
+            deduct_xp(current_user.id, 10, "Project Deleted")
+
+        return jsonify({'success': True, 'community_deleted': community_deleted})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
@@ -2464,6 +2495,49 @@ def leave_community(community_id):
         flash("You have left the community. -10 XP", "info")
     return redirect(url_for("find_communities"))
 
+@app.route('/community/<community_id>/delete', methods=['POST'])
+@login_required
+def owner_delete_community(community_id):
+    """Owner deletes their own community. Notifies all members. Unlinks project."""
+    try:
+        obj_id = ObjectId(community_id)
+        community = communities_collection.find_one({'_id': obj_id})
+        if not community:
+            return jsonify({'success': False, 'error': 'Community not found'}), 404
+
+        # Only owner can delete
+        if community.get('owner_id') != ObjectId(current_user.id):
+            return jsonify({'success': False, 'error': 'Only the owner can delete this community'}), 403
+
+        comm_title = community.get('project_title', 'a community')
+        owner_id_obj = community.get('owner_id')
+
+        # Notify all members except owner
+        for mid in community.get('members', []):
+            if mid != owner_id_obj:
+                create_notification(
+                    str(mid), 'declined',
+                    f'The community "{comm_title}" was deleted by the owner.',
+                    url_for('find_communities')
+                )
+
+        # Unlink community from its project (clean up community_id field)
+        project_id = community.get('project_id')
+        if project_id:
+            projects_collection.update_one(
+                {'_id': project_id},
+                {'$unset': {'community_id': ''}}
+            )
+
+        # Delete community and all its messages
+        communities_collection.delete_one({'_id': obj_id})
+        community_messages_collection.delete_many({'community_id': obj_id})
+
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/community/<community_id>/approve/<user_id>')
 @login_required
 def approve_member(community_id, user_id):
@@ -3501,6 +3575,9 @@ def admin_panel():
         p['like_count'] = len(p.get('likes', []))
         p['comment_count'] = cmt_counts.get(p['_id'], 0)
         p['bookmark_count'] = p.get('bookmark_count', 0)
+        # Expose community_id so admin UI can offer "also delete community" option
+        raw_cid = p.get('community_id')
+        p['community_id'] = str(raw_cid) if raw_cid else None
 
     # Pending version approvals
     pending_commits = list(commits_collection.find({'xp_status': 'pending'}).sort('timestamp', -1))
@@ -3696,6 +3773,10 @@ def admin_delete_user(user_id):
 @login_required
 @admin_required
 def admin_delete_project(project_id):
+    """Admin deletes a project. Optional: also delete linked community."""
+    data = request.get_json(silent=True) or {}
+    also_delete_community = data.get('delete_community', False)
+
     project = projects_collection.find_one({'_id': ObjectId(project_id)})
     if project:
         create_notification(
@@ -3703,6 +3784,28 @@ def admin_delete_project(project_id):
             f'Your project "{project.get("title", "Untitled")}" was removed by an admin.',
             url_for('my_projects')
         )
+        # Optionally delete linked community
+        if also_delete_community and project.get('community_id'):
+            community = communities_collection.find_one({'_id': ObjectId(str(project['community_id']))})
+            if community:
+                comm_title = community.get('project_title', 'a community')
+                # Notify owner
+                create_notification(
+                    str(community['owner_id']), 'declined',
+                    f'Your community "{comm_title}" was removed by an admin.',
+                    url_for('find_communities')
+                )
+                # Notify all members
+                for member_id in community.get('members', []):
+                    if member_id != community['owner_id']:
+                        create_notification(
+                            str(member_id), 'declined',
+                            f'The community "{comm_title}" was removed by an admin.',
+                            url_for('find_communities')
+                        )
+                communities_collection.delete_one({'_id': ObjectId(str(project['community_id']))})
+                community_messages_collection.delete_many({'community_id': ObjectId(str(project['community_id']))})
+
     projects_collection.delete_one({'_id': ObjectId(project_id)})
     commits_collection.delete_many({'project_id': ObjectId(project_id)})
     return jsonify({'success': True})

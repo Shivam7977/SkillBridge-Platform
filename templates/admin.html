@@ -688,7 +688,7 @@
                   <td><button class="btn btn-purple" data-tip="View Comments" onclick="openCommentsModal('{{ p._id }}','{{ p.title | e }}')"><i class="fas fa-comments" style="font-size:9px;"></i> {{ p.comment_count or 0 }}</button></td>
                   <td class="hide-mobile" style="font-weight:800;color:#c4973a;">{{ p.bookmark_count or 0 }}</td>
                   <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;">{{ p.created_at.strftime('%b %d, %Y') if p.created_at else 'N/A' }}</td>
-                  <td><button class="btn btn-danger" data-tip="Delete Project" onclick="deleteProject('{{ p._id }}','{{ p.title }}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete</span></button></td>
+                  <td><button class="btn btn-danger" data-tip="Delete Project" onclick="deleteProject('{{ p._id }}','{{ p.title }}','{{ p.community_id or '' }}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete</span></button></td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -905,7 +905,78 @@ function rejectCommit(id){if(!confirm('Reject this upload?'))return;fetch('/admi
 function banUser(id){if(!confirm('Ban this user?'))return;fetch('/admin/ban_user/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success)location.reload();else showToast(d.error,true);});}
 function unbanUser(id){if(!confirm('Unban this user?'))return;fetch('/admin/unban_user/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success)location.reload();else showToast(d.error,true);});}
 function deleteUser(id,name){if(!confirm('Permanently delete '+name+' and ALL their data?'))return;fetch('/admin/delete_user/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success)location.reload();else showToast(d.error,true);});}
-function deleteProject(id,title){if(!confirm('Delete project "'+title+'"?'))return;fetch('/admin/delete_project/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){document.getElementById('pr-'+id).remove();showToast('Project deleted.');}else showToast(d.error,true);});}
+// ── ADMIN PROJECT DELETE MODAL ────────────────────────────
+let _adminDelId = null, _adminDelHasCommunity = false;
+
+function _admDelApplyTheme() {
+    const dark = document.documentElement.classList.contains('dark');
+    const box  = document.getElementById('adm-del-box');
+    const head = document.getElementById('adm-del-heading');
+    const body = document.getElementById('adm-del-body');
+    const comm = document.getElementById('adm-del-comm-row');
+    const btnP = document.getElementById('adm-del-btn-proj');
+    const btnC = document.getElementById('adm-del-btn-cancel');
+    if (dark) {
+        box.style.background  = '#2c2820';
+        box.style.border      = '1px solid #3d3830';
+        head.style.color      = '#f0e9d8';
+        body.style.color      = '#9c9488';
+        document.getElementById('adm-del-title').style.color = '#f0e9d8';
+        comm.style.background = 'rgba(220,38,38,0.12)';
+        comm.style.border     = '1px solid rgba(220,38,38,0.3)';
+        comm.style.color      = '#fca5a5';
+        btnP.style.background = '#f8f4ec';
+        btnP.style.color      = '#1a1714';
+        btnC.style.background = '#1a1714';
+        btnC.style.color      = '#9c9488';
+        btnC.style.border     = '1px solid #3d3830';
+    } else {
+        box.style.background  = '#fff';
+        box.style.border      = '1px solid #f0e9d8';
+        head.style.color      = '#1a1714';
+        body.style.color      = '#7a7268';
+        document.getElementById('adm-del-title').style.color = '#1a1714';
+        comm.style.background = '#fff5f5';
+        comm.style.border     = '1px solid #fecaca';
+        comm.style.color      = '#dc2626';
+        btnP.style.background = '#1a1714';
+        btnP.style.color      = '#f8f4ec';
+        btnC.style.background = '#fff';
+        btnC.style.color      = '#5c5548';
+        btnC.style.border     = '1px solid #e5d9c0';
+    }
+}
+
+function deleteProject(id, title, communityId) {
+    _adminDelId = id;
+    _adminDelHasCommunity = !!(communityId && communityId !== 'None' && communityId !== '');
+    document.getElementById('adm-del-title').textContent = '"' + title + '"';
+    const commRow = document.getElementById('adm-del-comm-row');
+    const btnBoth = document.getElementById('adm-del-btn-both');
+    commRow.style.display = _adminDelHasCommunity ? '' : 'none';
+    btnBoth.style.display = _adminDelHasCommunity ? '' : 'none';
+    _admDelApplyTheme();
+    document.getElementById('adm-del-modal').style.display = 'flex';
+}
+function admDelClose() {
+    document.getElementById('adm-del-modal').style.display = 'none';
+    _adminDelId = null;
+}
+function admDelConfirm(alsoComm) {
+    if (!_adminDelId) return;
+    const id = _adminDelId;
+    admDelClose();
+    fetch('/admin/delete_project/' + id, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ delete_community: alsoComm })
+    }).then(r => r.json()).then(d => {
+        if (d.success) {
+            document.getElementById('pr-' + id).remove();
+            showToast(alsoComm ? 'Project & community deleted.' : 'Project deleted.');
+        } else showToast(d.error, true);
+    });
+}
 function deleteRoadmap(id,goal){if(!confirm('Delete roadmap "'+goal+'"?'))return;fetch('/admin/delete_roadmap/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){document.getElementById('rm-'+id).remove();showToast('Roadmap deleted.');}else showToast(d.error,true);});}
 function deleteCommunity(id,title){if(!confirm('Delete community "'+title+'"?'))return;fetch('/admin/delete_community/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){document.getElementById('cm-'+id).remove();showToast('Community deleted.');}else showToast(d.error,true);});}
 
@@ -975,5 +1046,31 @@ function closeModal(){
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeSidebar();}});
 </script>
+<!-- ADMIN PROJECT DELETE MODAL -->
+<div id="adm-del-modal" style="display:none;position:fixed;inset:0;background:rgba(26,23,20,.55);backdrop-filter:blur(4px);z-index:99999;align-items:center;justify-content:center;padding:1rem;">
+  <div id="adm-del-box" style="border-radius:1.25rem;box-shadow:0 24px 60px rgba(26,23,20,.18);width:100%;max-width:380px;padding:1.75rem 1.5rem;text-align:center;font-family:'DM Sans',sans-serif;">
+    <div style="font-size:2rem;margin-bottom:.6rem;">🗑️</div>
+    <div id="adm-del-heading" style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:900;margin-bottom:.4rem;">Delete Project?</div>
+    <div id="adm-del-body" style="font-size:.78rem;margin-bottom:1rem;line-height:1.5;">
+      <span id="adm-del-title" style="font-weight:800;display:inline-block;max-width:100%;word-break:break-word;"></span> will be <strong>permanently deleted</strong> and cannot be undone.
+    </div>
+    <!-- shown only when project has a community -->
+    <div id="adm-del-comm-row" style="border-radius:.75rem;padding:.65rem .85rem;margin-bottom:1rem;font-size:.73rem;font-weight:700;text-align:left;display:none;">
+      ⚠️ This project has a linked community. You can choose to delete it too.
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.55rem;">
+      <button id="adm-del-btn-both" onclick="admDelConfirm(true)" style="display:none;width:100%;padding:.7rem;background:#dc2626;color:#fff;border:none;border-radius:.75rem;font-weight:800;font-size:.75rem;cursor:pointer;letter-spacing:.04em;">
+        🗑️ Delete Project &amp; Community
+      </button>
+      <button id="adm-del-btn-proj" onclick="admDelConfirm(false)" style="width:100%;padding:.7rem;border:none;border-radius:.75rem;font-weight:800;font-size:.75rem;cursor:pointer;letter-spacing:.04em;">
+        Delete Project Only
+      </button>
+      <button id="adm-del-btn-cancel" onclick="admDelClose()" style="width:100%;padding:.7rem;border-radius:.75rem;font-weight:700;font-size:.75rem;cursor:pointer;">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
