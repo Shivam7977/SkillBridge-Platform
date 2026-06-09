@@ -87,7 +87,14 @@
     /* ── SECTION CARDS ── */
     .section-card{
       background:#fff;border:1px solid #e5d9c0;border-radius:16px;
-      overflow:hidden;margin-bottom:16px;
+      overflow:visible;margin-bottom:16px;
+    }
+    /* Keep inner content clipped properly */
+    .section-header{
+      border-radius:16px 16px 0 0;
+    }
+    .adm-table-wrap{
+      overflow-x:auto;border-radius:0 0 16px 16px;
     }
     .dark .section-card{background:#2c2820;border-color:#3d3830;}
 
@@ -106,7 +113,7 @@
     .cnt{font-size:10px;font-weight:800;padding:2px 9px;border-radius:20px;color:#fff;}
 
     /* ── ACCORDION ── */
-    .acc-body{overflow:hidden;transition:max-height 0.3s cubic-bezier(0.4,0,0.2,1),opacity 0.25s;}
+    .acc-body{overflow:visible;transition:max-height 0.3s cubic-bezier(0.4,0,0.2,1),opacity 0.25s;}
     .acc-body.closed{max-height:0!important;opacity:0;}
     .acc-body.open{opacity:1;}
     .chev{transition:transform 0.25s;font-size:12px;color:#9c9488;}
@@ -165,7 +172,6 @@
       position:relative;
     }
     .btn:hover{transform:translateY(-1px);}
-
     /* ── TOOLTIP ── */
     .btn[data-tip]::after{
       content:attr(data-tip);
@@ -174,19 +180,14 @@
       font-size:10px;font-weight:700;white-space:nowrap;
       padding:3px 8px;border-radius:6px;
       opacity:0;pointer-events:none;
-      transition:opacity .15s,transform .15s;
-      z-index:9999;
+      transition:opacity .15s,transform .15s;z-index:9999;
     }
-    .dark .btn[data-tip]::after{background:#f0e9d8;color:#1a1714;}
     .btn[data-tip]::before{
       content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%) scale(.85);
       border:4px solid transparent;border-top-color:#1a1714;
       opacity:0;pointer-events:none;transition:opacity .15s,transform .15s;z-index:9999;
     }
-    .dark .btn[data-tip]::before{border-top-color:#f0e9d8;}
-    .btn[data-tip]:hover::after,.btn[data-tip]:hover::before{
-      opacity:1;transform:translateX(-50%) scale(1);
-    }
+    .btn[data-tip]:hover::after,.btn[data-tip]:hover::before{opacity:1;transform:translateX(-50%) scale(1);}
     .btn-view{background:#1a1714;color:#f8f4ec;border-color:#1a1714;}
     .btn-view:hover{background:#2c2820;}
     .dark .btn-view{background:#f0e9d8;color:#1a1714;}
@@ -309,7 +310,7 @@
     /* ── RESPONSIVE ── */
     @media(min-width:1024px){ .sidebar{transform:none!important;position:sticky!important;} }
     @media(max-width:1023px){
-      .sidebar{transform:translateX(-100%);position:fixed!important;top:0;left:0;height:100vh;z-index:200;width:240px!important;transition:transform .25s cubic-bezier(.4,0,.2,1);}
+      .sidebar{transform:translateX(-100%);position:fixed!important;top:0;left:0;height:100vh!important;z-index:200;width:240px!important;transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding-bottom:4rem;}
       .sidebar.open{transform:translateX(0)!important;}
       .mob-header{display:flex!important;}
       .main-area{padding:20px 16px!important;}
@@ -323,30 +324,23 @@
       .hide-mobile{display:none!important;}
       .tab-nav{gap:0;}
       .tab-btn{padding:10px 12px;font-size:12px;}
-
-      /* Make all table wrappers scrollable */
       .adm-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-
-      /* Action buttons — icon only on mobile */
       .btn .btn-label{display:none;}
       .btn{padding:6px 8px!important;min-width:30px;justify-content:center;}
       .btn i{font-size:11px!important;margin:0!important;}
-
-      /* Tighten action cell */
       .adm-table td:last-child{white-space:nowrap;}
       .adm-table th,.adm-table td{padding:7px 8px;font-size:11.5px;}
-
-      /* Hide less-important columns on mobile */
       .hide-sm{display:none!important;}
     }
     @media(max-width:480px){
+      .adm-table th,.adm-table td{padding:7px 10px;font-size:11.5px;}
       .stats-grid{grid-template-columns:repeat(2,1fr)!important;}
       .stat-card{padding:14px!important;}
       .overview-hero{padding:16px!important;}
     }
     @media(max-width:380px){
       .tab-btn{padding:8px 8px;font-size:11px;}
-      .adm-table th,.adm-table td{padding:6px 7px;font-size:11px;}
+      .adm-table th,.adm-table td{padding:6px 8px;font-size:11px;}
     }
   </style>
 </head>
@@ -469,7 +463,7 @@
         </div>
         <div class="acc-body open" id="acc-approvals" style="max-height:9999px;">
           {% if pending_commits %}
-          <div class="adm-table-wrap">
+          <div style="overflow-x:auto;">
             <table class="adm-table">
               <thead><tr>
                 <th>User</th><th>Project</th>
@@ -535,13 +529,13 @@
 
           <!-- ALL -->
           <div class="tab-pane active" id="users-tab-all">
-            <div class="adm-table-wrap">
+            <div style="overflow-x:auto;">
               <table class="adm-table" id="users-all-table">
                 <thead><tr>
                   <th>User</th><th>XP</th>
                   <th class="hide-mobile">Badge</th>
                   <th class="hide-mobile">Streak</th>
-                  <th class="hide-sm" style="min-width:100px;">🤖 AI</th>
+                  <th style="min-width:100px;">🤖 AI</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr></thead>
@@ -560,7 +554,7 @@
                     <td style="font-weight:800;color:#1a1714;" class="dark:text-cream-100">{{ u.xp }}</td>
                     <td class="hide-mobile" style="color:#9c9488;font-size:10px;">{{ u.badge or 'Bronze Builder' }}</td>
                     <td class="hide-mobile" style="font-weight:600;">🔥 {{ u.streak_count }}</td>
-                    <td class="hide-sm">
+                    <td>
                       <div style="display:flex;flex-direction:column;gap:4px;min-width:90px;">
                         <div style="display:flex;align-items:center;gap:5px;">
                           <span style="font-size:10px;">💬</span>
@@ -580,7 +574,7 @@
                       {% else %}<span class="pill pill-active">Active</span>{% endif %}
                     </td>
                     <td>
-                      <div style="display:flex;gap:4px;flex-wrap:nowrap;align-items:center;">
+                      <div style="display:flex;gap:4px;flex-wrap:wrap;">
                         <a href="{{ url_for('admin_user_detail', user_id=u._id) }}" class="btn btn-view" data-tip="View"><i class="fas fa-eye" style="font-size:9px;"></i> <span class="btn-label">View</span></a>
                         {% if u.is_banned %}
                         <button class="btn btn-success" data-tip="Unban User" onclick="unbanUser('{{ u._id }}')"><i class="fas fa-unlock" style="font-size:9px;"></i> <span class="btn-label">Unban</span></button>
@@ -599,7 +593,7 @@
 
           <!-- ACTIVE -->
           <div class="tab-pane" id="users-tab-active">
-            <div class="adm-table-wrap">
+            <div style="overflow-x:auto;">
               <table class="adm-table">
                 <thead><tr><th>User</th><th>XP</th><th class="hide-mobile">Badge</th><th class="hide-mobile">Streak</th><th>🤖 AI</th><th>Actions</th></tr></thead>
                 <tbody>
@@ -627,7 +621,7 @@
           <div class="tab-pane" id="users-tab-banned">
             {% set banned_list = users|selectattr('is_banned')|list %}
             {% if banned_list %}
-            <div class="adm-table-wrap"><table class="adm-table">
+            <div style="overflow-x:auto;"><table class="adm-table">
               <thead><tr><th>User</th><th>XP</th><th>Actions</th></tr></thead>
               <tbody>
                 {% for u in banned_list %}
@@ -644,7 +638,7 @@
 
           <!-- ADMINS -->
           <div class="tab-pane" id="users-tab-admins">
-            <div class="adm-table-wrap"><table class="adm-table">
+            <div style="overflow-x:auto;"><table class="adm-table">
               <thead><tr><th>User</th><th>XP</th><th>Actions</th></tr></thead>
               <tbody>
                 {% for u in users if u.is_admin %}
@@ -673,7 +667,7 @@
         </div>
         <div class="acc-body closed" id="acc-projects" style="max-height:0;">
           <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Search projects…" oninput="filterTable('proj-table',this.value)"></div>
-          <div class="adm-table-wrap">
+          <div style="overflow-x:auto;">
             <table class="adm-table" id="proj-table">
               <thead><tr>
                 <th>Title</th><th>Creator</th>
@@ -714,7 +708,7 @@
           <i class="fas fa-chevron-down chev" id="chev-roadmaps"></i>
         </div>
         <div class="acc-body closed" id="acc-roadmaps" style="max-height:0;">
-          <div class="adm-table-wrap">
+          <div style="overflow-x:auto;">
             <table class="adm-table">
               <thead><tr>
                 <th>Goal</th><th>User</th>
@@ -751,7 +745,7 @@
           <i class="fas fa-chevron-down chev" id="chev-communities"></i>
         </div>
         <div class="acc-body closed" id="acc-communities" style="max-height:0;">
-          <div class="adm-table-wrap">
+          <div style="overflow-x:auto;">
             <table class="adm-table">
               <thead><tr>
                 <th>Community</th><th>Owner</th>
@@ -816,8 +810,7 @@ applyTheme(localStorage.getItem('sb-theme')||'light');
 function openSidebar(){
   var sb = document.getElementById('admin-sidebar');
   var ov = document.getElementById('mob-overlay');
-  sb.style.transform = 'translateX(0)';
-  sb._isOpen = true;
+  sb.classList.add('open');
   if(ov){ ov.style.display='block'; ov.classList.add('show'); }
   document.body.style.overflow='hidden';
   var cb=document.getElementById('admin-close-btn')||document.getElementById('sidebar-close-btn');
@@ -826,14 +819,13 @@ function openSidebar(){
 function closeSidebar(){
   var sb = document.getElementById('admin-sidebar');
   var ov = document.getElementById('mob-overlay');
-  sb.style.transform = 'translateX(-100%)';
-  sb._isOpen = false;
+  sb.classList.remove('open');
   if(ov){ ov.style.display=''; ov.classList.remove('show'); }
   document.body.style.overflow='';
   var cb=document.getElementById('admin-close-btn')||document.getElementById('sidebar-close-btn');
   if(cb) cb.style.display='none';
 }
-window.addEventListener('resize',()=>{ var sb=document.getElementById('admin-sidebar'); if(window.innerWidth>=1024){ sb.style.transform=''; sb._isOpen=false; document.body.style.overflow=''; var ov=document.getElementById('mob-overlay'); if(ov){ov.style.display='';ov.classList.remove('show');} } else { if(!sb._isOpen) sb.style.transform='translateX(-100%)'; } });
+window.addEventListener('resize',()=>{ if(window.innerWidth>=1024){ var sb=document.getElementById('admin-sidebar'); sb.classList.remove('open'); document.body.style.overflow=''; var ov=document.getElementById('mob-overlay'); if(ov){ov.style.display='';ov.classList.remove('show');} } });
 
 // ── ACCORDION ────────────────────────────────────
 function toggleAcc(bodyId,chevId){
