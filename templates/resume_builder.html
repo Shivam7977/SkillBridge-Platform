@@ -164,6 +164,20 @@ body { font-family:'DM Sans',sans-serif; }
 .dark .preview-wrap { background:#2c2820; }
 .preview-inner { border-radius:14px; overflow:hidden; box-shadow:0 24px 60px rgba(26,23,20,.18); background:transparent; }
 
+/* ── MOBILE: scale resume preview to fit screen ── */
+@media (max-width: 1023px) {
+  .rt.on {
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+  .vsep { display: none !important; }
+  .preview-wrap {
+    min-height: 0 !important;
+    overflow: hidden !important;
+    padding: 10px !important;
+  }
+}
+
 /* ══ LOADER ══ */
 .loader {
   position:fixed; inset:0; background:rgba(248,244,236,.94);
@@ -967,8 +981,8 @@ body { font-family:'DM Sans',sans-serif; }
       </div>
     </div>
 
-    <div class="preview-wrap">
-      <div class="preview-inner">
+    <div class="preview-wrap" id="previewWrap">
+      <div class="preview-inner" id="previewInner">
 
 <div id="t1" class="rt on">
   <div class="h">
@@ -1535,6 +1549,8 @@ function sw(n, el) {
   document.getElementById('t' + n).classList.add('on');
   el.classList.add('on');
   cur = n;
+  // Re-apply mobile scale after template switch
+  if (window.scalePreview) setTimeout(window.scalePreview, 50);
 }
 function openPDF() { window.open('/resume_pdf?t=' + cur, '_blank'); }
 function copyHTML() {
@@ -1786,6 +1802,50 @@ function applyTheme(t) {
   t === 'dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark');
 }
 applyTheme(localStorage.getItem('sb-theme') || 'light');
+
+// ── MOBILE RESUME PREVIEW SCALE (A4 fixed) ──
+(function() {
+  var A4_W = 794;
+  var A4_H = 1123;
+
+  function scalePreview() {
+    var wrap = document.getElementById('previewWrap');
+    var inner = document.getElementById('previewInner');
+    if (!wrap || !inner) return;
+
+    if (window.innerWidth >= 1024) {
+      // Desktop: reset
+      inner.style.transform = '';
+      inner.style.transformOrigin = '';
+      inner.style.width = '';
+      inner.style.height = '';
+      wrap.style.height = '';
+      wrap.style.minHeight = '';
+      return;
+    }
+
+    // Mobile: fix inner to A4 size
+    inner.style.width  = A4_W + 'px';
+    inner.style.height = A4_H + 'px';
+    inner.style.overflow = 'hidden';
+
+    // Scale to fit available width
+    var availW = wrap.clientWidth - 20;
+    var scale  = availW / A4_W;
+
+    inner.style.transformOrigin = 'top left';
+    inner.style.transform = 'scale(' + scale + ')';
+
+    // Wrap height = A4 height * scale + padding
+    wrap.style.minHeight = '0';
+    wrap.style.height = Math.ceil(A4_H * scale + 20) + 'px';
+    wrap.style.overflow = 'hidden';
+  }
+
+  window.addEventListener('load', scalePreview);
+  window.addEventListener('resize', scalePreview);
+  window.scalePreview = scalePreview;
+})();
 
 // ── MOBILE SIDEBAR TOGGLE ──
 function toggleSidebarMenu() {
