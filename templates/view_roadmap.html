@@ -76,11 +76,13 @@
             background:var(--color-surface);
             border-bottom:1px solid var(--color-sidebar-border);
             padding:2rem clamp(1rem,5vw,3rem);
+            overflow:hidden;
         }
         .hero-inner {
             max-width:900px; margin:0 auto;
             display:flex; align-items:center;
             justify-content:space-between; flex-wrap:wrap; gap:1rem;
+            overflow:hidden;
         }
         .hero-text h1 {
             font-family:'Playfair Display',serif;
@@ -94,6 +96,7 @@
             padding:10px 20px; border-radius:12px;
             font-weight:700; font-size:.88rem; text-decoration:none;
             transition:.18s; white-space:nowrap;
+            box-sizing:border-box;
         }
         .new-roadmap-btn:hover { opacity:.88; transform:translateY(-1px); }
 
@@ -132,7 +135,7 @@
         
         .completion-status { margin-top: 1rem; }
         .complete-button {
-            display: inline-block;
+            display: block;
             background: #1a1714;
             color: #f8f4ec;
             padding: 8px 20px;
@@ -141,6 +144,9 @@
             font-size: 0.85em;
             font-weight: 600;
             box-shadow: var(--box-shadow-button);
+            text-align: center;
+            box-sizing: border-box;
+            width: 100%;
         }
 
         .stage-details {
@@ -170,11 +176,11 @@
         }
         @media (max-width:768px) {
             .hero-inner { flex-direction:column; align-items:flex-start; gap:.75rem; }
-            .new-roadmap-btn { width:100%; justify-content:center; }
+            .new-roadmap-btn { width:100%; justify-content:center; box-sizing:border-box; }
             .timeline::before { left:14px; }
             .timeline-item { padding-left:46px; }
             .timeline-item::before { left:3px; width:20px; height:20px; }
-            .timeline-content { padding:1.1rem; }
+            .timeline-content { padding:1.1rem; overflow:hidden; }
             .timeline-content h3 { font-size:1.15em; }
             .progress-bar-container { height:9px; }
         }
