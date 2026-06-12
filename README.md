@@ -69,7 +69,7 @@ Discover projects and collaborators based on your skills and interests using int
 
 Track your progress, XP, streaks, and activity in one place.
 
-![Dashboard](<README_img/personalized_Dashboard.png>)
+![Dashboard](<README_img/Personalized_Dashboard.png>)
 
 ---
 
