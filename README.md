@@ -21,7 +21,7 @@ SkillBridge is a comprehensive platform designed to bridge the gap between learn
 
 ## 🏠 Platform Preview/Dashboard
 
-![Dashboard](<readme_img/dashboard.png>)
+![Dashboard](<README_img/dashboard.png>)
 
 ---
 
@@ -52,7 +52,7 @@ SkillBridge is a comprehensive platform designed to bridge the gap between learn
 Generate structured, project-based learning paths using AI.
 The system breaks down your goal into stages with real-world tasks.
 
-![AI Roadmap](<readme_img/roadmap-generator.png>)
+![AI Roadmap](<README_img/roadmap-generator.png>)
 
 ---
 
@@ -60,8 +60,8 @@ The system breaks down your goal into stages with real-world tasks.
 
 Discover projects and collaborators based on your skills and interests using intelligent matching.
 
-![Community](<readme_img/community.png>)
-![Community](<readme_img/community_recommendation.png>)
+![Community](<README_img/community.png>)
+![Community](<README_img/community_recommendation.png>)
 
 ---
 
@@ -69,7 +69,7 @@ Discover projects and collaborators based on your skills and interests using int
 
 Track your progress, XP, streaks, and activity in one place.
 
-![Dashboard](<readme_img/personalized_Dashboard.png>)
+![Dashboard](<README_img/personalized_Dashboard.png>)
 
 ---
 
@@ -77,7 +77,7 @@ Track your progress, XP, streaks, and activity in one place.
 
 Monitor your XP, streaks, rank progression, and personalize your SkillBridge experience through an integrated settings system.
 
-![Settings](readme_img/settings.png)
+![Settings](README_img/settings.png)
 
 ---
 
@@ -85,7 +85,7 @@ Monitor your XP, streaks, rank progression, and personalize your SkillBridge exp
 
 Create ATS-friendly resumes automatically using your profile and project data.
 
-![Resume](<readme_img/resume-builder.png>)
+![Resume](<README_img/resume-builder.png>)
 
 
 ---
@@ -94,7 +94,7 @@ Create ATS-friendly resumes automatically using your profile and project data.
 
 Generate stunning developer portfolios with customizable templates.
 
-![Portfolio](<readme_img/portfolio-builder.png>)
+![Portfolio](<README_img/portfolio-builder.png>)
 
 ---
 
@@ -102,7 +102,7 @@ Generate stunning developer portfolios with customizable templates.
 
 A powerful administration dashboard enables platform-wide management, including user moderation, project oversight, roadmap tracking, community management, approvals, XP control, and detailed user profile inspection.
 
-![Admin Dashboard](readme_img/admin.png)
+![Admin Dashboard](README_img/admin.png)
 
 ---
 
