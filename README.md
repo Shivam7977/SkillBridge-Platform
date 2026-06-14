@@ -12,6 +12,10 @@
 SkillBridge is a comprehensive platform designed to bridge the gap between learning and professional success. It leverages AI to provide personalized guidance, project-based learning, and professional identity building.
 
 ---
+🎯 Why SkillBridge?
+Most developers — especially students and self-taught learners — know what to learn but have no structured path to get there. They spend hours jumping between tutorials, building generic CRUD projects, and ending up with a resume that looks identical to everyone else's. SkillBridge fixes this. It takes your current skills and career goal, generates a personalized, stage-by-stage roadmap with real-world projects, and automatically builds your portfolio and resume as you progress — so by the time you're job-ready, you already have proof.
+
+---
 
 ## 🌐 Live Demo
 
