@@ -149,6 +149,6 @@ SkillBridge-Platform/
 
 ---
 
-## 👨‍💻 Developer
+## 👨‍💻 DEVELOPER
 
 Developed with ❤️ by **Shivam Pandey**
