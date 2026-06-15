@@ -11,3 +11,6 @@ __pycache__/
 
 # Ignore the accidental link by windows
 *.lnk
+
+# Ignore the file test.py (as it just use for checkinh the suitable google api currently)
+test.py

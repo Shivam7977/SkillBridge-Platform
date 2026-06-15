@@ -124,13 +124,26 @@ A powerful administration dashboard enables platform-wide management, including 
 ## 📂 Project Structure
 
 SkillBridge-Platform/
-├── app.py
-├── ai_roadmap_generator.py
-├── recommendation_engine.py
+├── app.py                        # Main Flask application
+├── ai_roadmap_generator.py       # Mistral AI roadmap logic
+├── recommendation_engine.py      # Skill-based recommendation engine
+├── gunicorn.conf.py              # Gunicorn server configuration
+├── wsgi.py                       # WSGI entry point
+├── Procfile                      # Render deployment config
+├── requirements.txt              # Python dependencies
 ├── templates/
+│   ├── mainpage.html             # Dashboard
+│   ├── community_chat.html       # Real-time community chat
+│   ├── resume_builder.html       # ATS resume builder
+│   ├── portfolio_builder.html    # Portfolio generator
+│   ├── admin.html                # Admin control panel
+│   ├── view_roadmap.html         # Roadmap viewer
+│   ├── find_communities.html     # Community discovery
+│   └── ...                      # 20+ more templates
 ├── static/
-├── requirements.txt
-└── wsgi.py
+│   ├── css/
+│   └── js/
+└── .gitignore
 
 ---
 
@@ -142,14 +155,25 @@ SkillBridge-Platform/
    pip install -r requirements.txt
 
 3. Create `.env` file and add:
-   MISTRAL_API_KEY
-   MONGO_URI
-   MAIL_USERNAME
-   MAIL_PASSWORD
-   YOUTUBE_API_KEY
+   MISTRAL_API_KEY=your_mistral_api_key
+   MONGO_URI=your_mongodb_connection_string
+   RESEND_API_KEY=your_resend_api_key
+   SECRET_KEY=your_flask_secret_key
+   YOUTUBE_API_KEY=your_youtube_api_key
 
 4. Run the app:
    python app.py
+
+---
+
+## 🤝 Contributing
+Pull requests are welcome! For major changes, please open an issue first to discuss what you'd like to change.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AIInterviewPrep`)
+3. Commit your changes (`git commit -m 'Add AI interview preparation module'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
