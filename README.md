@@ -12,7 +12,8 @@
 SkillBridge is a comprehensive platform designed to bridge the gap between learning and professional success. It leverages AI to provide personalized guidance, project-based learning, and professional identity building.
 
 ---
-🎯 Why SkillBridge?
+
+## 🎯 Why SkillBridge?
 
 Most developers — especially students and self-taught learners — know what to learn but have no structured path to get there. They spend hours jumping between tutorials, building generic CRUD projects, and ending up with a resume that looks identical to everyone else's. SkillBridge fixes this. It takes your current skills and career goal, generates a personalized, stage-by-stage roadmap with real-world projects, and automatically builds your portfolio and resume as you progress — so by the time you're job-ready, you already have proof.
 
@@ -26,7 +27,7 @@ Most developers — especially students and self-taught learners — know what t
 
 ## 🏠 Platform Preview/Dashboard
 
-![Dashboard](<README_img/dashboard.png>)
+![Dashboard](README_img/dashboard.png)
 
 ---
 
@@ -57,7 +58,7 @@ Most developers — especially students and self-taught learners — know what t
 Generate structured, project-based learning paths using AI.
 The system breaks down your goal into stages with real-world tasks.
 
-![AI Roadmap](<README_img/roadmap-generator.png>)
+![AI Roadmap](README_img/roadmap-generator.png)
 
 ---
 
@@ -65,8 +66,8 @@ The system breaks down your goal into stages with real-world tasks.
 
 Discover projects and collaborators based on your skills and interests using intelligent matching.
 
-![Community](<README_img/community.png>)
-![Community](<README_img/community_recommendation.png>)
+![Community](README_img/community.png)
+![Community Recommendations](README_img/community_recommendation.png)
 
 ---
 
@@ -74,7 +75,7 @@ Discover projects and collaborators based on your skills and interests using int
 
 Track your progress, XP, streaks, and activity in one place.
 
-![Dashboard](<README_img/Personalized_Dashboard.png>)
+![Dashboard](README_img/Personalized_Dashboard.png)
 
 ---
 
@@ -90,8 +91,7 @@ Monitor your XP, streaks, rank progression, and personalize your SkillBridge exp
 
 Create ATS-friendly resumes automatically using your profile and project data.
 
-![Resume](<README_img/resume-builder.png>)
-
+![Resume](README_img/resume-builder.png)
 
 ---
 
@@ -99,7 +99,7 @@ Create ATS-friendly resumes automatically using your profile and project data.
 
 Generate stunning developer portfolios with customizable templates.
 
-![Portfolio](<README_img/portfolio-builder.png>)
+![Portfolio](README_img/portfolio-builder.png)
 
 ---
 
@@ -113,18 +113,20 @@ A powerful administration dashboard enables platform-wide management, including 
 
 ## 🛠️ Tech Stack
 
-* **Backend:** Python (Flask)
-* **Database:** MongoDB
-* **AI Engine:** MISTRAL
-* **Frontend:** HTML, CSS, JavaScript
-* **Authentication:** Flask-Login, Flask-Bcrypt
-* **Deployment:** Render
+| Layer | Technology |
+|---|---|
+| **Backend** | Python (Flask) |
+| **Database** | MongoDB |
+| **AI Engine** | Mistral AI |
+| **Frontend** | HTML, CSS, JavaScript |
+| **Authentication** | Flask-Login, Flask-Bcrypt |
+| **Deployment** | Render |
 
 ---
 
 ## 📂 Project Structure
 
-'''
+```
 SkillBridge-Platform/
 ├── app.py                        # Main Flask application
 ├── ai_roadmap_generator.py       # Mistral AI roadmap logic
@@ -146,42 +148,74 @@ SkillBridge-Platform/
 │   ├── css/
 │   └── js/
 └── .gitignore
-'''
+```
 
 ---
 
 ## ⚙️ Installation & Setup
 
-1. Clone the repository
+1. **Clone the repository**
 
-2. Install dependencies:
-   pip install -r requirements.txt
+```bash
+git clone https://github.com/Shivam7977/SkillBridge-Platform.git
+cd SkillBridge-Platform
+```
 
-3. Create `.env` file and add:
-4. '''
-   MISTRAL_API_KEY=your_mistral_api_key                                                            
-   MONGO_URI=your_mongodb_connection_string
-   RESEND_API_KEY=your_resend_api_key
-   SECRET_KEY=your_flask_secret_key
-   YOUTUBE_API_KEY=your_youtube_api_key
-   '''
+2. **Install dependencies**
 
-5. Run the app:
-   python app.py
+```bash
+pip install -r requirements.txt
+```
+
+3. **Create a `.env` file** and add your keys:
+
+```env
+MISTRAL_API_KEY=your_mistral_api_key
+MONGO_URI=your_mongodb_connection_string
+RESEND_API_KEY=your_resend_api_key
+SECRET_KEY=your_flask_secret_key
+YOUTUBE_API_KEY=your_youtube_api_key
+```
+
+4. **Run the app**
+
+```bash
+python app.py
+```
 
 ---
 
 ## 🤝 Contributing
+
 Pull requests are welcome! For major changes, please open an issue first to discuss what you'd like to change.
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AIInterviewPrep`)
-3. Commit your changes (`git commit -m 'Add AI interview preparation module'`)
-4. Push to the branch (`git push origin feature/AIInterview)
+2. Create your feature branch
+
+```bash
+git checkout -b feature/your-feature-name
+```
+
+3. Commit your changes
+
+```bash
+git commit -m 'Add your feature description'
+```
+
+4. Push to the branch
+
+```bash
+git push origin feature/your-feature-name
+```
+
 5. Open a Pull Request
 
 ---
 
-## 👨‍💻 DEVELOPER
+## 👨‍💻 Developer
 
 Developed with ❤️ by **Shivam Pandey**
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?logo=linkedin)](https://www.linkedin.com/in/shivam-pandey-0336ba336/)
+[![Portfolio](https://img.shields.io/badge/Portfolio-Visit-green?logo=vercel)](https://shivam-ai-portfolio.netlify.app/)
+[![GitHub](https://img.shields.io/badge/GitHub-Follow-black?logo=github)](https://github.com/Shivam7977)
