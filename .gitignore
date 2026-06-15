@@ -8,3 +8,6 @@ env/
 # Ignore Python cache
 __pycache__/
 *.pyc
+
+# Ignore the accidental link by windows
+*.lnk
