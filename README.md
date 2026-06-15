@@ -13,6 +13,7 @@ SkillBridge is a comprehensive platform designed to bridge the gap between learn
 
 ---
 🎯 Why SkillBridge?
+
 Most developers — especially students and self-taught learners — know what to learn but have no structured path to get there. They spend hours jumping between tutorials, building generic CRUD projects, and ending up with a resume that looks identical to everyone else's. SkillBridge fixes this. It takes your current skills and career goal, generates a personalized, stage-by-stage roadmap with real-world projects, and automatically builds your portfolio and resume as you progress — so by the time you're job-ready, you already have proof.
 
 ---
@@ -172,7 +173,7 @@ Pull requests are welcome! For major changes, please open an issue first to disc
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AIInterviewPrep`)
 3. Commit your changes (`git commit -m 'Add AI interview preparation module'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+4. Push to the branch (`git push origin feature/AIInterview)
 5. Open a Pull Request
 
 ---
