@@ -124,6 +124,7 @@ A powerful administration dashboard enables platform-wide management, including 
 
 ## 📂 Project Structure
 
+'''
 SkillBridge-Platform/
 ├── app.py                        # Main Flask application
 ├── ai_roadmap_generator.py       # Mistral AI roadmap logic
@@ -145,6 +146,7 @@ SkillBridge-Platform/
 │   ├── css/
 │   └── js/
 └── .gitignore
+'''
 
 ---
 
@@ -156,13 +158,15 @@ SkillBridge-Platform/
    pip install -r requirements.txt
 
 3. Create `.env` file and add:
+4. '''
    MISTRAL_API_KEY=your_mistral_api_key                                                            
    MONGO_URI=your_mongodb_connection_string
    RESEND_API_KEY=your_resend_api_key
    SECRET_KEY=your_flask_secret_key
    YOUTUBE_API_KEY=your_youtube_api_key
+   '''
 
-4. Run the app:
+5. Run the app:
    python app.py
 
 ---
