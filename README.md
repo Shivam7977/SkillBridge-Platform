@@ -156,11 +156,11 @@ SkillBridge-Platform/
    pip install -r requirements.txt
 
 3. Create `.env` file and add:
-   MISTRAL_API_KEY=your_mistral_api_key.
-   MONGO_URI=your_mongodb_connection_string.
-   RESEND_API_KEY=your_resend_api_key.
-   SECRET_KEY=your_flask_secret_key.
-   YOUTUBE_API_KEY=your_youtube_api_key.
+   MISTRAL_API_KEY=your_mistral_api_key                                                            
+   MONGO_URI=your_mongodb_connection_string
+   RESEND_API_KEY=your_resend_api_key
+   SECRET_KEY=your_flask_secret_key
+   YOUTUBE_API_KEY=your_youtube_api_key
 
 4. Run the app:
    python app.py
