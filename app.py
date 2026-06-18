@@ -3953,7 +3953,14 @@ def admin_user_detail(user_id):
         work_experience=work_experience
     )
 
-    
+# ── HEALTH CHECK (keep-alive for Render free tier) ────────
+@app.route('/health')
+def health():
+    try:
+        db.command("ping")
+        return {"status": "ok", "db": "connected"}, 200
+    except Exception as e:
+        return {"status": "degraded", "db": str(e)}, 503    
 # --- Main Execution ---
 if __name__ == '__main__':
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
