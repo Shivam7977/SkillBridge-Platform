@@ -65,7 +65,7 @@ tailwind.config = {
   }
   .dark .card { background: #1c1a18; border-color: rgba(255,255,255,0.08); }
   .btn-primary {
-    background: var(--purple); color: #fff;
+    background: var(--ink); color: #fff;
     border: none; border-radius: 8px;
     padding: 10px 20px; font-size: 14px; font-weight: 500;
     cursor: pointer; transition: opacity 0.15s; font-family: 'DM Sans', sans-serif;
@@ -78,7 +78,7 @@ tailwind.config = {
     cursor: pointer; color: var(--ink); font-family: 'DM Sans', sans-serif;
     transition: all 0.15s;
   }
-  .btn-outline:hover { border-color: var(--purple); color: var(--purple); }
+  .btn-outline:hover { border-color: var(--ink); color: var(--ink); }
   .dark .btn-outline { color: #f0ece4; border-color: rgba(255,255,255,0.2); }
 
   /* ── Screens ── */
@@ -100,7 +100,7 @@ tailwind.config = {
     background: #fff;
   }
   .dark .landing-card { background: #1c1a18; border-color: rgba(255,255,255,0.1); }
-  .landing-card:hover { border-color: var(--purple); transform: translateY(-2px); }
+  .landing-card:hover { border-color: var(--ink); transform: translateY(-2px); }
   .landing-card-icon {
     width: 44px; height: 44px; border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
@@ -143,15 +143,44 @@ tailwind.config = {
     max-width: 640px; width: 100%; max-height: 85vh; overflow-y: auto;
   }
   .dark .modal-card { background: #1c1a18; }
-  .modal-transcript {
-    margin-top: 16px; display: flex; flex-direction: column; gap: 10px;
-    max-height: 280px; overflow-y: auto; padding-right: 4px;
+
+  /* Block 1: Final AI Verdict */
+  .verdict-card {
+    background: rgba(196,151,58,0.06); border: 1px solid rgba(196,151,58,0.25);
+    border-radius: 12px; padding: 16px; margin: 16px 0;
   }
-  .modal-transcript-row { font-size: 13px; line-height: 1.6; padding: 8px 12px; border-radius: 10px; }
-  .modal-transcript-row.is-ai { background: rgba(124,58,237,0.06); }
-  .modal-transcript-row.is-user { background: rgba(26,23,20,0.04); }
-  .dark .modal-transcript-row.is-user { background: rgba(255,255,255,0.05); }
-  .modal-transcript-row b { font-weight: 600; }
+  .dark .verdict-card { background: rgba(196,151,58,0.08); border-color: rgba(196,151,58,0.3); }
+  .verdict-card-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 8px;
+  }
+  .verdict-card-text { font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+
+  /* Block 2: Q&A Accordion */
+  .qa-accordion-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: #9a938c; margin: 20px 0 10px;
+  }
+  .qa-accordion { display: flex; flex-direction: column; gap: 8px; }
+  .qa-item { border: 1px solid rgba(26,23,20,0.08); border-radius: 10px; overflow: hidden; }
+  .dark .qa-item { border-color: rgba(255,255,255,0.08); }
+  .qa-item-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 600;
+    background: rgba(26,23,20,0.02); transition: background 0.15s;
+  }
+  .dark .qa-item-header { background: rgba(255,255,255,0.03); }
+  .qa-item-header:hover { background: rgba(124,58,237,0.06); }
+  .qa-item-header-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .qa-item-chevron { transition: transform 0.2s; font-size: 11px; color: #9a938c; flex-shrink: 0; }
+  .qa-item.open .qa-item-chevron { transform: rotate(90deg); }
+  .qa-item-body { display: none; padding: 4px 14px 14px; font-size: 13px; line-height: 1.65; }
+  .qa-item.open .qa-item-body { display: block; }
+  .qa-item-section-label {
+    font-size: 10px; font-weight: 700; color: #9a938c; text-transform: uppercase;
+    letter-spacing: 0.04em; margin: 10px 0 4px;
+  }
+  .qa-item-section-label:first-child { margin-top: 0; }
 
   /* ── Setup wizard ── */
   .wizard-steps {
@@ -164,10 +193,10 @@ tailwind.config = {
     border: 2px solid rgba(26,23,20,0.15); color: #6b6560;
     background: transparent; flex-shrink: 0;
   }
-  .step-dot.done { background: var(--purple); border-color: var(--purple); color: #fff; }
-  .step-dot.active { border-color: var(--purple); color: var(--purple); }
+  .step-dot.done { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .step-dot.active { border-color: var(--ink); color: var(--ink); }
   .step-line { flex: 1; height: 2px; background: rgba(26,23,20,0.1); }
-  .step-line.done { background: var(--purple); }
+  .step-line.done { background: var(--ink); }
 
   /* Role chips */
   .role-input-wrap { position: relative; margin-bottom: 16px; }
@@ -178,7 +207,7 @@ tailwind.config = {
     background: transparent; color: var(--ink); outline: none;
   }
   .dark .role-input { color: #f0ece4; border-color: rgba(255,255,255,0.15); }
-  .role-input:focus { border-color: var(--purple); }
+  .role-input:focus { border-color: var(--ink); }
   .role-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
   .chip {
     padding: 6px 14px; border-radius: 99px; font-size: 13px; font-weight: 500;
@@ -186,7 +215,7 @@ tailwind.config = {
     transition: all 0.15s; background: transparent; color: var(--ink);
     font-family: 'DM Sans', sans-serif;
   }
-  .chip:hover, .chip.selected { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .chip:hover, .chip.selected { background: var(--ink); color: #fff; border-color: var(--ink); }
   .dark .chip { color: #f0ece4; }
 
   /* Difficulty */
@@ -197,8 +226,8 @@ tailwind.config = {
     transition: all 0.18s; background: #fff;
   }
   .dark .diff-card { background: #1c1a18; border-color: rgba(255,255,255,0.1); }
-  .diff-card:hover { border-color: var(--purple); }
-  .diff-card.selected { border-color: var(--purple); background: rgba(124,58,237,0.06); }
+  .diff-card:hover { border-color: var(--ink); }
+  .diff-card.selected { border-color: var(--ink); border-width: 2px; background: rgba(26,23,20,0.04); }
   .diff-card .diff-icon { font-size: 24px; margin-bottom: 8px; }
   .diff-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
   .diff-card p { font-size: 12px; color: #6b6560; }
@@ -212,8 +241,8 @@ tailwind.config = {
     background: #fff;
   }
   .dark .mode-card { background: #1c1a18; border-color: rgba(255,255,255,0.1); }
-  .mode-card:hover { border-color: var(--purple); }
-  .mode-card.selected { border-color: var(--purple); background: rgba(124,58,237,0.06); }
+  .mode-card:hover { border-color: var(--ink); }
+  .mode-card.selected { border-color: var(--ink); border-width: 2px; background: rgba(26,23,20,0.04); }
   .mode-icon { font-size: 28px; margin-bottom: 10px; }
   .mode-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
   .mode-card p { font-size: 12px; color: #6b6560; line-height: 1.5; }
@@ -232,7 +261,7 @@ tailwind.config = {
     background: #fff;
   }
   .dark .toggle-row { background: #1c1a18; border-color: rgba(255,255,255,0.1); }
-  .toggle-row.selected { border-color: var(--purple); background: rgba(124,58,237,0.05); }
+  .toggle-row.selected { border-color: var(--ink); border-width: 1.5px; background: rgba(26,23,20,0.03); }
   .toggle-left h4 { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
   .toggle-left p { font-size: 12px; color: #6b6560; }
   .dark .toggle-left p { color: #9a938c; }
@@ -241,10 +270,10 @@ tailwind.config = {
     border: 2px solid rgba(26,23,20,0.2); flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
   }
-  .radio-dot.selected { border-color: var(--purple); }
+  .radio-dot.selected { border-color: var(--ink); }
   .radio-dot.selected::after {
     content: ''; width: 10px; height: 10px; border-radius: 50%;
-    background: var(--purple);
+    background: var(--ink);
   }
 
   /* ── Interview Room (full width — no max-width trap) ── */
@@ -292,15 +321,16 @@ tailwind.config = {
   }
   .progress-label { font-size: 13px; font-weight: 500; color: #6b6560; }
   .dark .progress-label { color: #9a938c; }
-  .q-counter { font-size: 13px; font-weight: 600; color: var(--purple); }
+  .q-counter { font-size: 13px; font-weight: 600; color: var(--gold); }
   .progress-bar-wrap {
     background: rgba(26,23,20,0.08); border-radius: 99px; height: 6px; margin-bottom: 20px;
   }
   .dark .progress-bar-wrap { background: rgba(255,255,255,0.08); }
   .progress-bar-fill {
-    background: var(--purple); border-radius: 99px; height: 6px;
+    background: var(--ink); border-radius: 99px; height: 6px;
     transition: width 0.4s ease;
   }
+  .dark .progress-bar-fill { background: var(--gold); }
 
   /* Chat area */
   .chat-area {
@@ -314,7 +344,7 @@ tailwind.config = {
     display: flex; align-items: center; justify-content: center;
     font-size: 13px; font-weight: 600;
   }
-  .msg-ai .msg-avatar { background: rgba(124,58,237,0.12); color: var(--purple); }
+  .msg-ai .msg-avatar { background: rgba(196,151,58,0.14); color: var(--gold); }
   .msg-user .msg-avatar { background: rgba(26,23,20,0.08); color: var(--ink); }
   .dark .msg-user .msg-avatar { background: rgba(255,255,255,0.1); color: #f0ece4; }
   .msg-bubble {
@@ -326,7 +356,7 @@ tailwind.config = {
   .msg-ai .msg-bubble { border-top-left-radius: 4px; }
   .msg-user { flex-direction: row-reverse; }
   .msg-user .msg-bubble {
-    background: rgba(124,58,237,0.08);
+    background: rgba(26,23,20,0.07);
     border-top-right-radius: 4px;
   }
   .msg-feedback {
@@ -339,7 +369,7 @@ tailwind.config = {
   .typing-dots { display: flex; gap: 4px; padding: 4px 0; align-items: center; }
   .typing-dots span {
     width: 6px; height: 6px; border-radius: 50%;
-    background: var(--purple); animation: bounce 1s infinite;
+    background: var(--gold); animation: bounce 1s infinite;
   }
   .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
   .typing-dots span:nth-child(3) { animation-delay: 0.3s; }
@@ -359,10 +389,10 @@ tailwind.config = {
     resize: none; min-height: 80px; outline: none; line-height: 1.6;
   }
   .dark .answer-textarea { color: #f0ece4; border-color: rgba(255,255,255,0.15); }
-  .answer-textarea:focus { border-color: var(--purple); }
+  .answer-textarea:focus { border-color: var(--ink); }
   .send-btn {
     width: 44px; height: 44px; border-radius: 10px;
-    background: var(--purple); border: none; color: #fff;
+    background: var(--ink); border: none; color: #fff;
     font-size: 16px; cursor: pointer; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
     transition: opacity 0.15s;
@@ -377,7 +407,7 @@ tailwind.config = {
   }
   .mic-btn {
     width: 64px; height: 64px; border-radius: 50%;
-    background: var(--purple); border: none; color: #fff;
+    background: var(--ink); border: none; color: #fff;
     font-size: 24px; cursor: pointer; display: flex;
     align-items: center; justify-content: center;
     transition: all 0.18s; position: relative;
@@ -862,8 +892,12 @@ tailwind.config = {
       <div class="report-ai-text" id="reportAiText">Generating your report…</div>
 
       <div class="report-actions">
-        <button class="btn-primary" onclick="goHome()">Back to Home</button>
-        <button class="btn-outline" onclick="startSetup()">Practice Again</button>
+        <button class="btn-primary" id="saveReportBtn" onclick="saveReportToHistory()">💾 Save to History</button>
+        <button class="btn-outline" id="discardReportBtn" onclick="discardReportAndExit()">🗑️ Discard</button>
+      </div>
+      <div id="reportSaveStatus" style="font-size:13px;margin-top:10px;color:#6b6560;"></div>
+      <div style="margin-top:16px;">
+        <button class="btn-outline" onclick="startSetup()" style="font-size:13px;padding:8px 14px;">Practice Again →</button>
       </div>
     </div>
    </div>
@@ -879,9 +913,17 @@ tailwind.config = {
       <h3 style="font-family:'Playfair Display',serif;font-size:18px;font-weight:600;" id="modalTitle">Session Detail</h3>
       <button class="btn-outline" style="padding:6px 12px;font-size:12px;" onclick="closeSessionDetail()">✕ Close</button>
     </div>
-    <div id="modalMeta" style="font-size:13px;color:#6b6560;margin-bottom:10px;"></div>
-    <div class="report-ai-text" id="modalReport" style="margin-bottom:0;"></div>
-    <div class="modal-transcript" id="modalTranscript"></div>
+    <div id="modalMeta" style="font-size:13px;color:#6b6560;margin-bottom:0;"></div>
+
+    <!-- Block 1: Final AI Verdict -->
+    <div class="verdict-card">
+      <div class="verdict-card-label">🏆 Final AI Verdict</div>
+      <div class="verdict-card-text" id="modalReport"></div>
+    </div>
+
+    <!-- Block 2: Q&A Transcript (accordion) -->
+    <div class="qa-accordion-label">💬 Interview Transcript</div>
+    <div class="qa-accordion" id="modalTranscript"></div>
   </div>
 </div>
 
@@ -982,17 +1024,70 @@ function viewSessionDetail(i){
 
   document.getElementById('modalTitle').textContent = s.role || 'Interview Session';
   document.getElementById('modalMeta').textContent = `${modeLabel} · ${s.difficulty} · ${date} · Score: ${score}/10`;
-  document.getElementById('modalReport').textContent = s.report || 'No closing report was saved for this session.';
+
+  const turns = s.history || [];
+  const reportEl = document.getElementById('modalReport');
+  if(s.report){
+    reportEl.textContent = s.report;
+  } else if(turns.length === 0){
+    reportEl.textContent = 'This looks like an older or incomplete test session — no transcript or closing report was saved for it. Try a fresh interview to see the full report here.';
+  } else {
+    reportEl.textContent = 'No closing summary was saved for this session, but the full Q&A is below.';
+  }
+
+  // ── Group the flat history into clean Question → Answer → Feedback blocks ──
+  // Every AI feedback turn always contains "Score:" near the very start — but
+  // the model sometimes wraps it in markdown (**Score:**, "- Score:", etc.),
+  // so we check for the substring near the start rather than anchoring the
+  // regex strictly to the first character.
+  function looksLikeFeedback(content){
+    if(!content) return false;
+    const head = content.slice(0, 25).toLowerCase();
+    return head.includes('score:') || head.includes('score :');
+  }
+
+  const groups = [];
+  let idx = 0;
+  while(idx < turns.length){
+    const t = turns[idx];
+    if(t.role === 'assistant' && !looksLikeFeedback(t.content)){
+      const group = { question: t.content || '', answer: null, feedback: null, score: null };
+      idx++;
+      if(idx < turns.length && turns[idx].role === 'user'){
+        group.answer = turns[idx].content;
+        idx++;
+      }
+      if(idx < turns.length && turns[idx].role === 'assistant' && looksLikeFeedback(turns[idx].content)){
+        group.feedback = turns[idx].content;
+        const m = turns[idx].content.match(/Score:\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
+        if(m) group.score = parseFloat(m[1]);
+        idx++;
+      }
+      groups.push(group);
+    } else {
+      idx++; // stray turn that doesn't fit the pattern — skip rather than misgroup
+    }
+  }
 
   const transcriptEl = document.getElementById('modalTranscript');
-  const turns = s.history || [];
-  if(turns.length === 0){
-    transcriptEl.innerHTML = '';
+  if(groups.length === 0){
+    transcriptEl.innerHTML = `<div style="font-size:13px;color:#9a938c;padding:6px 0;">No Q&A transcript available for this session.</div>`;
   } else {
-    transcriptEl.innerHTML = turns.map(t => {
-      const isAi = t.role === 'assistant';
-      return `<div class="modal-transcript-row ${isAi ? 'is-ai' : 'is-user'}">
-        <b>${isAi ? 'Interviewer' : 'You'}:</b> ${escapeHtml(t.content || '')}
+    transcriptEl.innerHTML = groups.map((g, gi) => {
+      const scoreBadge = g.score !== null
+        ? `<span class="score-pill ${g.score>=7?'score-high':g.score>=5?'score-mid':'score-low'}" style="font-size:11px;padding:2px 8px;">${g.score}/10</span>`
+        : '';
+      return `<div class="qa-item" id="qaItem${gi}">
+        <div class="qa-item-header" onclick="toggleQaItem(${gi})">
+          <span class="qa-item-header-left"><span>Question ${gi+1}</span> ${scoreBadge}</span>
+          <i class="fa-solid fa-chevron-right qa-item-chevron"></i>
+        </div>
+        <div class="qa-item-body">
+          <div class="qa-item-section-label">AI Asked</div>
+          <div>${escapeHtml(g.question)}</div>
+          ${g.answer ? `<div class="qa-item-section-label">Your Answer</div><div>${escapeHtml(g.answer)}</div>` : ''}
+          ${g.feedback ? `<div class="qa-item-section-label">Feedback</div><div>${escapeHtml(g.feedback)}</div>` : ''}
+        </div>
       </div>`;
     }).join('');
   }
@@ -1002,6 +1097,11 @@ function viewSessionDetail(i){
 
 function closeSessionDetail(){
   document.getElementById('sessionDetailModal').classList.remove('active');
+}
+
+function toggleQaItem(i){
+  const item = document.getElementById('qaItem'+i);
+  if(item) item.classList.toggle('open');
 }
 
 function escapeHtml(str){
@@ -1189,10 +1289,16 @@ async function askNextQuestion(){
     if(data.reply){
       appendAIMsg(data.reply);
       state.history.push({role:'assistant', content: data.reply});
+    } else {
+      const fallback = '⚠️ Could not get the next question (server returned no response). You can try answering anyway, or refresh.';
+      appendAIMsg(fallback);
+      state.history.push({role:'assistant', content: fallback});
     }
   } catch(e){
     removeTyping();
-    appendAIMsg('Connection error. Please refresh and try again.');
+    const fallback = '⚠️ Connection error while fetching the next question. Please refresh and try again.';
+    appendAIMsg(fallback);
+    state.history.push({role:'assistant', content: fallback});
   }
 
   enableInput();
@@ -1252,10 +1358,16 @@ async function getAIFeedback(answer){
       }
       appendFeedbackMsg(data.reply);
       state.history.push({role:'assistant', content: data.reply});
+    } else {
+      const fallback = '⚠️ Score: 0/10\nCould not get feedback for this answer (server returned no response). Moving on.';
+      appendFeedbackMsg(fallback);
+      state.history.push({role:'assistant', content: fallback});
     }
   } catch(e){
     removeTyping();
-    appendAIMsg('Error getting feedback. Moving to next question.');
+    const fallback = '⚠️ Score: 0/10\nConnection error while evaluating this answer. Moving to the next question.';
+    appendAIMsg(fallback);
+    state.history.push({role:'assistant', content: fallback});
   }
 
   // Check if done
@@ -1267,7 +1379,6 @@ async function getAIFeedback(answer){
 }
 
 async function finishInterview(){
-  // Save session
   const avgScore = state.scores.length ? (state.scores.reduce((a,b)=>a+b,0)/state.scores.length) : 0;
   const roundedScore = Math.round(avgScore * 10) / 10;
 
@@ -1275,20 +1386,17 @@ async function finishInterview(){
   const lastMsg = state.history.filter(m=>m.role==='assistant').pop();
   const reportText = lastMsg ? lastMsg.content : '';
 
+  // Keep these around so the Save/Discard buttons on the report screen
+  // can act on them later, without re-running the interview.
+  state.lastScore = roundedScore;
+  state.lastReportText = reportText;
+  state.reportSaved = false;
+
+  // Interview is 100% complete the moment we're here — XP is earned
+  // regardless of whether the report gets Saved or Discarded afterward.
   try {
-    await fetch('/interview/save', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        role: state.role,
-        mode: state.mode,
-        difficulty: state.difficulty,
-        score: roundedScore,
-        history: state.history,
-        report: reportText
-      })
-    });
-  } catch(e){ console.log('Save failed', e); }
+    await fetch('/interview/complete', { method:'POST' });
+  } catch(e){ console.log('XP award failed', e); }
 
   // Stop camera
   const vid = document.getElementById('cameraFeed');
@@ -1296,6 +1404,44 @@ async function finishInterview(){
 
   // Show report
   showReport(roundedScore, reportText);
+}
+
+async function saveReportToHistory(){
+  const btn = document.getElementById('saveReportBtn');
+  const discardBtn = document.getElementById('discardReportBtn');
+  const statusEl = document.getElementById('reportSaveStatus');
+  btn.disabled = true; discardBtn.disabled = true;
+  statusEl.textContent = 'Saving…';
+  try {
+    const res = await fetch('/interview/save', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        role: state.role,
+        mode: state.mode,
+        difficulty: state.difficulty,
+        score: state.lastScore,
+        history: state.history,
+        report: state.lastReportText
+      })
+    });
+    const data = await res.json();
+    if(data.success){
+      state.reportSaved = true;
+      statusEl.textContent = '✅ Saved to your history.';
+      btn.textContent = '✅ Saved';
+    } else {
+      statusEl.textContent = '⚠️ Could not save — try again.';
+      btn.disabled = false; discardBtn.disabled = false;
+    }
+  } catch(e){
+    statusEl.textContent = '⚠️ Could not save — check your connection and try again.';
+    btn.disabled = false; discardBtn.disabled = false;
+  }
+}
+
+function discardReportAndExit(){
+  goHome();
 }
 
 function showReport(score, reportText){
@@ -1311,6 +1457,13 @@ function showReport(score, reportText){
   verdictEl.className = 'report-verdict ' + verdictClass;
   verdictEl.textContent = verdictText;
   document.getElementById('reportAiText').textContent = reportText || 'Interview complete!';
+
+  // Reset save/discard controls for this fresh report
+  const btn = document.getElementById('saveReportBtn');
+  const discardBtn = document.getElementById('discardReportBtn');
+  btn.disabled = false; discardBtn.disabled = false;
+  btn.textContent = '💾 Save to History';
+  document.getElementById('reportSaveStatus').textContent = '';
 
   showScreen('screenReport');
 }

@@ -2283,6 +2283,8 @@ def interview_history():
                 'difficulty': s.get('difficulty', ''),
                 'score': s.get('score', 0),
                 'created_at': created.isoformat() if isinstance(created, datetime) else str(created or ''),
+                'report': s.get('report', ''),
+                'history': s.get('history', []),
             })
         return jsonify({'sessions': result})
     except Exception as e:
@@ -2387,11 +2389,26 @@ def interview_save():
             'created_at': now_ist(),
         })
 
-        add_xp(current_user.id, 50, "Mock Interview Completed")
-
+        # NOTE: XP is awarded separately by /interview/complete, the moment the
+        # interview reaches 100% completion — independent of whether the user
+        # later chooses to Save or Discard the report from history.
         return jsonify({'success': True})
     except Exception as e:
         print(f"Interview save error: {e}")
+        return jsonify({'success': False}), 500
+
+
+@app.route('/interview/complete', methods=['POST'])
+@login_required
+def interview_complete():
+    """Called automatically the moment a session reaches 100% completion
+    (all questions answered) — awards XP regardless of the later Save/Discard
+    choice on the report screen. Separate from /interview/save on purpose."""
+    try:
+        add_xp(current_user.id, 50, "Mock Interview Completed")
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Interview complete (XP) error: {e}")
         return jsonify({'success': False}), 500
 
 
