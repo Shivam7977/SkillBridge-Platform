@@ -473,6 +473,14 @@ tailwind.config = {
   }
   .xp-earned-banner i { font-size: 20px; }
   .report-actions { display: flex; gap: 12px; }
+
+  /* ── Mobile: stack multi-column grids so cards don't get squished/oversized ── */
+  @media (max-width: 640px) {
+    .landing-options { grid-template-columns: 1fr; }
+    .diff-grid { grid-template-columns: 1fr; }
+    .mode-grid { grid-template-columns: 1fr; }
+    .report-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body class="grain-bg text-ink-900 min-h-screen custom-scroll antialiased">
@@ -731,10 +739,12 @@ tailwind.config = {
         <button class="btn-primary" onclick="beginInterview()">Start Interview 🚀</button>
       </div>
     </div>
+   </div>
   </div>
 
   <!-- ══════════ SCREEN 4: INTERVIEW ROOM ══════════ -->
   <div id="screenInterview" class="screen">
+   <div class="w-full space-y-6">
     <div class="interview-layout">
 
       <!-- Left: main interview -->
@@ -828,14 +838,16 @@ tailwind.config = {
       </div>
 
     </div>
+   </div>
   </div>
 
   <!-- ══════════ SCREEN 5: REPORT CARD ══════════ -->
   <div id="screenReport" class="screen">
+   <div class="max-w-3xl mx-auto w-full space-y-6">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
       <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:600;">Interview Report Card</h2>
     </div>
-    <div class="card">
+    <div class="card editorial-card">
       <div class="report-header">
         <div class="report-score-big" id="reportScore">—</div>
         <div class="report-score-label">Overall Score</div>
@@ -854,10 +866,24 @@ tailwind.config = {
         <button class="btn-outline" onclick="startSetup()">Practice Again</button>
       </div>
     </div>
+   </div>
   </div>
 
+  </main>
 </div>
-</main>
+
+<!-- ═══════════════ SESSION DETAIL MODAL ═══════════════ -->
+<div class="modal-overlay" id="sessionDetailModal" onclick="if(event.target===this) closeSessionDetail()">
+  <div class="modal-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h3 style="font-family:'Playfair Display',serif;font-size:18px;font-weight:600;" id="modalTitle">Session Detail</h3>
+      <button class="btn-outline" style="padding:6px 12px;font-size:12px;" onclick="closeSessionDetail()">✕ Close</button>
+    </div>
+    <div id="modalMeta" style="font-size:13px;color:#6b6560;margin-bottom:10px;"></div>
+    <div class="report-ai-text" id="modalReport" style="margin-bottom:0;"></div>
+    <div class="modal-transcript" id="modalTranscript"></div>
+  </div>
+</div>
 
 <!-- ═══════════════ JAVASCRIPT ═══════════════ -->
 <script>
@@ -867,22 +893,32 @@ const state = {
   history: [], qNumber: 0, totalQ: 6,
   scores: [], currentPhase: 'technical',
   techDone: false, isListening: false, transcript: '',
-  recognition: null
+  recognition: null,
+  historySessions: []
 };
 
-// ── Theme ──
-function toggleTheme(){
-  const html = document.documentElement;
-  const isDark = html.classList.contains('dark');
-  html.classList.toggle('dark', !isDark);
-  html.classList.toggle('light', isDark);
-  localStorage.setItem('sb-theme', isDark ? 'light' : 'dark');
-  document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+// ── Theme (read-only here — matches mainpage.html; toggle lives in Settings) ──
+applyTheme(localStorage.getItem('sb-theme') || 'light');
+function applyTheme(t){ t==='dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark'); }
+
+// ── Mobile sidebar toggle (same as mainpage.html) ──
+function toggleSidebarMenu() {
+  const sidebar = document.getElementById('app-sidebar');
+  const icon = document.getElementById('menu-icon');
+  if(sidebar.classList.contains('hidden')) {
+    sidebar.classList.remove('hidden');
+    sidebar.classList.add('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]', '!h-[calc(100vh-73px)]', 'overflow-y-auto');
+    icon.classList.remove('fa-bars');
+    icon.classList.add('fa-times');
+    document.body.classList.add('overflow-hidden');
+  } else {
+    sidebar.classList.add('hidden');
+    sidebar.classList.remove('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]', '!h-[calc(100vh-73px)]', 'overflow-y-auto');
+    icon.classList.remove('fa-times');
+    icon.classList.add('fa-bars');
+    document.body.classList.remove('overflow-hidden');
+  }
 }
-(function(){
-  const t = localStorage.getItem('sb-theme');
-  document.getElementById('themeIcon').className = t==='dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-})();
 
 // ── Screen helpers ──
 function showScreen(id){
@@ -910,19 +946,20 @@ async function loadHistory(){
     const res = await fetch('/interview/history');
     const data = await res.json();
     const list = document.getElementById('historyList');
-    if(!data.sessions || data.sessions.length === 0){
+    state.historySessions = data.sessions || [];
+    if(state.historySessions.length === 0){
       list.innerHTML = `<div style="text-align:center;padding:40px;color:#9a938c;">
         <i class="fa-solid fa-inbox" style="font-size:36px;margin-bottom:12px;display:block;"></i>
         No past sessions yet. <a href="#" onclick="startSetup();return false;" style="color:var(--purple);">Start your first interview →</a>
       </div>`;
       return;
     }
-    list.innerHTML = data.sessions.map(s => {
+    list.innerHTML = state.historySessions.map((s, i) => {
       const score = s.score || 0;
       const scoreClass = score >= 7 ? 'score-high' : score >= 5 ? 'score-mid' : 'score-low';
       const date = new Date(s.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
       const modeLabel = s.mode === 'technical' ? '💻 Technical' : s.mode === 'communication' ? '🎙️ Communication' : '🚀 Full Interview';
-      return `<div class="history-item">
+      return `<div class="history-item" onclick="viewSessionDetail(${i})">
         <div>
           <div class="history-role">${s.role}</div>
           <div class="history-meta">${modeLabel} · ${s.difficulty} · ${date}</div>
@@ -933,6 +970,44 @@ async function loadHistory(){
   } catch(e){
     document.getElementById('historyList').innerHTML = `<div style="padding:20px;color:#9a938c;">Could not load history.</div>`;
   }
+}
+
+// ── History detail modal ──
+function viewSessionDetail(i){
+  const s = state.historySessions[i];
+  if(!s) return;
+  const score = s.score || 0;
+  const date = new Date(s.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
+  const modeLabel = s.mode === 'technical' ? '💻 Technical' : s.mode === 'communication' ? '🎙️ Communication' : '🚀 Full Interview';
+
+  document.getElementById('modalTitle').textContent = s.role || 'Interview Session';
+  document.getElementById('modalMeta').textContent = `${modeLabel} · ${s.difficulty} · ${date} · Score: ${score}/10`;
+  document.getElementById('modalReport').textContent = s.report || 'No closing report was saved for this session.';
+
+  const transcriptEl = document.getElementById('modalTranscript');
+  const turns = s.history || [];
+  if(turns.length === 0){
+    transcriptEl.innerHTML = '';
+  } else {
+    transcriptEl.innerHTML = turns.map(t => {
+      const isAi = t.role === 'assistant';
+      return `<div class="modal-transcript-row ${isAi ? 'is-ai' : 'is-user'}">
+        <b>${isAi ? 'Interviewer' : 'You'}:</b> ${escapeHtml(t.content || '')}
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('sessionDetailModal').classList.add('active');
+}
+
+function closeSessionDetail(){
+  document.getElementById('sessionDetailModal').classList.remove('active');
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 // ── Wizard ──
