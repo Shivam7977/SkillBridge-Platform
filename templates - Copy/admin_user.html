@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ user.name }} — Admin Detail</title>
+  <script>(function(){var t=localStorage.getItem('sb-theme')||'light';t==='dark'?document.documentElement.classList.add('dark'):document.documentElement.classList.remove('dark');})();</script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: { display:['Playfair Display','serif'], body:['DM Sans','sans-serif'] },
+        colors: {
+          cream:{ 50:'#fdfcf8',100:'#f8f4ec',200:'#f0e9d8',300:'#e5d9c0',400:'#d4c4a0',500:'#b8a07a' },
+          ink:  { 900:'#1a1714',800:'#2c2820',700:'#3d3830',600:'#5c5548',500:'#7a7268',400:'#9c9488' },
+          gold: '#c4973a',
+        }
+      }
+    }
+  }
+  </script>
+  <style>
+    *{box-sizing:border-box;}
+    body{font-family:'DM Sans',sans-serif;background:#f8f4ec;color:#1a1714;}
+    .dark body,body.dark{background:#1a1714;color:#f0e9d8;}
+
+    /* ── SIDEBAR ── */
+    .sidebar{width:230px;flex-shrink:0;background:#fff;border-right:1px solid #e5d9c0;height:100vh;position:sticky;top:0;display:flex;flex-direction:column;padding:1.5rem 1rem;overflow-y:auto;}
+    .dark .sidebar{background:#2c2820;border-color:#3d3830;}
+    .sidebar-logo{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:#1a1714;text-decoration:none;display:block;margin-bottom:.3rem;}
+    .dark .sidebar-logo{color:#f0e9d8;}
+    .admin-badge{font-size:.62rem;font-weight:800;color:#dc2626;background:#fee2e2;border:1px solid #fca5a5;padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:1.25rem;}
+    .nav-link{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;color:#7a7268;text-decoration:none;margin-bottom:2px;font-weight:600;font-size:13px;transition:.15s;background:none;border:none;cursor:pointer;width:100%;}
+    .nav-link:hover{background:#f0e9d8;color:#1a1714;}
+    .dark .nav-link:hover{background:#3d3830;color:#f0e9d8;}
+    .nav-link.active{background:#1a1714;color:#f8f4ec;}
+    .dark .nav-link.active{background:#f0e9d8;color:#1a1714;}
+    .nav-link i{width:15px;text-align:center;font-size:12px;}
+    .sidebar-bottom{border-top:1px solid #e5d9c0;padding-top:10px;margin-top:10px;display:flex;flex-direction:column;gap:2px;}
+    .dark .sidebar-bottom{border-color:#3d3830;}
+
+    /* ── MOB HEADER ── */
+    .mob-header{display:none;position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid #e5d9c0;padding:12px 16px;align-items:center;justify-content:space-between;}
+    .dark .mob-header{background:#2c2820;border-color:#3d3830;}
+    .mob-menu-btn{background:none;border:none;cursor:pointer;color:#1a1714;font-size:14px;padding:4px;}
+    .dark .mob-menu-btn{color:#f0e9d8;}
+    .mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;backdrop-filter:blur(2px);}
+    .mob-overlay.show{display:block;}
+
+    /* ── MAIN ── */
+    .main{flex:1;min-width:0;padding:24px 28px;max-width:1100px;}
+
+    /* ── HERO CARD ── */
+    .hero-card{background:#fff;border:1px solid #e5d9c0;border-radius:18px;padding:24px 28px;margin-bottom:18px;display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;}
+    .dark .hero-card{background:#2c2820;border-color:#3d3830;}
+    .hero-avatar{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #e5d9c0;flex-shrink:0;}
+    .dark .hero-avatar{border-color:#3d3830;}
+    .hero-name{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:#1a1714;}
+    .dark .hero-name{color:#f0e9d8;}
+    .hero-title{color:#7a7268;font-size:.85rem;margin-top:2px;}
+    .hero-meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;}
+    .hero-meta span{font-size:.78rem;color:#7a7268;display:flex;align-items:center;gap:5px;}
+    .hero-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;}
+
+    /* ── XP BANNER ── */
+    .xp-banner{background:linear-gradient(135deg,#1a1714 0%,#2c2820 60%,#3d3830 100%);border-radius:16px;padding:20px 24px;color:#f8f4ec;margin-bottom:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:16px;}
+    .xp-stat .lbl{font-size:.68rem;opacity:.7;font-weight:700;text-transform:uppercase;letter-spacing:.08em;}
+    .xp-stat .val{font-size:1.6rem;font-weight:900;margin-top:2px;color:#f0e9d8;}
+    .xp-bar-wrap{grid-column:1/-1;}
+    .xp-bar-label{font-size:.75rem;opacity:.75;margin-bottom:5px;display:flex;justify-content:space-between;}
+    .xp-bar{height:7px;background:rgba(255,255,255,.2);border-radius:4px;overflow:hidden;}
+    .xp-bar-fill{height:100%;background:#c4973a;border-radius:4px;transition:width .6s ease;}
+
+    /* ── INFO GRID ── */
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+
+    /* ── CARD ── */
+    .card{background:#fff;border:1px solid #e5d9c0;border-radius:16px;overflow:hidden;margin-bottom:14px;}
+    .dark .card{background:#2c2820;border-color:#3d3830;}
+
+    /* ── COLLAPSIBLE CARD HEADER ── */
+    .card-toggle{padding:14px 18px;border-bottom:1px solid #e5d9c0;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s;user-select:none;}
+    .dark .card-toggle{border-color:#3d3830;}
+    .card-toggle:hover{background:#fdfcf8;}
+    .dark .card-toggle:hover{background:#3d3830;}
+    .card-toggle h3{font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px;color:#1a1714;}
+    .dark .card-toggle h3{color:#f0e9d8;}
+    .toggle-right{display:flex;align-items:center;gap:10px;}
+    .cnt-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;color:#f8f4ec;background:#1a1714;}
+    .dark .cnt-badge{background:#f0e9d8;color:#1a1714;}
+    .chev{transition:transform .25s;font-size:11px;color:#9c9488;}
+    .chev.open{transform:rotate(180deg);}
+
+    /* ── COLLAPSIBLE BODY ── */
+    .card-body-collapse{overflow:hidden;transition:max-height .35s cubic-bezier(.4,0,.2,1),opacity .25s;}
+    .card-body-collapse.closed{max-height:0!important;opacity:0;}
+    .card-body-collapse.open{opacity:1;}
+
+    /* ── STATIC CARD HEADER (no collapse) ── */
+    .card-header{padding:14px 18px;border-bottom:1px solid #e5d9c0;display:flex;align-items:center;justify-content:space-between;}
+    .dark .card-header{border-color:#3d3830;}
+    .card-header h3{font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px;color:#1a1714;}
+    .dark .card-header h3{color:#f0e9d8;}
+    .card-body{padding:14px 18px;}
+
+    /* ── INFO ROWS ── */
+    .info-row{display:flex;justify-content:space-between;align-items:flex-start;padding:.5rem 0;border-bottom:1px solid #f0e9d8;font-size:.83rem;gap:8px;}
+    .dark .info-row{border-color:#3d3830;}
+    .info-row:last-child{border-bottom:none;}
+    .info-label{color:#7a7268;font-weight:600;flex-shrink:0;}
+    .info-value{font-weight:600;text-align:right;word-break:break-word;overflow-wrap:anywhere;color:#1a1714;max-width:55%;}
+    .dark .info-value{color:#f0e9d8;}
+    .info-value a{color:#c4973a;text-decoration:none;}
+    .info-value a:hover{text-decoration:underline;}
+
+    /* ── TABLE ── */
+    .adm-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+    .adm-table th{padding:9px 16px;text-align:left;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#9c9488;background:#fdfcf8;border-bottom:1px solid #e5d9c0;white-space:nowrap;}
+    .dark .adm-table th{background:#1a1714;border-color:#3d3830;color:#5c5548;}
+    .adm-table td{padding:10px 16px;border-bottom:1px solid #f0e9d8;vertical-align:middle;color:#2c2820;}
+    .dark .adm-table td{border-color:#3d3830;color:#d4c4a0;}
+    .adm-table tr:last-child td{border-bottom:none;}
+    .adm-table tbody tr{transition:background .12s;}
+    .adm-table tbody tr:hover td{background:#fdfcf8;}
+    .dark .adm-table tbody tr:hover td{background:#3d3830;}
+
+    /* ── XP TIMELINE ── */
+    .tl-wrap{padding:14px 18px;display:flex;flex-direction:column;gap:12px;}
+    .tl-item{display:flex;gap:12px;align-items:flex-start;}
+    .tl-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;}
+    .tl-dot.earn{background:rgba(16,185,129,.1);color:#10b981;border:1.5px solid rgba(16,185,129,.2);}
+    .tl-dot.deduct{background:rgba(220,38,38,.1);color:#dc2626;border:1.5px solid rgba(220,38,38,.2);}
+    .tl-reason{font-size:.82rem;font-weight:700;color:#1a1714;}
+    .dark .tl-reason{color:#f0e9d8;}
+    .tl-time{font-size:.7rem;color:#9c9488;margin-top:2px;}
+    .tl-pts{font-weight:800;font-size:.88rem;margin-left:auto;white-space:nowrap;}
+    .tl-pts.earn{color:#10b981;}
+    .tl-pts.deduct{color:#dc2626;}
+
+    /* ── CERTS ── */
+    .cert-item{padding:.6rem 0;border-bottom:1px solid #f0e9d8;font-size:.82rem;}
+    .dark .cert-item{border-color:#3d3830;}
+    .cert-item:last-child{border-bottom:none;}
+    .cert-name{font-weight:700;color:#1a1714;}
+    .dark .cert-name{color:#f0e9d8;}
+    .cert-meta{font-size:.72rem;color:#9c9488;margin-top:2px;}
+
+    /* ── BTNS ── */
+    .btn{padding:6px 13px;border-radius:8px;border:none;cursor:pointer;font-size:.76rem;font-weight:700;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:5px;transition:.15s;text-decoration:none;}
+    .btn:hover{opacity:.85;transform:translateY(-1px);}
+    .btn-ink{background:#1a1714;color:#f8f4ec;}
+    .dark .btn-ink{background:#f0e9d8;color:#1a1714;}
+    .btn-danger{background:rgba(220,38,38,.1);color:#dc2626;border:1px solid rgba(220,38,38,.2);}
+    .btn-success{background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.2);}
+    .btn-warning{background:rgba(196,151,58,.12);color:#c4973a;border:1px solid rgba(196,151,58,.25);}
+
+    /* ── PILLS ── */
+    .pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:800;}
+    .pill.banned{background:rgba(220,38,38,.1);color:#dc2626;border:1px solid rgba(220,38,38,.2);}
+    .pill.admin{background:rgba(196,151,58,.1);color:#c4973a;border:1px solid rgba(196,151,58,.2);}
+
+    /* ── MODAL ── */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,23,20,.55);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+    .modal-overlay.active{display:flex;}
+    .modal-box{background:#fff;border:1.5px solid #e5d9c0;border-radius:18px;padding:24px;width:90%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.15);}
+    .dark .modal-box{background:#2c2820;border-color:#3d3830;}
+    .modal-box h3{font-family:'Playfair Display',serif;font-size:1rem;font-weight:900;margin-bottom:14px;color:#1a1714;}
+    .dark .modal-box h3{color:#f0e9d8;}
+    .modal-input{width:100%;padding:10px 14px;border-radius:9px;border:1.5px solid #e5d9c0;background:#f8f4ec;font-family:'DM Sans',sans-serif;font-size:.88rem;margin-bottom:8px;outline:none;color:#1a1714;}
+    .dark .modal-input{background:#1a1714;border-color:#3d3830;color:#f0e9d8;}
+    .modal-input:focus{border-color:#1a1714;}
+    .dark .modal-input:focus{border-color:#f0e9d8;}
+    .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;}
+    .m-cancel{padding:9px 16px;border-radius:9px;border:1.5px solid #e5d9c0;background:#fff;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;color:#7a7268;font-size:.85rem;}
+    .dark .m-cancel{background:#1a1714;border-color:#3d3830;color:#9c9488;}
+    .m-confirm{padding:9px 16px;border-radius:9px;border:none;background:#1a1714;color:#f8f4ec;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.85rem;}
+    .dark .m-confirm{background:#f0e9d8;color:#1a1714;}
+
+    /* ── TOAST ── */
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1a1714;color:#f8f4ec;padding:11px 20px;border-radius:11px;font-size:.82rem;font-weight:700;z-index:99999;transform:translateY(80px);opacity:0;transition:.3s;display:flex;align-items:center;gap:8px;font-family:'DM Sans',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.2);}
+    .dark .toast{background:#f0e9d8;color:#1a1714;}
+    .toast.show{transform:translateY(0);opacity:1;}
+
+    .empty{padding:1.25rem;text-align:center;color:#9c9488;font-size:.83rem;}
+    .dark-about{color:#1a1714;}
+    .dark .dark-about{color:#f0e9d8 !important;}
+    .dark [style*="border-bottom:1px solid #f0e9d8"]{border-color:#3d3830!important;}
+    .dark [style*="background:#f0e9d8"]{background:#3d3830!important;color:#f0e9d8!important;border-color:#5c5548!important;}
+    .dark [style*="background:rgba(196"]{border-color:rgba(196,151,58,.3)!important;}
+
+    /* ── RESPONSIVE ── */
+    @media(min-width:1024px){ .sidebar{transform:none!important;position:sticky!important;} }
+    @media(max-width:1023px){
+      .sidebar{transform:translateX(-100%);position:fixed!important;top:0;left:0;height:100vh!important;z-index:200;width:240px!important;transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding-bottom:4rem;}
+      .sidebar.open{transform:translateX(0)!important;}
+      .mob-header{display:flex!important;}
+      .main{padding:16px!important;}
+    }
+    @media(max-width:768px){
+      .info-grid{grid-template-columns:1fr;}
+      .hero-card{padding:18px;}
+      .xp-banner{padding:16px;grid-template-columns:repeat(2,1fr);}
+      .xp-stat .val{font-size:1.3rem;}
+    }
+    @media(max-width:480px){
+      .hero-card{flex-direction:column;gap:14px;}
+      .hero-avatar{width:64px;height:64px;}
+      .hero-name{font-size:1.2rem;}
+      .adm-table th,.adm-table td{padding:7px 10px;font-size:11.5px;}
+      .hide-sm{display:none!important;}
+      .xp-banner{grid-template-columns:1fr 1fr;}
+      .xp-stat .val{font-size:1.2rem;}
+      .modal-box{padding:16px;}
+      .hero-actions{gap:5px;}
+      .card-toggle{padding:12px 14px;}
+    }
+    @media(max-width:360px){
+      .hero-actions .btn span{display:none;}
+      .main{padding:10px!important;}
+      .xp-banner{padding:14px 12px;}
+      .hero-name{font-size:1.05rem;}
+      .info-grid{gap:10px;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="mob-overlay" id="mob-overlay" onclick="closeSidebar()"></div>
+
+<div style="display:flex;min-height:100vh;">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar" id="admin-sidebar">
+    <button onclick="closeSidebar()" id="sidebar-close-btn" style="position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;font-size:12px;color:#9c9488;padding:4px;display:none;"><i class="fas fa-times"></i></button>
+    <a href="{{ url_for('admin_panel') }}" class="sidebar-logo">SkillBridge</a>
+    <span class="admin-badge">🛡️ ADMIN PANEL</span>
+    <nav style="flex:1;display:flex;flex-direction:column;gap:2px;">
+      <a href="{{ url_for('admin_panel') }}" class="nav-link"><i class="fas fa-th-large"></i> Overview</a>
+      <a href="{{ url_for('admin_panel') }}#users" class="nav-link active"><i class="fas fa-users"></i> Users</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <a href="{{ url_for('admin_panel') }}" class="nav-link"><i class="fas fa-arrow-left"></i> Back to Admin</a>
+      <button class="nav-link" onclick="toggleTheme()"><i class="fas fa-moon" id="theme-icon"></i> <span id="theme-lbl">Dark Mode</span></button>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+
+    <!-- Mobile header -->
+    <header class="mob-header" id="mob-header-el">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="openSidebar()" class="mob-menu-btn"><i class="fas fa-bars"></i></button>
+        <span style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:900;color:#1a1714;" class="dark:text-cream-100">SkillBridge</span>
+      </div>
+      <span class="admin-badge" style="margin-bottom:0;">🛡️ Admin</span>
+    </header>
+
+    <main class="main">
+
+      <!-- ── HERO ── -->
+      <div class="hero-card">
+        <img src="{{ user.profile_pic_url }}" class="hero-avatar" alt="">
+        <div class="hero-info" style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div class="hero-name">{{ user.name }}</div>
+            {% if user.is_admin %}<span class="pill admin">Admin</span>{% endif %}
+            {% if user.is_banned %}<span class="pill banned">Banned</span>{% endif %}
+          </div>
+          <div class="hero-title">{{ user.title or 'No title set' }}</div>
+          <div class="hero-meta">
+            <span><i class="fas fa-envelope"></i> {{ user.email }}</span>
+            {% if user.location %}<span><i class="fas fa-map-marker-alt"></i> {{ user.location }}</span>{% endif %}
+            {% if user.experience_years %}<span class="hide-sm"><i class="fas fa-briefcase"></i> {{ user.experience_years }} yrs</span>{% endif %}
+            <span class="hide-sm"><i class="fas fa-calendar"></i> {{ user.member_since }}</span>
+          </div>
+          <div class="hero-actions">
+            <button class="btn btn-ink" onclick="openXpModal()"><i class="fas fa-coins"></i> <span>Adjust XP</span></button>
+            {% if user.is_banned %}
+            <button class="btn btn-success" onclick="unbanUser()"><i class="fas fa-unlock"></i> <span>Unban</span></button>
+            {% else %}
+            <button class="btn btn-warning" onclick="banUser()"><i class="fas fa-ban"></i> <span>Ban</span></button>
+            {% endif %}
+            <button class="btn btn-danger" onclick="deleteUser()"><i class="fas fa-trash"></i> <span>Delete</span></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── XP BANNER ── -->
+      <div class="xp-banner">
+        <div class="xp-stat"><div class="lbl">Total XP</div><div class="val">{{ user.xp }}</div></div>
+        <div class="xp-stat"><div class="lbl">Level</div><div class="val">{{ user.level_info.icon }} {{ user.level_info.level }}</div></div>
+        <div class="xp-stat"><div class="lbl">Badge</div><div class="val" style="font-size:.95rem;padding-top:.3rem;">{{ user.level_info.badge }}</div></div>
+        <div class="xp-stat"><div class="lbl">Streak</div><div class="val">🔥 {{ user.streak_count }}</div></div>
+        <div class="xp-bar-wrap">
+          <div class="xp-bar-label"><span>Progress to next level</span><span>{{ user.xp }} / {{ user.level_info.next_xp }} XP</span></div>
+          <div class="xp-bar"><div class="xp-bar-fill" style="width:{{ user.progress_pct }}%"></div></div>
+        </div>
+      </div>
+
+      <!-- ── INFO GRID ── -->
+      <div class="info-grid">
+        <!-- Profile Info -->
+        <div class="card">
+          <div class="card-header"><h3><i class="fas fa-user" style="color:#c4973a;"></i> Profile Info</h3></div>
+          <div class="card-body">
+            <div class="info-row"><span class="info-label">Email</span><span class="info-value">{{ user.email }}</span></div>
+            <div class="info-row"><span class="info-label">Location</span><span class="info-value">{{ user.location or '—' }}</span></div>
+            <div class="info-row"><span class="info-label">Education</span><span class="info-value">{{ user.education_degree or '—' }}, {{ user.education_college or '—' }}</span></div>
+            <div class="info-row"><span class="info-label">Experience</span><span class="info-value">{{ user.experience_years or '0' }} yrs</span></div>
+            <div class="info-row"><span class="info-label">Status</span><span class="info-value">{{ user.current_status or '—' }}</span></div>
+            <div class="info-row"><span class="info-label">Career Goal</span><span class="info-value">{{ user.career_goal or '—' }}</span></div>
+            {% if user.github_url %}<div class="info-row"><span class="info-label">GitHub</span><span class="info-value"><a href="{{ user.github_url }}" target="_blank">View →</a></span></div>{% endif %}
+            {% if user.linkedin_url %}<div class="info-row"><span class="info-label">LinkedIn</span><span class="info-value"><a href="{{ user.linkedin_url }}" target="_blank">View →</a></span></div>{% endif %}
+          </div>
+        </div>
+        <!-- Skills -->
+        <div class="card">
+          <div class="card-header"><h3><i class="fas fa-code" style="color:#c4973a;"></i> Skills & Stats</h3></div>
+          <div class="card-body">
+            <div style="padding:.5rem 0;border-bottom:1px solid #f0e9d8;font-size:.8rem;">
+              <div style="font-weight:600;color:#7a7268;margin-bottom:5px;">About</div>
+              <div style="color:#1a1714;line-height:1.6;font-weight:500;" class="dark-about">{{ user.about_me or '—' }}</div>
+            </div>
+            <div style="padding:.5rem 0;border-bottom:1px solid #f0e9d8;">
+              <div style="font-weight:600;color:#7a7268;font-size:.8rem;margin-bottom:5px;">Known Skills</div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                {% if user.known_skills %}{% for sk in user.known_skills %}<span style="background:#f0e9d8;border:1px solid #e5d9c0;color:#1a1714;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:6px;">{{ sk }}</span>{% endfor %}{% else %}<span style="color:#9c9488;">—</span>{% endif %}
+              </div>
+            </div>
+            <div style="padding:.5rem 0;border-bottom:1px solid #f0e9d8;">
+              <div style="font-weight:600;color:#7a7268;font-size:.8rem;margin-bottom:5px;">Learning</div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                {% if user.learning_skills %}{% for sk in user.learning_skills %}<span style="background:rgba(196,151,58,.1);border:1px solid rgba(196,151,58,.2);color:#c4973a;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:6px;">{{ sk }}</span>{% endfor %}{% else %}<span style="color:#9c9488;">—</span>{% endif %}
+              </div>
+            </div>
+            <div class="info-row"><span class="info-label">Projects</span><span class="info-value">{{ projects|length }}</span></div>
+            <div class="info-row"><span class="info-label">Roadmaps</span><span class="info-value">{{ roadmaps|length }}</span></div>
+            <div class="info-row"><span class="info-label">Certificates</span><span class="info-value">{{ certificates|length }}</span></div>
+            <div class="info-row"><span class="info-label">Communities</span><span class="info-value">{{ communities|length }}</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PROJECTS (collapsible) ── -->
+      <div class="card">
+        <div class="card-toggle" onclick="toggleSection('projects-body','projects-chev')">
+          <h3><i class="fas fa-layer-group" style="color:#c4973a;"></i> Projects</h3>
+          <div class="toggle-right">
+            <span class="cnt-badge">{{ projects|length }}</span>
+            <i class="fas fa-chevron-down chev" id="projects-chev"></i>
+          </div>
+        </div>
+        <div class="card-body-collapse closed" id="projects-body" style="max-height:0;">
+          {% if projects %}
+          <table class="adm-table">
+            <thead><tr><th>Title</th><th class="hide-sm">Skills</th><th class="hide-sm">Created</th><th>Action</th></tr></thead>
+            <tbody>
+              {% for p in projects %}
+              <tr id="pr-{{ p._id }}">
+                <td><strong>{{ p.title }}</strong></td>
+                <td class="hide-sm" style="font-size:.72rem;color:#9c9488;">{{ p.skills_needed|join(', ') if p.skills_needed else '—' }}</td>
+                <td class="hide-sm" style="font-size:.72rem;color:#9c9488;">{{ p.created_at.strftime('%b %d, %Y') if p.created_at else 'N/A' }}</td>
+                <td><button class="btn btn-danger" onclick="deleteProject('{{ p._id }}','{{ p.title }}')"><i class="fas fa-trash"></i></button></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}<div class="empty">No projects yet.</div>{% endif %}
+        </div>
+      </div>
+
+      <!-- ── ROADMAPS (collapsible) ── -->
+      <div class="card">
+        <div class="card-toggle" onclick="toggleSection('roadmaps-body','roadmaps-chev')">
+          <h3><i class="fas fa-magic" style="color:#c4973a;"></i> Roadmaps</h3>
+          <div class="toggle-right">
+            <span class="cnt-badge">{{ roadmaps|length }}</span>
+            <i class="fas fa-chevron-down chev" id="roadmaps-chev"></i>
+          </div>
+        </div>
+        <div class="card-body-collapse closed" id="roadmaps-body" style="max-height:0;">
+          {% if roadmaps %}
+          <table class="adm-table">
+            <thead><tr><th>Goal</th><th class="hide-sm">Stages</th><th class="hide-sm">Progress</th><th>Action</th></tr></thead>
+            <tbody>
+              {% for r in roadmaps %}
+              <tr id="rm-{{ r._id }}">
+                <td><strong>{{ r.goal }}</strong></td>
+                <td class="hide-sm">{{ r.stage_count }}</td>
+                <td class="hide-sm">{{ r.completed_stages }}/{{ r.stage_count }}</td>
+                <td><button class="btn btn-danger" onclick="deleteRoadmap('{{ r._id }}','{{ r.goal }}')"><i class="fas fa-trash"></i></button></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}<div class="empty">No roadmaps yet.</div>{% endif %}
+        </div>
+      </div>
+
+      <!-- ── CERTIFICATES (collapsible) ── -->
+      <div class="card">
+        <div class="card-toggle" onclick="toggleSection('certs-body','certs-chev')">
+          <h3><i class="fas fa-certificate" style="color:#c4973a;"></i> Certificates</h3>
+          <div class="toggle-right">
+            <span class="cnt-badge">{{ certificates|length }}</span>
+            <i class="fas fa-chevron-down chev" id="certs-chev"></i>
+          </div>
+        </div>
+        <div class="card-body-collapse closed" id="certs-body" style="max-height:0;">
+          <div class="card-body">
+          {% if certificates %}
+            {% for c in certificates %}
+            <div class="cert-item">
+              <div class="cert-name">{{ c.name }}</div>
+              <div class="cert-meta">{{ c.issuer }} {% if c.issue_date %}· {{ c.issue_date }}{% endif %} {% if c.cert_url %}<a href="{{ c.cert_url }}" target="_blank" style="color:#c4973a;">View</a>{% endif %}</div>
+            </div>
+            {% endfor %}
+          {% else %}<div class="empty">No certificates.</div>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- ── COMMUNITIES (collapsible) ── -->
+      <div class="card">
+        <div class="card-toggle" onclick="toggleSection('communities-body','communities-chev')">
+          <h3><i class="fas fa-globe" style="color:#10b981;"></i> Communities</h3>
+          <div class="toggle-right">
+            <span class="cnt-badge">{{ communities|length }}</span>
+            <i class="fas fa-chevron-down chev" id="communities-chev"></i>
+          </div>
+        </div>
+        <div class="card-body-collapse closed" id="communities-body" style="max-height:0;">
+          {% if communities %}
+          <table class="adm-table">
+            <thead><tr><th>Community</th><th>Role</th><th class="hide-sm">Members</th></tr></thead>
+            <tbody>
+              {% for c in communities %}
+              <tr>
+                <td><strong>{{ c.project_title }}</strong></td>
+                <td><span style="font-size:.76rem;font-weight:700;color:{{ '#c4973a' if c.is_owner else '#9c9488' }}">{{ 'Owner' if c.is_owner else 'Member' }}</span></td>
+                <td class="hide-sm">{{ c.member_count }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}<div class="empty">Not in any communities.</div>{% endif %}
+        </div>
+      </div>
+
+      <!-- ── XP HISTORY (collapsible) ── -->
+      <div class="card" style="margin-bottom:2rem;">
+        <div class="card-toggle" onclick="toggleSection('xp-history-body','xp-history-chev')">
+          <h3><i class="fas fa-history" style="color:#c4973a;"></i> XP History</h3>
+          <div class="toggle-right">
+            <span class="cnt-badge">{{ xp_history|length }}</span>
+            <i class="fas fa-chevron-down chev" id="xp-history-chev"></i>
+          </div>
+        </div>
+        <div class="card-body-collapse closed" id="xp-history-body" style="max-height:0;">
+          {% if xp_history %}
+          <div class="tl-wrap">
+            {% for h in xp_history %}
+            <div class="tl-item">
+              <div class="tl-dot {{ h.type }}">{{ '+' if h.type == 'earn' else '-' }}</div>
+              <div style="flex:1;">
+                <div class="tl-reason">{{ h.reason }}</div>
+                <div class="tl-time">{{ h.timestamp.strftime('%b %d, %Y at %I:%M %p') if h.timestamp else 'N/A' }}</div>
+              </div>
+              <div class="tl-pts {{ h.type }}">{{ '+' if h.points > 0 else '' }}{{ h.points }} XP</div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}<div class="empty">No XP history yet.</div>{% endif %}
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- XP MODAL -->
+<div class="modal-overlay" id="xp-modal" onclick="if(event.target===this)closeXpModal()">
+  <div class="modal-box">
+    <h3>⚡ Adjust XP — {{ user.name }}</h3>
+    <input class="modal-input" type="number" id="xp-points" placeholder="Points (negative to deduct, e.g. -50)">
+    <input class="modal-input" type="text" id="xp-reason" placeholder="Reason (e.g. Bug bounty reward)">
+    <div class="modal-actions">
+      <button class="m-cancel" onclick="closeXpModal()">Cancel</button>
+      <button class="m-confirm" onclick="submitXp()">Apply XP</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Dark mode
+(function(){
+  var t=localStorage.getItem('sb-theme')||'light';
+  var isDark = t==='dark';
+  isDark ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark');
+  isDark ? document.body.classList.add('dark') : document.body.classList.remove('dark');
+  if(isDark){ var ic=document.getElementById('theme-icon'); var lb=document.getElementById('theme-lbl'); if(ic)ic.className='fas fa-sun'; if(lb)lb.textContent='Light Mode'; }
+})();
+
+function toggleTheme(){
+  var isDark = document.documentElement.classList.toggle('dark');
+  document.body.classList.toggle('dark', isDark);
+  localStorage.setItem('sb-theme', isDark?'dark':'light');
+  var ic=document.getElementById('theme-icon'); var lb=document.getElementById('theme-lbl');
+  if(ic) ic.className = isDark?'fas fa-sun':'fas fa-moon';
+  if(lb) lb.textContent = isDark?'Light Mode':'Dark Mode';
+}
+
+// Sidebar
+function openSidebar(){
+  var sb = document.getElementById('admin-sidebar');
+  var ov = document.getElementById('mob-overlay');
+  sb.classList.add('open');
+  if(ov){ ov.style.display='block'; ov.classList.add('show'); }
+  document.body.style.overflow='hidden';
+  var cb=document.getElementById('sidebar-close-btn');
+  if(cb) cb.style.display='block';
+}
+function closeSidebar(){
+  var sb = document.getElementById('admin-sidebar');
+  var ov = document.getElementById('mob-overlay');
+  sb.classList.remove('open');
+  if(ov){ ov.style.display=''; ov.classList.remove('show'); }
+  document.body.style.overflow='';
+  var cb=document.getElementById('sidebar-close-btn');
+  if(cb) cb.style.display='none';
+}
+
+// Collapsible
+function toggleSection(bodyId, chevId){
+  const body = document.getElementById(bodyId);
+  const chev = document.getElementById(chevId);
+  const isOpen = !body.classList.contains('closed');
+  if(isOpen){
+    body.style.maxHeight = body.scrollHeight+'px';
+    requestAnimationFrame(()=>{ body.style.maxHeight='0'; body.classList.add('closed'); });
+    if(chev) chev.classList.remove('open');
+  } else {
+    body.classList.remove('closed');
+    body.style.maxHeight = body.scrollHeight+'px';
+    setTimeout(()=>{ body.style.maxHeight='none'; }, 360);
+    if(chev) chev.classList.add('open');
+  }
+}
+
+// Toast
+const USER_ID = '{{ user._id }}';
+function showToast(msg,err=false){
+  const t=document.getElementById('toast');
+  t.innerHTML=(err?'❌ ':'✅ ')+msg;
+  t.style.background=err?'#7f1d1d':(document.documentElement.classList.contains('dark')?'#f0e9d8':'#1a1714');
+  t.style.color=err?'#fff':(document.documentElement.classList.contains('dark')?'#1a1714':'#f8f4ec');
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// XP Modal
+function openXpModal(){ document.getElementById('xp-points').value=''; document.getElementById('xp-reason').value=''; document.getElementById('xp-modal').classList.add('active'); }
+function closeXpModal(){ document.getElementById('xp-modal').classList.remove('active'); }
+function submitXp(){
+  const points=parseInt(document.getElementById('xp-points').value);
+  const reason=document.getElementById('xp-reason').value.trim();
+  if(!points||isNaN(points)){showToast('Enter valid points',true);return;}
+  fetch('/admin/adjust_xp/'+USER_ID,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({points,reason})})
+  .then(r=>r.json()).then(d=>{ if(d.success){closeXpModal();showToast('XP updated! New total: '+d.new_xp+' ('+d.badge+')');setTimeout(()=>location.reload(),1500);}else showToast(d.error,true); });
+}
+function banUser(){ if(!confirm('Ban {{ user.name }}?'))return; fetch('/admin/ban_user/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('User banned.');setTimeout(()=>location.reload(),1200);}else showToast(d.error,true);}); }
+function unbanUser(){ fetch('/admin/unban_user/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('User unbanned.');setTimeout(()=>location.reload(),1200);}else showToast(d.error,true);}); }
+function deleteUser(){ if(!confirm('Permanently delete {{ user.name }} and ALL their data?'))return; fetch('/admin/delete_user/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('User deleted.');setTimeout(()=>window.location.href='{{ url_for("admin_panel") }}',1500);}else showToast(d.error,true);}); }
+function deleteProject(id,title){ if(!confirm('Delete project "'+title+'"?'))return; fetch('/admin/delete_project/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){document.getElementById('pr-'+id).remove();showToast('Project deleted.');}else showToast(d.error,true);}); }
+function deleteRoadmap(id,goal){ if(!confirm('Delete roadmap "'+goal+'"?'))return; fetch('/admin/delete_roadmap/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){document.getElementById('rm-'+id).remove();showToast('Roadmap deleted.');}else showToast(d.error,true);}); }
+</script>
+</body>
+</html>

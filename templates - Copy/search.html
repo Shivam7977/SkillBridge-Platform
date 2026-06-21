@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search — SkillBridge</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#f8f4ec; --surface:#fff; --primary:#1a1714; --secondary:#c4973a;
+      --text:#1a1714; --muted:#7a7268; --border:#e5d9c0;
+    }
+    body.dark {
+      --bg:#1a1714; --surface:#2c2820; --primary:#f0e9d8; --secondary:#c4973a;
+      --text:#f0e9d8; --muted:#9c9488; --border:#3d3830;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:background .3s,color .3s; }
+
+    /* ── Top bar ── */
+    .topbar {
+      position:sticky; top:0; z-index:50;
+      background:var(--surface); border-bottom:1px solid var(--border);
+      padding:14px clamp(1rem,5vw,3rem);
+      display:flex; align-items:center; gap:14px;
+      transition:background .3s,border-color .3s;
+    }
+    .back-btn {
+      display:inline-flex; align-items:center; gap:7px;
+      color:var(--muted); text-decoration:none; font-size:.87rem; font-weight:600;
+      padding:8px 14px; border-radius:10px;
+      border:1.5px solid var(--border); background:var(--surface);
+      transition:.18s; flex-shrink:0;
+    }
+    .back-btn:hover { background:var(--bg); color:var(--text); }
+    .topbar-logo { font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:900; color:var(--text); text-decoration:none; }
+
+    /* ── Main content ── */
+    .main-content { max-width:780px; margin:0 auto; padding:2.5rem clamp(1rem,5vw,2rem); }
+
+    /* Search bar */
+    .search-wrap { margin-bottom:2.5rem; }
+    .search-title { font-family:'Playfair Display',serif; font-size:2rem; font-weight:900; margin-bottom:.4rem; color:var(--text); }
+    .search-sub { color:var(--muted); margin-bottom:1.5rem; font-size:.93rem; }
+    .search-box { display:flex; gap:10px; }
+    .search-input {
+      flex:1; padding:14px 20px; border-radius:14px;
+      border:2px solid var(--border); background:var(--surface);
+      font-family:inherit; font-size:.95rem; outline:none; color:var(--text);
+      transition:.2s; min-width:0;
+    }
+    .search-input:focus { border-color:var(--secondary); box-shadow:0 0 0 3px rgba(196,151,58,.12); }
+    .search-input::placeholder { color:var(--muted); }
+    .search-btn {
+      padding:14px 24px; border-radius:14px; border:none;
+      background:var(--primary); color:var(--bg);
+      font-weight:700; font-size:.9rem; cursor:pointer;
+      font-family:inherit; transition:.2s;
+      display:flex; align-items:center; gap:8px; white-space:nowrap;
+    }
+    .search-btn:hover { opacity:.88; transform:translateY(-1px); }
+
+    /* Results */
+    .results-count { font-size:.85rem; color:var(--muted); font-weight:600; margin-bottom:1.25rem; }
+    .results-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.25rem; }
+
+    .user-card {
+      background:var(--surface); border-radius:16px; padding:1.35rem;
+      border:1.5px solid var(--border); transition:.2s;
+      display:flex; flex-direction:column; gap:11px;
+      text-decoration:none; color:inherit;
+    }
+    .user-card:hover { transform:translateY(-3px); box-shadow:0 16px 36px rgba(26,23,20,.08); border-color:var(--secondary); }
+
+    .user-card-top { display:flex; align-items:center; gap:12px; }
+    .user-avatar { width:48px; height:48px; border-radius:12px; object-fit:cover; border:1.5px solid var(--border); flex-shrink:0; }
+    .user-name { font-size:.97rem; font-weight:800; color:var(--text); }
+    .user-username { font-size:.75rem; color:var(--secondary); font-weight:700; margin-top:2px; }
+    .user-title { font-size:.8rem; color:var(--muted); font-weight:600; }
+
+    .user-badge {
+      display:inline-flex; align-items:center; gap:6px;
+      background:rgba(196,151,58,.1); color:var(--secondary);
+      padding:3px 10px; border-radius:20px; font-size:.7rem; font-weight:700;
+      border:1px solid rgba(196,151,58,.2);
+    }
+    .user-skills { display:flex; flex-wrap:wrap; gap:5px; }
+    .skill-tag {
+      background:var(--bg); color:var(--muted);
+      padding:3px 9px; border-radius:7px; font-size:.7rem; font-weight:700;
+      border:1px solid var(--border);
+    }
+    .msg-btn {
+      display:flex; align-items:center; justify-content:center; gap:7px;
+      padding:9px; border-radius:10px;
+      background:var(--bg); color:var(--text);
+      font-weight:700; font-size:.8rem;
+      border:1.5px solid var(--border); text-decoration:none; transition:.2s;
+    }
+    .msg-btn:hover { background:var(--primary); color:var(--bg); border-color:var(--primary); }
+
+    /* Empty state */
+    .empty-state { text-align:center; padding:4rem 2rem; color:var(--muted); }
+    .empty-state i { font-size:3rem; margin-bottom:1rem; opacity:.25; display:block; }
+    .empty-state h3 { font-size:1.15rem; font-weight:800; color:var(--text); margin-bottom:.5rem; }
+    .empty-state p { font-size:.88rem; line-height:1.65; }
+
+    mark { background:rgba(196,151,58,.18); color:#a07020; border-radius:3px; padding:0 2px; font-weight:800; }
+
+    @media (max-width:768px) {
+      .main-content { padding:1.75rem 1rem; }
+      .results-grid { grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); }
+      .search-title { font-size:1.6rem; }
+    }
+    @media (max-width:600px) {
+      .search-box { flex-direction:column; }
+      .search-btn { width:100%; justify-content:center; }
+      .results-grid { grid-template-columns:1fr; }
+      .search-title { font-size:1.4rem; }
+      .topbar { padding:12px 1rem; }
+      .back-btn { padding:7px 11px; font-size:.82rem; }
+      .user-card { padding:1.1rem; }
+      .user-avatar { width:42px; height:42px; }
+    }
+    @media (max-width:400px) {
+      .search-title { font-size:1.2rem; }
+      .search-input { padding:12px 14px; }
+      .search-btn { padding:12px 16px; }
+    }
+  </style>
+</head>
+<body>
+<!-- Top bar with back + logo -->
+<div class="topbar">
+  <a href="javascript:history.back()" class="back-btn">
+    <i class="fas fa-arrow-left"></i> Back
+  </a>
+  <a href="{{ url_for('main_page') }}" class="topbar-logo">SkillBridge</a>
+</div>
+
+<main class="main-content">
+    <div class="search-wrap">
+      <h1 class="search-title">🔍 Find Builders</h1>
+      <p class="search-sub">Search by name or @username to find other builders on SkillBridge.</p>
+
+      <form class="search-box" action="{{ url_for('search') }}" method="GET">
+        <input class="search-input" type="text" name="q"
+          value="{{ query }}"
+          placeholder="Search by name or @username..."
+          autofocus>
+        <button type="submit" class="search-btn">
+          <i class="fas fa-search"></i> Search
+        </button>
+      </form>
+    </div>
+
+    {% if query %}
+      <div class="results-count" style="max-width:1000px;margin:0 auto 1.5rem;">
+        {% if results %}
+          Found <strong>{{ results|length }}</strong> builder{{ 's' if results|length != 1 }} for "<strong>{{ query }}</strong>"
+        {% else %}
+          No builders found for "<strong>{{ query }}</strong>"
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% if results %}
+    <div class="results-grid">
+      {% for user in results %}
+      <a href="{{ url_for('view_user_profile', user_id=user._id) }}" class="user-card">
+        <div class="user-card-top">
+          <img class="user-avatar"
+               src="{{ url_for('static', filename='profile_pics/' + user.profile_pic) }}"
+               alt="{{ user.name }}">
+          <div>
+            <div class="user-name">{{ user.name }}</div>
+            {% if user.username %}
+              <div class="user-username">@{{ user.username }}</div>
+            {% endif %}
+            <div class="user-title">{{ user.title }}</div>
+          </div>
+        </div>
+
+        <div>
+          <span class="user-badge">{{ user.badge }} · {{ user.xp }} XP</span>
+        </div>
+
+        {% if user.known_skills %}
+        <div class="user-skills">
+          {% for skill in user.known_skills %}
+            <span class="skill-tag">{{ skill }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="msg-btn">
+          <i class="fas fa-comment-dots"></i> Message
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+
+    {% elif query %}
+    <div class="empty-state">
+      <i class="fas fa-user-slash"></i>
+      <h3>No builders found</h3>
+      <p>Try searching by a different name or username. Use @ to search by username directly — e.g. <strong>@shivam</strong></p>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-users"></i>
+      <h3>Find your fellow builders</h3>
+      <p>Type a name or @username above to discover other SkillBridge members, view their profiles and start a conversation.</p>
+    </div>
+    {% endif %}
+
+  </main>
+
+{% include 'notification_bell.html' %}
+{% include 'chatbot_widget.html' %}
+<script>
+(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+</script>
+</body>
+</html>

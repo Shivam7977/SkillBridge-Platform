@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Projects - SkillBridge</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Playfair Display', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
+      },
+      colors: {
+        cream: { 50:'#fdfcf8', 100:'#f8f4ec', 200:'#f0e9d8', 300:'#e5d9c0', 400:'#d4c4a0', 500:'#b8a07a' },
+        ink:   { 900:'#1a1714', 800:'#2c2820', 700:'#3d3830', 600:'#5c5548', 500:'#7a7268', 400:'#9c9488' },
+        gold:  '#c4973a',
+      }
+    }
+  }
+}
+</script>
+
+<style>
+body { font-family: 'DM Sans', sans-serif; }
+
+.grain-bg {
+  background-color: #f8f4ec;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+.custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #d4c4a0; border-radius: 10px; }
+
+.hover-line { position: relative; }
+.hover-line::after { content:''; position:absolute; bottom:-1px; left:0; width:0; height:1px; background:currentColor; transition:width .3s ease; }
+.hover-line:hover::after { width:100%; }
+
+/* Custom Tab Panels visibility configurations */
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* Dark mode configurations override targets */
+.dark body, .dark .grain-bg { background-color: #1a1714; background-image: none; color: #f8f4ec; }
+.dark aside { background: #2c2820 !important; border-color: #3d3830 !important; }
+.dark .editorial-card { background: #2c2820 !important; border-color: #3d3830 !important; color: #f0e9d8; }
+.dark input, .dark textarea { background: #1a1714 !important; border-color: #3d3830 !important; color: #f0e9d8 !important; }
+.dark input:focus, .dark textarea:focus { border-color: #c4973a !important; }
+.dark .nav-item-active { background: #1a1714 !important; color: #c4973a !important; }
+.dark .edit-modal { background: #2c2820 !important; border-color: #3d3830 !important; }
+
+nav.sidebar, .dashboard-container > aside.sidebar, body > aside.sidebar { display: none !important; }
+</style>
+</head>
+<body class="grain-bg text-ink-900 min-h-screen custom-scroll antialiased">
+
+<div class="min-h-screen flex flex-col lg:flex-row relative w-full">
+
+  <header class="lg:hidden bg-cream-100 dark:bg-ink-800 border-b border-cream-200 dark:border-ink-700 px-6 py-4 flex items-center justify-between sticky top-0 z-40 transition-colors w-full">
+    <div class="flex items-center gap-3">
+      <button onclick="toggleSidebarMenu()" class="text-ink-900 dark:text-cream-50 text-xl p-1.5 focus:outline-none transition-transform active:scale-95">
+        <i class="fas fa-bars" id="menu-icon"></i>
+      </button>
+      <a href="{{ url_for('main_page') }}" class="font-display text-2xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+    </div>
+    
+    <button class="w-10 h-10 rounded-full border border-cream-300 dark:border-ink-700 flex items-center justify-center relative text-ink-900 dark:text-cream-50" id="mobile-notif-btn" onclick="toggleNotifDropdown(event)">
+      <i class="fas fa-bell"></i>
+      <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[9px] font-bold w-4 h-4 rounded-full hidden items-center justify-center notif-badge"></span>
+    </button>
+  </header>
+
+  <aside id="app-sidebar" class="hidden lg:flex fixed lg:sticky top-0 left-0 w-full lg:w-64 bg-white border-r border-cream-200 px-6 pt-6 pb-16 flex-col h-screen z-50 overflow-y-auto custom-scroll transition-all duration-300 flex-shrink-0">
+    
+    <div class="flex items-center justify-between mb-8">
+      <a href="{{ url_for('main_page') }}" class="font-display text-3xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+      
+      <button class="w-9 h-9 rounded-full border border-cream-200 dark:border-ink-700 flex items-center justify-center relative text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-cream-50 transition-colors" id="desktop-notif-btn" onclick="toggleNotifDropdown(event)">
+        <i class="fas fa-bell text-sm"></i>
+        <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full hidden items-center justify-center notif-badge"></span>
+      </button>
+    </div>
+
+    <div class="bg-cream-100/60 dark:bg-ink-900/40 border border-cream-300/50 dark:border-ink-700 rounded-2xl p-4 mb-6 space-y-3 shadow-inner">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl leading-none select-none">{% if level_info is defined %}{{ level_info.icon }}{% else %}🏆{% endif %}</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-[9px] font-bold tracking-widest uppercase text-gold">Lv.{% if level_info is defined %}{{ level_info.level }}{% else %}--{% endif %} · {% if level_info is defined %}{{ level_info.badge }}{% else %}Builder{% endif %}</div>
+          <div class="text-lg font-black text-ink-900 dark:text-cream-100 leading-tight mt-0.5">
+            {% if xp is defined %}{{ xp }}{% else %}0{% endif %} <span class="text-xs font-semibold text-ink-400 dark:text-ink-500">XP</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="w-full h-1.5 bg-cream-200 dark:bg-ink-700 rounded-full overflow-hidden mb-1.5">
+          <div class="h-full bg-ink-900 dark:bg-gold rounded-full transition-all duration-1000" style="width: {% if progress_pct is defined %}{{ progress_pct }}{% else %}0{% endif %}%"></div>
+        </div>
+        <div class="flex justify-between text-[10px] font-bold text-ink-500 dark:text-ink-400">
+          <span>{% if xp is defined %}{{ xp }}{% else %}0{% endif %} XP</span>
+          <span>{% if level_info is defined %}{% if level_info.next_xp == 'Max' %}🏆 Max{% else %}{{ level_info.next_xp }} XP{% endif %}{% else %}-- XP{% endif %}</span>
+        </div>
+      </div>
+      <div class="pt-0.5">
+        {% if streak is defined and streak and streak >= 1 %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 text-xs font-bold text-rose-700 dark:text-rose-400">
+            <span>🔥</span> {{ streak }} day streak
+          </div>
+        {% else %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cream-200 border border-cream-300/40 dark:bg-ink-800 dark:border-ink-700 text-xs font-bold text-ink-400 dark:text-ink-500">
+            <span>❄️</span> No active streak
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <nav class="space-y-1 flex-1 font-body">
+      <a href="{{ url_for('main_page') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-home w-4 text-center"></i> Dashboard</a>
+      <a href="{{ url_for('profile') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-user-circle w-4 text-center"></i> My Profile</a>
+      <a href="{{ url_for('my_projects') }}" class="nav-item-active flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 shadow-sm transition-all"><i class="fas fa-layer-group w-4 text-center"></i> My Projects</a>
+      <a href="{{ url_for('roadmap_generator') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-magic w-4 text-center"></i> Roadmap AI</a>
+      <a href="{{ url_for('resume_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-file-alt w-4 text-center"></i> Resume Builder</a>
+      <a href="{{ url_for('portfolio_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-briefcase w-4 text-center"></i> Portfolio Builder</a>
+      <a href="{{ url_for('projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-globe w-4 text-center"></i> Community</a>
+      <a href="{{ url_for('find_communities') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-users w-4 text-center"></i> All Communities</a>
+      <a href="{{ url_for('messages_list') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-comment-dots w-4 text-center"></i> Messages</a>
+      <a href="{{ url_for('leaderboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-trophy w-4 text-center"></i> Leaderboard</a>
+      
+      <div class="pt-4 mt-4 border-t border-cream-200 dark:border-ink-800">
+        <a href="{{ url_for('settings') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-cog w-4 text-center"></i> Settings</a>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="flex-1 px-4 sm:px-8 py-8 lg:py-12 max-w-7xl mx-auto w-full space-y-6 overflow-x-hidden">
+    
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-cream-200 dark:border-ink-700 pb-6">
+        <div class="space-y-1">
+            <h1 class="font-display text-4xl font-black tracking-tight text-ink-900 dark:text-cream-100">My Projects</h1>
+            <p class="text-xs text-ink-500 dark:text-ink-400 font-body">All the projects you have created. ✅ Mark as completed to show in Resume & Portfolio.</p>
+        </div>
+        <a href="{{ url_for('create_project') }}" class="px-5 py-3 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-body font-bold text-xs rounded-xl tracking-wider uppercase transition-all hover:opacity-90 hover:-translate-y-0.5 shadow-sm active:scale-98">Create New Project</a>
+    </div>
+
+    <div class="flex gap-2 border-b border-cream-200 dark:border-ink-800 pb-0 font-body">
+        <button class="px-5 py-3 border-b-2 border-ink-900 dark:border-gold font-bold text-sm text-ink-900 dark:text-gold flex items-center gap-2 tab-btn active" id="tab-mine" onclick="switchTab('mine')">
+            <i class="fas fa-layer-group text-xs"></i> My Projects
+            <span class="bg-ink-900 text-cream-100 dark:bg-gold dark:text-ink-900 text-[10px] px-2 py-0.5 rounded-full font-bold tab-count">{{ total }}</span>
+        </button>
+        <button class="px-5 py-3 border-b-2 border-transparent font-semibold text-sm text-ink-500 dark:text-ink-400 hover:text-ink-900 dark:hover:text-cream-50 flex items-center gap-2 tab-btn" id="tab-saved" onclick="switchTab('saved')">
+            <i class="fas fa-bookmark text-xs"></i> Saved
+            <span class="bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold tab-count">{% if bookmarked_projects is defined %}{{ bookmarked_projects|length }}{% else %}0{% endif %}</span>
+        </button>
+    </div>
+
+    <div class="tab-pane active space-y-6" id="pane-mine">
+        {% if total == 0 %}
+        <div class="no-projects-message text-center py-12 bg-white dark:bg-ink-800 rounded-2xl border-2 border-dashed border-cream-300 dark:border-ink-700 text-sm font-medium font-body">
+            <p class="text-ink-500 dark:text-ink-400">You haven't created any projects yet. Click <a href="{{ url_for('create_project') }}" class="text-gold font-bold hover:underline">Create New Project</a> to get started!</p>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="project-grid">
+            {% for project in projects %}
+            <div class="editorial-card bg-white border border-cream-200 p-6 rounded-3xl shadow-sm flex flex-col justify-between group hover:border-ink-400 dark:hover:border-ink-600 transition-all duration-300" id="card-{{ project._id }}">
+                <div class="space-y-3 w-full">
+                    <a href="{{ url_for('upload_version', project_id=project._id) }}" class="project-card-link block group-hover:text-gold transition-colors">
+                        <h3 class="font-display text-xl font-black tracking-tight text-ink-900 dark:text-cream-50 leading-snug">{{ project.title }}</h3>
+                    </a>
+
+                    <div>
+                    {% if project.is_completed %}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-700 dark:bg-emerald-950/20 dark:border-emerald-900/40 dark:text-emerald-400 completed-badge">✅ Completed — shows in Resume & Portfolio</span>
+                    {% else %}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-xs font-bold text-amber-700 dark:bg-amber-950/20 dark:border-amber-900/40 dark:text-amber-400 completed-badge incomplete">⏳ In Progress — hidden from Resume & Portfolio</span>
+                    {% endif %}
+                    </div>
+
+                    <div class="flex items-center gap-4 text-xs font-bold text-ink-400 dark:text-ink-500 pt-1 project-stats-row">
+                        <div class="flex items-center gap-1"><i class="fas fa-eye text-ink-600 dark:text-gold"></i> <span>{{ project.view_count or 0 }}</span></div>
+                        <div class="flex items-center gap-1"><i class="fas fa-heart text-rose-500"></i> <span>{{ project.like_count or 0 }}</span></div>
+                        <div class="flex items-center gap-1"><i class="fas fa-comment text-sky-500"></i> <span>{{ project.comment_count or 0 }}</span></div>
+                    </div>
+
+                    <p class="text-sm text-ink-500 dark:text-ink-400 font-body leading-relaxed line-clamp-3 description">{{ project.description }}</p>
+                </div>
+
+                <div class="space-y-4 pt-4 mt-4 border-t border-cream-100 dark:border-ink-800 w-full">
+                    <div class="skills-needed">
+                        <span class="text-[10px] font-bold text-ink-400 uppercase tracking-wider block mb-1.5">Skills Required</span>
+                        <div class="flex flex-wrap gap-1">
+                        {% if project.skills_needed %}
+                            {% for skill in project.skills_needed %}
+                                <span class="px-2 py-0.5 rounded bg-cream-200 border border-cream-300 text-[10px] font-bold text-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-cream-100 uppercase tracking-wide skill-tag">{{ skill }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-xs text-ink-400 italic">None specified variables</span>
+                        {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-4 pt-2">
+                        <label class="flex items-center gap-2 text-xs font-bold text-ink-600 dark:text-cream-400 cursor-pointer select-none completed-toggle">
+                            <input type="checkbox" {% if project.is_completed %}checked{% endif %} onchange="toggleComplete('{{ project._id }}', this)" class="w-4 h-4 rounded border-cream-300 text-ink-900 focus:ring-0 accent-ink-900">
+                            Mark as Completed
+                        </label>
+                        
+                        <div class="flex gap-2 card-actions">
+                            <button class="px-3 py-1.5 border border-cream-300 dark:border-ink-700 bg-white hover:bg-cream-50 dark:bg-ink-800 text-xs font-bold text-ink-700 dark:text-cream-100 rounded-lg transition-transform active:scale-95 edit-btn"
+                                data-id="{{ project._id }}" data-title="{{ project.title | e }}" data-description="{{ project.description | e }}" data-skills="{{ project.skills_needed | join(', ') | e }}" onclick="openEditModal(this)">
+                                <i class="fas fa-pen text-[10px]"></i> Edit
+                            </button>
+                            <button class="px-3 py-1.5 border border-rose-200 dark:border-rose-950/40 bg-white hover:bg-rose-50 text-xs font-bold text-rose-600 rounded-lg transition-transform active:scale-95 delete-btn"
+                                onclick="openDeleteModal('{{ project._id }}', '{{ project.title | e }}', '{{ project.community_id or '' }}')">
+                                <i class="fas fa-trash-alt text-[10px]"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if total_pages is defined and total_pages > 1 %}
+        <div class="flex flex-col items-center gap-3 pt-6">
+            <div class="flex items-center justify-center gap-1.5 font-body pagination">
+                {% if page > 1 %}
+                    <a href="{{ url_for('my_projects', page=page-1) }}" class="px-3 py-1.5 border border-cream-300 dark:border-ink-700 bg-white text-xs font-bold text-ink-700 rounded-lg page-btn">← Previous</a>
+                {% else %}
+                    <span class="px-3 py-1.5 border border-cream-200 text-xs font-bold text-ink-400 rounded-lg page-btn disabled opacity-50">← Previous</span>
+                {% endif %}
+
+                {% for p in range(1, total_pages + 1) %}
+                    {% if p == page %}
+                        <span class="px-3 py-1.5 bg-ink-900 text-cream-100 text-xs font-bold rounded-lg page-btn active">{{ p }}</span>
+                    {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+                        <a href="{{ url_for('my_projects', page=p) }}" class="px-3 py-1.5 border border-cream-300 dark:border-ink-700 bg-white text-xs font-bold text-ink-700 rounded-lg page-btn">{{ p }}</a>
+                    {% elif p == page - 3 or p == page + 3 %}
+                        <span class="text-xs font-bold text-ink-400 px-1">…</span>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page < total_pages %}
+                    <a href="{{ url_for('my_projects', page=page+1) }}" class="px-3 py-1.5 border border-cream-300 dark:border-ink-700 bg-white text-xs font-bold text-ink-700 rounded-lg page-btn">Next →</a>
+                {% else %}
+                    <span class="px-3 py-1.5 border border-cream-200 text-xs font-bold text-ink-400 rounded-lg page-btn disabled opacity-50">Next →</span>
+                {% endif %}
+            </div>
+            <div class="text-[11px] font-bold text-ink-400 dark:text-ink-500 font-body page-info">
+                Showing {{ ((page-1) * 10) + 1 }}–{{ [page * 10, total]|min }} of {{ total }} created projects indexes
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="tab-pane space-y-4" id="pane-saved">
+        {% if bookmarked_projects is defined and bookmarked_projects %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for p in bookmarked_projects %}
+            <div class="editorial-card bg-white border border-cream-200 p-6 rounded-3xl shadow-sm flex flex-col justify-between group hover:border-ink-400 dark:hover:border-ink-600 transition-all duration-300 bookmark-card" id="bm-card-{{ p._id }}">
+                <div class="space-y-2 bookmark-card-info w-full">
+                    <h3 class="font-display text-lg font-black text-ink-900 dark:text-cream-50 leading-snug">{{ p.title }}</h3>
+                    <p class="text-xs text-ink-500 dark:text-ink-400 font-body leading-relaxed line-clamp-2">{{ p.description }}</p>
+                    <div class="flex flex-wrap gap-1 pt-1">
+                        {% for skill in p.skills_needed[:4] %}
+                            <span class="px-2 py-0.5 rounded bg-cream-200 border border-cream-300 text-[9px] font-bold text-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-cream-100 uppercase tracking-wide skill-tag">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="flex items-center justify-between gap-4 pt-4 mt-4 border-t border-cream-100 dark:border-ink-800 w-full font-body bookmark-card-actions">
+                    <div class="flex items-center gap-3 text-[11px] font-bold text-ink-400 dark:text-ink-500">
+                        <span><i class="fas fa-eye text-ink-600 dark:text-gold"></i> {{ p.view_count or 0 }}</span>
+                        <span><i class="fas fa-heart text-rose-500"></i> {{ p.like_count or 0 }}</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="{{ url_for('view_project', project_id=p._id) }}" class="px-4 py-2 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 text-xs font-bold rounded-xl tracking-wider uppercase transition-all shadow-sm active:scale-95 cta-button">View</a>
+                        <button class="px-4 py-2 border-2 border-amber-500 text-amber-500 text-xs font-bold rounded-xl tracking-wider uppercase transition-all active:scale-95 unbookmark-btn" onclick="removeBookmark('{{ p._id }}', this)"><i class="fas fa-bookmark mr-1"></i> Saved</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-bookmarks text-center py-12 bg-white dark:bg-ink-800 rounded-2xl border-2 border-dashed border-cream-300 dark:border-ink-700 font-body space-y-3">
+            <i class="fas fa-bookmark text-3xl text-amber-500 block mx-auto"></i>
+            <p class="font-bold text-sm text-ink-900 dark:text-cream-100">No saved projects yet</p>
+            <p class="text-xs text-ink-400 dark:text-ink-500">Browse <a href="{{ url_for('projects') }}" class="text-gold font-bold hover:underline">Community Projects</a> and click 🔖 to save them here.</p>
+        </div>
+        {% endif %}
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay fixed inset-0 bg-ink-900/40 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4 edit-modal-overlay" id="edit-modal">
+    <div class="bg-white border border-cream-200 dark:bg-ink-800 dark:border-ink-700 w-full max-w-lg rounded-2xl shadow-2xl p-6 sm:p-8 transform transition-all duration-300 space-y-5 edit-modal">
+        <h3 class="font-display text-xl font-black text-ink-900 dark:text-cream-50 flex items-center gap-2"><i class="fas fa-pen text-gold"></i> Edit Project</h3>
+        <input type="hidden" id="edit-project-id">
+        <div class="grid grid-cols-1 gap-4 font-body text-sm">
+            <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Project Title *</label><input type="text" id="edit-title" placeholder="Project title" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all"></div>
+            <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Description *</label><textarea id="edit-description" rows="4" placeholder="Describe your project..." class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all custom-scroll resize-none"></textarea></div>
+            <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Skills Needed (comma separated)</label><input type="text" id="edit-skills" placeholder="Python, Flask, React..." class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all"></div>
+        </div>
+        <div class="flex gap-3 pt-2 font-body edit-modal-overlay-actions">
+            <button class="px-5 py-3 border border-cream-300 dark:border-ink-700 bg-white rounded-xl font-bold text-ink-400 text-sm active:scale-95 transition-all edit-cancel-btn" onclick="closeEditModal()">Cancel</button>
+            <button class="flex-1 py-3 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-bold text-sm rounded-xl tracking-wide active:scale-95 transition-all edit-save-btn" onclick="saveEdit()"><i class="fas fa-save mr-1"></i> Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay fixed inset-0 bg-ink-900/40 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4 delete-modal-overlay" id="delete-modal">
+    <div class="bg-white border border-cream-200 dark:bg-ink-800 dark:border-ink-700 w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center space-y-4 delete-modal">
+        <div class="text-3xl delete-icon">🗑️</div>
+        <h3 class="font-display text-lg font-black text-ink-900 dark:text-cream-50">Delete Project?</h3>
+        <p class="text-xs text-ink-500 dark:text-ink-400 font-body leading-relaxed" id="delete-modal-msg">This will permanently delete this project and cannot be undone. You will lose <strong>10 XP</strong>.</p>
+        <!-- Community option — only shown when project has a community -->
+        <div id="community-delete-option" class="hidden text-left bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 rounded-xl p-3 space-y-1.5">
+            <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                <input type="checkbox" id="delete-community-checkbox" class="mt-0.5 w-4 h-4 rounded border-rose-300 accent-rose-600 flex-shrink-0">
+                <span class="text-xs font-bold text-rose-700 dark:text-rose-400 leading-snug">
+                    Also permanently delete the linked community and notify all members.
+                </span>
+            </label>
+        </div>
+        <div class="flex gap-3 pt-2 font-body delete-modal-actions">
+            <button class="px-4 py-2.5 border border-cream-300 dark:border-ink-700 bg-white rounded-xl font-semibold text-ink-500 text-xs active:scale-95 transition-all delete-cancel-btn" onclick="closeDeleteModal()">Cancel</button>
+            <button class="flex-1 py-2.5 bg-rose-600 text-white font-bold text-xs rounded-xl tracking-wide active:scale-95 transition-all delete-confirm-btn" onclick="confirmDelete()"><i class="fas fa-trash-alt mr-1"></i> Yes, Delete</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+{% include 'notification_bell.html' %}
+{% include 'onboarding_widget.html' %}
+{% include 'chatbot_widget.html' %}
+
+<script>
+// Toggle sidebar logic safe handlers variables configurations 
+function toggleSidebarMenu() {
+  const sidebar = document.getElementById('app-sidebar');
+  const icon = document.getElementById('menu-icon');
+  if(sidebar.classList.contains('hidden')) {
+    sidebar.classList.remove('hidden');
+    sidebar.classList.add('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]', '!h-[calc(100vh-73px)]', 'overflow-y-auto');
+    icon.classList.remove('fa-bars');
+    icon.classList.add('fa-times');
+    document.body.classList.add('overflow-hidden');
+  } else {
+    sidebar.classList.add('hidden');
+    sidebar.classList.remove('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]', '!h-[calc(100vh-73px)]', 'overflow-y-auto');
+    icon.classList.remove('fa-times');
+    icon.classList.add('fa-bars');
+    document.body.classList.remove('overflow-hidden');
+  }
+}
+
+// TAB PANELS NAVIGATION FLOW MUTATOR
+function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active', 'border-ink-900', 'dark:border-gold', 'text-ink-900', 'dark:text-gold');
+        b.classList.add('border-transparent', 'text-ink-500', 'dark:text-ink-400');
+    });
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+    const activeBtn = document.getElementById('tab-' + tab);
+    activeBtn.classList.add('active', 'border-ink-900', 'dark:border-gold', 'text-ink-900', 'dark:text-gold');
+    activeBtn.classList.remove('border-transparent', 'text-ink-500', 'dark:text-ink-400');
+
+    document.getElementById('pane-' + tab).classList.add('active');
+}
+
+// MODAL CONTROLS BACKBONE FUNCTIONS
+function openEditModal(btn) {
+    document.getElementById('edit-project-id').value = btn.dataset.id;
+    document.getElementById('edit-title').value = btn.dataset.title;
+    document.getElementById('edit-description').value = btn.dataset.description;
+    document.getElementById('edit-skills').value = btn.dataset.skills;
+    document.getElementById('edit-modal').classList.remove('hidden');
+    document.getElementById('edit-modal').classList.add('flex');
+}
+function closeEditModal() {
+    document.getElementById('edit-modal').classList.remove('flex');
+    document.getElementById('edit-modal').classList.add('hidden');
+}
+document.getElementById('edit-modal').addEventListener('click', function(e) { if (e.target === this) closeEditModal(); });
+
+async function saveEdit() {
+    const id          = document.getElementById('edit-project-id').value;
+    const title       = document.getElementById('edit-title').value.trim();
+    const description = document.getElementById('edit-description').value.trim();
+    const skills      = document.getElementById('edit-skills').value.trim();
+    if (!title || !description) { showToast('Title and description are required', false); return; }
+    try {
+        const res = await fetch(`/projects/edit/${id}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ title, description, skills })
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeEditModal();
+            showToast('✅ Project updated successfully!');
+            document.querySelectorAll('.editorial-card').forEach(card => {
+                const editBtn = card.querySelector('.edit-btn');
+                if (editBtn && editBtn.dataset.id === id) {
+                    card.querySelector('h3').textContent = data.title;
+                    card.querySelector('.description').textContent = data.description;
+                    const skillsDiv = card.querySelector('.skills-needed .flex');
+                    skillsDiv.innerHTML = '';
+                    if (data.skills.length) {
+                        data.skills.forEach(s => { skillsDiv.innerHTML += `<span class="px-2 py-0.5 rounded bg-cream-200 border border-cream-300 text-[10px] font-bold text-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-cream-100 uppercase tracking-wide skill-tag">${s}</span>`; });
+                    } else {
+                        skillsDiv.innerHTML += '<span class="text-xs text-ink-400 italic">None specified variables</span>';
+                    }
+                    editBtn.dataset.title = data.title;
+                    editBtn.dataset.description = data.description;
+                    editBtn.dataset.skills = data.skills.join(', ');
+                }
+            });
+        } else { showToast(data.error || 'Update failed', false); }
+    } catch(e) { showToast('Error updating project', false); }
+}
+
+let deleteTargetId = null;
+let deleteTargetCommunityId = null;
+function openDeleteModal(projectId, projectTitle, communityId) {
+    deleteTargetId = projectId;
+    deleteTargetCommunityId = communityId || null;
+    document.getElementById('delete-modal-msg').innerHTML = `"<strong>${projectTitle}</strong>" will be permanently deleted and cannot be undone. You will lose <strong>10 XP</strong>.`;
+    // Show/hide community option
+    const commOpt = document.getElementById('community-delete-option');
+    const commChk = document.getElementById('delete-community-checkbox');
+    if (communityId) {
+        commOpt.classList.remove('hidden');
+        commChk.checked = false;
+    } else {
+        commOpt.classList.add('hidden');
+        commChk.checked = false;
+    }
+    document.getElementById('delete-modal').classList.remove('hidden');
+    document.getElementById('delete-modal').classList.add('flex');
+}
+function closeDeleteModal() {
+    document.getElementById('delete-modal').classList.remove('flex');
+    document.getElementById('delete-modal').classList.add('hidden');
+    deleteTargetId = null;
+    deleteTargetCommunityId = null;
+}
+document.getElementById('delete-modal').addEventListener('click', function(e) { if (e.target === this) closeDeleteModal(); });
+
+async function confirmDelete() {
+    if (!deleteTargetId) return;
+    const id = deleteTargetId;
+    const alsoDeleteCommunity = deleteTargetCommunityId
+        ? document.getElementById('delete-community-checkbox').checked
+        : false;
+    closeDeleteModal();
+    try {
+        const res = await fetch(`/projects/delete/${id}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ delete_community: alsoDeleteCommunity })
+        });
+        const data = await res.json();
+        if (data.success) {
+            const card = document.getElementById(`card-${id}`);
+            if (card) {
+                card.style.transition = 'opacity 0.3s, transform 0.3s';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    card.remove();
+                    const grid = document.getElementById('project-grid');
+                    if (!grid.querySelector('.editorial-card')) {
+                        grid.innerHTML = `<div class="no-projects-message text-center py-12 bg-white dark:bg-ink-800 rounded-2xl border-2 border-dashed border-cream-300 dark:border-ink-700 text-sm font-medium font-body"><p class="text-ink-500 dark:text-ink-400">You haven't created any projects yet. Click <a href="/create_project" class="text-gold font-bold hover:underline">Create New Project</a> to get started!</p></div>`;
+                    }
+                }, 300);
+            }
+            const msg = alsoDeleteCommunity && data.community_deleted
+                ? '🗑️ Project & community deleted. -10 XP'
+                : '🗑️ Project deleted. -10 XP';
+            showToast(msg, false);
+        } else { showToast(data.error || 'Failed to delete project', false); }
+    } catch(e) { showToast('Error deleting project', false); }
+}
+
+async function toggleComplete(projectId, checkbox) {
+    const val = checkbox.checked;
+    try {
+        const res = await fetch(`/projects/toggle_complete/${projectId}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({is_completed: val}) });
+        const data = await res.json();
+        if (data.success) {
+            showToast(val ? '✅ Marked as completed! Now shows in Resume & Portfolio.' : '⏳ Marked as in progress. Hidden from Resume & Portfolio.');
+            const card = checkbox.closest('.editorial-card');
+            const badge = card.querySelector('.completed-badge');
+            if (val) {
+                badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-700 dark:bg-emerald-950/20 dark:border-emerald-900/40 dark:text-emerald-400 completed-badge';
+                badge.textContent = '✅ Completed — shows in Resume & Portfolio';
+            } else {
+                badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-xs font-bold text-amber-700 dark:bg-amber-950/20 dark:border-amber-900/40 dark:text-amber-400 completed-badge incomplete';
+                badge.textContent = '⏳ In Progress — hidden from Resume & Portfolio';
+            }
+        } else { showToast('Error updating project', false); checkbox.checked = !val; }
+    } catch(e) { showToast('Error updating project', false); checkbox.checked = !val; }
+}
+
+async function removeBookmark(projectId, btn) {
+    try {
+        const res = await fetch(`/project/${projectId}/bookmark`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success && !data.bookmarked) {
+            const card = document.getElementById('bm-card-' + projectId);
+            if (card) {
+                card.style.transition = 'opacity .3s, transform .3s';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.96)';
+                setTimeout(() => {
+                    card.remove();
+                    const pane = document.getElementById('pane-saved');
+                    if (!pane.querySelector('.bookmark-card')) {
+                        pane.innerHTML = `<div class="no-bookmarks text-center py-12 bg-white dark:bg-ink-800 rounded-2xl border-2 border-dashed border-cream-300 dark:border-ink-700 font-body space-y-3"><i class="fas fa-bookmark text-3xl text-amber-500 block mx-auto"></i><p class="font-bold text-sm text-ink-900 dark:text-cream-100">No saved projects yet</p><p class="text-xs text-ink-400 dark:text-ink-500">Browse <a href="/projects" class="text-gold font-bold hover:underline">Community Projects</a> and click 🔖 to save them here.</p></div>`;
+                    }
+                }, 300);
+            }
+            const badge = document.querySelector('#tab-saved .tab-count');
+            if (badge) badge.textContent = Math.max(0, parseInt(badge.textContent) - 1);
+            showToast('Bookmark removed');
+        }
+    } catch(e) { showToast('Error removing bookmark', false); }
+}
+
+function showToast(msg, success=true) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.cssText = `position:fixed; bottom:28px; left:50%; transform:translateX(-50%); color:#fff; padding:12px 24px; border-radius:12px; font-weight:700; font-size:0.85rem; z-index:99999; transition:0.35s; background:${success ? '#166534':'#dc2626'}`;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+applyTheme(localStorage.getItem('sb-theme') || 'light');
+function applyTheme(t){ t==='dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark'); }
+</script>
+</body>
+</html>

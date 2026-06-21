@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard – SkillBridge</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Playfair Display', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
+      },
+      colors: {
+        cream: { 50:'#fdfcf8', 100:'#f8f4ec', 200:'#f0e9d8', 300:'#e5d9c0', 400:'#d4c4a0', 500:'#b8a07a' },
+        ink:   { 900:'#1a1714', 800:'#2c2820', 700:'#3d3830', 600:'#5c5548', 500:'#7a7268', 400:'#9c9488' },
+        gold:  '#c4973a',
+      }
+    }
+  }
+}
+</script>
+
+<style>
+body { font-family: 'DM Sans', sans-serif; }
+
+.grain-bg {
+  background-color: #f8f4ec;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+/* Custom scrollbars for editorial system */
+.custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #d4c4a0; border-radius: 10px; }
+
+.hover-line { position: relative; }
+.hover-line::after { content:''; position:absolute; bottom:-1px; left:0; width:0; height:1px; background:currentColor; transition:width .3s ease; }
+.hover-line:hover::after { width:100%; }
+
+/* Dark mode architecture styles overrides */
+.dark body, .dark .grain-bg { background-color: #1a1714; background-image: none; color: #f8f4ec; }
+.dark aside { background: #2c2820 !important; border-color: #3d3830 !important; }
+.dark .editorial-card { background: #2c2820 !important; border-color: #3d3830 !important; color: #f0e9d8; }
+.dark input { background: #1a1714 !important; border-color: #3d3830 !important; color: #f0e9d8 !important; }
+.dark input:focus { border-color: #c4973a !important; }
+.dark .nav-item-active { background: #1a1714 !important; color: #c4973a !important; }
+.dark .search-drop-box { background: #2c2820 !important; border-color: #3d3830 !important; }
+.dark .search-item-node:hover { background: #1a1714 !important; }
+</style>
+</head>
+
+<body class="grain-bg text-ink-900 min-h-screen custom-scroll antialiased">
+
+<div class="min-h-screen flex flex-col lg:flex-row relative w-full">
+
+  <!-- ══ MOBILE HEADER & MENU ACTION BAR (Bell integrated right inside here) ══ -->
+  <header class="lg:hidden bg-cream-100 dark:bg-ink-800 border-b border-cream-200 dark:border-ink-700 px-6 py-4 flex items-center justify-between sticky top-0 z-40 transition-colors w-full">
+    <div class="flex items-center gap-3">
+      <button onclick="toggleSidebarMenu()" class="text-ink-900 dark:text-cream-50 text-xl p-1.5 focus:outline-none transition-transform active:scale-95">
+        <i class="fas fa-bars" id="menu-icon"></i>
+      </button>
+      <a href="{{ url_for('main_page') }}" class="font-display text-2xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+    </div>
+    
+    <!-- Unified Mobile Notification Trigger Node -->
+    <button class="w-10 h-10 rounded-full border border-cream-300 dark:border-ink-700 flex items-center justify-center relative text-ink-900 dark:text-cream-50" id="mobile-notif-btn" onclick="toggleNotifDropdown(event)">
+      <i class="fas fa-bell"></i>
+      <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[9px] font-bold w-4 h-4 rounded-full hidden items-center justify-center notif-badge"></span>
+    </button>
+  </header>
+
+  <!-- ══ NAVIGATION SIDEBAR ══ -->
+  <aside id="app-sidebar" class="hidden lg:flex fixed lg:sticky top-0 left-0 w-full lg:w-64 bg-white border-r border-cream-200 px-6 pt-6 pb-16 flex-col h-screen z-50 overflow-y-auto custom-scroll transition-all duration-300 flex-shrink-0">
+    
+    <div class="flex items-center justify-between mb-8">
+      <a href="{{ url_for('main_page') }}" class="font-display text-3xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+      
+      <!-- Desktop Header Bell Feature -->
+      <button class="w-9 h-9 rounded-full border border-cream-200 dark:border-ink-700 flex items-center justify-center relative text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-cream-50 transition-colors" id="desktop-notif-btn" onclick="toggleNotifDropdown(event)">
+        <i class="fas fa-bell text-sm"></i>
+        <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full hidden items-center justify-center notif-badge"></span>
+      </button>
+    </div>
+
+    <div class="bg-cream-100/60 dark:bg-ink-900/40 border border-cream-300/50 dark:border-ink-700 rounded-2xl p-4 mb-6 space-y-3 shadow-inner">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl leading-none select-none">{{ level_info.icon }}</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-[9px] font-bold tracking-widest uppercase text-gold">Lv.{{ level_info.level }} · {{ level_info.badge }}</div>
+          <div class="text-lg font-black text-ink-900 dark:text-cream-100 leading-tight mt-0.5">
+            {{ xp }} <span class="text-xs font-semibold text-ink-400 dark:text-ink-500">XP</span>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <div class="w-full h-1.5 bg-cream-200 dark:bg-ink-700 rounded-full overflow-hidden mb-1.5">
+          <div class="h-full bg-ink-900 dark:bg-gold rounded-full transition-all duration-1000" style="width: {{ progress_pct }}%"></div>
+        </div>
+        <div class="flex justify-between text-[10px] font-bold text-ink-500 dark:text-ink-400">
+          <span>{{ xp }} XP</span>
+          <span>{% if level_info.next_xp == 'Max' %}🏆 Max{% else %}{{ level_info.next_xp }} XP{% endif %}</span>
+        </div>
+      </div>
+
+      <div class="pt-0.5">
+        {% if streak and streak >= 1 %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 text-xs font-bold text-rose-700 dark:text-rose-400">
+            <span>🔥</span> {{ streak }} day streak
+          </div>
+        {% else %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cream-200 border border-cream-300/40 dark:bg-ink-800 dark:border-ink-700 text-xs font-bold text-ink-400 dark:text-ink-500">
+            <span>❄️</span> No active streak
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <nav class="space-y-1 flex-1 font-body">
+      <a href="{{ url_for('main_page') }}" class="nav-item-active flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 shadow-sm transition-all"><i class="fas fa-home w-4 text-center"></i> Dashboard</a>
+      <a href="{{ url_for('profile') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-user-circle w-4 text-center"></i> My Profile</a>
+      <a href="{{ url_for('my_projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-layer-group w-4 text-center"></i> My Projects</a>
+      <a href="{{ url_for('roadmap_generator') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-magic w-4 text-center"></i> Roadmap AI</a>
+      <a href="{{ url_for('resume_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-file-alt w-4 text-center"></i> Resume Builder</a>
+      <a href="{{ url_for('portfolio_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-briefcase w-4 text-center"></i> Portfolio Builder</a>
+      <a href="{{ url_for('projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-globe w-4 text-center"></i> Community</a>
+      <a href="{{ url_for('find_communities') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-users w-4 text-center"></i> All Communities</a>
+      <a href="{{ url_for('messages_list') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-comment-dots w-4 text-center"></i> Messages</a>
+      <a href="{{ url_for('leaderboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-trophy w-4 text-center"></i> Leaderboard</a>
+      
+      <div class="pt-4 mt-4 border-t border-cream-200 dark:border-ink-800">
+        <a href="{{ url_for('settings') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-cog w-4 text-center"></i> Settings</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ══ CONTENT BLOCK ══ -->
+  <main class="flex-1 px-4 sm:px-8 py-8 lg:py-12 max-w-7xl mx-auto w-full space-y-8 overflow-x-hidden">
+    
+    <section class="editorial-card bg-white border border-cream-200 rounded-3xl p-8 sm:p-12 shadow-sm relative overflow-hidden transition-all duration-300">
+      <div class="absolute inset-0 opacity-[0.02] dark:opacity-[0.04] pointer-events-none">
+        <div class="absolute left-1/3 top-0 bottom-0 w-px bg-ink-900 dark:bg-cream-50"></div>
+        <div class="absolute left-2/3 top-0 bottom-0 w-px bg-ink-900 dark:bg-cream-50"></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center relative z-10">
+        <div class="md:col-span-8 space-y-4">
+          <h1 class="font-display text-4xl sm:text-5xl font-black tracking-tight text-ink-900 dark:text-cream-100 leading-[1.1]">
+            Welcome back,<br><span class="text-gold italic font-normal font-display">{{ user_name or 'Builder' }}</span>
+          </h1>
+          <p class="text-ink-500 dark:text-ink-400 text-sm max-w-lg font-body leading-relaxed">
+            Your centralized operational matrix node built to deploy architectures, configure learning vectors, and record production capability values.
+          </p>
+        </div>
+        <div class="md:col-span-4 flex flex-col sm:flex-row md:flex-col gap-3 justify-center w-full">
+          <a href="{{ url_for('roadmap_generator') }}" class="w-full text-center py-3.5 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-body font-semibold text-sm rounded-xl tracking-wide transition-all hover:opacity-90 hover:-translate-y-0.5 shadow-sm">Generate Roadmap</a>
+          <a href="{{ url_for('create_project') }}" class="w-full text-center py-3.5 bg-white dark:bg-ink-800 border border-cream-300 dark:border-ink-700 text-ink-900 dark:text-cream-100 font-body font-semibold text-sm rounded-xl tracking-wide transition-all hover:bg-cream-50 dark:hover:bg-ink-700 hover:-translate-y-0.5 shadow-sm">Create Project</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="relative space-y-2 max-w-3xl">
+      <div class="flex items-center bg-white dark:bg-ink-800 border border-cream-300 dark:border-ink-700 rounded-xl overflow-hidden focus-within:border-ink-900 dark:focus-within:border-gold shadow-sm transition-all">
+        <div class="pl-4 pr-2 text-ink-400"><i class="fas fa-search"></i></div>
+        <input class="w-full py-4 text-sm bg-transparent outline-none text-ink-900 dark:text-cream-100 placeholder-ink-400 font-body px-1" 
+            id="sb-search" type="text"
+            placeholder="Search builders by name or @username..."
+            autocomplete="off"
+            oninput="sbLiveSearch(this.value)"
+            onkeydown="if(event.key==='Enter'&&this.value.trim())window.location.href='/search?q='+encodeURIComponent(this.value.trim())">
+        <button class="px-6 py-4 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-body font-bold text-xs tracking-wider uppercase transition-all hover:opacity-95" onclick="sbGoSearch()">
+            Find
+        </button>
+      </div>
+      <div class="text-[11px] font-semibold text-ink-400 dark:text-ink-500 font-body pl-1">Input target keyword variables or <strong class="text-ink-700 dark:text-cream-400">@username parameters</strong> · Return executes queries</div>
+      
+      <div class="search-drop-box absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-cream-200 shadow-xl z-50 overflow-hidden max-h-80 hidden custom-scroll" id="sb-drop"></div>
+    </section>
+
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 font-body">
+      <div class="editorial-card bg-white border border-cream-200 p-6 rounded-2xl shadow-sm hover:border-ink-400 dark:hover:border-ink-600 transition-all duration-300 flex flex-col justify-between">
+        <p class="text-[10px] font-bold tracking-[0.2em] text-ink-400 uppercase">Roadmaps Active</p>
+        <strong class="text-5xl font-black block text-ink-900 dark:text-cream-100 mt-4 font-body tracking-tight">{{ roadmap_count or 0 }}</strong>
+      </div>
+
+      <div class="editorial-card bg-white border border-cream-200 p-6 rounded-2xl shadow-sm hover:border-ink-400 dark:hover:border-ink-600 transition-all duration-300 flex flex-col justify-between">
+        <p class="text-[10px] font-bold tracking-[0.2em] text-ink-400 uppercase">Projects Uploaded</p>
+        <strong class="text-5xl font-black block text-ink-900 dark:text-cream-100 mt-4 font-body tracking-tight">{{ project_count or 0 }}</strong>
+      </div>
+
+      <div class="editorial-card bg-white border border-cream-200 p-6 rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between group hover:border-ink-400 dark:hover:border-ink-600 transition-all duration-300">
+        <div class="flex items-center justify-between gap-2">
+          <p class="text-[10px] font-bold tracking-[0.2em] text-ink-400 uppercase">Experience Points</p>
+          <span class="text-[9px] font-extrabold text-gold bg-cream-100 border border-cream-200/60 dark:bg-ink-900 rounded-full px-2 py-0.5 uppercase tracking-wide">Level {{ level_info.level }}</span>
+        </div>
+        <strong class="text-5xl font-black block text-ink-900 dark:text-cream-100 mt-4 tracking-tight">{{ xp }}</strong>
+        
+        <div class="mt-5 space-y-1.5 w-full">
+          <div class="w-full h-1 bg-cream-200 dark:bg-ink-700 rounded-full overflow-hidden">
+            <div class="h-full bg-ink-900 dark:bg-gold rounded-full transition-all duration-500" style="width: {{ progress_pct }}%"></div>
+          </div>
+          <div class="text-[10px] font-bold text-ink-400 dark:text-ink-500">
+            {% if level_info.next_xp == 'Max' %}🏆 Maximum Level Node Achieved
+            {% else %}{{ level_info.next_xp - xp }} XP required to step to {{ level_info.next_xp }}{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="editorial-card bg-white border border-cream-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between hover:border-ink-400 dark:hover:border-ink-600 transition-all duration-300">
+        <p class="text-[10px] font-bold tracking-[0.2em] text-ink-400 uppercase">Activity Streak</p>
+        {% if streak and streak >= 1 %}
+          <div class="flex items-baseline gap-2 mt-4">
+            <strong class="text-5xl font-black text-ink-900 dark:text-cream-100 tracking-tight">{{ streak }}</strong>
+            <span class="text-xs text-rose-600 font-bold tracking-wider uppercase">Days 🔥</span>
+          </div>
+          <div class="text-[10px] font-bold text-rose-600 mt-4">
+            {% if streak < 7 %}{{ 7 - streak }} days left until +35 XP tier increment
+            {% elif streak < 30 %}{{ 30 - streak }} days left until +100 XP tier increment
+            {% else %}🏆 Legendary streak configuration enabled{% endif %}
+          </div>
+        {% else %}
+          <div class="flex items-baseline gap-2 mt-4">
+            <strong class="text-4xl font-black text-ink-400 tracking-tight">0</strong>
+            <span class="text-xs text-ink-400 font-bold uppercase">No Streak ❄️</span>
+          </div>
+          <div class="text-[10px] font-bold text-ink-400 mt-4">7 continuous login cycles yields +35 XP bonus units</div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 font-body">
+      <div class="editorial-card bg-white border border-cream-200 p-8 rounded-2xl shadow-sm space-y-4 hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+        <div class="space-y-2">
+          <h3 class="font-display text-xl font-bold text-ink-900 dark:text-cream-100">Learning Paths</h3>
+          <p class="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">Inspect and access automated goal-oriented curriculum maps structured through predictive generation servers.</p>
+        </div>
+        <div class="flex gap-5 pt-4 text-xs font-bold text-ink-900 dark:text-gold uppercase tracking-wider">
+          <a href="{{ url_for('my_roadmaps') }}" class="hover-line">View Saved</a>
+          <a href="{{ url_for('roadmap_generator') }}" class="hover-line">Create New</a>
+        </div>
+      </div>
+
+      <div class="editorial-card bg-white border border-cream-200 p-8 rounded-2xl shadow-sm space-y-4 hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+        <div class="space-y-2">
+          <h3 class="font-display text-xl font-bold text-ink-900 dark:text-cream-100">Direct Messaging</h3>
+          <p class="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">Establish active messaging socket instances with other node builders across system lines in real-time.</p>
+        </div>
+        <div class="flex pt-4 text-xs font-bold text-ink-900 dark:text-gold uppercase tracking-wider">
+          <a href="{{ url_for('messages_list') }}" class="hover-line">Open Central Inbox</a>
+        </div>
+      </div>
+
+      <div class="editorial-card bg-white border border-cream-200 p-8 rounded-2xl shadow-sm space-y-4 hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+        <div class="space-y-2">
+          <h3 class="font-display text-xl font-bold text-ink-900 dark:text-cream-100">Ecosystem Hub</h3>
+          <p class="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">Browse, evaluate, and collaborate on production-grade source packages made public by developers.</p>
+        </div>
+        <div class="flex pt-4 text-xs font-bold text-ink-900 dark:text-gold uppercase tracking-wider">
+          <a href="{{ url_for('projects') }}" class="hover-line">Explore Community Grid</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="bg-[#1a1714] text-cream-100 border border-ink-800 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-md">
+      <div class="space-y-1 text-center sm:text-left">
+        <p class="font-body text-sm text-cream-200 font-medium">Complete verification layers to optimize recommendations algorithms.</p>
+      </div>
+      <a href="{{ url_for('profile') }}" class="px-6 py-3 bg-cream-100 text-ink-900 font-body font-bold text-xs rounded-xl tracking-wider uppercase transition-all hover:bg-white active:scale-95 flex-shrink-0 shadow-sm">Complete Profile →</a>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Overlays Canvas Anchors -->
+<div class="levelup-toast fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3.5 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 text-sm font-bold rounded-full border border-cream-300 dark:border-ink-800 shadow-xl transition-all duration-500 pointer-events-none transform translate-y-24 opacity-0 z-[9999]" id="levelup-toast"></div>
+
+<!-- ══ CORE GLOBAL WIDGET HOOKS ══ -->
+{% include 'notification_bell.html' %}
+{% include 'onboarding_widget.html' %}
+{% include 'chatbot_widget.html' %}
+
+<script>
+function toggleSidebarMenu() {
+  const sidebar = document.getElementById('app-sidebar');
+  const icon = document.getElementById('menu-icon');
+  
+  if(sidebar.classList.contains('hidden')) {
+    sidebar.classList.remove('hidden');
+    sidebar.classList.add('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]', '!h-[calc(100vh-73px)]', 'overflow-y-auto');
+    icon.classList.remove('fa-bars');
+    icon.classList.add('fa-times');
+    document.body.classList.add('overflow-hidden');
+  } else {
+    sidebar.classList.add('hidden');
+    sidebar.classList.remove('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]', '!h-[calc(100vh-73px)]', 'overflow-y-auto');
+    icon.classList.remove('fa-times');
+    icon.classList.add('fa-bars');
+    document.body.classList.remove('overflow-hidden');
+  }
+}
+
+applyTheme(localStorage.getItem('sb-theme') || 'light');
+function applyTheme(t){ t==='dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark'); }
+
+fetch('/api/check_levelup').then(r => r.json()).then(d => {
+  if (d.levelup) {
+    const t = document.getElementById('levelup-toast');
+    t.innerHTML = '🎉 Level Up! You are now authenticated as: <strong>' + d.badge + '</strong>';
+    t.classList.remove('translate-y-24', 'opacity-0');
+    setTimeout(() => t.classList.add('translate-y-24', 'opacity-0'), 4500);
+  }
+}).catch(() => {});
+
+let sbTimer;
+async function sbLiveSearch(val) {
+    const drop = document.getElementById('sb-drop');
+    val = val.trim();
+    if (!val || val.length < 2) { drop.classList.add('hidden'); drop.innerHTML = ''; return; }
+    clearTimeout(sbTimer);
+    sbTimer = setTimeout(async () => {
+        try {
+            const res = await fetch(`/api/search_users?q=${encodeURIComponent(val)}`);
+            const data = await res.json();
+            const results = data.results || [];
+            if (!results.length) {
+                drop.innerHTML = `<div class="p-4 text-center text-xs font-semibold text-ink-400 dark:text-ink-500">No builders found matching data constraints: "<strong>${val}</strong>"</div>`;
+            } else {
+                drop.innerHTML = results.map(u => `
+                    <a href="/user/${u._id}" class="search-item-node flex items-center gap-3 p-3 text-ink-900 dark:text-cream-100 border-b border-cream-100 dark:border-ink-800 last:border-none hover:bg-cream-100/50 dark:hover:bg-ink-700/50 transition-all">
+                        <img class="w-9 h-9 rounded-lg object-cover border border-cream-200 dark:border-ink-700" src="/static/profile_pics/${u.profile_pic}" alt="">
+                        <div class="min-w-0 flex-1 leading-tight">
+                            <div class="text-xs font-bold">${u.name}</div>
+                            ${u.username ? `<div class="text-[10px] font-bold text-gold">@${u.username}</div>` : ''}
+                            <div class="text-[11px] text-ink-400 dark:text-ink-500 truncate mt-0.5">${u.title || 'SkillBridge Member'}</div>
+                        </div>
+                        <span class="text-[9px] font-bold text-ink-900 bg-cream-200 border border-cream-300 rounded-md px-2 py-0.5 uppercase tracking-wider">${u.badge || 'Bronze'}</span>
+                    </a>`).join('');
+            }
+            drop.classList.remove('hidden');
+        } catch(e) {}
+    }, 300);
+}
+
+function sbGoSearch() {
+    const val = document.getElementById('sb-search').value.trim();
+    if (val) window.location.href = `/search?q=${encodeURIComponent(val)}`;
+}
+
+document.addEventListener('click', function(e) {
+    const section = document.getElementById('sb-search');
+    const drop = document.getElementById('sb-drop');
+    if (section && !section.contains(e.target) && drop) {
+        drop.classList.add('hidden');
+    }
+});
+</script>
+</body>
+</html>

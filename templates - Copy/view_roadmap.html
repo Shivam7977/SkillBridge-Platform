@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script>
+(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ roadmap.goal }} - SkillBridge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Light Theme Variables matching mainpage.html */
+        :root {
+            --color-background: #f8f4ec;
+            --color-surface: #ffffff;
+            --color-sidebar-bg: #ffffff;
+            --color-sidebar-border: #e5d9c0;
+            --color-primary: #1a1714;
+            --color-secondary: #c4973a;
+            --color-text-primary: #1a1714;
+            --color-text-secondary: #7a7268;
+            --color-input-bg: #f8f4ec;
+            --color-input-border: #e5d9c0;
+            --color-success: #10B981;
+            --color-success-dark: #0f9a6f;
+            --color-completed-bg: rgba(16,185,129,0.08);
+            --border-radius-lg: 14px;
+            --border-radius-md: 10px;
+            --box-shadow-card: 0 6px 20px rgba(0,0,0,0.05);
+            --box-shadow-widget: 0 4px 15px rgba(0,0,0,0.04);
+            --box-shadow-button: 0 6px 20px rgba(26,23,20,0.18);
+        }
+        body.dark {
+            --color-background: #1a1714;
+            --color-surface: #2c2820;
+            --color-sidebar-border: #3d3830;
+            --color-primary: #f0e9d8;
+            --color-secondary: #c4973a;
+            --color-text-primary: #f0e9d8;
+            --color-text-secondary: #9c9488;
+            --color-input-bg: #23201c;
+            --color-input-border: #3d3830;
+        }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text-primary);
+            margin: 0;
+            line-height: 1.6;
+        }
+        /* ── Topbar ── */
+        .topbar {
+            position:sticky; top:0; z-index:50;
+            background:var(--color-surface); border-bottom:1px solid var(--color-sidebar-border);
+            padding:14px clamp(1rem,5vw,3rem);
+            display:flex; align-items:center; gap:14px;
+            transition:background .3s,border-color .3s;
+        }
+        .back-btn {
+            display:inline-flex; align-items:center; gap:7px;
+            color:var(--color-text-secondary); text-decoration:none;
+            font-size:.87rem; font-weight:600;
+            padding:8px 14px; border-radius:10px;
+            border:1.5px solid var(--color-sidebar-border);
+            background:var(--color-surface); transition:.18s; flex-shrink:0;
+        }
+        .back-btn:hover { background:var(--color-background); color:var(--color-text-primary); }
+        .topbar-logo {
+            font-family:'Playfair Display',serif; font-size:1.4rem;
+            font-weight:900; color:var(--color-text-primary); text-decoration:none;
+        }
+
+        /* ── Hero ── */
+        .hero-section {
+            background:var(--color-surface);
+            border-bottom:1px solid var(--color-sidebar-border);
+            padding:2rem clamp(1rem,5vw,3rem);
+            overflow:hidden;
+        }
+        .hero-inner {
+            max-width:900px; margin:0 auto;
+            display:flex; align-items:center;
+            justify-content:space-between; flex-wrap:wrap; gap:1rem;
+            overflow:hidden;
+        }
+        .hero-text h1 {
+            font-family:'Playfair Display',serif;
+            font-size:clamp(1.5rem,3vw,2rem); font-weight:900;
+            color:var(--color-text-primary); margin:0 0 .3rem;
+        }
+        .hero-text p { color:var(--color-text-secondary); font-size:.93rem; margin:0; }
+        .new-roadmap-btn {
+            display:inline-flex; align-items:center; gap:8px;
+            background:var(--color-primary); color:var(--color-background);
+            padding:10px 20px; border-radius:12px;
+            font-weight:700; font-size:.88rem; text-decoration:none;
+            transition:.18s; white-space:nowrap;
+            box-sizing:border-box;
+        }
+        .new-roadmap-btn:hover { opacity:.88; transform:translateY(-1px); }
+
+        /* ── Main Content ── */
+        .main-content { max-width:960px; margin:0 auto; padding:2rem clamp(1rem,5vw,2.5rem); box-sizing:border-box; }
+        .timeline-container { max-width: 900px; margin: auto; }
+        .timeline-header h1 { font-size: clamp(1.4rem,3vw,2.2em); margin-bottom: 0.5rem; text-align: center; color: var(--color-text-primary); font-family:'Playfair Display',serif; text-transform: capitalize; }
+        
+        /* --- Progress Bar --- */
+        .progress-section { text-align: center; margin-bottom: 2.5rem; }
+        .progress-bar-container { width: 100%; height: 12px; background-color: #e9ecef; border-radius: 6px; overflow: hidden; margin-top: 0.5rem; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #1a1714, #c4973a); border-radius: 6px; transition: width 0.5s ease-in-out; }
+        
+        /* --- Timeline --- */
+        .timeline { position: relative; padding: 2rem 0; }
+        .timeline::before { content: ''; position: absolute; top: 0; left: 20px; height: 100%; width: 4px; background: var(--color-sidebar-border); border-radius: 2px; }
+        .timeline-item { margin-bottom: 1.5rem; position: relative; padding-left: 60px; }
+        .timeline-item::before { content: ''; position: absolute; left: 8px; top: 5px; height: 25px; width: 25px; border: 4px solid var(--color-background); background: #c4973a; border-radius: 50%; z-index: 1; transition: background-color 0.3s; }
+        .timeline-item.completed::before { background-color: var(--color-success); }
+        
+        .timeline-content {
+            background-color: var(--color-surface);
+            padding: 1.5rem;
+            border-radius: var(--border-radius-lg);
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
+            border: 1px solid var(--color-sidebar-border);
+            box-shadow: var(--box-shadow-widget);
+        }
+        .timeline-item:hover .timeline-content {
+            transform: scale(1.01); 
+            box-shadow: var(--box-shadow-card);
+            border-color: var(--color-primary);
+        }
+        .timeline-content h3 { margin-top: 0; font-size: 1.4em; color: var(--color-text-primary); font-family: 'Playfair Display', serif; }
+        
+        .completion-status { margin-top: 1rem; }
+        .complete-button {
+            display: block;
+            background: #1a1714;
+            color: #f8f4ec;
+            padding: 8px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.85em;
+            font-weight: 600;
+            box-shadow: var(--box-shadow-button);
+            text-align: center;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .stage-details {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+        .timeline-item:hover .stage-details {
+            max-height: 5000px;
+            opacity: 1;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px dashed var(--color-sidebar-border);
+        }
+
+        .module { background-color: var(--color-input-bg); border-radius: var(--border-radius-md); padding: 1.2rem; margin-top: 1rem; border: 1px solid #e9ecef; }
+        .module h4 { margin-top: 0; font-size: 1.1em; color: var(--color-text-primary); }
+        .resource-link { color: var(--color-success); text-decoration: none; font-weight: 600; }
+
+        .capstone-project { background: linear-gradient(135deg, #1a1714, #2c2820); color: #f8f4ec; border-radius: var(--border-radius-lg); padding: 2rem; margin-top: 2.5rem; box-shadow: 0 8px 25px rgba(26,23,20,0.2); }
+        .next-steps { text-align: center; margin-top: 2.5rem; border-top: 1px solid var(--color-sidebar-border); padding-top: 2rem; }
+
+
+        @media (max-width:900px) {
+            .main-content { padding:1.5rem clamp(.75rem,3vw,2rem); }
+        }
+        @media (max-width:768px) {
+            .hero-inner { flex-direction:column; align-items:flex-start; gap:.75rem; }
+            .new-roadmap-btn { width:100%; justify-content:center; box-sizing:border-box; }
+            .timeline::before { left:14px; }
+            .timeline-item { padding-left:46px; }
+            .timeline-item::before { left:3px; width:20px; height:20px; }
+            .timeline-content { padding:1.1rem; overflow:hidden; }
+            .timeline-content h3 { font-size:1.15em; }
+            .progress-bar-container { height:9px; }
+        }
+        @media (max-width:480px) {
+            .topbar { padding:12px 1rem; }
+            .back-btn { padding:6px 10px; font-size:.8rem; }
+            .hero-section { padding:1rem; }
+            .hero-text h1 { font-size:1.25rem; }
+            .main-content { padding:1rem; }
+            .timeline-content { padding:.85rem; }
+            .timeline-content h3 { font-size:1.05em; }
+            .complete-button { display:block; text-align:center; width:100%; }
+            .capstone-project { padding:1.25rem; }
+            .capstone-project h3 { font-size:1.05em; }
+        }
+        @media (max-width:360px) {
+            .timeline-item { padding-left:38px; }
+            .timeline::before { left:10px; }
+            .timeline-item::before { left:0; width:17px; height:17px; }
+        }
+        .flash-messages { position: fixed; top: 20px; right: 20px; z-index: 1001; display: flex; flex-direction: column; gap: 10px; width: 300px; }
+        .flash-messages { position:fixed; top:20px; right:20px; z-index:1001; display:flex; flex-direction:column; gap:10px; width:300px; }
+        .flash-banner { padding:1rem 1.25rem; border-radius:var(--border-radius-md); color:#fff; font-weight:600; font-size:.88rem; box-shadow:0 4px 16px rgba(0,0,0,.15); animation:popDown .4s forwards; border-left:4px solid rgba(255,255,255,.4); }
+        .flash-success { background:#1a7a4a; }
+        .flash-error   { background:#dc3545; }
+        .flash-info    { background:#1a1714; }
+        .flash-warning { background:#c4973a; color:#1a1714; }
+        @keyframes popDown { from { transform:translateY(-20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+    </style>
+</head>
+<body>
+    <!-- Topbar -->
+    <div class="topbar">
+      <a href="javascript:history.back()" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back
+      </a>
+      <a href="{{ url_for('main_page') }}" class="topbar-logo">SkillBridge</a>
+    </div>
+
+    <!-- Hero section -->
+    <div class="hero-section">
+      <div class="hero-inner">
+        <div class="hero-text">
+          <h1>🗺️ My Roadmaps</h1>
+          <p>Your saved AI-generated learning roadmaps.</p>
+        </div>
+        <a href="{{ url_for('roadmap_generator') }}" class="new-roadmap-btn">
+          <i class="fas fa-plus"></i> New Roadmap
+        </a>
+      </div>
+    </div>
+
+    <main class="main-content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="flash-messages">
+                  {% for category, message in messages %}
+                    <div class="flash-banner flash-{{ category }}">{{ message }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <div class="timeline-container">
+                <div class="timeline-header">
+                    <h1>{{ roadmap.goal }}</h1>
+                    <div class="progress-section">
+                        <span>{{ progress_percentage|round|int }}% Complete</span>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" style="width: {{ progress_percentage }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline">
+                    {# SAFE CHECK: Ensure roadmap_content is a dictionary #}
+                    {% if roadmap.roadmap_content is mapping %}
+                        {% set stages = roadmap.roadmap_content.stages %}
+                        {% if stages is iterable and stages is not string %}
+                            {% for stage in stages %}
+                            <div class="timeline-item {% if stage.completed %}completed{% endif %}">
+                                <div class="timeline-content">
+                                    <h3>{{ stage.name if stage is mapping else 'Unnamed Stage' }}</h3>
+                                    
+                                    <div class="completion-status">
+                                        {% if stage.completed %}
+                                            <span style="color: var(--color-success); font-weight: 700;">✓ Completed</span>
+                                        {% else %}
+                                            <a href="{{ url_for('complete_stage', roadmap_id=roadmap._id, stage_index=loop.index0) }}" class="complete-button">Mark Complete</a>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="stage-details">
+                                        {% if stage is mapping %}
+                                            {% set modules = stage.get('learning_modules', []) %}
+                                            {% for module in modules %}
+                                            <div class="module">
+                                                <h4>{{ module.name }}</h4>
+                                                {% if module.concepts %}
+                                                <ul>
+                                                    {% for concept in module.concepts %}
+                                                        <li>{{ concept }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                                {% endif %}
+                                                
+                                                {% if module.resources %}
+                                                    {% for res in module.resources %}
+                                                        <a href="{{ res.url }}" target="_blank" class="resource-link">🔗 {{ res.title }}</a><br>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% else %}
+                        <p style="text-align:center; color: var(--color-text-secondary);">Roadmap data is loading or unavailable.</p>
+                    {% endif %}
+                </div>
+
+                {# CAPSTONE SECTION #}
+                {% if roadmap.roadmap_content is mapping and roadmap.roadmap_content.capstone_project %}
+                {% set cap = roadmap.roadmap_content.capstone_project %}
+                <div class="capstone-project">
+                    <h3>🎓 Final Capstone: {{ cap.title }}</h3>
+                    <p>{{ cap.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+    </main>
+    {% include 'notification_bell.html' %}
+    {% include 'chatbot_widget.html' %}
+    <script>
+(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+</script>
+</body>
+</html>

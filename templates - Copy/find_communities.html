@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>(function(){var t=localStorage.getItem('sb-theme')||'light';if(t==='dark'){document.documentElement.classList.add('dark');document.documentElement.style.background='#1a1714';}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Communities - SkillBridge</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Playfair Display', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
+      },
+      colors: {
+        cream: { 50:'#fdfcf8', 100:'#f8f4ec', 200:'#f0e9d8', 300:'#e5d9c0', 400:'#d4c4a0', 500:'#b8a07a' },
+        ink:   { 900:'#1a1714', 800:'#2c2820', 700:'#3d3830', 600:'#5c5548', 500:'#7a7268', 400:'#9c9488' },
+        gold:  '#c4973a',
+        skill: { purple:'#7c3aed', pink:'#ec4899' }
+      }
+    }
+  }
+}
+</script>
+
+<style>
+body { font-family: 'DM Sans', sans-serif; }
+
+.grain-bg {
+  background-color: #f8f4ec;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+.custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #d4c4a0; border-radius: 10px; }
+
+.editorial-card { background: #fff; border: 1px solid #f0e9d8; border-radius: 1rem; box-shadow: 0 1px 2px rgba(26,23,20,.05); }
+.hover-line { position: relative; }
+.hover-line::after { content:''; position:absolute; bottom:-1px; left:0; width:0; height:1px; background:currentColor; transition:width .3s ease; }
+.hover-line:hover::after { width:100%; }
+
+.filter-tabs { display:flex; gap:.55rem; flex-wrap:wrap; align-items:center; }
+.filter-tab {
+  min-height: 38px; padding: .58rem 1rem; border-radius: 999px;
+  border: 1px solid #e5d9c0; background: #fff; color: #5c5548;
+  font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  transition: .18s ease; cursor: pointer;
+}
+.filter-tab:hover { border-color: #1a1714; color: #1a1714; transform: translateY(-1px); }
+.filter-tab.active { background: #1a1714; border-color: #1a1714; color: #f8f4ec; }
+.filter-count { margin-left:auto; font-size:.72rem; font-weight:800; color:#9c9488; letter-spacing:.08em; text-transform:uppercase; }
+
+.section-head { display:flex; align-items:center; gap:1rem; margin:2.5rem 0 1.1rem; }
+.section-head:first-of-type { margin-top:0; }
+.section-head h2 { font-size:.72rem; font-weight:900; letter-spacing:.22em; color:#7a7268; text-transform:uppercase; white-space:nowrap; }
+.section-line { flex:1; height:1px; background:#f0e9d8; }
+.section-badge { font-size:.65rem; font-weight:900; padding:.25rem .6rem; border-radius:999px; background:#f8f4ec; color:#c4973a; border:1px solid #f0e9d8; }
+
+.comm-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:1.25rem; }
+.comm-card {
+  min-height: 238px; background:#fff; border:1px solid #f0e9d8; border-radius:1rem; padding:1.35rem;
+  box-shadow: 0 1px 2px rgba(26,23,20,.05); transition: transform .2s, border-color .2s, box-shadow .2s;
+  display:flex; flex-direction:column; gap:.85rem; position:relative; overflow:hidden;
+}
+.comm-card::before { content:''; position:absolute; inset:0 0 auto 0; height:3px; background:linear-gradient(90deg,#7c3aed,#ec4899,#c4973a); opacity:.7; }
+.comm-card:hover { transform: translateY(-3px); border-color:#d4c4a0; box-shadow: 0 18px 42px rgba(26,23,20,.09); }
+.card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:.85rem; }
+.card-name { font-family:'Playfair Display', serif; font-size:1.28rem; font-weight:900; line-height:1.1; color:#1a1714; word-break:break-word; }
+.card-badges { display:flex; flex-direction:column; align-items:flex-end; gap:.35rem; flex-shrink:0; }
+.role-badge, .vis-badge { display:inline-flex; align-items:center; gap:.35rem; white-space:nowrap; font-size:.65rem; font-weight:900; text-transform:uppercase; letter-spacing:.06em; }
+.role-badge { padding:.25rem .58rem; border-radius:999px; border:1px solid transparent; }
+.role-badge.owner { background:rgba(196,151,58,.12); color:#9a6f1d; border-color:rgba(196,151,58,.25); }
+.role-badge.member { background:rgba(16,185,129,.1); color:#047857; border-color:rgba(16,185,129,.22); }
+.role-badge.pending { background:rgba(236,72,153,.09); color:#be185d; border-color:rgba(236,72,153,.2); }
+.vis-badge { padding:.28rem .58rem; border-radius:.5rem; }
+.vis-badge.public { background:rgba(16,185,129,.09); color:#047857; }
+.vis-badge.private { background:rgba(236,72,153,.09); color:#be185d; }
+.card-owner { font-size:.78rem; color:#c4973a; font-weight:900; }
+.card-skills { display:flex; flex-wrap:wrap; gap:.42rem; }
+.skill-pill { font-size:.68rem; font-weight:800; padding:.28rem .6rem; color:#5c5548; background:#f8f4ec; border:1px solid #f0e9d8; border-radius:999px; }
+.card-meta { display:flex; flex-wrap:wrap; align-items:center; gap:.85rem; margin-top:auto; color:#7a7268; font-size:.76rem; font-weight:800; }
+.card-action { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; width:100%; min-height:42px; border-radius:.75rem; font-size:.76rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; text-decoration:none; transition: .18s ease; }
+.card-action:hover { transform: translateY(-1px); }
+.btn-primary { background:#1a1714; color:#f8f4ec; border:1px solid #1a1714; }
+.btn-outline { background:#fff; color:#1a1714; border:1px solid #e5d9c0; }
+.btn-ghost { background:#f8f4ec; color:#5c5548; border:1px solid #f0e9d8; }
+.empty-state { grid-column:1/-1; padding:2.25rem 1.5rem; text-align:center; border:1.5px dashed #d4c4a0; border-radius:1rem; color:#7a7268; font-size:.9rem; font-weight:700; background:rgba(255,255,255,.55); }
+.empty-state i { font-size:2rem; margin-bottom:.75rem; opacity:.45; display:block; color:#c4973a; }
+.load-more-wrap { text-align:center; margin:2rem 0 1rem; }
+.load-more-btn { display:inline-flex; align-items:center; justify-content:center; gap:.55rem; min-height:44px; padding:.75rem 1.6rem; border-radius:.75rem; border:1px solid #1a1714; background:#1a1714; color:#f8f4ec; font-weight:900; font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; cursor:pointer; transition:.18s ease; }
+.load-more-btn:hover { transform: translateY(-1px); opacity:.92; }
+.showing-count { font-size:.75rem; color:#9c9488; margin-top:.65rem; font-weight:800; }
+
+.dark body, .dark .grain-bg { background-color: #1a1714; background-image: none; color: #f8f4ec; }
+.dark aside { background: #2c2820 !important; border-color: #3d3830 !important; }
+.dark .editorial-card, .dark .comm-card { background:#2c2820 !important; border-color:#3d3830 !important; color:#f0e9d8; }
+.dark input { background:#1a1714 !important; border-color:#3d3830 !important; color:#f0e9d8 !important; }
+.dark input:focus { border-color:#c4973a !important; }
+.dark .nav-item-active { background:#1a1714 !important; color:#c4973a !important; }
+.dark .section-line { background:#3d3830; }
+.dark .section-head h2, .dark .filter-count, .dark .card-meta { color:#9c9488; }
+.dark .section-badge, .dark .skill-pill { background:#1a1714; border-color:#3d3830; color:#c4973a; }
+.dark .filter-tab { background:#2c2820; border-color:#3d3830; color:#d4c4a0; }
+.dark .filter-tab:hover { border-color:#c4973a; color:#f8f4ec; }
+.dark .filter-tab.active { background:#f8f4ec; border-color:#f8f4ec; color:#1a1714; }
+.dark .card-name { color:#f8f4ec; }
+.dark .card-owner { color:#c4973a; }
+.dark .btn-primary { background:#f8f4ec; border-color:#f8f4ec; color:#1a1714; }
+.dark .btn-outline, .dark .btn-ghost { background:#1a1714; border-color:#3d3830; color:#f8f4ec; }
+.dark .empty-state { background:#2c2820; border-color:#3d3830; color:#9c9488; }
+
+@media (max-width: 1023px) { .filter-count { margin-left:0; width:100%; } }
+@media (max-width: 640px) { .comm-grid { grid-template-columns: 1fr; } .comm-card { min-height:auto; } .filter-tab { flex:1 1 calc(50% - .55rem); } }
+</style>
+</head>
+
+<body class="grain-bg text-ink-900 min-h-screen custom-scroll antialiased">
+<div class="min-h-screen flex flex-col lg:flex-row relative w-full">
+
+  <!-- MOBILE HEADER & MENU ACTION BAR -->
+  <header class="lg:hidden bg-cream-100 dark:bg-ink-800 border-b border-cream-200 dark:border-ink-700 px-6 py-4 flex items-center justify-between sticky top-0 z-40 transition-colors w-full">
+    <div class="flex items-center gap-3">
+      <button onclick="toggleSidebarMenu()" class="text-ink-900 dark:text-cream-50 text-xl p-1.5 focus:outline-none transition-transform active:scale-95">
+        <i class="fas fa-bars" id="menu-icon"></i>
+      </button>
+      <a href="{{ url_for('main_page') }}" class="font-display text-2xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+    </div>
+    <button class="w-10 h-10 rounded-full border border-cream-300 dark:border-ink-700 flex items-center justify-center relative text-ink-900 dark:text-cream-50" id="mobile-notif-btn" onclick="toggleNotifDropdown(event)">
+      <i class="fas fa-bell"></i>
+      <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[9px] font-bold w-4 h-4 rounded-full hidden items-center justify-center notif-badge"></span>
+    </button>
+  </header>
+
+  <!-- NAVIGATION SIDEBAR -->
+  <aside id="app-sidebar" class="hidden lg:flex fixed lg:sticky top-0 left-0 w-full lg:w-64 bg-white border-r border-cream-200 px-6 pt-6 pb-16 flex-col h-screen z-50 overflow-y-auto custom-scroll transition-all duration-300 flex-shrink-0">
+    <div class="flex items-center justify-between mb-8">
+      <a href="{{ url_for('main_page') }}" class="font-display text-3xl font-black text-ink-900 dark:text-cream-50 tracking-tight">SkillBridge</a>
+      <button class="w-9 h-9 rounded-full border border-cream-200 dark:border-ink-700 flex items-center justify-center relative text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-cream-50 transition-colors" id="desktop-notif-btn" onclick="toggleNotifDropdown(event)">
+        <i class="fas fa-bell text-sm"></i>
+        <span class="absolute -top-1 -right-1 bg-rose-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full hidden items-center justify-center notif-badge"></span>
+      </button>
+    </div>
+
+    <div class="bg-cream-100/60 dark:bg-ink-900/40 border border-cream-300/50 dark:border-ink-700 rounded-2xl p-4 mb-6 space-y-3 shadow-inner">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl leading-none select-none">{{ level_info.icon }}</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-[9px] font-bold tracking-widest uppercase text-gold">Lv.{{ level_info.level }} · {{ level_info.badge }}</div>
+          <div class="text-lg font-black text-ink-900 dark:text-cream-100 leading-tight mt-0.5">
+            {{ xp }} <span class="text-xs font-semibold text-ink-400 dark:text-ink-500">XP</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="w-full h-1.5 bg-cream-200 dark:bg-ink-700 rounded-full overflow-hidden mb-1.5">
+          <div class="h-full bg-ink-900 dark:bg-gold rounded-full transition-all duration-1000" style="width: {{ progress_pct }}%"></div>
+        </div>
+        <div class="flex justify-between text-[10px] font-bold text-ink-500 dark:text-ink-400">
+          <span>{{ xp }} XP</span>
+          <span>{% if level_info.next_xp == 'Max' %}Max{% else %}{{ level_info.next_xp }} XP{% endif %}</span>
+        </div>
+      </div>
+      <div class="pt-0.5">
+        {% if streak and streak >= 1 %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 text-xs font-bold text-rose-700 dark:text-rose-400">
+            <span>🔥</span> {{ streak }} day streak
+          </div>
+        {% else %}
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cream-200 border border-cream-300/40 dark:bg-ink-800 dark:border-ink-700 text-xs font-bold text-ink-400 dark:text-ink-500">
+            <span>❄️</span> No active streak
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <nav class="space-y-1 flex-1 font-body">
+      <a href="{{ url_for('main_page') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-home w-4 text-center"></i> Dashboard</a>
+      <a href="{{ url_for('profile') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-user-circle w-4 text-center"></i> My Profile</a>
+      <a href="{{ url_for('my_projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-layer-group w-4 text-center"></i> My Projects</a>
+      <a href="{{ url_for('roadmap_generator') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-magic w-4 text-center"></i> Roadmap AI</a>
+      <a href="{{ url_for('resume_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-file-alt w-4 text-center"></i> Resume Builder</a>
+      <a href="{{ url_for('portfolio_builder') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-briefcase w-4 text-center"></i> Portfolio Builder</a>
+      <a href="{{ url_for('projects') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-globe w-4 text-center"></i> Community</a>
+      <a href="{{ url_for('find_communities') }}" class="nav-item-active flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 shadow-sm transition-all"><i class="fas fa-users w-4 text-center"></i> All Communities</a>
+      <a href="{{ url_for('messages_list') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-comment-dots w-4 text-center"></i> Messages</a>
+      <a href="{{ url_for('leaderboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-trophy w-4 text-center"></i> Leaderboard</a>
+      <div class="pt-4 mt-4 border-t border-cream-200 dark:border-ink-800">
+        <a href="{{ url_for('settings') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-600 dark:text-ink-400 hover:bg-cream-100 dark:hover:bg-ink-800 hover:text-ink-900 dark:hover:text-cream-50 transition-all"><i class="fas fa-cog w-4 text-center"></i> Settings</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- CONTENT BLOCK -->
+  <main class="flex-1 px-4 sm:px-8 py-8 lg:py-10 max-w-full w-full space-y-6 overflow-x-hidden">
+    <div class="editorial-card bg-white border border-cream-200 rounded-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
+      <div class="absolute inset-0 opacity-[0.02] dark:opacity-[0.04] pointer-events-none">
+        <div class="absolute left-1/3 top-0 bottom-0 w-px bg-ink-900"></div>
+        <div class="absolute left-2/3 top-0 bottom-0 w-px bg-ink-900"></div>
+      </div>
+      <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 class="font-display text-3xl sm:text-4xl font-black tracking-tight text-ink-900 dark:text-cream-100 leading-tight">All Communities</h1>
+          <p class="text-ink-500 dark:text-ink-400 text-sm font-body mt-1.5 leading-relaxed">Explore communities, manage the ones you own, and join teams working on real projects.</p>
+        </div>
+        <div class="flex items-center gap-3 flex-shrink-0">
+          <a href="{{ url_for('projects') }}" class="flex items-center gap-2 px-5 py-2.5 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-body font-semibold text-sm rounded-xl tracking-wide transition-all hover:opacity-90 hover:-translate-y-0.5 shadow-sm">
+            <i class="fas fa-globe text-xs"></i> Community
+          </a>
+          <a href="{{ url_for('create_project') }}" class="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-ink-800 border border-cream-300 dark:border-ink-700 text-ink-900 dark:text-cream-100 font-body font-semibold text-sm rounded-xl tracking-wide transition-all hover:bg-cream-50 dark:hover:bg-ink-700 hover:-translate-y-0.5 shadow-sm">
+            <i class="fas fa-plus text-xs"></i> Create Project
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <section class="space-y-4">
+      <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-4 items-start">
+        <div class="flex items-center bg-white dark:bg-ink-800 border border-cream-300 dark:border-ink-700 rounded-xl overflow-hidden focus-within:border-ink-900 dark:focus-within:border-gold shadow-sm transition-all max-w-3xl">
+          <div class="pl-4 pr-2 text-ink-400"><i class="fas fa-search"></i></div>
+          <input class="w-full py-4 text-sm bg-transparent outline-none text-ink-900 dark:text-cream-100 placeholder-ink-400 font-body px-1" type="text" id="search-input" placeholder="Search communities by project name..." autocomplete="off">
+        </div>
+        <div class="filter-count self-center" id="count-display"></div>
+      </div>
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="all">All</button>
+        <button class="filter-tab" data-filter="mine">My Communities</button>
+        <button class="filter-tab" data-filter="joined">Joined</button>
+        <button class="filter-tab" data-filter="explore">Explore</button>
+        <button class="filter-tab" data-filter="public">Public</button>
+        <button class="filter-tab" data-filter="private">Private</button>
+      </div>
+    </section>
+
+    <section class="space-y-1">
+      {% if my_communities %}
+      <div class="section-head" data-section="mine">
+        <h2>My Communities</h2>
+        <div class="section-line"></div>
+        <span class="section-badge">{{ my_communities|length }}</span>
+      </div>
+      <div class="comm-grid" id="my-grid">
+        {% for c in my_communities %}
+        <div class="comm-card" data-section="mine" data-vis="{{ c.visibility }}" data-name="{{ c.project_title|lower }}">
+          <div class="card-top">
+            <div class="card-name">{{ c.project_title }}</div>
+            <div class="card-badges">
+              <span class="role-badge owner"><i class="fas fa-crown"></i> Owner</span>
+              <span class="vis-badge {{ c.visibility }}">{{ c.visibility|capitalize }}</span>
+            </div>
+          </div>
+          {% if c.owner_username %}<div class="card-owner">@{{ c.owner_username }}</div>{% endif %}
+          <div class="card-skills">
+            {% for skill in c.skills_required %}<span class="skill-pill">{{ skill }}</span>{% endfor %}
+          </div>
+          <div class="card-meta">
+            <span><i class="fas fa-users"></i> {{ c.members|length }} member{{ 's' if c.members|length != 1 }}</span>
+            {% if c.pending_requests %}<span><i class="fas fa-clock"></i> {{ c.pending_requests|length }} pending</span>{% endif %}
+          </div>
+          <a href="{{ url_for('view_community', community_id=c._id) }}" class="card-action btn-primary"><i class="fas fa-cog"></i> Manage Community</a>
+          <button onclick="openCommDeleteModal('{{ c._id }}', '{{ c.project_title | e }}')" class="card-action btn-ghost mt-2" style="color:#dc2626;border-color:#fecaca;background:rgba(220,38,38,0.05);"><i class="fas fa-trash-alt" style="font-size:.65rem;"></i> Delete Community</button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if joined_communities %}
+      <div class="section-head" data-section="joined">
+        <h2>Communities I Joined</h2>
+        <div class="section-line"></div>
+        <span class="section-badge">{{ joined_communities|length }}</span>
+      </div>
+      <div class="comm-grid" id="joined-grid">
+        {% for c in joined_communities %}
+        <div class="comm-card" data-section="joined" data-vis="{{ c.visibility }}" data-name="{{ c.project_title|lower }}">
+          <div class="card-top">
+            <div class="card-name">{{ c.project_title }}</div>
+            <div class="card-badges">
+              <span class="role-badge member"><i class="fas fa-check-circle"></i> Member</span>
+              <span class="vis-badge {{ c.visibility }}">{{ c.visibility|capitalize }}</span>
+            </div>
+          </div>
+          {% if c.owner_username %}<div class="card-owner">@{{ c.owner_username }}</div>{% endif %}
+          <div class="card-skills">
+            {% for skill in c.skills_required %}<span class="skill-pill">{{ skill }}</span>{% endfor %}
+          </div>
+          <div class="card-meta"><span><i class="fas fa-users"></i> {{ c.members|length }} member{{ 's' if c.members|length != 1 }}</span></div>
+          <a href="{{ url_for('view_community', community_id=c._id) }}" class="card-action btn-primary"><i class="fas fa-comments"></i> Open Community</a>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if not my_communities and not joined_communities %}
+      <div class="section-head">
+        <h2>Your Communities</h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="comm-grid">
+        <div class="empty-state">
+          <i class="fas fa-users"></i>
+          You haven't created or joined any communities yet.<br>
+          <span class="text-xs inline-block mt-2">Explore below and send a join request.</span>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="section-head" data-section="explore">
+        <h2>Explore Communities</h2>
+        <div class="section-line"></div>
+        <span class="section-badge" id="explore-count">{{ other_total }}</span>
+      </div>
+      <div class="comm-grid" id="explore-grid">
+        {% if other_communities %}
+          {% for c in other_communities %}
+          <div class="comm-card" data-section="explore" data-vis="{{ c.visibility }}" data-name="{{ c.project_title|lower }}">
+            <div class="card-top">
+              <div class="card-name">{{ c.project_title }}</div>
+              <div class="card-badges"><span class="vis-badge {{ c.visibility }}">{{ c.visibility|capitalize }}</span></div>
+            </div>
+            {% if c.owner_username %}<div class="card-owner">@{{ c.owner_username }}</div>{% endif %}
+            <div class="card-skills">
+              {% for skill in c.skills_required %}<span class="skill-pill">{{ skill }}</span>{% endfor %}
+            </div>
+            <div class="card-meta">
+              <span><i class="fas fa-users"></i> {{ c.member_count }} member{{ 's' if c.member_count != 1 }}</span>
+              <span><i class="fas fa-{{ 'unlock-alt' if c.visibility == 'public' else 'lock' }}"></i> {{ c.visibility|capitalize }}</span>
+            </div>
+            <a href="{{ url_for('view_community', community_id=c._id) }}" class="card-action btn-outline"><i class="fas fa-eye"></i> View Community</a>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">
+            <i class="fas fa-compass"></i>
+            No other communities yet. Create one from your next project.
+          </div>
+        {% endif %}
+      </div>
+
+      {% if has_more %}
+      <div class="load-more-wrap" id="load-more-wrap">
+        <button class="load-more-btn" id="load-more-btn" onclick="loadMore()"><i class="fas fa-plus-circle"></i> Load More</button>
+        <div class="showing-count">Showing <span id="showing-count">{{ other_communities|length }}</span> of {{ other_total }}</div>
+      </div>
+      {% else %}
+        {% if other_total > 0 %}
+        <div class="text-center my-6 text-xs text-ink-400 dark:text-ink-500 font-bold uppercase tracking-wider">
+          You've seen all {{ other_total }} communities
+        </div>
+        {% endif %}
+      {% endif %}
+    </section>
+  </main>
+</div>
+
+<!-- COMMUNITY DELETE MODAL -->
+<div class="fixed inset-0 bg-ink-900/40 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4" id="comm-delete-modal">
+    <div class="bg-white border border-cream-200 dark:bg-ink-800 dark:border-ink-700 w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center space-y-4">
+        <div class="text-3xl">🗑️</div>
+        <h3 class="font-display text-lg font-black text-ink-900 dark:text-cream-50">Delete Community?</h3>
+        <p class="text-xs text-ink-500 dark:text-ink-400 font-body leading-relaxed" id="comm-delete-msg">This community will be permanently deleted. All members will be notified.</p>
+        <div class="flex gap-3 pt-2 font-body">
+            <button class="px-4 py-2.5 border border-cream-300 dark:border-ink-700 bg-white dark:bg-ink-800 rounded-xl font-semibold text-ink-500 dark:text-ink-400 text-xs active:scale-95 transition-all" onclick="closeCommDeleteModal()">Cancel</button>
+            <button class="flex-1 py-2.5 bg-rose-600 text-white font-bold text-xs rounded-xl tracking-wide active:scale-95 transition-all" onclick="confirmCommDelete()"><i class="fas fa-trash-alt mr-1"></i> Yes, Delete</button>
+        </div>
+    </div>
+</div>
+
+{% include 'notification_bell.html' %}
+{% include 'chatbot_widget.html' %}
+
+<script>
+function toggleSidebarMenu() {
+  const sidebar = document.getElementById('app-sidebar');
+  const icon = document.getElementById('menu-icon');
+  if(sidebar.classList.contains('hidden')) {
+    sidebar.classList.remove('hidden');
+    sidebar.classList.add('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]', '!h-[calc(100vh-73px)]', 'overflow-y-auto');
+    icon.classList.remove('fa-bars');
+    icon.classList.add('fa-times');
+    document.body.classList.add('overflow-hidden');
+  } else {
+    sidebar.classList.add('hidden');
+    sidebar.classList.remove('block', 'fixed', 'w-[260px]', 'top-[73px]', 'z-[9998]', '!h-[calc(100vh-73px)]', 'overflow-y-auto');
+    icon.classList.remove('fa-times');
+    icon.classList.add('fa-bars');
+    document.body.classList.remove('overflow-hidden');
+  }
+}
+
+applyTheme(localStorage.getItem('sb-theme') || 'light');
+function applyTheme(t){ t==='dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark'); }
+
+const searchInput = document.getElementById('search-input');
+const filterTabs  = document.querySelectorAll('.filter-tab');
+let activeFilter = 'all';
+
+function applyFilters() {
+  const q = searchInput.value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.comm-card');
+  let visible = 0;
+
+  cards.forEach(card => {
+    const name = card.dataset.name || '';
+    const section = card.dataset.section || '';
+    const vis = card.dataset.vis || '';
+    const matchesSearch = !q || name.includes(q);
+    let matchesFilter = true;
+    if (activeFilter === 'mine') matchesFilter = section === 'mine';
+    else if (activeFilter === 'joined') matchesFilter = section === 'joined';
+    else if (activeFilter === 'explore') matchesFilter = section === 'explore';
+    else if (activeFilter === 'public') matchesFilter = vis === 'public';
+    else if (activeFilter === 'private') matchesFilter = vis === 'private';
+
+    const show = matchesSearch && matchesFilter;
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+
+  document.querySelectorAll('.section-head[data-section]').forEach(head => {
+    const sec = head.dataset.section;
+    const anyVisible = [...document.querySelectorAll(`.comm-card[data-section="${sec}"]`)]
+      .some(c => c.style.display !== 'none');
+    head.style.display = anyVisible ? '' : 'none';
+    const grid = document.getElementById(sec === 'mine' ? 'my-grid' : sec === 'joined' ? 'joined-grid' : 'explore-grid');
+    if (grid) grid.style.display = anyVisible ? '' : 'none';
+  });
+
+  const countEl = document.getElementById('count-display');
+  if (countEl) countEl.textContent = `${visible} result${visible !== 1 ? 's' : ''}`;
+}
+
+if (searchInput) searchInput.addEventListener('input', applyFilters);
+filterTabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    filterTabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    activeFilter = tab.dataset.filter;
+    applyFilters();
+  });
+});
+
+let currentPage = {{ page }};
+let isLoading = false;
+
+async function loadMore() {
+  if (isLoading) return;
+  isLoading = true;
+  const btn = document.getElementById('load-more-btn');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`/api/communities?page=${currentPage + 1}`);
+    const data = await res.json();
+    const grid = document.getElementById('explore-grid');
+
+    data.communities.forEach(c => {
+      const skills = c.skills_required.map(s => `<span class="skill-pill">${s}</span>`).join('');
+      const visClass = c.visibility === 'public' ? 'public' : 'private';
+      const lockIcon = c.visibility === 'public' ? 'unlock-alt' : 'lock';
+      const card = document.createElement('div');
+      card.className = 'comm-card';
+      card.dataset.section = 'explore';
+      card.dataset.vis = c.visibility;
+      card.dataset.name = (c.project_title || '').toLowerCase();
+      card.innerHTML = `
+        <div class="card-top">
+          <div class="card-name">${c.project_title}</div>
+          <div class="card-badges"><span class="vis-badge ${visClass}">${c.visibility.charAt(0).toUpperCase() + c.visibility.slice(1)}</span></div>
+        </div>
+        ${c.owner_username ? `<div class="card-owner">@${c.owner_username}</div>` : ''}
+        <div class="card-skills">${skills}</div>
+        <div class="card-meta">
+          <span><i class="fas fa-users"></i> ${c.member_count} member${c.member_count !== 1 ? 's' : ''}</span>
+          <span><i class="fas fa-${lockIcon}"></i> ${c.visibility.charAt(0).toUpperCase() + c.visibility.slice(1)}</span>
+        </div>
+        <a href="/community/${c._id}" class="card-action btn-outline"><i class="fas fa-eye"></i> View Community</a>`;
+      grid.appendChild(card);
+    });
+
+    currentPage++;
+    const countEl = document.getElementById('showing-count');
+    if (countEl) countEl.textContent = parseInt(countEl.textContent) + data.communities.length;
+
+    if (!data.has_more) {
+      document.getElementById('load-more-wrap').innerHTML =
+        '<p class="text-xs text-ink-400 dark:text-ink-500 font-bold uppercase tracking-wider">You\'ve seen all communities</p>';
+    } else {
+      btn.innerHTML = '<i class="fas fa-plus-circle"></i> Load More';
+      btn.disabled = false;
+    }
+    applyFilters();
+  } catch(e) {
+    btn.innerHTML = '<i class="fas fa-plus-circle"></i> Load More';
+    btn.disabled = false;
+  }
+  isLoading = false;
+}
+
+// ── COMMUNITY DELETE ────────────────────────────────────────
+let commDeleteTargetId = null;
+function openCommDeleteModal(communityId, communityTitle) {
+    commDeleteTargetId = communityId;
+    document.getElementById('comm-delete-msg').innerHTML =
+        `"<strong>${communityTitle}</strong>" will be permanently deleted. All messages will be erased and all members will be notified.`;
+    const modal = document.getElementById('comm-delete-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+function closeCommDeleteModal() {
+    const modal = document.getElementById('comm-delete-modal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+    commDeleteTargetId = null;
+}
+document.getElementById('comm-delete-modal').addEventListener('click', function(e) { if (e.target === this) closeCommDeleteModal(); });
+
+async function confirmCommDelete() {
+    if (!commDeleteTargetId) return;
+    const id = commDeleteTargetId;
+    closeCommDeleteModal();
+    try {
+        const res = await fetch(`/community/${id}/delete`, { method: 'POST', headers: {'Content-Type': 'application/json'} });
+        const data = await res.json();
+        if (data.success) {
+            // Find and remove card by scanning for matching delete button
+            document.querySelectorAll('.comm-card[data-section="mine"]').forEach(card => {
+                if (card.querySelector(`button[onclick*="${id}"]`)) {
+                    card.style.transition = 'opacity 0.3s, transform 0.3s';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.95)';
+                    setTimeout(() => card.remove(), 300);
+                }
+            });
+            showCommToast('🗑️ Community permanently deleted.');
+        } else {
+            showCommToast(data.error || 'Failed to delete community.', false);
+        }
+    } catch(e) { showCommToast('Error deleting community.', false); }
+}
+
+function showCommToast(msg, success=true) {
+    let t = document.getElementById('comm-toast');
+    if (!t) { t = document.createElement('div'); t.id = 'comm-toast'; document.body.appendChild(t); }
+    t.textContent = msg;
+    t.style.cssText = `position:fixed;bottom:28px;left:50%;transform:translateX(-50%);color:#fff;padding:12px 24px;border-radius:12px;font-weight:700;font-size:0.85rem;z-index:99999;opacity:1;transition:opacity 0.35s;background:${success ? '#166534' : '#dc2626'}`;
+    setTimeout(() => { t.style.opacity = '0'; }, 2800);
+}
+
+applyFilters();
+</script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="stylesheet" href="{{ url_for('static', filename='dark.css') }}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload Version - {{ project.title }}</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --bg: #f8f4ec; --surface: #fff; --primary: #1a1714; --secondary: #c4973a;
+  --text: #1a1714; --muted: #7a7268; --border: #e5d9c0;
+  --input-bg: #f8f4ec; --radius: 14px; --radius-sm: 10px;
+}
+body.dark {
+  --bg: #1a1714; --surface: #2c2820; --primary: #f0e9d8; --secondary: #c4973a;
+  --text: #f0e9d8; --muted: #9c9488; --border: #3d3830; --input-bg: #23201c;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:background .3s,color .3s; }
+
+/* ── Topbar ── */
+.topbar {
+  position:sticky; top:0; z-index:50;
+  background:var(--surface); border-bottom:1px solid var(--border);
+  padding:14px clamp(1rem,5vw,3rem);
+  display:flex; align-items:center; gap:14px;
+}
+.back-btn {
+  display:inline-flex; align-items:center; gap:7px;
+  color:var(--muted); text-decoration:none; font-size:.87rem; font-weight:600;
+  padding:8px 14px; border-radius:10px;
+  border:1.5px solid var(--border); background:var(--surface); transition:.18s;
+}
+.back-btn:hover { background:var(--bg); color:var(--text); }
+.topbar-logo { font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:900; color:var(--text); text-decoration:none; }
+
+/* ── Page ── */
+.page { display:flex; align-items:flex-start; justify-content:center; padding:clamp(1.5rem,5vw,3rem) clamp(1rem,5vw,2rem); min-height:calc(100vh - 60px); }
+
+/* ── Card ── */
+.card {
+  width:100%; max-width:600px;
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--radius); padding:clamp(1.5rem,5vw,2.5rem);
+  box-shadow:0 8px 30px rgba(0,0,0,.06);
+}
+
+.card-header { margin-bottom:2rem; }
+.card-header h1 {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.4rem,3vw,1.9rem); font-weight:900;
+  color:var(--text); margin-bottom:.4rem;
+}
+.card-header .project-name {
+  font-size:.9rem; color:var(--muted); font-weight:600;
+  display:flex; align-items:center; gap:6px;
+}
+.divider { width:100%; height:1px; background:var(--border); margin:1.5rem 0; }
+
+/* ── Flash ── */
+.flash-wrap { margin-bottom:1.25rem; display:flex; flex-direction:column; gap:8px; }
+.flash-banner { padding:.85rem 1.1rem; border-radius:var(--radius-sm); color:#fff; font-weight:600; font-size:.85rem; border-left:4px solid rgba(255,255,255,.3); }
+.flash-success { background:#1a7a4a; }
+.flash-error   { background:#dc3545; }
+.flash-info    { background:#1a1714; }
+.flash-warning { background:#c4973a; color:#1a1714; }
+
+/* ── Form ── */
+.form-group { margin-bottom:1.5rem; }
+.form-group label {
+  display:block; margin-bottom:.5rem;
+  font-weight:700; color:var(--text); font-size:.88rem;
+}
+.form-group input[type="text"],
+.form-group input[type="file"] {
+  width:100%; padding:13px 16px;
+  border-radius:var(--radius-sm);
+  border:1.5px solid var(--border);
+  background:var(--input-bg); color:var(--text);
+  font-family:'DM Sans',sans-serif; font-size:.93rem;
+  transition:border-color .2s, box-shadow .2s; outline:none;
+}
+.form-group input[type="text"]:focus,
+.form-group input[type="file"]:focus {
+  border-color:var(--text);
+  box-shadow:0 0 0 3px rgba(26,23,20,.08);
+}
+.form-group input[type="text"]::placeholder { color:var(--muted); }
+.form-group input[type="file"] { padding:10px 14px; cursor:pointer; }
+.form-group ::file-selector-button {
+  background:var(--primary); color:var(--bg);
+  border:none; padding:7px 12px; border-radius:7px;
+  cursor:pointer; margin-right:10px; font-family:'DM Sans',sans-serif;
+  font-weight:700; font-size:.82rem; transition:.18s;
+}
+.form-group ::file-selector-button:hover { opacity:.85; }
+.form-group small { display:block; margin-top:.45rem; font-size:.8rem; color:var(--muted); line-height:1.5; }
+
+/* ── Submit ── */
+.submit-btn {
+  width:100%; padding:14px;
+  background:var(--primary); color:var(--bg);
+  border:none; border-radius:var(--radius-sm);
+  font-family:'DM Sans',sans-serif; font-weight:700; font-size:.95rem;
+  cursor:pointer; transition:.2s; margin-top:.5rem;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.submit-btn:hover { opacity:.88; transform:translateY(-1px); }
+
+/* ── Info box ── */
+.info-box {
+  margin-top:1.5rem; padding:1rem 1.1rem;
+  background:rgba(196,151,58,.08); border:1px solid rgba(196,151,58,.25);
+  border-radius:var(--radius-sm); font-size:.82rem; color:var(--muted); line-height:1.6;
+}
+.info-box i { color:var(--secondary); margin-right:4px; }
+
+@media (max-width:480px) {
+  .card { border-radius:12px; }
+  .topbar { padding:12px 1rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="javascript:history.back()" class="back-btn">
+    <i class="fas fa-arrow-left"></i> Back
+  </a>
+  <a href="{{ url_for('main_page') }}" class="topbar-logo">SkillBridge</a>
+</div>
+
+<div class="page">
+  <div class="card">
+    <div class="card-header">
+      <h1>Upload New Version</h1>
+      <div class="project-name">
+        <i class="fas fa-layer-group" style="color:var(--secondary);font-size:.85rem;"></i>
+        {{ project.title }}
+      </div>
+    </div>
+    <div class="divider"></div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-wrap">
+          {% for category, message in messages %}
+            <div class="flash-banner flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('upload_version', project_id=project._id) }}" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="message">Version Message <span style="color:#dc3545;">*</span></label>
+        <input type="text" id="message" name="message"
+               placeholder="e.g., Initial commit, Added login feature, Fixed CSS bug" required>
+        <small>Briefly describe what changed in this version.</small>
+      </div>
+
+      <div class="form-group">
+        <label for="project_file">Project File (.zip only) <span style="color:#dc3545;">*</span></label>
+        <input type="file" id="project_file" name="project_file" accept=".zip" required>
+        <small>Select the .zip archive containing your project files.</small>
+      </div>
+
+      <button type="submit" class="submit-btn">
+        <i class="fas fa-upload"></i> Upload Version
+      </button>
+    </form>
+
+    <div class="info-box">
+      <i class="fas fa-info-circle"></i>
+      Only <strong>.zip</strong> files are accepted. Make sure your archive contains all project files before uploading.
+    </div>
+  </div>
+</div>
+
+{% include 'notification_bell.html' %}
+{% include 'chatbot_widget.html' %}
+<script>
+(function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
+</script>
+</body>
+</html>

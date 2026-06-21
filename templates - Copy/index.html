@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillBridge — Learn. Build. Prove.</title>
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Premium Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Playfair Display', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
+      },
+      colors: {
+        cream: { 50:'#fdfcf8', 100:'#f8f4ec', 200:'#f0e9d8', 300:'#e5d9c0', 400:'#d4c4a0', 500:'#b8a07a' },
+        ink:   { 900:'#1a1714', 800:'#2c2820', 700:'#3d3830', 600:'#5c5548', 500:'#7a7268', 400:'#9c9488' },
+        gold:  '#c4973a',
+      }
+    }
+  }
+}
+</script>
+
+<style>
+body { font-family: 'DM Sans', sans-serif; }
+
+.grain-bg {
+  background-color: #f8f4ec;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+.hover-line { position: relative; }
+.hover-line::after { content:''; position:absolute; bottom:-1px; left:0; width:0; height:1px; background:currentColor; transition:width .3s ease; }
+.hover-line:hover::after { width:100%; }
+
+/* Scroll reveal properties */
+.reveal { opacity: 0; transform: translateY(40px); transition: all 0.75s cubic-bezier(0.16, 1, 0.3, 1); }
+.reveal.show { opacity: 1; transform: translateY(0); }
+
+/* Dark mode configurations */
+.dark body, .dark .grain-bg { background-color: #1a1714; background-image: none; color: #f8f4ec; }
+.dark nav { background-color: rgba(26, 23, 20, 0.85) !important; border-bottom-color: #2c2820 !important; }
+.dark .editorial-card { background: #2c2820 !important; border-color: #3d3830 !important; }
+.dark .hero-step-item { background: #1a1714 !important; border-color: #2c2820 !important; }
+.dark .cta-banner { background: #2c2820 !important; border-color: #3d3830 !important; }
+</style>
+</head>
+
+<body class="grain-bg text-ink-900 min-h-screen transition-colors duration-300">
+
+  <!-- ══ NAVIGATION BAR ══ -->
+  <nav class="sticky top-0 bg-cream-100/80 backdrop-filter backdrop-blur-xl border-b border-cream-200 z-50 transition-colors">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <div class="font-display text-2xl font-black tracking-tight text-ink-900 dark:text-cream-50 select-none">SkillBridge</div>
+      <div class="flex items-center gap-6">
+        <a href="{{ url_for('login') }}" class="text-sm font-semibold text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-cream-100 transition-colors">Login</a>
+        <a href="{{ url_for('signup') }}" class="px-5 py-2.5 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-body font-semibold text-xs rounded-xl tracking-wide transition-all duration-300 hover:opacity-95 hover:-translate-y-0.5 active:scale-95 shadow-sm">
+          Get Started
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══ HERO SECTION ══ -->
+  <section class="max-w-7xl mx-auto px-6 py-16 lg:py-28">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+      
+      <!-- Headline & Call to action -->
+      <div class="reveal lg:col-span-7 space-y-6">
+        <p class="text-[10px] font-semibold tracking-[0.3em] uppercase text-ink-500 dark:text-ink-400">— SkillBridge Platform</p>
+        <h1 class="font-display text-5xl sm:text-6xl xl:text-7xl font-black leading-[0.95] tracking-tight text-ink-900 dark:text-cream-100">
+          Learn. Build.<br>
+          <span class="text-gold italic font-normal">Prove</span> your skills.
+        </h1>
+        <p class="text-ink-500 dark:text-ink-400 text-base sm:text-lg max-w-xl font-body leading-relaxed">
+          AI roadmaps, production-grade project environments, decentralized community collaboration, and transparent portfolios — designed to establish your definitive proof of work.
+        </p>
+        <div class="flex flex-wrap gap-4 pt-4">
+          <a href="{{ url_for('signup') }}" class="px-6 py-3.5 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-body font-semibold text-sm rounded-xl tracking-wide transition-all duration-300 hover:-translate-y-1 hover:shadow-lg active:scale-98">
+            Start Learning
+          </a>
+          <a href="#stats" class="px-6 py-3.5 border border-cream-300 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-900 dark:text-cream-100 font-body font-semibold text-sm rounded-xl tracking-wide transition-all duration-300 hover:-translate-y-1 hover:bg-cream-50 dark:hover:bg-ink-700 active:scale-98 shadow-sm">
+            See Impact
+          </a>
+        </div>
+      </div>
+
+      <!-- Hero Interactive Card Panels -->
+      <div class="lg:col-span-5">
+        <div class="editorial-card bg-white border border-cream-200 rounded-3xl p-8 shadow-sm space-y-4 hover:border-cream-400 dark:hover:border-ink-600 transition-all duration-300">
+          <div class="text-[10px] font-semibold tracking-[0.2em] uppercase text-ink-400 dark:text-cream-400 mb-2">SYSTEM CAPABILITIES</div>
+          
+          <div class="hero-step-item flex items-center gap-4 p-4 bg-cream-100 border border-cream-200/50 rounded-xl transition-all duration-300 opacity-0 translate-x-10 text-ink-900 dark:text-cream-100 hover:scale-[1.02] hover:border-ink-400 dark:hover:border-gold/50 cursor-default">
+            <span class="text-xl">📌</span>
+            <div class="text-sm font-bold">AI Learning Roadmaps</div>
+          </div>
+          <div class="hero-step-item flex items-center gap-4 p-4 bg-cream-100 border border-cream-200/50 rounded-xl transition-all duration-300 opacity-0 translate-x-10 text-ink-900 dark:text-cream-100 hover:scale-[1.02] hover:border-ink-400 dark:hover:border-gold/50 cursor-default">
+            <span class="text-xl">🛠</span>
+            <div class="text-sm font-bold">Real Project Workspaces</div>
+          </div>
+          <div class="hero-step-item flex items-center gap-4 p-4 bg-cream-100 border border-cream-200/50 rounded-xl transition-all duration-300 opacity-0 translate-x-10 text-ink-900 dark:text-cream-100 hover:scale-[1.02] hover:border-ink-400 dark:hover:border-gold/50 cursor-default">
+            <span class="text-xl">👥</span>
+            <div class="text-sm font-bold">Community Ecosystems</div>
+          </div>
+          <div class="hero-step-item flex items-center gap-4 p-4 bg-cream-100 border border-cream-200/50 rounded-xl transition-all duration-300 opacity-0 translate-x-10 text-ink-900 dark:text-cream-100 hover:scale-[1.02] hover:border-ink-400 dark:hover:border-gold/50 cursor-default">
+            <span class="text-xl">🌐</span>
+            <div class="text-sm font-bold">Verifiable Portfolios</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ STATS SECTION ══ -->
+  <section class="max-w-7xl mx-auto px-6 py-12 lg:py-20 border-t border-b border-cream-200 dark:border-ink-800" id="stats">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+      
+      <div class="editorial-card bg-cream-50 border border-cream-200 dark:border-ink-800 p-8 rounded-2xl reveal hover:-translate-y-1 hover:shadow-md transition-all duration-300">
+        <h3 class="font-display text-5xl font-black text-ink-900 dark:text-cream-100 counter" data-target="{{ total_users }}">0</h3>
+        <p class="text-xs font-semibold tracking-widest text-ink-500 dark:text-ink-400 uppercase mt-2">Active Learners</p>
+      </div>
+
+      <div class="editorial-card bg-cream-50 border border-cream-200 dark:border-ink-800 p-8 rounded-2xl reveal hover:-translate-y-1 hover:shadow-md transition-all duration-300">
+        <h3 class="font-display text-5xl font-black text-ink-900 dark:text-cream-100 counter" data-target="{{ total_projects }}">0</h3>
+        <p class="text-xs font-semibold tracking-widest text-ink-500 dark:text-ink-400 uppercase mt-2">Projects Uploaded</p>
+      </div>
+
+      <div class="editorial-card bg-cream-50 border border-cream-200 dark:border-ink-800 p-8 rounded-2xl reveal hover:-translate-y-1 hover:shadow-md transition-all duration-300">
+        <h3 class="font-display text-5xl font-black text-ink-900 dark:text-cream-100 counter" data-target="{{ completion_percent }}">0</h3>
+        <p class="text-xs font-semibold tracking-widest text-ink-500 dark:text-ink-400 uppercase mt-2">Completion Efficiency (%)</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ FEATURES SECTION ══ -->
+  <section class="max-w-7xl mx-auto px-6 py-20 lg:py-32">
+    <div class="text-center space-y-4 mb-16">
+      <p class="text-[10px] font-semibold tracking-[0.3em] uppercase text-gold">— ARCHITECTURE COMPONENTS</p>
+      <h2 class="font-display text-4xl sm:text-5xl font-black tracking-tight text-ink-900 dark:text-cream-50 reveal">Everything in one centralized node</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      <div class="editorial-card bg-white border border-cream-200 p-10 rounded-2xl shadow-sm space-y-4 reveal text-ink-900 dark:text-cream-100 hover:-translate-y-1.5 hover:shadow-md transition-all duration-300">
+        <div class="w-12 h-12 rounded-xl bg-cream-100 dark:bg-ink-900 flex items-center justify-center text-ink-900 dark:text-cream-100 text-xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fa-solid fa-brain"></i>
+        </div>
+        <h3 class="font-display text-2xl font-bold">AI Learning Paths</h3>
+        <p class="text-sm text-ink-500 dark:text-ink-400 font-body leading-relaxed">Dynamic, intent-driven educational timelines curated instantly by our deep generation logic engines.</p>
+      </div>
+
+      <div class="editorial-card bg-white border border-cream-200 p-10 rounded-2xl shadow-sm space-y-4 reveal text-ink-900 dark:text-cream-100 hover:-translate-y-1.5 hover:shadow-md transition-all duration-300">
+        <div class="w-12 h-12 rounded-xl bg-cream-100 dark:bg-ink-900 flex items-center justify-center text-ink-900 dark:text-cream-100 text-xl">
+          <i class="fa-solid fa-code"></i>
+        </div>
+        <h3 class="font-display text-2xl font-bold">Project Workspaces</h3>
+        <p class="text-sm text-ink-500 dark:text-ink-400 font-body leading-relaxed">Version-controlled repository structures built to host, audit, and authenticate actual source code variants.</p>
+      </div>
+
+      <div class="editorial-card bg-white border border-cream-200 p-10 rounded-2xl shadow-sm space-y-4 reveal text-ink-900 dark:text-cream-100 hover:-translate-y-1.5 hover:shadow-md transition-all duration-300">
+        <div class="w-12 h-12 rounded-xl bg-cream-100 dark:bg-ink-900 flex items-center justify-center text-ink-900 dark:text-cream-100 text-xl">
+          <i class="fa-solid fa-users"></i>
+        </div>
+        <h3 class="font-display text-2xl font-bold">Community Ecosystems</h3>
+        <p class="text-sm text-ink-500 dark:text-ink-400 font-body leading-relaxed">Secure communication layers integrated directly into project pipelines for agile group development.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ CTA SECTION ══ -->
+  <section class="max-w-7xl mx-auto px-6 pb-20">
+    <div class="cta-banner bg-[#1a1714] text-cream-100 border border-ink-800 rounded-3xl p-12 sm:p-20 text-center relative overflow-hidden reveal shadow-xl">
+      
+      <!-- Background subtle element -->
+      <div class="absolute inset-0 opacity-[0.02]">
+        <div class="absolute left-1/4 top-0 bottom-0 w-px bg-white"></div>
+        <div class="absolute left-3/4 top-0 bottom-0 w-px bg-white"></div>
+      </div>
+
+      <div class="relative z-10 space-y-6 max-w-2xl mx-auto">
+        <h2 class="font-display text-4xl sm:text-5xl font-black tracking-tight leading-none text-cream-100">Ready to deploy your engineering career?</h2>
+        <p class="text-ink-400 font-body text-sm sm:text-base leading-relaxed">Transition out of conceptual loop theory. Construct real applications and deliver cold proof of capability.</p>
+        <div class="pt-4">
+          <a href="{{ url_for('signup') }}" class="inline-block px-8 py-4 bg-cream-100 text-ink-900 font-body font-bold text-sm rounded-xl transition-all duration-300 hover:bg-white hover:-translate-y-1 hover:shadow-lg active:scale-95">
+            Join SkillBridge
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FOOTER SECTION ══ -->
+  <footer class="py-12 border-t border-cream-200 dark:border-ink-800 text-center text-xs font-semibold tracking-widest text-ink-400 dark:text-ink-500 uppercase font-body">
+    © 2026 SkillBridge — Learn • Build • Prove
+  </footer>
+
+<script>
+/* JAVASCRIPT LOGIC COUNTERS UNTOUCHED AND SECURE */
+document.querySelectorAll('.counter').forEach(counter=>{
+  const target = +counter.dataset.target;
+  let count = 0;
+  const step = Math.max(1, Math.floor(target / 60));
+  const interval = setInterval(()=>{
+    count += step;
+    if(count >= target){
+      counter.textContent = target;
+      clearInterval(interval);
+    }else{
+      counter.textContent = count;
+    }
+  }, 20);
+});
+
+/* INTERSECTION OBSERVER FOR SCROLL REVEAL ELEMENTS */
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting) e.target.classList.add("show");
+  });
+},{threshold:.10});
+document.querySelectorAll(".reveal").forEach(el=>observer.observe(el));
+
+/* TIMEOUT DISPATCHER FOR HIGH SPEED STAGGER ON HERO COMPONENT */
+document.querySelectorAll(".hero-step-item").forEach((step,i)=>{
+  setTimeout(()=>{
+    step.style.opacity = 1;
+    step.style.transform = "translateX(0)";
+  }, 400 + i*180);
+});
+
+/* GLOBAL CORE SYSTEM APPLICATION THEMING SYNC */
+(function(){ 
+  var t=localStorage.getItem('sb-theme')||'light'; 
+  if(t==='dark') document.documentElement.classList.add('dark');
+})();
+</script>
+</body>
+</html>
