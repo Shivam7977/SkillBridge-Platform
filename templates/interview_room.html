@@ -27,8 +27,6 @@ tailwind.config = {
 </script>
 <style>
   :root {
-    --purple: #7c3aed;
-    --pink:   #ec4899;
     --cream:  #f8f4ec;
     --ink:    #1a1714;
     --gold:   #c4973a;
@@ -116,7 +114,7 @@ tailwind.config = {
     padding: 16px 4px; border-bottom: 1px solid rgba(26,23,20,0.07);
     cursor: pointer; border-radius: 10px; transition: background 0.15s;
   }
-  .history-item:hover { background: rgba(124,58,237,0.04); }
+  .history-item:hover { background: rgba(26,23,20,0.04); }
   .dark .history-item { border-color: rgba(255,255,255,0.07); }
   .dark .history-item:hover { background: rgba(255,255,255,0.04); }
   .history-item:last-child { border-bottom: none; }
@@ -170,7 +168,7 @@ tailwind.config = {
     background: rgba(26,23,20,0.02); transition: background 0.15s;
   }
   .dark .qa-item-header { background: rgba(255,255,255,0.03); }
-  .qa-item-header:hover { background: rgba(124,58,237,0.06); }
+  .qa-item-header:hover { background: rgba(26,23,20,0.05); }
   .qa-item-header-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .qa-item-chevron { transition: transform 0.2s; font-size: 11px; color: #9a938c; flex-shrink: 0; }
   .qa-item.open .qa-item-chevron { transform: rotate(90deg); }
@@ -459,7 +457,8 @@ tailwind.config = {
   .score-log-item:last-child { border-bottom: none; }
   .score-q { color: #6b6560; }
   .dark .score-q { color: #9a938c; }
-  .score-val { font-weight: 600; color: var(--purple); }
+  .score-val { font-weight: 600; color: var(--ink); }
+  .dark .score-val { color: #f0ece4; }
 
   /* ── Report Card ── */
   .report-header {
@@ -469,8 +468,9 @@ tailwind.config = {
   .dark .report-header { border-color: rgba(255,255,255,0.08); }
   .report-score-big {
     font-family: 'Playfair Display', serif; font-size: 64px; font-weight: 600;
-    color: var(--purple); line-height: 1;
+    color: var(--ink); line-height: 1;
   }
+  .dark .report-score-big { color: #f0ece4; }
   .report-score-label { font-size: 14px; color: #6b6560; margin-top: 6px; }
   .dark .report-score-label { color: #9a938c; }
   .report-verdict {
@@ -478,7 +478,7 @@ tailwind.config = {
     padding: 6px 18px; border-radius: 99px; font-size: 14px; font-weight: 600;
   }
   .verdict-strong { background: rgba(16,185,129,0.1); color: #065f46; }
-  .verdict-yes { background: rgba(124,58,237,0.1); color: #5b21b6; }
+  .verdict-yes { background: rgba(13,148,136,0.1); color: #0f766e; }
   .verdict-maybe { background: rgba(245,158,11,0.1); color: #92400e; }
   .verdict-no { background: rgba(239,68,68,0.1); color: #991b1b; }
   .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
@@ -488,7 +488,7 @@ tailwind.config = {
   .dark .report-section h4 { color: #9a938c; }
   .report-section ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
   .report-section ul li { font-size: 13px; line-height: 1.5; display: flex; gap: 8px; }
-  .report-section ul li::before { content: '→'; color: var(--purple); flex-shrink: 0; }
+  .report-section ul li::before { content: '→'; color: var(--gold); flex-shrink: 0; }
   .report-ai-text {
     background: rgba(26,23,20,0.03); border-radius: 12px; padding: 16px;
     font-size: 14px; line-height: 1.7; white-space: pre-wrap; margin-bottom: 20px;
@@ -613,8 +613,8 @@ tailwind.config = {
         <p>Review your previous interviews, scores, and feedback. Track your improvement over time.</p>
       </div>
       <!-- New Session -->
-      <div class="landing-card editorial-card" onclick="startSetup()" style="border-color:var(--purple);background:rgba(124,58,237,0.03);">
-        <div class="landing-card-icon" style="background:rgba(124,58,237,0.1);color:var(--purple);">
+      <div class="landing-card editorial-card" onclick="startSetup()" style="border-color:var(--ink);border-width:1.5px;background:rgba(26,23,20,0.025);">
+        <div class="landing-card-icon" style="background:rgba(26,23,20,0.08);color:var(--ink);">
           <i class="fa-solid fa-circle-play"></i>
         </div>
         <h3>New Interview</h3>
@@ -723,19 +723,19 @@ tailwind.config = {
           <div class="mode-icon">💻</div>
           <h4>Technical Round</h4>
           <p>DSA, coding logic, scenario & concept questions. Text-based answers.</p>
-          <span class="mode-tag" style="background:rgba(124,58,237,0.1);color:#5b21b6;">6 questions</span>
+          <span class="mode-tag" style="background:rgba(26,23,20,0.06);color:var(--ink);">6 questions</span>
         </div>
         <div class="mode-card" onclick="selectMode(this,'communication')">
           <div class="mode-icon">🎙️</div>
           <h4>Communication Round</h4>
           <p>Behavioral, project-based & HR questions. Voice-enabled with camera.</p>
-          <span class="mode-tag" style="background:rgba(236,72,153,0.1);color:#9d174d;">5 questions</span>
+          <span class="mode-tag" style="background:rgba(26,23,20,0.06);color:var(--ink);">5 questions</span>
         </div>
         <div class="mode-card" onclick="selectMode(this,'full')">
           <div class="mode-icon">🚀</div>
           <h4>Full Interview</h4>
           <p>Complete simulation — technical + communication rounds combined.</p>
-          <span class="mode-tag" style="background:rgba(196,151,58,0.1);color:#92400e;">9 questions</span>
+          <span class="mode-tag" style="background:rgba(196,151,58,0.12);color:#8a6515;">9 questions</span>
         </div>
       </div>
       <div style="margin-top:20px;display:flex;gap:10px;">
@@ -863,7 +863,7 @@ tailwind.config = {
         </div>
         <div class="info-card" id="phaseCard" style="display:none;">
           <h4>Current Phase</h4>
-          <div id="phaseText" style="font-size:13px;color:var(--purple);font-weight:500;"></div>
+          <div id="phaseText" style="font-size:13px;color:var(--ink);font-weight:600;"></div>
         </div>
       </div>
 
@@ -992,7 +992,7 @@ async function loadHistory(){
     if(state.historySessions.length === 0){
       list.innerHTML = `<div style="text-align:center;padding:40px;color:#9a938c;">
         <i class="fa-solid fa-inbox" style="font-size:36px;margin-bottom:12px;display:block;"></i>
-        No past sessions yet. <a href="#" onclick="startSetup();return false;" style="color:var(--purple);">Start your first interview →</a>
+        No past sessions yet. <a href="#" onclick="startSetup();return false;" style="color:var(--ink);font-weight:600;text-decoration:underline;">Start your first interview →</a>
       </div>`;
       return;
     }
