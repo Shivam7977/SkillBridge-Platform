@@ -374,10 +374,13 @@ body { font-family: 'DM Sans', sans-serif; }
                   <div class="exp-entry group relative p-4 bg-cream-50/40 dark:bg-ink-900/10 border border-cream-200 dark:border-ink-800 rounded-xl" data-index="{{ loop.index0 }}">
                     <!-- VIEW CARD (default for saved entries) -->
                     <div class="exp-view-card flex items-start justify-between gap-3">
-                      <div class="min-w-0">
+                      <div class="min-w-0 flex-1">
                         <div class="font-bold text-ink-900 dark:text-cream-50 text-sm view-role">{{ exp.role or 'Role' }}</div>
                         <div class="text-sm text-ink-600 dark:text-cream-400 mt-0.5 view-company">{{ exp.company or 'Company' }}</div>
                         <div class="text-xs text-ink-400 dark:text-ink-500 mt-1.5 font-semibold view-meta">{% if exp.from_year %}{{ exp.from_year }} – {% if exp.is_current %}Present{% else %}{{ exp.to_year }}{% endif %}{% endif %}</div>
+                        <ul class="view-bullets mt-2 space-y-1 text-xs text-ink-600 dark:text-cream-400 list-disc pl-4 {% if not exp.bullets %}hidden{% endif %}">
+                          {% for b in exp.bullets %}<li>{{ b }}</li>{% endfor %}
+                        </ul>
                       </div>
                       <div class="flex gap-2 shrink-0">
                         <button type="button" onclick="toggleExpMode(this)" class="px-3 py-1 rounded border border-ink-300 dark:border-ink-700 hover:bg-cream-100 dark:hover:bg-ink-800 text-ink-700 dark:text-cream-300 text-xs font-semibold transition-all whitespace-nowrap">✏️ Edit</button>
@@ -397,6 +400,10 @@ body { font-family: 'DM Sans', sans-serif; }
                             <input type="checkbox" class="exp-current rounded text-ink-900 focus:ring-0 accent-ink-900 w-3.5 h-3.5" onchange="handleCurrentToggle(this)" {% if exp.is_current %}checked{% endif %}> Currently working here
                           </label>
                         </div>
+                      </div>
+                      <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-ink-600 dark:text-cream-400">Key Achievements <span class="font-normal text-ink-400">(one per line — e.g. "Improved model accuracy by 12% via feature engineering")</span></label>
+                        <textarea class="exp-bullets w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" rows="4" placeholder="Increased model accuracy by 12% through feature engineering&#10;Redesigned UI components for consistency across 15+ screens&#10;Reduced API response time by 30% via query optimization" oninput="serializeExp()">{% if exp.bullets %}{{ exp.bullets|join('\n') }}{% endif %}</textarea>
                       </div>
                       <div class="flex gap-2">
                         <button type="button" onclick="toggleExpMode(this)" class="px-4 py-1.5 rounded bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold transition-all">✓ Done</button>
@@ -867,10 +874,11 @@ function addExpEntry() {
   div.className = 'exp-entry group relative p-4 bg-cream-50/40 dark:bg-ink-900/10 border border-cream-200 dark:border-ink-800 rounded-xl';
   div.innerHTML = `
     <div class="exp-view-card flex items-start justify-between gap-3" style="display:none;">
-      <div class="min-w-0">
+      <div class="min-w-0 flex-1">
         <div class="font-bold text-ink-900 dark:text-cream-50 text-sm view-role">Role</div>
         <div class="text-sm text-ink-600 dark:text-cream-400 mt-0.5 view-company">Company</div>
         <div class="text-xs text-ink-400 dark:text-ink-500 mt-1.5 font-semibold view-meta"></div>
+        <ul class="view-bullets mt-2 space-y-1 text-xs text-ink-600 dark:text-cream-400 list-disc pl-4 hidden"></ul>
       </div>
       <div class="flex gap-2 shrink-0">
         <button type="button" onclick="toggleExpMode(this)" class="px-3 py-1 rounded border border-ink-300 dark:border-ink-700 hover:bg-cream-100 dark:hover:bg-ink-800 text-ink-700 dark:text-cream-300 text-xs font-semibold transition-all whitespace-nowrap">✏️ Edit</button>
@@ -889,6 +897,10 @@ function addExpEntry() {
             <input type="checkbox" class="exp-current rounded text-ink-900 focus:ring-0 accent-ink-900 w-3.5 h-3.5" onchange="handleCurrentToggle(this)"> Currently working here
           </label>
         </div>
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-xs font-bold text-ink-600 dark:text-cream-400">Key Achievements <span class="font-normal text-ink-400">(one per line)</span></label>
+        <textarea class="exp-bullets w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" rows="4" placeholder="Increased model accuracy by 12% through feature engineering&#10;Redesigned UI components for consistency across 15+ screens&#10;Reduced API response time by 30% via query optimization" oninput="serializeExp()"></textarea>
       </div>
       <div class="flex gap-2">
         <button type="button" onclick="toggleExpMode(this)" class="px-4 py-1.5 rounded bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold transition-all">✓ Done</button>
@@ -954,8 +966,9 @@ function serializeExp() {
     const fromYear  = entry.querySelector('.exp-from')?.value.trim() || '';
     const toYear    = entry.querySelector('.exp-to')?.value.trim() || '';
     const isCurrent = entry.querySelector('.exp-current')?.checked || false;
+    const bullets   = (entry.querySelector('.exp-bullets')?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
     if (company || role) {
-      entries.push({ company, role, from_year: fromYear, to_year: isCurrent ? String(new Date().getFullYear()) : toYear, is_current: isCurrent });
+      entries.push({ company, role, from_year: fromYear, to_year: isCurrent ? String(new Date().getFullYear()) : toYear, is_current: isCurrent, bullets });
     }
   });
   const jsonField = document.getElementById('work-exp-json');
@@ -974,10 +987,15 @@ function toggleExpMode(btn) {
     const toYear    = entry.querySelector('.exp-to')?.value.trim() || '';
     const isCurrent = entry.querySelector('.exp-current')?.checked || false;
     const yearsStr  = fromYear ? (fromYear + ' – ' + (isCurrent ? 'Present' : (toYear || ''))) : '';
+    const bullets   = (entry.querySelector('.exp-bullets')?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
 
     viewCard.querySelector('.view-role').textContent    = role;
     viewCard.querySelector('.view-company').textContent = company;
     viewCard.querySelector('.view-meta').textContent    = yearsStr;
+
+    const bulletsList = viewCard.querySelector('.view-bullets');
+    bulletsList.innerHTML = bullets.map(b => `<li>${b}</li>`).join('');
+    bulletsList.classList.toggle('hidden', bullets.length === 0);
 
     editFields.style.display = 'none';
     viewCard.style.display = 'flex';

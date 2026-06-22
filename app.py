@@ -836,12 +836,15 @@ def profile():
             clean_entries = []
             for e in exp_entries:
                 if e.get('company','').strip() and e.get('role','').strip():
+                    raw_bullets = e.get('bullets', [])
+                    clean_bullets = [sanitize(b) for b in raw_bullets if isinstance(b, str) and b.strip()][:10]
                     clean_entries.append({
                         'company': sanitize(e.get('company','')),
                         'role':    sanitize(e.get('role','')),
                         'from_year': sanitize(e.get('from_year','')),
                         'to_year':   sanitize(e.get('to_year','')),
-                        'is_current': bool(e.get('is_current', False))
+                        'is_current': bool(e.get('is_current', False)),
+                        'bullets': clean_bullets
                     })
             update_data['work_experience'] = clean_entries
         except Exception:
