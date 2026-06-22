@@ -818,8 +818,6 @@ def profile():
             'linkedin_url': request.form.get('linkedin_url', '').strip(),
             'instagram_url': request.form.get('instagram_url', '').strip(),
             'facebook_url': request.form.get('facebook_url', '').strip(),
-            'education_college': request.form.get('education_college', '').strip(),
-            'education_degree': request.form.get('education_degree', '').strip(),
             'experience_years': str(exp_years),
             'current_status': request.form.get('current_status', '').strip(),
             'availability': request.form.get('availability', '').strip(),
@@ -846,6 +844,48 @@ def profile():
                         'is_current': bool(e.get('is_current', False))
                     })
             update_data['work_experience'] = clean_entries
+        except Exception:
+            pass
+
+        # Education entries (Institution / Degree / Field of Study / Grade / Years)
+        edu_entries_raw = request.form.get('education_json', '[]')
+        try:
+            edu_entries = _json.loads(edu_entries_raw)
+            clean_edu_entries = []
+            for e in edu_entries:
+                if e.get('institution','').strip() or e.get('degree','').strip():
+                    grade_type = sanitize(e.get('grade_type','')) or 'CGPA'
+                    if grade_type not in ('CGPA', 'Percentage'):
+                        grade_type = 'CGPA'
+                    grade_value = sanitize(str(e.get('grade_value','')))
+                    clean_edu_entries.append({
+                        'institution': sanitize(e.get('institution','')),
+                        'degree':      sanitize(e.get('degree','')),
+                        'field':       sanitize(e.get('field','')),
+                        'grade_type':  grade_type,
+                        'grade_value': grade_value,
+                        'from_year':   sanitize(e.get('from_year','')),
+                        'to_year':     sanitize(e.get('to_year','')),
+                        'is_current':  bool(e.get('is_current', False))
+                    })
+            update_data['education'] = clean_edu_entries
+            # Derive legacy/flat fields from the primary (first-listed) entry — keeps
+            # older code paths (AI prompt context, onboarding checklist, etc.) working.
+            if clean_edu_entries:
+                primary_edu = clean_edu_entries[0]
+                update_data['education_college'] = primary_edu['institution']
+                update_data['education_degree']  = primary_edu['degree']
+                update_data['education_field']   = primary_edu['field']
+                if primary_edu['grade_value']:
+                    suffix = '%' if primary_edu['grade_type'] == 'Percentage' else ' CGPA'
+                    update_data['education_grade'] = f"{primary_edu['grade_value']}{suffix}"
+                else:
+                    update_data['education_grade'] = ''
+            else:
+                update_data['education_college'] = ''
+                update_data['education_degree']  = ''
+                update_data['education_field']   = ''
+                update_data['education_grade']   = ''
         except Exception:
             pass
 
@@ -876,6 +916,7 @@ def profile():
         'linkedin_url': user_data.get('linkedin_url', ''), 'instagram_url': user_data.get('instagram_url', ''),
         'facebook_url': user_data.get('facebook_url', ''), 'education_college': user_data.get('education_college', ''),
         'education_degree': user_data.get('education_degree', ''), 'experience_years': user_data.get('experience_years', ''),
+        'education': user_data.get('education', []),
         'current_status': user_data.get('current_status', ''), 'availability': user_data.get('availability', ''),
         'career_goal': user_data.get('career_goal', ''),
         'known_skills_str': ', '.join(user_data.get('known_skills', [])),
@@ -1905,6 +1946,7 @@ def resume_builder():
         github_repos = user_data.get("github_repos", []) if user_data else []
         github_langs = user_data.get("github_langs", []) if user_data else []
         work_experience = user_data.get('work_experience', [])
+        education = user_data.get('education', [])
         # ── Sidebar XP / Level / Streak (same as mainpage) ──
         xp = user_data.get('xp', 0) if user_data else 0
         level_info = get_level_info(xp)
@@ -1917,6 +1959,7 @@ def resume_builder():
             github_repos=github_repos,
             github_langs=github_langs,
             work_experience=work_experience,
+            education=education,
             xp=xp,
             level_info=level_info,
             streak=streak,
@@ -2429,6 +2472,7 @@ def portfolio_builder():
         github_repos = user_data.get('github_repos', [])
         github_langs = user_data.get('github_langs', [])
         work_experience = user_data.get('work_experience', [])
+        education = user_data.get('education', [])
         # FIX: Pass XP, level_info, streak to template
         xp = user_data.get('xp', 0)
         level_info = get_level_info(xp)
@@ -2441,6 +2485,7 @@ def portfolio_builder():
             github_repos=github_repos,
             github_langs=github_langs,
             work_experience=work_experience,
+            education=education,
             xp=xp,
             level_info=level_info,
             streak=streak,
@@ -2576,6 +2621,7 @@ def view_user_profile(user_id):
             'portfolio_url': user_data.get('portfolio_url', ''), 'profile_pic_url': profile_pic_url,
             'known_skills': user_data.get('known_skills', []), 'learning_skills': user_data.get('learning_skills', []),
             'work_experience': user_data.get('work_experience', []),
+            'education': user_data.get('education', []),
             'availability': user_data.get('availability', ''),
         }
         xp = user_data.get('xp', 0)

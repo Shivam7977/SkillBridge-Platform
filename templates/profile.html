@@ -285,7 +285,6 @@ body { font-family: 'DM Sans', sans-serif; }
               <div class="section-body p-5 font-body space-y-4" id="career-params">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Exp (Years)</label><input type="number" name="experience_years" id="in-exp" value="{{ user.experience_years }}" min="0" max="50" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
-                  <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">University</label><input type="text" name="education_college" id="in-college" value="{{ user.education_college }}" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
                   <div class="sm:col-span-2 space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Current Status</label>
                     <select name="current_status" id="in-status" onchange="sync(); toggleExpSection()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200 cursor-pointer">
                       <option value="Student"  {% if user.current_status == 'Student'  %}selected{% endif %}>Student</option>
@@ -293,6 +292,70 @@ body { font-family: 'DM Sans', sans-serif; }
                       <option value="Fresher"  {% if user.current_status == 'Fresher'  %}selected{% endif %}>Fresher</option>
                     </select>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Education Section -->
+            <div class="form-section border border-cream-200 dark:border-ink-700 rounded-2xl overflow-hidden transition-all duration-300" id="education-section">
+              <div class="section-title font-display text-base font-bold text-ink-900 dark:text-cream-50 px-5 py-4 bg-cream-100/50 dark:bg-ink-800/40 border-b border-cream-200 dark:border-ink-700 flex items-center gap-3 cursor-pointer select-none" onclick="toggleSection('education-body')">
+                <span class="w-1.5 h-6 bg-ink-900 dark:bg-gold rounded-full"></span> Education
+                <button type="button" onclick="event.stopPropagation();addEduEntry()" class="ml-auto px-3 py-1 border border-ink-900 text-ink-900 dark:border-gold dark:text-gold text-xs font-bold rounded-lg transition-transform active:scale-95 bg-transparent">+ Add Entry</button>
+                <i class="fas fa-chevron-down text-ink-400 sec-chevron ml-2"></i>
+              </div>
+              <div class="section-body p-5 font-body space-y-4" id="education-body">
+                <input type="hidden" name="education_json" id="education-json">
+                <div id="edu-entries-list" class="space-y-4">
+                  {% for edu in user.education %}
+                  <div class="edu-entry group relative p-4 bg-cream-50/40 dark:bg-ink-900/10 border border-cream-200 dark:border-ink-800 rounded-xl" data-index="{{ loop.index0 }}">
+                    <!-- VIEW CARD (default for saved entries) -->
+                    <div class="edu-view-card flex items-start justify-between gap-3">
+                      <div class="min-w-0">
+                        <div class="font-bold text-ink-900 dark:text-cream-50 text-sm view-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} in {{ edu.field }}{% endif %}</div>
+                        <div class="text-sm text-ink-600 dark:text-cream-400 mt-0.5 view-institution">{{ edu.institution or 'Institution' }}</div>
+                        <div class="text-xs text-ink-400 dark:text-ink-500 mt-1.5 font-semibold view-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>
+                      </div>
+                      <div class="flex gap-2 shrink-0">
+                        <button type="button" onclick="toggleEduMode(this)" class="px-3 py-1 rounded border border-ink-300 dark:border-ink-700 hover:bg-cream-100 dark:hover:bg-ink-800 text-ink-700 dark:text-cream-300 text-xs font-semibold transition-all whitespace-nowrap">✏️ Edit</button>
+                        <button type="button" onclick="removeEduEntry(this)" class="px-3 py-1 rounded border border-rose-300 hover:bg-rose-50 text-rose-600 dark:border-rose-950 dark:hover:bg-rose-950/20 text-xs font-semibold transition-all">🗑</button>
+                      </div>
+                    </div>
+                    <!-- EDIT FIELDS (hidden until "Edit" is clicked) -->
+                    <div class="edu-edit-fields space-y-3" style="display:none;">
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Institution (College / School / University)</label><input type="text" class="edu-institution w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.institution }}" placeholder="e.g. IIT Bombay" oninput="serializeEdu()"></div>
+                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Degree</label><input type="text" class="edu-degree w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.degree }}" placeholder="e.g. B.Tech / 12th / 10th" oninput="serializeEdu()"></div>
+                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Field of Study</label><input type="text" class="edu-field w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.field }}" placeholder="e.g. Computer Science (AI/ML)" oninput="serializeEdu()"></div>
+                        <div class="grid grid-cols-2 gap-2">
+                          <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-ink-600 dark:text-cream-400">Grade Type</label>
+                            <select class="edu-grade-type w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all cursor-pointer" onchange="updateGradeMax(this)">
+                              <option value="CGPA" {% if edu.grade_type != 'Percentage' %}selected{% endif %}>CGPA</option>
+                              <option value="Percentage" {% if edu.grade_type == 'Percentage' %}selected{% endif %}>Percentage</option>
+                            </select>
+                          </div>
+                          <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-ink-600 dark:text-cream-400">Grade Value</label>
+                            <input type="number" step="0.01" min="0" max="{% if edu.grade_type == 'Percentage' %}100{% else %}10{% endif %}" class="edu-grade-value w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.grade_value }}" placeholder="e.g. 8.7" oninput="if(this.value<0)this.value=0;serializeEdu()">
+                          </div>
+                        </div>
+                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year</label><input type="number" class="edu-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.from_year }}" placeholder="2022" min="1980" max="2030" oninput="serializeEdu()"></div>
+                        <div class="space-y-1.5">
+                          <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year</label>
+                          <input type="number" class="edu-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.to_year if not edu.is_current else '' }}" placeholder="{{ now().year if now else 2026 }}" min="1980" max="2030" oninput="serializeEdu()" {% if edu.is_current %}disabled{% endif %}>
+                          <label class="text-[11px] font-bold text-ink-500 flex items-center gap-1.5 mt-2 cursor-pointer select-none">
+                            <input type="checkbox" class="edu-current rounded text-ink-900 focus:ring-0 accent-ink-900 w-3.5 h-3.5" onchange="handleEduCurrentToggle(this)" {% if edu.is_current %}checked{% endif %}> Currently studying here
+                          </label>
+                        </div>
+                      </div>
+                      <div class="flex gap-2">
+                        <button type="button" onclick="toggleEduMode(this)" class="px-4 py-1.5 rounded bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold transition-all">✓ Done</button>
+                        <button type="button" onclick="removeEduEntry(this)" class="px-3 py-1 rounded border border-rose-300 hover:bg-rose-50 text-rose-600 dark:border-rose-950 dark:hover:bg-rose-950/20 text-xs font-semibold transition-all">🗑 Remove Entry</button>
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                  <p id="no-edu-msg" class="text-xs text-ink-400 dark:text-ink-500 font-semibold {% if user.education %}hidden{% endif %}">No education entries yet. Click "+ Add Entry" to add your 10th, 12th, degree, etc.</p>
                 </div>
               </div>
             </div>
@@ -308,20 +371,38 @@ body { font-family: 'DM Sans', sans-serif; }
                 <input type="hidden" name="work_experience_json" id="work-exp-json">
                 <div id="exp-entries-list" class="space-y-4">
                   {% for exp in user.work_experience %}
-                  <div class="exp-entry group relative p-4 bg-cream-50/40 dark:bg-ink-900/10 border border-cream-200 dark:border-ink-800 rounded-xl space-y-3" data-index="{{ loop.index0 }}">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Company</label><input type="text" class="exp-company w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.company }}" placeholder="e.g. Google" oninput="serializeExp()"></div>
-                      <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Role / Position</label><input type="text" class="exp-role w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.role }}" placeholder="e.g. Software Engineer" oninput="serializeExp()"></div>
-                      <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year</label><input type="number" class="exp-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.from_year }}" placeholder="2020" min="1980" max="2030" oninput="serializeExp(); autoCalcYears()"></div>
-                      <div class="space-y-1.5">
-                        <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year</label>
-                        <input type="number" class="exp-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.to_year if not exp.is_current else '' }}" placeholder="{{ now().year if now else 2025 }}" min="1980" max="2030" oninput="serializeExp(); autoCalcYears()" {% if exp.is_current %}disabled{% endif %}>
-                        <label class="text-[11px] font-bold text-ink-500 flex items-center gap-1.5 mt-2 cursor-pointer select-none">
-                          <input type="checkbox" class="exp-current rounded text-ink-900 focus:ring-0 accent-ink-900 w-3.5 h-3.5" onchange="handleCurrentToggle(this)" {% if exp.is_current %}checked{% endif %}> Currently working here
-                        </label>
+                  <div class="exp-entry group relative p-4 bg-cream-50/40 dark:bg-ink-900/10 border border-cream-200 dark:border-ink-800 rounded-xl" data-index="{{ loop.index0 }}">
+                    <!-- VIEW CARD (default for saved entries) -->
+                    <div class="exp-view-card flex items-start justify-between gap-3">
+                      <div class="min-w-0">
+                        <div class="font-bold text-ink-900 dark:text-cream-50 text-sm view-role">{{ exp.role or 'Role' }}</div>
+                        <div class="text-sm text-ink-600 dark:text-cream-400 mt-0.5 view-company">{{ exp.company or 'Company' }}</div>
+                        <div class="text-xs text-ink-400 dark:text-ink-500 mt-1.5 font-semibold view-meta">{% if exp.from_year %}{{ exp.from_year }} – {% if exp.is_current %}Present{% else %}{{ exp.to_year }}{% endif %}{% endif %}</div>
+                      </div>
+                      <div class="flex gap-2 shrink-0">
+                        <button type="button" onclick="toggleExpMode(this)" class="px-3 py-1 rounded border border-ink-300 dark:border-ink-700 hover:bg-cream-100 dark:hover:bg-ink-800 text-ink-700 dark:text-cream-300 text-xs font-semibold transition-all whitespace-nowrap">✏️ Edit</button>
+                        <button type="button" onclick="removeExpEntry(this)" class="px-3 py-1 rounded border border-rose-300 hover:bg-rose-50 text-rose-600 dark:border-rose-950 dark:hover:bg-rose-950/20 text-xs font-semibold transition-all">🗑</button>
                       </div>
                     </div>
-                    <button type="button" onclick="removeExpEntry(this)" class="px-3 py-1 rounded border border-rose-300 hover:bg-rose-50 text-rose-600 dark:border-rose-950 dark:hover:bg-rose-950/20 text-xs font-semibold transition-all">🗑 Remove Entry</button>
+                    <!-- EDIT FIELDS (hidden until "Edit" is clicked) -->
+                    <div class="exp-edit-fields space-y-3" style="display:none;">
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Company</label><input type="text" class="exp-company w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.company }}" placeholder="e.g. Google" oninput="serializeExp()"></div>
+                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Role / Position</label><input type="text" class="exp-role w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.role }}" placeholder="e.g. Software Engineer" oninput="serializeExp()"></div>
+                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year</label><input type="number" class="exp-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.from_year }}" placeholder="2020" min="1980" max="2030" oninput="serializeExp(); autoCalcYears()"></div>
+                        <div class="space-y-1.5">
+                          <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year</label>
+                          <input type="number" class="exp-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.to_year if not exp.is_current else '' }}" placeholder="{{ now().year if now else 2025 }}" min="1980" max="2030" oninput="serializeExp(); autoCalcYears()" {% if exp.is_current %}disabled{% endif %}>
+                          <label class="text-[11px] font-bold text-ink-500 flex items-center gap-1.5 mt-2 cursor-pointer select-none">
+                            <input type="checkbox" class="exp-current rounded text-ink-900 focus:ring-0 accent-ink-900 w-3.5 h-3.5" onchange="handleCurrentToggle(this)" {% if exp.is_current %}checked{% endif %}> Currently working here
+                          </label>
+                        </div>
+                      </div>
+                      <div class="flex gap-2">
+                        <button type="button" onclick="toggleExpMode(this)" class="px-4 py-1.5 rounded bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold transition-all">✓ Done</button>
+                        <button type="button" onclick="removeExpEntry(this)" class="px-3 py-1 rounded border border-rose-300 hover:bg-rose-50 text-rose-600 dark:border-rose-950 dark:hover:bg-rose-950/20 text-xs font-semibold transition-all">🗑 Remove Entry</button>
+                      </div>
+                    </div>
                   </div>
                   {% endfor %}
                   <p id="no-exp-msg" class="text-xs text-ink-400 dark:text-ink-500 font-semibold {% if user.work_experience %}hidden{% endif %}">No experience entries yet. Click "+ Add Entry" to expand portfolio layers.</p>
@@ -783,21 +864,37 @@ function addExpEntry() {
   if (noMsg) noMsg.remove();
   const list = document.getElementById('exp-entries-list');
   const div = document.createElement('div');
-  div.className = 'exp-entry group relative p-4 bg-cream-50/40 dark:bg-ink-900/10 border border-cream-200 dark:border-ink-800 rounded-xl space-y-3';
+  div.className = 'exp-entry group relative p-4 bg-cream-50/40 dark:bg-ink-900/10 border border-cream-200 dark:border-ink-800 rounded-xl';
   div.innerHTML = `
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Company</label><input type="text" class="exp-company w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. Google" oninput="serializeExp()"></div>
-      <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Role / Position</label><input type="text" class="exp-role w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. Software Engineer" oninput="serializeExp()"></div>
-      <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year</label><input type="number" class="exp-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="2020" min="1980" max="2030" oninput="serializeExp(); autoCalcYears()"></div>
-      <div class="space-y-1.5">
-        <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year</label>
-        <input type="number" class="exp-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="${new Date().getFullYear()}" min="1980" max="2030" oninput="serializeExp(); autoCalcYears()">
-        <label class="text-[11px] font-bold text-ink-500 flex items-center gap-1.5 mt-2 cursor-pointer select-none">
-          <input type="checkbox" class="exp-current rounded text-ink-900 focus:ring-0 accent-ink-900 w-3.5 h-3.5" onchange="handleCurrentToggle(this)"> Currently working here
-        </label>
+    <div class="exp-view-card flex items-start justify-between gap-3" style="display:none;">
+      <div class="min-w-0">
+        <div class="font-bold text-ink-900 dark:text-cream-50 text-sm view-role">Role</div>
+        <div class="text-sm text-ink-600 dark:text-cream-400 mt-0.5 view-company">Company</div>
+        <div class="text-xs text-ink-400 dark:text-ink-500 mt-1.5 font-semibold view-meta"></div>
+      </div>
+      <div class="flex gap-2 shrink-0">
+        <button type="button" onclick="toggleExpMode(this)" class="px-3 py-1 rounded border border-ink-300 dark:border-ink-700 hover:bg-cream-100 dark:hover:bg-ink-800 text-ink-700 dark:text-cream-300 text-xs font-semibold transition-all whitespace-nowrap">✏️ Edit</button>
+        <button type="button" onclick="removeExpEntry(this)" class="px-3 py-1 rounded border border-rose-300 hover:bg-rose-50 text-rose-600 dark:border-rose-950 dark:hover:bg-rose-950/20 text-xs font-semibold transition-all">🗑</button>
       </div>
     </div>
-    <button type="button" onclick="removeExpEntry(this)" class="px-3 py-1 rounded border border-rose-300 hover:bg-rose-50 text-rose-600 dark:border-rose-950 dark:hover:bg-rose-950/20 text-xs font-semibold transition-all">🗑 Remove Entry</button>
+    <div class="exp-edit-fields space-y-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Company</label><input type="text" class="exp-company w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. Google" oninput="serializeExp()"></div>
+        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Role / Position</label><input type="text" class="exp-role w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. Software Engineer" oninput="serializeExp()"></div>
+        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year</label><input type="number" class="exp-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="2020" min="1980" max="2030" oninput="serializeExp(); autoCalcYears()"></div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year</label>
+          <input type="number" class="exp-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="${new Date().getFullYear()}" min="1980" max="2030" oninput="serializeExp(); autoCalcYears()">
+          <label class="text-[11px] font-bold text-ink-500 flex items-center gap-1.5 mt-2 cursor-pointer select-none">
+            <input type="checkbox" class="exp-current rounded text-ink-900 focus:ring-0 accent-ink-900 w-3.5 h-3.5" onchange="handleCurrentToggle(this)"> Currently working here
+          </label>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button type="button" onclick="toggleExpMode(this)" class="px-4 py-1.5 rounded bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold transition-all">✓ Done</button>
+        <button type="button" onclick="removeExpEntry(this)" class="px-3 py-1 rounded border border-rose-300 hover:bg-rose-50 text-rose-600 dark:border-rose-950 dark:hover:bg-rose-950/20 text-xs font-semibold transition-all">🗑 Remove Entry</button>
+      </div>
+    </div>
   `;
   list.appendChild(div);
   serializeExp();
@@ -827,7 +924,7 @@ function handleCurrentToggle(checkbox) {
     });
     if (toInput) { toInput.value = currentYear; toInput.disabled = true; }
   } else {
-    if (toInput) { textInput.disabled = false; toInput.value = ''; }
+    if (toInput) { toInput.disabled = false; toInput.value = ''; }
   }
   serializeExp();
   autoCalcYears();
@@ -865,11 +962,180 @@ function serializeExp() {
   if (jsonField) jsonField.value = JSON.stringify(entries);
 }
 
+function toggleExpMode(btn) {
+  const entry = btn.closest('.exp-entry');
+  const viewCard = entry.querySelector('.exp-view-card');
+  const editFields = entry.querySelector('.exp-edit-fields');
+  const isEditing = editFields.style.display !== 'none';
+  if (isEditing) {
+    const company   = entry.querySelector('.exp-company')?.value.trim() || 'Company';
+    const role      = entry.querySelector('.exp-role')?.value.trim() || 'Role';
+    const fromYear  = entry.querySelector('.exp-from')?.value.trim() || '';
+    const toYear    = entry.querySelector('.exp-to')?.value.trim() || '';
+    const isCurrent = entry.querySelector('.exp-current')?.checked || false;
+    const yearsStr  = fromYear ? (fromYear + ' – ' + (isCurrent ? 'Present' : (toYear || ''))) : '';
+
+    viewCard.querySelector('.view-role').textContent    = role;
+    viewCard.querySelector('.view-company').textContent = company;
+    viewCard.querySelector('.view-meta').textContent    = yearsStr;
+
+    editFields.style.display = 'none';
+    viewCard.style.display = 'flex';
+  } else {
+    viewCard.style.display = 'none';
+    editFields.style.display = 'block';
+  }
+  serializeExp();
+}
+
+function addEduEntry() {
+  const noMsg = document.getElementById('no-edu-msg');
+  if (noMsg) noMsg.remove();
+  const list = document.getElementById('edu-entries-list');
+  const div = document.createElement('div');
+  div.className = 'edu-entry group relative p-4 bg-cream-50/40 dark:bg-ink-900/10 border border-cream-200 dark:border-ink-800 rounded-xl';
+  div.innerHTML = `
+    <div class="edu-view-card flex items-start justify-between gap-3" style="display:none;">
+      <div class="min-w-0">
+        <div class="font-bold text-ink-900 dark:text-cream-50 text-sm view-degree">Degree</div>
+        <div class="text-sm text-ink-600 dark:text-cream-400 mt-0.5 view-institution">Institution</div>
+        <div class="text-xs text-ink-400 dark:text-ink-500 mt-1.5 font-semibold view-meta"></div>
+      </div>
+      <div class="flex gap-2 shrink-0">
+        <button type="button" onclick="toggleEduMode(this)" class="px-3 py-1 rounded border border-ink-300 dark:border-ink-700 hover:bg-cream-100 dark:hover:bg-ink-800 text-ink-700 dark:text-cream-300 text-xs font-semibold transition-all whitespace-nowrap">✏️ Edit</button>
+        <button type="button" onclick="removeEduEntry(this)" class="px-3 py-1 rounded border border-rose-300 hover:bg-rose-50 text-rose-600 dark:border-rose-950 dark:hover:bg-rose-950/20 text-xs font-semibold transition-all">🗑</button>
+      </div>
+    </div>
+    <div class="edu-edit-fields space-y-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Institution (College / School / University)</label><input type="text" class="edu-institution w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. IIT Bombay" oninput="serializeEdu()"></div>
+        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Degree</label><input type="text" class="edu-degree w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. B.Tech / 12th / 10th" oninput="serializeEdu()"></div>
+        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Field of Study</label><input type="text" class="edu-field w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. Computer Science (AI/ML)" oninput="serializeEdu()"></div>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-ink-600 dark:text-cream-400">Grade Type</label>
+            <select class="edu-grade-type w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all cursor-pointer" onchange="updateGradeMax(this)">
+              <option value="CGPA" selected>CGPA</option>
+              <option value="Percentage">Percentage</option>
+            </select>
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-ink-600 dark:text-cream-400">Grade Value</label>
+            <input type="number" step="0.01" min="0" max="10" class="edu-grade-value w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. 8.7" oninput="if(this.value<0)this.value=0;serializeEdu()">
+          </div>
+        </div>
+        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year</label><input type="number" class="edu-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="2022" min="1980" max="2030" oninput="serializeEdu()"></div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year</label>
+          <input type="number" class="edu-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="${new Date().getFullYear()}" min="1980" max="2030" oninput="serializeEdu()">
+          <label class="text-[11px] font-bold text-ink-500 flex items-center gap-1.5 mt-2 cursor-pointer select-none">
+            <input type="checkbox" class="edu-current rounded text-ink-900 focus:ring-0 accent-ink-900 w-3.5 h-3.5" onchange="handleEduCurrentToggle(this)"> Currently studying here
+          </label>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button type="button" onclick="toggleEduMode(this)" class="px-4 py-1.5 rounded bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold transition-all">✓ Done</button>
+        <button type="button" onclick="removeEduEntry(this)" class="px-3 py-1 rounded border border-rose-300 hover:bg-rose-50 text-rose-600 dark:border-rose-950 dark:hover:bg-rose-950/20 text-xs font-semibold transition-all">🗑 Remove Entry</button>
+      </div>
+    </div>
+  `;
+  list.appendChild(div);
+  serializeEdu();
+}
+
+function removeEduEntry(btn) {
+  btn.closest('.edu-entry').remove();
+  serializeEdu();
+  const list = document.getElementById('edu-entries-list');
+  if (!list.querySelector('.edu-entry')) {
+    list.innerHTML = '<p id="no-edu-msg" class="text-xs text-ink-400 dark:text-ink-500 font-semibold">No education entries yet. Click "+ Add Entry" to add your 10th, 12th, degree, etc.</p>';
+  }
+}
+
+function handleEduCurrentToggle(checkbox) {
+  const currentYear = new Date().getFullYear();
+  const entry = checkbox.closest('.edu-entry');
+  const toInput = entry.querySelector('.edu-to');
+  if (checkbox.checked) {
+    if (toInput) { toInput.value = currentYear; toInput.disabled = true; }
+  } else {
+    if (toInput) { toInput.disabled = false; toInput.value = ''; }
+  }
+  serializeEdu();
+}
+
+function serializeEdu() {
+  const entries = [];
+  document.querySelectorAll('.edu-entry').forEach(entry => {
+    const institution = entry.querySelector('.edu-institution')?.value.trim() || '';
+    const degree       = entry.querySelector('.edu-degree')?.value.trim() || '';
+    const field         = entry.querySelector('.edu-field')?.value.trim() || '';
+    const gradeType     = entry.querySelector('.edu-grade-type')?.value || 'CGPA';
+    const gradeValue    = entry.querySelector('.edu-grade-value')?.value.trim() || '';
+    const fromYear      = entry.querySelector('.edu-from')?.value.trim() || '';
+    const toYear        = entry.querySelector('.edu-to')?.value.trim() || '';
+    const isCurrent     = entry.querySelector('.edu-current')?.checked || false;
+    if (institution || degree) {
+      entries.push({ institution, degree, field, grade_type: gradeType, grade_value: gradeValue, from_year: fromYear, to_year: isCurrent ? String(new Date().getFullYear()) : toYear, is_current: isCurrent });
+    }
+  });
+  const jsonField = document.getElementById('education-json');
+  if (jsonField) jsonField.value = JSON.stringify(entries);
+}
+
+// Grade can never go below 0, and CGPA tops out at 10 while Percentage tops out at 100
+function updateGradeMax(select) {
+  const input = select.closest('.grid').querySelector('.edu-grade-value');
+  if (!input) return;
+  input.max = (select.value === 'Percentage') ? '100' : '10';
+  input.min = '0';
+  if (input.value !== '' && parseFloat(input.value) > parseFloat(input.max)) input.value = input.max;
+  if (input.value !== '' && parseFloat(input.value) < 0) input.value = '0';
+  serializeEdu();
+}
+
+function toggleEduMode(btn) {
+  const entry = btn.closest('.edu-entry');
+  const viewCard = entry.querySelector('.edu-view-card');
+  const editFields = entry.querySelector('.edu-edit-fields');
+  const isEditing = editFields.style.display !== 'none';
+  if (isEditing) {
+    const institution = entry.querySelector('.edu-institution')?.value.trim() || 'Institution';
+    const degree       = entry.querySelector('.edu-degree')?.value.trim() || 'Degree';
+    const field         = entry.querySelector('.edu-field')?.value.trim() || '';
+    const gradeType     = entry.querySelector('.edu-grade-type')?.value || 'CGPA';
+    const gradeValue    = entry.querySelector('.edu-grade-value')?.value.trim() || '';
+    const fromYear      = entry.querySelector('.edu-from')?.value.trim() || '';
+    const toYear        = entry.querySelector('.edu-to')?.value.trim() || '';
+    const isCurrent     = entry.querySelector('.edu-current')?.checked || false;
+
+    const gradeStr = gradeValue ? (gradeValue + (gradeType === 'Percentage' ? '%' : ' CGPA')) : '';
+    const yearsStr = fromYear ? (fromYear + ' – ' + (isCurrent ? 'Present' : (toYear || ''))) : '';
+    const metaStr  = [gradeStr, yearsStr].filter(Boolean).join(' · ');
+
+    viewCard.querySelector('.view-degree').textContent      = degree + (field ? ' in ' + field : '');
+    viewCard.querySelector('.view-institution').textContent = institution;
+    viewCard.querySelector('.view-meta').textContent        = metaStr;
+
+    editFields.style.display = 'none';
+    viewCard.style.display = 'flex';
+  } else {
+    viewCard.style.display = 'none';
+    editFields.style.display = 'block';
+  }
+  serializeEdu();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   serializeExp();
+  serializeEdu();
   toggleExpSection();
   document.querySelectorAll('.exp-current:checked').forEach(cb => {
     const toInput = cb.closest('.exp-entry')?.querySelector('.exp-to');
+    if (toInput) toInput.disabled = true;
+  });
+  document.querySelectorAll('.edu-current:checked').forEach(cb => {
+    const toInput = cb.closest('.edu-entry')?.querySelector('.edu-to');
     if (toInput) toInput.disabled = true;
   });
 });

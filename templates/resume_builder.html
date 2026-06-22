@@ -281,6 +281,12 @@ body { font-family:'DM Sans',sans-serif; }
 .rt .exp-role { font-weight: 700; font-size: .86rem; }
 .rt .exp-co { font-size: .8rem; font-weight: 600; opacity: .75; margin-top: 1px; }
 .rt .exp-dates { font-size: .74rem; opacity: .55; margin-top: 2px; }
+/* Education item — shared across all templates */
+.rt .edu-item { padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,.06); }
+.rt .edu-item:last-child { border-bottom: none; }
+.rt .edu-degree { font-weight: 700; font-size: .86rem; }
+.rt .edu-inst { font-size: .8rem; font-weight: 600; opacity: .75; margin-top: 1px; }
+.rt .edu-meta { font-size: .74rem; opacity: .55; margin-top: 2px; }
 .rt { display: none; }
 .rt.on { display: flex; flex-direction: column; width: 100%; min-height: 1123px; box-sizing: border-box; overflow: hidden; }
 .rt.on .body { flex: 1 1 auto; }
@@ -892,17 +898,16 @@ body { font-family:'DM Sans',sans-serif; }
       <textarea class="ep-inp" id="ep-learning" oninput="liveUpdate()" rows="2" placeholder="Rust, Go, Web3..."></textarea>
     </div>
     <div class="ep-group">
-      <label class="ep-lbl">Education Degree</label>
-      <input class="ep-inp" id="ep-degree" oninput="liveUpdate()" placeholder="B.Tech Computer Science">
-    </div>
-    <div class="ep-group">
-      <label class="ep-lbl">College / Institution</label>
-      <input class="ep-inp" id="ep-college" oninput="liveUpdate()" placeholder="University name">
-    </div>
-    <div class="ep-group">
       <label class="ep-lbl">Years of Experience</label>
       <input class="ep-inp" id="ep-exp" oninput="liveUpdate()" placeholder="e.g. 3">
     </div>
+
+    <!-- Education Entries -->
+    <div class="ep-section-divider">
+      <span>🎓 Education</span>
+      <button type="button" onclick="addEpEdu()" style="padding:3px 10px;border-radius:6px;border:1.5px solid #e5d9c0;background:transparent;color:#1a1714;font-size:.72rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;" onmouseover="this.style.borderColor='#1a1714'" onmouseout="this.style.borderColor='#e5d9c0'">+ Add</button>
+    </div>
+    <div id="ep-edu-list"></div>
 
     <!-- Work Experience Entries -->
     <div class="ep-section-divider">
@@ -1000,10 +1005,7 @@ body { font-family:'DM Sans',sans-serif; }
       {% if user.known_skills %}<div class="sec"><div class="st">Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="pill">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.learning_skills %}<div class="sec"><div class="st">Learning</div>{% for s in user.learning_skills %}{% if s.strip() %}<span class="pill pill-b">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certificates</div>{% for c in user.certificates %}<div class="cert-item"><i class="fas fa-certificate"></i><div><div class="cn">{{c.name}}</div><div class="ci2">{{c.issuer}}{% if c.issue_date %} · {{c.issue_date}}{% endif %}</div></div></div>{% endfor %}</div>{% endif %}
-      <div class="sec"><div class="st">Education</div>
-        <div style="font-size:.86rem;font-weight:700;color:#1e1b4b;">{{user.education_degree or 'Degree'}}</div>
-        <div style="font-size:.78rem;color:#64748b;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
-      </div>
+      <div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
       {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
       {% if user.current_status %}<div class="sec"><div class="st">Status</div><div style="font-size:.82rem;color:#475569;">{{user.current_status}}</div></div>{% endif %}
       <div class="vsep"></div>
@@ -1031,7 +1033,7 @@ body { font-family:'DM Sans',sans-serif; }
   {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<div class="cert-row"><span class="cn">{{c.name}}</span><span style="font-size:.74rem;color:var(--muted);">{{c.issuer}}</span><span class="ci2">{% if c.issue_date %}{{c.issue_date}}{% endif %}</span></div>{% endfor %}</div>{% endif %}
   {% if projects %}<div class="sec"><div class="st">Projects</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
   {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
-  <div class="sec"><div class="st">Education</div><div style="font-size:.9rem;"><strong>{{user.education_degree or 'Degree'}}</strong><span style="color:var(--muted)"> — {{user.education_college or 'Institution'}}</span></div></div>
+  <div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
   <div class="vsep"></div>
 </div>
 
@@ -1060,7 +1062,7 @@ body { font-family:'DM Sans',sans-serif; }
     {% if user.certificates %}<div class="sec"><div class="st">Certificates</div>{% for c in user.certificates %}<span class="cert-chip">🏅 {{c.name}}</span>{% endfor %}</div>{% endif %}
     {% if projects %}<div class="sec"><div class="st">Projects</div>{% for p in projects %}<div class="pj"><div class="pt">{{p.title}}</div><div class="pd">{{p.description}}</div></div>{% endfor %}</div>{% endif %}
     {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
-<div class="sec"><div class="st">Education</div><div class="pj"><div class="pt">{{user.education_degree or 'Degree / Certification'}}</div><div class="pd">{{user.education_college or 'Institution'}}</div></div></div>
+<div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
     <div class="vsep"></div>
   </div>
 </div>
@@ -1086,10 +1088,7 @@ body { font-family:'DM Sans',sans-serif; }
       {% if user.learning_skills %}<div class="sec"><div class="st">Exploring</div>{% for s in user.learning_skills %}{% if s.strip() %}<span class="sk" style="border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.5);">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<div class="cert-item"><div class="cn">{{c.name}}</div><div class="ci2">{{c.issuer}}</div></div>{% endfor %}</div>{% endif %}
       {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
-<div class="sec"><div class="st">Education</div>
-        <div style="font-weight:700;font-size:.86rem;">{{user.education_degree or 'Degree'}}</div>
-        <div style="font-size:.76rem;color:rgba(255,255,255,.5);margin-top:2px;">{{user.education_college or 'Institution'}}</div>
-      </div>
+<div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
       <div class="vsep"></div>
     </div>
   </div>
@@ -1124,9 +1123,7 @@ body { font-family:'DM Sans',sans-serif; }
       {% if user.known_skills %}<div class="sec"><div class="st">Tech Stack</div>{% for s in user.known_skills %}{% if s.strip() %}<div class="bar-row"><span class="bar-lbl">{{s.strip()}}</span><div class="bar-bg"><div class="bar-fg" style="width:{{[88,76,92,68,82,74,90,66,78,85][loop.index0%10]}}%;"></div></div></div>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="cert-badge">{{c.name}}</span>{% endfor %}</div>{% endif %}
       {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
-<div class="sec"><div class="st">Education</div>
-        <div style="font-size:.82rem;color:#cbd5e1;"><strong>{{user.education_degree or 'Degree'}}</strong><br><span style="color:#64748b;">{{user.education_college or 'Institution'}}</span></div>
-      </div>
+<div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
       <div class="vsep"></div>
     </div>
   </div>
@@ -1153,10 +1150,7 @@ body { font-family:'DM Sans',sans-serif; }
       {% if user.known_skills %}<div class="sec"><div class="st">skills[]</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.learning_skills %}<div class="sec"><div class="st">learning[]</div>{% for s in user.learning_skills %}{% if s.strip() %}<span class="chip chip-l">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">certs[]</div>{% for c in user.certificates %}<span class="chip chip-c">{{c.name}}</span>{% endfor %}</div>{% endif %}
-      <div class="sec"><div class="st">education</div>
-        <div style="font-size:.8rem;color:#f0f6fc;font-weight:700;">{{user.education_degree or 'Degree'}}</div>
-        <div style="font-size:.73rem;color:#8b949e;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
-      </div>
+      <div class="sec"><div class="st">education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
       {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
 <div class="vsep"></div>
     </div>
@@ -1190,7 +1184,7 @@ body { font-family:'DM Sans',sans-serif; }
         {% if user.known_skills %}<div class="sec"><div class="st">Core Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="pill">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
         {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="pill pill-c">{{c.name}}</span>{% endfor %}</div>{% endif %}
         {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
-<div class="sec"><div class="st">Education</div><div class="pj"><div class="pt">{{user.education_degree or 'Degree'}}</div><div class="pd">{{user.education_college or 'Institution'}}</div></div></div>
+<div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
         {% if user.career_goal %}<div class="sec"><div class="st">Vision</div><p style="font-size:.81rem;color:#57534e;line-height:1.7;">{{user.career_goal}}</p></div>{% endif %}
       </div>
     </div>
@@ -1217,7 +1211,7 @@ body { font-family:'DM Sans',sans-serif; }
       {% if user.learning_skills %}<div class="sec"><div class="st">Exploring</div>{% for s in user.learning_skills %}{% if s.strip() %}<span class="chip chip-l">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip chip-c">{{c.name}}</span>{% endfor %}</div>{% endif %}
       {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
-<div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+<div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
       <div class="vsep"></div>
     </div>
     <div class="R">
@@ -1254,7 +1248,7 @@ body { font-family:'DM Sans',sans-serif; }
         {% if user.known_skills %}<div class="sec"><div class="st">Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="pill">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
         {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="pill pill-c">{{c.name}}</span>{% endfor %}</div>{% endif %}
         {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
-<div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+<div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
       </div>
     </div>
     <div class="vsep"></div>
@@ -1276,7 +1270,7 @@ body { font-family:'DM Sans',sans-serif; }
     <div class="L">
       {% if user.known_skills %}<div class="sec"><div class="st">Competencies</div>{% for s in user.known_skills %}{% if s.strip() %}<div class="sk-item">{{s.strip()}}</div>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<div class="cert-item"><div><div class="cn">{{c.name}}</div><div class="ci2">{{c.issuer}}</div></div></div>{% endfor %}</div>{% endif %}
-      <div class="sec"><div class="st">Education</div><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div>
+      <div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
       {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
       <div class="vsep"></div>
     </div>
@@ -1306,7 +1300,7 @@ body { font-family:'DM Sans',sans-serif; }
       {% if user.known_skills %}<div class="sec"><div class="st">Clinical Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip chip-c">{{c.name}}</span>{% endfor %}</div>{% endif %}
       {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
-<div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+<div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
       {% if user.availability %}<div class="sec"><div class="st">Availability</div><p style="font-size:.8rem;color:#0f766e;">{{user.availability}}</p></div>{% endif %}
       <div class="vsep"></div>
     </div>
@@ -1340,10 +1334,7 @@ body { font-family:'DM Sans',sans-serif; }
       {% if user.known_skills %}<div class="sec"><div class="st">Capabilities</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip chip-c">{{c.name}}</span>{% endfor %}</div>{% endif %}
       {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
-<div class="sec"><div class="st">Education</div>
-        <div style="font-weight:700;font-size:.8rem;color:#dde1e7;">{{user.education_degree or 'Degree'}}</div>
-        <div style="font-size:.72rem;color:rgba(255,255,255,.42);margin-top:2px;">{{user.education_college or 'Institution'}}</div>
-      </div>
+<div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
       {% if user.career_goal %}<div class="sec"><div class="st">Objective</div><p class="about">{{user.career_goal}}</p></div>{% endif %}
       <div class="vsep"></div>
     </div>
@@ -1364,10 +1355,7 @@ body { font-family:'DM Sans',sans-serif; }
     <div class="L">
       {% if user.known_skills %}<div class="sec"><div class="st">Tech Stack</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip chip-c">{{c.name}}</span>{% endfor %}</div>{% endif %}
-      <div class="sec"><div class="st">Education</div>
-        <div style="font-weight:700;font-size:.86rem;color:#0c4a6e;">{{user.education_degree or 'Degree'}}</div>
-        <div style="font-size:.78rem;color:#0284c7;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
-      </div>
+      <div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
       {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
       <div class="vsep"></div>
     </div>
@@ -1401,10 +1389,7 @@ body { font-family:'DM Sans',sans-serif; }
       {% if user.known_skills %}<div class="sec"><div class="st">Disciplines</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="sk-item">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Credentials</div>{% for c in user.certificates %}<div class="cert-item"><div class="cn">{{c.name}}</div><div class="ci2">{{c.issuer}}{% if c.issue_date %} · {{c.issue_date}}{% endif %}</div></div>{% endfor %}</div>{% endif %}
       {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
-<div class="sec"><div class="st">Education</div>
-        <div style="font-weight:700;font-size:.93rem;">{{user.education_degree or 'Degree'}}</div>
-        <div style="font-size:.84rem;color:#666;font-style:italic;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
-      </div>
+<div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
       <div class="vsep"></div>
     </div>
   </div>
@@ -1433,10 +1418,7 @@ body { font-family:'DM Sans',sans-serif; }
     <div class="R">
       {% if user.known_skills %}<div class="sec"><div class="st">Core Competencies</div>{% for s in user.known_skills %}{% if s.strip() %}<div class="sk-item">{{s.strip()}}</div>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<div class="cert-item"><div><div class="cn">{{c.name}}</div><div class="ci2">{{c.issuer}}</div></div></div>{% endfor %}</div>{% endif %}
-      <div class="sec"><div class="st">Education</div>
-        <div style="font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;color:#1c1c1e;">{{user.education_degree or 'Degree'}}</div>
-        <div style="font-family:'DM Sans',sans-serif;font-size:.8rem;color:#9ca3af;margin-top:2px;">{{user.education_college or 'Institution'}}</div>
-      </div>
+      <div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
       <div class="vsep"></div>
     </div>
   </div>
@@ -1465,7 +1447,7 @@ body { font-family:'DM Sans',sans-serif; }
     <div class="R">
       {% if user.known_skills %}<div class="sec"><div class="st">Subject Areas</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip chip-c">{{c.name}} <span style="font-size:.65rem;opacity:.7;">— {{c.issuer}}</span></span>{% endfor %}</div>{% endif %}
-      <div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+      <div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
       {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
       <div class="vsep"></div>
     </div>
@@ -1498,7 +1480,7 @@ body { font-family:'DM Sans',sans-serif; }
         {% if user.known_skills %}<div class="sec"><div class="st">Sales Skills</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
         {% if user.certificates %}<div class="sec"><div class="st">Certifications</div>{% for c in user.certificates %}<span class="chip chip-c">{{c.name}}</span>{% endfor %}</div>{% endif %}
         {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
-<div class="sec"><div class="st">Education</div><div class="edu"><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div></div>
+<div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
         {% if user.career_goal %}<div class="sec"><div class="st">Goal</div><p style="font-size:.8rem;color:#374151;line-height:1.65;">{{user.career_goal}}</p></div>{% endif %}
       </div>
     </div>
@@ -1525,7 +1507,7 @@ body { font-family:'DM Sans',sans-serif; }
     <div class="L">
       {% if user.known_skills %}<div class="sec"><div class="st">Stack</div>{% for s in user.known_skills %}{% if s.strip() %}<span class="chip">{{s.strip()}}</span>{% endif %}{% endfor %}</div>{% endif %}
       {% if user.certificates %}<div class="sec"><div class="st">Credentials</div>{% for c in user.certificates %}<span class="chip chip-c">{{c.name}}</span>{% endfor %}</div>{% endif %}
-      <div class="sec"><div class="st">Education</div><div class="ed">{{user.education_degree or 'Degree'}}</div><div class="es">{{user.education_college or 'Institution'}}</div></div>
+      <div class="sec"><div class="st">Education</div>{% for edu in education %}<div class="edu-item"><div class="edu-degree">{{ edu.degree or 'Degree' }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div class="edu-inst">{{ edu.institution or 'Institution' }}</div>{% if edu.grade_value or edu.from_year %}<div class="edu-meta">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}{% endif %}{% if edu.grade_value and edu.from_year %} · {% endif %}{% if edu.from_year %}{{ edu.from_year }} – {% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}{% endif %}</div>{% endif %}</div>{% else %}<div class="edu-item"><div class="edu-degree">Degree</div><div class="edu-inst">Institution</div></div>{% endfor %}</div>
       {% if work_experience %}<div class="sec"><div class="st">Experience</div>{% for e in work_experience %}<div class="exp-item"><div class="exp-role">{{ e.role }}</div><div class="exp-co">{{ e.company }}</div><div class="exp-dates">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div></div>{% endfor %}</div>{% endif %}
       {% if user.career_goal %}<div class="sec"><div class="st">Mission</div><p style="font-family:'DM Sans',sans-serif;font-size:.78rem;color:rgba(255,255,255,.42);line-height:1.7;">{{user.career_goal}}</p></div>{% endif %}
       <div class="vsep"></div>
@@ -1580,8 +1562,7 @@ const ORIG = {
   goal:     {{ (user.career_goal or '')|tojson }},
   skills:   {{ (user.known_skills or [])|tojson }},
   learning: {{ (user.learning_skills or [])|tojson }},
-  degree:   {{ (user.education_degree or '')|tojson }},
-  college:  {{ (user.education_college or '')|tojson }},
+  education: {{ (education or [])|tojson }},
   exp:      {{ (user.experience_years or '')|tojson }},
   projects:  {{ projects | map(attribute='title') | list | tojson }},
   projdescs: {{ projects | map(attribute='description') | list | tojson }},
@@ -1613,6 +1594,37 @@ function addEpExp() {
   renderEpExpList();
 }
 
+// ── Editable education entries ──
+let epEduEntries = JSON.parse(JSON.stringify(ORIG.education || []));
+
+function renderEpEduList() {
+  const list = document.getElementById('ep-edu-list');
+  if (!list) return;
+  if (!epEduEntries.length) { list.innerHTML = ''; return; }
+  list.innerHTML = epEduEntries.map((e, i) => `
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.75rem;margin-bottom:.5rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.4rem;">
+        <input class="ep-inp" placeholder="Institution" value="${e.institution||''}" oninput="epEduEntries[${i}].institution=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+        <input class="ep-inp" placeholder="Degree" value="${e.degree||''}" oninput="epEduEntries[${i}].degree=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+        <input class="ep-inp" placeholder="Field of Study" value="${e.field||''}" oninput="epEduEntries[${i}].field=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;grid-column:1 / -1;">
+        <select class="ep-inp" oninput="epEduEntries[${i}].grade_type=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+          <option value="CGPA" ${e.grade_type!=='Percentage'?'selected':''}>CGPA</option>
+          <option value="Percentage" ${e.grade_type==='Percentage'?'selected':''}>Percentage</option>
+        </select>
+        <input class="ep-inp" placeholder="Grade Value" value="${e.grade_value||''}" oninput="epEduEntries[${i}].grade_value=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+        <input class="ep-inp" placeholder="From Year" value="${e.from_year||''}" oninput="epEduEntries[${i}].from_year=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+        <input class="ep-inp" placeholder="${e.is_current?'Present':e.to_year||'To Year'}" value="${e.is_current?'':e.to_year||''}" ${e.is_current?'disabled':''} oninput="epEduEntries[${i}].to_year=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+      </div>
+      <button onclick="epEduEntries.splice(${i},1);renderEpEduList();liveUpdate()" style="padding:2px 10px;border-radius:5px;border:1px solid #ef4444;background:transparent;color:#ef4444;font-size:.72rem;cursor:pointer;font-family:inherit;">✕ Remove</button>
+    </div>
+  `).join('');
+}
+
+function addEpEdu() {
+  epEduEntries.push({institution:'',degree:'',field:'',grade_type:'CGPA',grade_value:'',from_year:'',to_year:'',is_current:false});
+  renderEpEduList();
+}
+
 // ── POPULATE EDIT PANEL WITH ORIGINAL DATA ──
 function populatePanel() {
   document.getElementById('ep-name').value     = ORIG.name;
@@ -1625,11 +1637,11 @@ function populatePanel() {
   document.getElementById('ep-goal').value     = ORIG.goal;
   document.getElementById('ep-skills').value   = (ORIG.skills || []).join(', ');
   document.getElementById('ep-learning').value = (ORIG.learning || []).join(', ');
-  document.getElementById('ep-degree').value   = ORIG.degree;
-  document.getElementById('ep-college').value  = ORIG.college;
   document.getElementById('ep-exp').value      = ORIG.exp;
   epExpEntries = JSON.parse(JSON.stringify(ORIG.work_experience || []));
   renderEpExpList();
+  epEduEntries = JSON.parse(JSON.stringify(ORIG.education || []));
+  renderEpEduList();
   // Projects
   (ORIG.projects || []).forEach((title, i) => {
     const tf = document.getElementById('ep-proj-title-' + i);
@@ -1641,6 +1653,7 @@ function populatePanel() {
 document.addEventListener('DOMContentLoaded', function() {
   populatePanel();
   renderEpExpList();
+  renderEpEduList();
   liveUpdate();
 });
 
@@ -1673,8 +1686,6 @@ function liveUpdate() {
   const goal     = document.getElementById('ep-goal').value;
   const skills   = document.getElementById('ep-skills').value.split(',').map(s=>s.trim()).filter(Boolean);
   const learning = document.getElementById('ep-learning').value.split(',').map(s=>s.trim()).filter(Boolean);
-  const degree   = document.getElementById('ep-degree').value;
-  const college  = document.getElementById('ep-college').value;
 
   // Only update the currently visible template
   const t = document.getElementById('t' + cur);
@@ -1705,23 +1716,6 @@ function liveUpdate() {
     }
     if (label.includes('goal')||label.includes('vision')||label.includes('mission')) {
       sec.querySelectorAll('p').forEach(p => { if(goal !== '') p.textContent = goal; });
-    }
-    // Education
-    if (label.includes('educ')) {
-      // pattern 1: .pt / .pd inside .pj
-      const pt = sec.querySelector('.pt, .ed, .role-nm');
-      const pd = sec.querySelector('.pd, .es, .co');
-      if (pt && degree) pt.textContent = degree;
-      if (pd && college) pd.textContent = college;
-      // pattern 2: inline div/strong (t2 style: strong + span)
-      const strong = sec.querySelector('strong');
-      if (strong && degree) strong.textContent = degree;
-      const span = sec.querySelector('span[style]');
-      if (span && college) span.textContent = ' — ' + college;
-      // pattern 3: bare divs with font-size style
-      const divs = Array.from(sec.querySelectorAll('div[style]')).filter(d => !d.classList.length);
-      if (divs[0] && degree) divs[0].textContent = degree;
-      if (divs[1] && college) divs[1].textContent = college;
     }
     // Skills rebuild
     const lbl = label.replace(/[^a-z]/g,'');
@@ -1776,6 +1770,27 @@ function liveUpdate() {
         div.className = 'exp-item';
         div.setAttribute('data-ep-exp','1');
         div.innerHTML = `<div class="exp-role">${e.role||''}</div><div class="exp-co">${e.company||''}</div><div class="exp-dates">${e.from_year||''}${e.from_year?' – ':''}${e.is_current?'Present':e.to_year||''}</div>`;
+        sec.appendChild(div);
+      });
+    });
+  }
+
+  // ── Education — rebuild all education sections in active template ──
+  if (epEduEntries) {
+    t.querySelectorAll('.sec').forEach(sec => {
+      const st = sec.querySelector('.st');
+      if (!st || st.textContent.trim().toLowerCase() !== 'education') return;
+      // Remove existing edu-items and ep-edu-temp items
+      sec.querySelectorAll('.edu-item,[data-ep-edu]').forEach(e => e.remove());
+      epEduEntries.forEach(e => {
+        if (!e.institution && !e.degree) return;
+        const gradeStr = e.grade_value ? (e.grade_value + (e.grade_type === 'Percentage' ? '%' : ' CGPA')) : '';
+        const yearsStr = e.from_year ? (e.from_year + ' – ' + (e.is_current ? 'Present' : (e.to_year||''))) : '';
+        const metaStr  = [gradeStr, yearsStr].filter(Boolean).join(' · ');
+        const div = document.createElement('div');
+        div.className = 'edu-item';
+        div.setAttribute('data-ep-edu','1');
+        div.innerHTML = `<div class="edu-degree">${e.degree||''}${e.field?' — '+e.field:''}</div><div class="edu-inst">${e.institution||''}</div>${metaStr?`<div class="edu-meta">${metaStr}</div>`:''}`;
         sec.appendChild(div);
       });
     });

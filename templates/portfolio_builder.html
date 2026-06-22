@@ -592,6 +592,13 @@ body { font-family: 'DM Sans', sans-serif; }
         <div class="ep-group"><label class="ep-lbl">Learning Skills (comma separated)</label><textarea class="ep-inp" id="ep-learning" oninput="liveUpdate()" rows="2" placeholder="Rust, Go..."></textarea></div>
 
         <div class="cp-divider"></div>
+        <div class="ep-lbl mb-3">Education (preview only)</div>
+        <div id="ep-edu-list"></div>
+        <button type="button" onclick="addEpEdu()" class="w-full py-2.5 mb-4 border-2 border-dashed border-cream-300 dark:border-ink-700 text-ink-500 dark:text-ink-400 text-xs font-semibold rounded-xl hover:border-ink-400 dark:hover:border-ink-500 transition-colors font-body">
+          + Add Education Entry
+        </button>
+
+        <div class="cp-divider"></div>
         <div class="ep-lbl mb-3">Work Experience (preview only)</div>
         <div id="ep-exp-list"></div>
         <button type="button" onclick="addEpExp()" class="w-full py-2.5 mb-4 border-2 border-dashed border-cream-300 dark:border-ink-700 text-ink-500 dark:text-ink-400 text-xs font-semibold rounded-xl hover:border-ink-400 dark:hover:border-ink-500 transition-colors font-body">
@@ -722,6 +729,19 @@ body { font-family: 'DM Sans', sans-serif; }
     <div class="certs-grid">{% for c in user.certificates %}<span class="cert-tag">{{ c.name }} — {{ c.issuer }}</span>{% endfor %}</div>
   </div>
   {% endif %}
+  {% if education %}
+  <div class="section" id="education">
+    <div class="sec-label">EDUCATION</div>
+    {% for edu in education %}
+    <div data-jinja-edu="1" style="padding:.85rem 0;border-bottom:1px solid rgba(128,128,128,.15);{% if loop.last %}border-bottom:none;{% endif %}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.25rem;">
+        <div><div style="font-weight:700;font-size:.92rem;color:#fff;">{{ edu.degree }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div style="font-size:.82rem;opacity:.7;margin-top:2px;">{{ edu.institution }}</div></div>
+        <div style="font-size:.75rem;opacity:.55;font-weight:600;white-space:nowrap;text-align:right;">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}<br>{% endif %}{{ edu.from_year }}{% if edu.from_year %} – {% endif %}{% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
   {% if work_experience %}
   <div class="section" id="experience">
     <div class="sec-label">WORK EXPERIENCE</div>
@@ -796,9 +816,22 @@ body { font-family: 'DM Sans', sans-serif; }
     {% for c in user.certificates %}<div class="cert-row"><div class="cn">{{ c.name }}</div><div class="ci">{{ c.issuer }}</div></div>{% endfor %}
   </div>
   {% endif %}
+  {% if education %}
+  <div class="section" id="education">
+    <div class="sec-head"><div class="sec-title">Education</div><div class="sec-num">03</div></div>
+    {% for edu in education %}
+    <div data-jinja-edu="1" class="sec-body" style="padding:0;border-bottom:1px solid #eee;{% if loop.last %}border-bottom:none;{% endif %}padding:.75rem 0;">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.2rem;">
+        <div><div style="font-weight:700;font-size:.9rem;">{{ edu.degree }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div style="font-size:.8rem;opacity:.7;margin-top:1px;">{{ edu.institution }}</div></div>
+        <div style="font-size:.74rem;opacity:.5;text-align:right;">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}<br>{% endif %}{{ edu.from_year }}{% if edu.from_year %} – {% endif %}{% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
   {% if work_experience %}
   <div class="section" id="experience">
-    <div class="sec-head"><div class="sec-title">Experience</div><div class="sec-num">03</div></div>
+    <div class="sec-head"><div class="sec-title">Experience</div><div class="sec-num">04</div></div>
     {% for e in work_experience %}
     <div data-jinja-exp="1" class="sec-body" style="padding:0;border-bottom:1px solid #eee;{% if loop.last %}border-bottom:none;{% endif %}padding:.75rem 0;">
       <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.2rem;">
@@ -811,7 +844,7 @@ body { font-family: 'DM Sans', sans-serif; }
   {% endif %}
   {% if projects %}
   <div class="section" id="projects">
-    <div class="sec-head"><div class="sec-title">Selected Work</div><div class="sec-num">04</div></div>
+    <div class="sec-head"><div class="sec-title">Selected Work</div><div class="sec-num">05</div></div>
     <div class="proj-list">
       {% for p in projects %}
       <div class="proj-row">
@@ -824,7 +857,7 @@ body { font-family: 'DM Sans', sans-serif; }
   </div>
   {% endif %}
   <div class="section" id="contact">
-    <div class="sec-head"><div class="sec-title">Contact</div><div class="sec-num">05</div></div>
+    <div class="sec-head"><div class="sec-title">Contact</div><div class="sec-num">06</div></div>
     <div class="contact-grid">
       {% if user.email %}<div class="contact-item"><div class="contact-label">Email</div><a class="contact-val" href="mailto:{{ user.email }}">{{ user.email }}</a></div>{% endif %}
       {% if user.linkedin_url %}<div class="contact-item"><div class="contact-label">LinkedIn</div><a class="contact-val" href="{{ user.linkedin_url }}" target="_blank">View Profile</a></div>{% endif %}
@@ -862,6 +895,19 @@ body { font-family: 'DM Sans', sans-serif; }
   <div class="section" id="certs">
     <div class="sec-title">Certifications</div>
     <div>{% for c in user.certificates %}<span class="cert-pill">{{ c.name }} — {{ c.issuer }}</span>{% endfor %}</div>
+  </div>
+  {% endif %}
+  {% if education %}
+  <div class="section" id="education">
+    <div class="sec-title">Education</div>
+    {% for edu in education %}
+    <div data-jinja-edu="1" style="padding:.75rem 0;border-bottom:1px solid rgba(255,255,255,.06);{% if loop.last %}border-bottom:none;{% endif %}">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.2rem;">
+        <div><div style="font-weight:700;font-size:.9rem;color:#fff;">{{ edu.degree }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div style="font-size:.8rem;opacity:.6;margin-top:1px;">{{ edu.institution }}</div></div>
+        <div style="font-size:.74rem;opacity:.4;text-align:right;">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}<br>{% endif %}{{ edu.from_year }}{% if edu.from_year %} – {% endif %}{% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}</div>
+      </div>
+    </div>
+    {% endfor %}
   </div>
   {% endif %}
   {% if work_experience %}
@@ -932,6 +978,19 @@ body { font-family: 'DM Sans', sans-serif; }
   <div class="section" id="certs">
     <div class="sec-header"><div class="sec-title">Certifications</div><div class="sec-line"></div></div>
     {% for c in user.certificates %}<div class="cert-item"><div class="cn">{{ c.name }}</div><div class="ci">{{ c.issuer }}</div></div>{% endfor %}
+  </div>
+  {% endif %}
+  {% if education %}
+  <div class="section" id="education">
+    <div class="sec-header"><div class="sec-title">Education</div><div class="sec-line"></div></div>
+    {% for edu in education %}
+    <div data-jinja-edu="1" style="padding:.75rem 0;border-bottom:1px solid #ecdec8;{% if loop.last %}border-bottom:none;{% endif %}">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.2rem;">
+        <div><div style="font-weight:700;font-size:.9rem;color:#1a0f00;">{{ edu.degree }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div style="font-size:.8rem;color:#7a5c40;margin-top:1px;">{{ edu.institution }}</div></div>
+        <div style="font-size:.74rem;color:#b8906e;font-weight:600;text-align:right;">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}<br>{% endif %}{{ edu.from_year }}{% if edu.from_year %} – {% endif %}{% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}</div>
+      </div>
+    </div>
+    {% endfor %}
   </div>
   {% endif %}
   {% if work_experience %}
@@ -1005,6 +1064,21 @@ body { font-family: 'DM Sans', sans-serif; }
     <div class="sec-body">{% for c in user.certificates %}<div class="cert-item"><div class="cn">{{ c.name }}</div><div class="ci">{{ c.issuer }}</div></div>{% endfor %}</div>
   </div>
   {% endif %}
+  {% if education %}
+  <div class="section" id="education">
+    <div class="sec-sidebar"><div class="sec-label">Education</div></div>
+    <div class="sec-body">
+      {% for edu in education %}
+      <div data-jinja-edu="1" style="padding:.75rem 0;border-bottom:1px solid #f0f0f0;{% if loop.last %}border-bottom:none;{% endif %}">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.2rem;">
+          <div><div style="font-weight:700;font-size:.9rem;">{{ edu.degree }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div style="font-size:.8rem;color:#666;margin-top:1px;">{{ edu.institution }}</div></div>
+          <div style="font-size:.74rem;color:#aaa;font-weight:500;text-align:right;">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}<br>{% endif %}{{ edu.from_year }}{% if edu.from_year %} – {% endif %}{% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
   {% if work_experience %}
   <div class="section" id="experience">
     <div class="sec-sidebar"><div class="sec-label">Work</div></div>
@@ -1073,6 +1147,19 @@ body { font-family: 'DM Sans', sans-serif; }
   <div class="section" id="certs">
     <div class="sec-title">Certifications</div>
     <div>{% for c in user.certificates %}<span class="cert-tag">{{ c.name }} — {{ c.issuer }}</span>{% endfor %}</div>
+  </div>
+  {% endif %}
+  {% if education %}
+  <div class="section" id="education">
+    <div class="sec-title">Education</div>
+    {% for edu in education %}
+    <div data-jinja-edu="1" style="padding:.75rem 0;border-bottom:1px solid rgba(0,255,247,.07);{% if loop.last %}border-bottom:none;{% endif %}">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.2rem;">
+        <div><div style="font-weight:700;font-size:.9rem;color:#fff;">{{ edu.degree }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div style="font-size:.8rem;opacity:.5;margin-top:1px;">{{ edu.institution }}</div></div>
+        <div style="font-size:.74rem;color:#00fff7;opacity:.6;text-align:right;">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}<br>{% endif %}{{ edu.from_year }}{% if edu.from_year %} – {% endif %}{% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}</div>
+      </div>
+    </div>
+    {% endfor %}
   </div>
   {% endif %}
   {% if work_experience %}
@@ -1226,6 +1313,7 @@ const ORIG = {
   projects: {{ projects | map(attribute='title') | list | tojson }},
   projdescs: {{ projects | map(attribute='description') | list | tojson }},
   work_experience: {{ (work_experience or [])|tojson }},
+  education: {{ (education or [])|tojson }},
 };
 
 let epExpEntries = JSON.parse(JSON.stringify(ORIG.work_experience || []));
@@ -1252,6 +1340,36 @@ function addEpExp() {
   renderEpExpList();
 }
 
+let epEduEntries = JSON.parse(JSON.stringify(ORIG.education || []));
+
+function renderEpEduList() {
+  const list = document.getElementById('ep-edu-list');
+  if (!list) return;
+  if (!epEduEntries.length) { list.innerHTML = ''; return; }
+  list.innerHTML = epEduEntries.map((e, i) => `
+    <div class="ep-group" style="background:#f8f4ec;border:1px solid #e5d9c0;border-radius:10px;padding:.75rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.4rem;">
+        <input class="ep-inp" placeholder="Institution" value="${e.institution||''}" oninput="epEduEntries[${i}].institution=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+        <input class="ep-inp" placeholder="Degree" value="${e.degree||''}" oninput="epEduEntries[${i}].degree=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+        <input class="ep-inp" placeholder="Field of Study" value="${e.field||''}" oninput="epEduEntries[${i}].field=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;grid-column:1 / -1;">
+        <select class="ep-inp" oninput="epEduEntries[${i}].grade_type=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+          <option value="CGPA" ${e.grade_type!=='Percentage'?'selected':''}>CGPA</option>
+          <option value="Percentage" ${e.grade_type==='Percentage'?'selected':''}>Percentage</option>
+        </select>
+        <input class="ep-inp" placeholder="Grade Value" value="${e.grade_value||''}" oninput="epEduEntries[${i}].grade_value=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+        <input class="ep-inp" placeholder="From" value="${e.from_year||''}" oninput="epEduEntries[${i}].from_year=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+        <input class="ep-inp" placeholder="${e.is_current?'Present':e.to_year||'To'}" value="${e.is_current?'':e.to_year||''}" ${e.is_current?'disabled':''} oninput="epEduEntries[${i}].to_year=this.value;liveUpdate()" style="padding:6px 8px;font-size:.8rem;">
+      </div>
+      <button onclick="epEduEntries.splice(${i},1);renderEpEduList();liveUpdate()" style="padding:2px 10px;border-radius:6px;border:1px solid #dc2626;background:transparent;color:#dc2626;font-size:.72rem;cursor:pointer;font-family:inherit;">Remove</button>
+    </div>
+  `).join('');
+}
+
+function addEpEdu() {
+  epEduEntries.push({institution:'',degree:'',field:'',grade_type:'CGPA',grade_value:'',from_year:'',to_year:'',is_current:false});
+  renderEpEduList();
+}
+
 function populatePanel() {
   document.getElementById('ep-name').value     = ORIG.name;
   document.getElementById('ep-title').value    = ORIG.title;
@@ -1264,6 +1382,8 @@ function populatePanel() {
   document.getElementById('ep-learning').value = (ORIG.learning || []).join(', ');
   epExpEntries = JSON.parse(JSON.stringify(ORIG.work_experience || []));
   renderEpExpList();
+  epEduEntries = JSON.parse(JSON.stringify(ORIG.education || []));
+  renderEpEduList();
   (ORIG.projects || []).forEach((title, i) => {
     const tf = document.getElementById('ep-proj-title-' + i);
     const df = document.getElementById('ep-proj-desc-' + i);
@@ -1275,6 +1395,7 @@ function populatePanel() {
 document.addEventListener('DOMContentLoaded', function() {
   populatePanel();
   renderEpExpList();
+  renderEpEduList();
   liveUpdate();
 });
 
@@ -1352,6 +1473,26 @@ function liveUpdate() {
       div.innerHTML = `<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.2rem;">
         <div><div style="font-weight:700;font-size:.9rem;">${e.role||''}</div><div style="font-size:.8rem;opacity:.7;margin-top:1px;">${e.company||''}</div></div>
         <div style="font-size:.74rem;opacity:.5;">${e.from_year||''}${e.from_year?' – ':''}${e.is_current?'Present':e.to_year||''}</div>
+      </div>`;
+      body.appendChild(div);
+    });
+  }
+
+  const eduSection = t.querySelector('#education');
+  if (eduSection && epEduEntries.length) {
+    const body = eduSection.querySelector('.sec-body') || eduSection;
+    body.querySelectorAll('[data-jinja-edu],[data-ep-edu]').forEach(e => e.remove());
+    epEduEntries.forEach(e => {
+      if (!e.institution && !e.degree) return;
+      const gradeStr = e.grade_value ? (e.grade_value + (e.grade_type === 'Percentage' ? '%' : ' CGPA')) : '';
+      const yearsStr = e.from_year ? (e.from_year + ' – ' + (e.is_current ? 'Present' : (e.to_year||''))) : '';
+      const metaStr  = [gradeStr, yearsStr].filter(Boolean).join(' · ');
+      const div = document.createElement('div');
+      div.setAttribute('data-ep-edu', '1');
+      div.style.cssText = 'padding:.75rem 0;border-bottom:1px solid rgba(128,128,128,.12);';
+      div.innerHTML = `<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.2rem;">
+        <div><div style="font-weight:700;font-size:.9rem;">${e.degree||''}${e.field?' — '+e.field:''}</div><div style="font-size:.8rem;opacity:.7;margin-top:1px;">${e.institution||''}</div></div>
+        <div style="font-size:.74rem;opacity:.5;text-align:right;">${metaStr}</div>
       </div>`;
       body.appendChild(div);
     });
