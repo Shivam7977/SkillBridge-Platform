@@ -821,7 +821,7 @@ body { font-family: 'DM Sans', sans-serif; }
   <div class="section" id="education">
     <div class="sec-head"><div class="sec-title">Education</div><div class="sec-num">03</div></div>
     {% for edu in education %}
-    <div data-jinja-edu="1" class="sec-body" style="padding:0;border-bottom:1px solid #eee;{% if loop.last %}border-bottom:none;{% endif %}padding:.75rem 0;">
+    <div data-jinja-edu="1" style="padding:.75rem 0;border-bottom:1px solid #eee;{% if loop.last %}border-bottom:none;{% endif %}">
       <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.2rem;">
         <div><div style="font-weight:700;font-size:.9rem;">{{ edu.degree }}{% if edu.field %} — {{ edu.field }}{% endif %}</div><div style="font-size:.8rem;opacity:.7;margin-top:1px;">{{ edu.institution }}</div></div>
         <div style="font-size:.74rem;opacity:.5;text-align:right;">{% if edu.grade_value %}{{ edu.grade_value }}{% if edu.grade_type == 'Percentage' %}%{% else %} CGPA{% endif %}<br>{% endif %}{{ edu.from_year }}{% if edu.from_year %} – {% endif %}{% if edu.is_current %}Present{% else %}{{ edu.to_year }}{% endif %}</div>
@@ -834,7 +834,7 @@ body { font-family: 'DM Sans', sans-serif; }
   <div class="section" id="experience">
     <div class="sec-head"><div class="sec-title">Experience</div><div class="sec-num">04</div></div>
     {% for e in work_experience %}
-    <div data-jinja-exp="1" class="sec-body" style="padding:0;border-bottom:1px solid #eee;{% if loop.last %}border-bottom:none;{% endif %}padding:.75rem 0;">
+    <div data-jinja-exp="1" style="padding:.75rem 0;border-bottom:1px solid #eee;{% if loop.last %}border-bottom:none;{% endif %}">
       <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.2rem;">
         <div><div style="font-weight:700;font-size:.9rem;">{{ e.role }}</div><div style="font-size:.8rem;opacity:.7;margin-top:1px;">{{ e.company }}</div></div>
         <div style="font-size:.74rem;opacity:.5;">{{ e.from_year }}{% if e.from_year %} – {% endif %}{% if e.is_current %}Present{% else %}{{ e.to_year }}{% endif %}</div>

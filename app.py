@@ -1989,7 +1989,9 @@ def resume_pdf():
     user_data['learning_skills'] = parse_skills(user_data.get('learning_skills'))
     for p in user_projects:
         p['skills_needed'] = parse_skills(p.get('skills_needed'))
-    return render_template('resume_pdf.html', user=user_data, projects=user_projects, template_num=template_num, template_name=template_name)
+    work_experience = user_data.get('work_experience', [])
+    education = user_data.get('education', [])
+    return render_template('resume_pdf.html', user=user_data, projects=user_projects, template_num=template_num, template_name=template_name, work_experience=work_experience, education=education)
 
 # --- SKILLBRIDGE AI CHATBOT ---
 @app.route('/api/chatbot', methods=['POST'])
