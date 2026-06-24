@@ -149,7 +149,7 @@ body { font-family: 'DM Sans', sans-serif; }
       <div class="lg:col-span-4 lg:sticky lg:top-8 space-y-6">
         <div class="editorial-card bg-white border border-cream-200 rounded-3xl p-6 sm:p-8 shadow-sm text-center flex flex-col items-center">
           
-          <img class="w-24 h-24 rounded-2xl object-cover border-2 border-white dark:border-ink-800 shadow-md mb-4" src="{{ user.profile_pic_url or url_for('static', filename='profile_pics/default.jpg') }}">
+          <img class="w-24 h-24 rounded-2xl object-cover border-2 border-white dark:border-ink-800 shadow-md mb-4" id="profile-avatar-img" src="{{ user.profile_pic_url or url_for('static', filename='profile_pics/default.jpg') }}">
           <h2 class="font-display text-2xl font-black text-ink-900 dark:text-cream-100 tracking-tight" id="p-name">{{ user.name or "Your Name" }}</h2>
           <span class="text-xs font-bold text-gold uppercase tracking-widest mt-1 mb-4 block" id="p-title">{{ user.title or "Professional Title" }}</span>
 
@@ -485,10 +485,10 @@ body { font-family: 'DM Sans', sans-serif; }
                 <!-- VIEW MODE (default) -->
                 <div class="flex items-start justify-between gap-4" id="social-view">
                   <div class="min-w-0 flex flex-wrap gap-3">
-                    <a href="{{ user.linkedin_url }}" target="_blank" class="text-xs font-semibold {% if user.linkedin_url %}text-ink-700 dark:text-cream-300 hover:underline{% else %}text-ink-300 dark:text-ink-600 pointer-events-none{% endif %}"><i class="fab fa-linkedin"></i> LinkedIn</a>
-                    <a href="{{ user.github_url }}" target="_blank" class="text-xs font-semibold {% if user.github_url %}text-ink-700 dark:text-cream-300 hover:underline{% else %}text-ink-300 dark:text-ink-600 pointer-events-none{% endif %}"><i class="fab fa-github"></i> GitHub</a>
-                    <a href="{{ user.instagram_url }}" target="_blank" class="text-xs font-semibold {% if user.instagram_url %}text-ink-700 dark:text-cream-300 hover:underline{% else %}text-ink-300 dark:text-ink-600 pointer-events-none{% endif %}"><i class="fab fa-instagram"></i> Instagram</a>
-                    <a href="{{ user.facebook_url }}" target="_blank" class="text-xs font-semibold {% if user.facebook_url %}text-ink-700 dark:text-cream-300 hover:underline{% else %}text-ink-300 dark:text-ink-600 pointer-events-none{% endif %}"><i class="fab fa-facebook"></i> Facebook</a>
+                    <a href="{{ user.linkedin_url }}" target="_blank" class="view-link-linkedin text-xs font-semibold {% if user.linkedin_url %}text-ink-700 dark:text-cream-300 hover:underline{% else %}text-ink-300 dark:text-ink-600 pointer-events-none{% endif %}"><i class="fab fa-linkedin"></i> LinkedIn</a>
+                    <a href="{{ user.github_url }}" target="_blank" class="view-link-github text-xs font-semibold {% if user.github_url %}text-ink-700 dark:text-cream-300 hover:underline{% else %}text-ink-300 dark:text-ink-600 pointer-events-none{% endif %}"><i class="fab fa-github"></i> GitHub</a>
+                    <a href="{{ user.instagram_url }}" target="_blank" class="view-link-instagram text-xs font-semibold {% if user.instagram_url %}text-ink-700 dark:text-cream-300 hover:underline{% else %}text-ink-300 dark:text-ink-600 pointer-events-none{% endif %}"><i class="fab fa-instagram"></i> Instagram</a>
+                    <a href="{{ user.facebook_url }}" target="_blank" class="view-link-facebook text-xs font-semibold {% if user.facebook_url %}text-ink-700 dark:text-cream-300 hover:underline{% else %}text-ink-300 dark:text-ink-600 pointer-events-none{% endif %}"><i class="fab fa-facebook"></i> Facebook</a>
                   </div>
                   <button type="button" onclick="openSocialEdit()" class="px-3 py-1.5 rounded-lg border border-ink-300 dark:border-ink-700 hover:bg-cream-100 dark:hover:bg-ink-800 text-ink-700 dark:text-cream-300 text-xs font-semibold transition-all whitespace-nowrap shrink-0">✏️ Edit</button>
                 </div>
@@ -781,24 +781,86 @@ function handleSaveResult(data) {
 }
 
 // ── Core Identity ──
+// ── Original saved values, used to restore fields on Cancel ──
+const CARD_ORIG = {
+  identity: { name: {{ (user.name or '')|tojson }}, title: {{ (user.title or '')|tojson }}, location: {{ (user.location or '')|tojson }}, about_me: {{ (user.about_me or '')|tojson }} },
+  skills: { known: {{ (user.known_skills_str or '')|tojson }}, learning: {{ (user.learning_skills_str or '')|tojson }} },
+  career: { current_status: {{ (user.current_status or '')|tojson }}, experience_years: {{ (user.experience_years or '0')|tojson }} },
+  social: { linkedin: {{ (user.linkedin_url or '')|tojson }}, github: {{ (user.github_url or '')|tojson }}, instagram: {{ (user.instagram_url or '')|tojson }}, facebook: {{ (user.facebook_url or '')|tojson }} },
+};
+
+function openIdentityEdit() {
+  document.getElementById('identity-view').classList.add('hidden');
+  document.getElementById('identity-edit').classList.remove('hidden');
+}
+
+function cancelIdentityEdit() {
+  document.getElementById('in-name').value = CARD_ORIG.identity.name;
+  document.getElementById('in-title').value = CARD_ORIG.identity.title;
+  document.getElementById('in-loc').value = CARD_ORIG.identity.location;
+  document.getElementById('in-bio').value = CARD_ORIG.identity.about_me;
+  ['in-name', 'in-title', 'in-loc'].forEach(id => clearFieldError(document.getElementById(id)));
+  document.getElementById('identity-edit').classList.add('hidden');
+  document.getElementById('identity-view').classList.remove('hidden');
+}
+
 async function saveIdentityCard() {
   if (!validateRequired(['in-name', 'in-title', 'in-loc'])) {
     showToast('Please fill all required fields.', 'error');
     return;
   }
+  const name = document.getElementById('in-name').value.trim();
+  const title = document.getElementById('in-title').value.trim();
+  const location = document.getElementById('in-loc').value.trim();
+  const aboutMe = document.getElementById('in-bio').value.trim();
+
   const fd = new FormData();
-  fd.append('name', document.getElementById('in-name').value.trim());
-  fd.append('title', document.getElementById('in-title').value.trim());
-  fd.append('location', document.getElementById('in-loc').value.trim());
-  fd.append('about_me', document.getElementById('in-bio').value.trim());
+  fd.append('name', name);
+  fd.append('title', title);
+  fd.append('location', location);
+  fd.append('about_me', aboutMe);
   const fileInput = document.getElementById('in-profile-pic');
   if (fileInput && fileInput.files[0]) fd.append('profile_pic', fileInput.files[0]);
 
   const data = await postCard('/profile/save/identity', fd, document.getElementById('identity-save-btn'));
-  handleSaveResult(data);
+  if (handleSaveResult(data)) {
+    CARD_ORIG.identity = { name, title, location, about_me: aboutMe };
+    const view = document.getElementById('identity-view');
+    view.querySelector('.view-name').textContent = name || 'Add your name';
+    view.querySelector('.view-title').textContent = title || 'Add a job title';
+    view.querySelector('.view-location').textContent = '📍 ' + (location || 'Add location');
+    const bioEl = view.querySelector('.view-bio');
+    bioEl.textContent = aboutMe;
+    bioEl.classList.toggle('hidden', !aboutMe);
+    if (data.profile_pic_url) {
+      const avatarImg = document.getElementById('profile-avatar-img');
+      if (avatarImg) avatarImg.src = data.profile_pic_url;
+      if (fileInput) fileInput.value = '';
+    }
+    document.getElementById('identity-edit').classList.add('hidden');
+    document.getElementById('identity-view').classList.remove('hidden');
+  }
 }
 
 // ── Mastery & Learning ──
+function openSkillsEdit() {
+  document.getElementById('skills-view').classList.add('hidden');
+  document.getElementById('skills-edit').classList.remove('hidden');
+}
+
+function cancelSkillsEdit() {
+  document.getElementById('in-known').value = CARD_ORIG.skills.known;
+  document.getElementById('in-learning').value = CARD_ORIG.skills.learning;
+  clearFieldError(document.getElementById('in-known'));
+  clearFieldError(document.getElementById('in-learning'));
+  document.getElementById('skills-edit').classList.add('hidden');
+  document.getElementById('skills-view').classList.remove('hidden');
+}
+
+function pillsHtml(list, cls) {
+  return list.map(s => `<span class="px-2.5 py-1 ${cls} text-[11px] font-bold rounded-full">${s}</span>`).join('');
+}
+
 async function saveSkillsCard() {
   const known = document.getElementById('in-known');
   const learning = document.getElementById('in-learning');
@@ -818,23 +880,55 @@ async function saveSkillsCard() {
   fd.append('learning_skills', learning.value);
 
   const data = await postCard('/profile/save/skills', fd, document.getElementById('skills-save-btn'));
-  if (handleSaveResult(data) && data.added_goal) {
-    setTimeout(() => showToast(`🚀 New goal detected! <a href="${data.roadmap_url}" style="text-decoration:underline">Generate a roadmap for "${data.added_goal}"?</a>`), 600);
+  if (handleSaveResult(data)) {
+    CARD_ORIG.skills = { known: known.value, learning: learning.value };
+    const view = document.getElementById('skills-view');
+    view.querySelector('.view-known').innerHTML = knownList.length ? pillsHtml(knownList, 'bg-cream-100 dark:bg-ink-800 text-ink-700 dark:text-cream-300') : '<span class="text-xs text-ink-400">Add the skills you know</span>';
+    view.querySelector('.view-learning').innerHTML = learningList.length ? pillsHtml(learningList, 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400') : '<span class="text-xs text-ink-400">Add skills you want to learn</span>';
+    document.getElementById('skills-edit').classList.add('hidden');
+    document.getElementById('skills-view').classList.remove('hidden');
+    if (data.added_goal) {
+      setTimeout(() => showToast(`🚀 New goal detected! <a href="${data.roadmap_url}" style="text-decoration:underline">Generate a roadmap for "${data.added_goal}"?</a>`), 600);
+    }
   }
 }
 
 // ── Career Parameters ──
+function openCareerEdit() {
+  document.getElementById('career-view').classList.add('hidden');
+  document.getElementById('career-edit').classList.remove('hidden');
+}
+
+function cancelCareerEdit() {
+  document.getElementById('in-status').value = CARD_ORIG.career.current_status;
+  document.getElementById('in-exp').value = CARD_ORIG.career.experience_years;
+  clearFieldError(document.getElementById('in-status'));
+  toggleExpSection();
+  document.getElementById('career-edit').classList.add('hidden');
+  document.getElementById('career-view').classList.remove('hidden');
+}
+
 async function saveCareerCard() {
   if (!validateRequired(['in-status'])) {
     showToast('Current Status is required.', 'error');
     return;
   }
+  const status = document.getElementById('in-status').value;
+  const expYears = document.getElementById('in-exp').value || '0';
+
   const fd = new FormData();
-  fd.append('current_status', document.getElementById('in-status').value);
-  fd.append('experience_years', document.getElementById('in-exp').value || '0');
+  fd.append('current_status', status);
+  fd.append('experience_years', expYears);
 
   const data = await postCard('/profile/save/career', fd, document.getElementById('career-save-btn'));
-  handleSaveResult(data);
+  if (handleSaveResult(data)) {
+    CARD_ORIG.career = { current_status: status, experience_years: expYears };
+    const view = document.getElementById('career-view');
+    view.querySelector('.view-status').textContent = status || 'Not set';
+    view.querySelector('.view-exp').textContent = expYears + ' Years';
+    document.getElementById('career-edit').classList.add('hidden');
+    document.getElementById('career-view').classList.remove('hidden');
+  }
 }
 
 // ── Education (multi-entry) ──
@@ -984,14 +1078,53 @@ async function saveExperienceCard(btn) {
 }
 
 // ── Social Links (nothing required) ──
+function openSocialEdit() {
+  document.getElementById('social-view').classList.add('hidden');
+  document.getElementById('social-edit').classList.remove('hidden');
+}
+
+function cancelSocialEdit() {
+  document.getElementById('in-linkedin').value = CARD_ORIG.social.linkedin;
+  document.getElementById('in-github').value = CARD_ORIG.social.github;
+  document.getElementById('in-instagram').value = CARD_ORIG.social.instagram;
+  document.getElementById('in-facebook').value = CARD_ORIG.social.facebook;
+  document.getElementById('social-edit').classList.add('hidden');
+  document.getElementById('social-view').classList.remove('hidden');
+}
+
+function updateSocialLink(el, url) {
+  el.href = url || '#';
+  if (url) {
+    el.classList.remove('text-ink-300', 'dark:text-ink-600', 'pointer-events-none');
+    el.classList.add('text-ink-700', 'dark:text-cream-300', 'hover:underline');
+  } else {
+    el.classList.remove('text-ink-700', 'dark:text-cream-300', 'hover:underline');
+    el.classList.add('text-ink-300', 'dark:text-ink-600', 'pointer-events-none');
+  }
+}
+
 async function saveSocialCard() {
+  const linkedin = document.getElementById('in-linkedin').value.trim();
+  const github = document.getElementById('in-github').value.trim();
+  const instagram = document.getElementById('in-instagram').value.trim();
+  const facebook = document.getElementById('in-facebook').value.trim();
+
   const fd = new FormData();
-  fd.append('linkedin_url', document.getElementById('in-linkedin').value.trim());
-  fd.append('github_url', document.getElementById('in-github').value.trim());
-  fd.append('instagram_url', document.getElementById('in-instagram').value.trim());
-  fd.append('facebook_url', document.getElementById('in-facebook').value.trim());
+  fd.append('linkedin_url', linkedin);
+  fd.append('github_url', github);
+  fd.append('instagram_url', instagram);
+  fd.append('facebook_url', facebook);
   const data = await postCard('/profile/save/social', fd, document.getElementById('social-save-btn'));
-  handleSaveResult(data);
+  if (handleSaveResult(data)) {
+    CARD_ORIG.social = { linkedin, github, instagram, facebook };
+    const view = document.getElementById('social-view');
+    updateSocialLink(view.querySelector('.view-link-linkedin'), linkedin);
+    updateSocialLink(view.querySelector('.view-link-github'), github);
+    updateSocialLink(view.querySelector('.view-link-instagram'), instagram);
+    updateSocialLink(view.querySelector('.view-link-facebook'), facebook);
+    document.getElementById('social-edit').classList.add('hidden');
+    document.getElementById('social-view').classList.remove('hidden');
+  }
 }
 
 function openAddCert() {
@@ -1417,12 +1550,18 @@ function addEduEntry() {
 }
 
 function removeEduEntry(btn) {
+  const list = document.getElementById('edu-entries-list');
+  const totalEntries = list.querySelectorAll('.edu-entry').length;
+  if (totalEntries <= 1) {
+    showToast('Education needs at least one entry — edit it instead of removing.', 'error');
+    return;
+  }
   btn.closest('.edu-entry').remove();
   serializeEdu();
-  const list = document.getElementById('edu-entries-list');
   if (!list.querySelector('.edu-entry')) {
     list.innerHTML = '<p id="no-edu-msg" class="text-xs text-ink-400 dark:text-ink-500 font-semibold">No education entries yet. Click "+ Add Entry" to add your 10th, 12th, degree, etc.</p>';
   }
+  saveEducationCard();
 }
 
 function handleEduCurrentToggle(checkbox) {
