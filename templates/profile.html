@@ -246,20 +246,37 @@ body { font-family: 'DM Sans', sans-serif; }
       <div class="lg:col-span-8 space-y-6">
         <div class="editorial-card bg-white border border-cream-200 rounded-3xl p-6 sm:p-10 shadow-sm">
           
-          <form action="{{ url_for('profile') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
+          <div class="space-y-5">
 
             <!-- Core Identity -->
             <div class="form-section border border-cream-200 dark:border-ink-700 rounded-2xl overflow-hidden transition-all duration-300">
               <div class="section-title open font-display text-base font-bold text-ink-900 dark:text-cream-50 px-5 py-4 bg-cream-100/50 dark:bg-ink-800/40 border-b border-cream-200 dark:border-ink-700 flex items-center gap-3 cursor-pointer select-none" onclick="toggleSection('core-identity')">
                 <span class="w-1.5 h-6 bg-ink-900 dark:bg-gold rounded-full"></span> Core Identity <i class="fas fa-chevron-down text-ink-400 sec-chevron ml-auto"></i>
               </div>
-              <div class="section-body open p-5 font-body space-y-4" id="core-identity">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Full Name</label><input type="text" name="name" id="in-name" value="{{ user.name }}" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
-                  <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Job Title</label><input type="text" name="title" id="in-title" value="{{ user.title }}" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
-                  <div class="sm:col-span-2 space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Bio</label><textarea name="about_me" id="in-bio" rows="2" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200 custom-scroll resize-none">{{ user.about_me }}</textarea></div>
-                  <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Location</label><input type="text" name="location" id="in-loc" value="{{ user.location }}" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
-                  <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Profile Image</label><input type="file" name="profile_pic" class="w-full px-4 py-2 rounded-xl border border-cream-300 bg-white text-ink-500 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-cream-200 file:text-ink-900 hover:file:opacity-90 file:cursor-pointer transition-all duration-200"></div>
+              <div class="section-body open p-5 font-body" id="core-identity">
+                <!-- VIEW MODE (default) -->
+                <div class="flex items-start justify-between gap-4" id="identity-view">
+                  <div class="min-w-0">
+                    <div class="font-bold text-ink-900 dark:text-cream-50 text-base view-name">{{ user.name or 'Add your name' }}</div>
+                    <div class="text-sm text-ink-600 dark:text-cream-400 mt-0.5 view-title">{{ user.title or 'Add a job title' }}</div>
+                    <div class="text-xs text-ink-400 dark:text-ink-500 mt-1.5 font-semibold view-location">📍 {{ user.location or 'Add location' }}</div>
+                    <p class="text-xs text-ink-500 dark:text-ink-400 mt-2 view-bio {% if not user.about_me %}hidden{% endif %}">{{ user.about_me }}</p>
+                  </div>
+                  <button type="button" onclick="openIdentityEdit()" class="px-3 py-1.5 rounded-lg border border-ink-300 dark:border-ink-700 hover:bg-cream-100 dark:hover:bg-ink-800 text-ink-700 dark:text-cream-300 text-xs font-semibold transition-all whitespace-nowrap shrink-0">✏️ Edit</button>
+                </div>
+                <!-- EDIT MODE (hidden until "Edit" is clicked) -->
+                <div class="space-y-4 hidden" id="identity-edit">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Full Name <span class="text-rose-500">*</span></label><input type="text" name="name" id="in-name" value="{{ user.name }}" onkeyup="sync(); clearFieldError(this)" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
+                    <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Job Title <span class="text-rose-500">*</span></label><input type="text" name="title" id="in-title" value="{{ user.title }}" onkeyup="sync(); clearFieldError(this)" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
+                    <div class="sm:col-span-2 space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Bio</label><textarea name="about_me" id="in-bio" rows="2" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200 custom-scroll resize-none">{{ user.about_me }}</textarea></div>
+                    <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Location <span class="text-rose-500">*</span></label><input type="text" name="location" id="in-loc" value="{{ user.location }}" onkeyup="sync(); clearFieldError(this)" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
+                    <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Profile Image</label><input type="file" name="profile_pic" id="in-profile-pic" class="w-full px-4 py-2 rounded-xl border border-cream-300 bg-white text-ink-500 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-cream-200 file:text-ink-900 hover:file:opacity-90 file:cursor-pointer transition-all duration-200"></div>
+                  </div>
+                  <div class="flex items-center justify-end gap-2 pt-2 border-t border-cream-200 dark:border-ink-800">
+                    <button type="button" onclick="cancelIdentityEdit()" class="px-4 py-2 text-ink-500 dark:text-ink-400 text-xs font-bold rounded-lg hover:bg-cream-100 dark:hover:bg-ink-800 transition-all">Cancel</button>
+                    <button type="button" onclick="saveIdentityCard()" id="identity-save-btn" class="px-5 py-2 bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold rounded-lg transition-all hover:-translate-y-0.5 active:scale-95">✓ Save</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -269,10 +286,36 @@ body { font-family: 'DM Sans', sans-serif; }
               <div class="section-title font-display text-base font-bold text-ink-900 dark:text-cream-50 px-5 py-4 bg-cream-100/50 dark:bg-ink-800/40 border-b border-cream-200 dark:border-ink-700 flex items-center gap-3 cursor-pointer select-none" onclick="toggleSection('mastery-learning')">
                 <span class="w-1.5 h-6 bg-ink-900 dark:bg-gold rounded-full"></span> Mastery & Learning <i class="fas fa-chevron-down text-ink-400 sec-chevron ml-auto"></i>
               </div>
-              <div class="section-body p-5 font-body space-y-4" id="mastery-learning">
-                <div class="space-y-4">
-                  <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Skills You Know (comma separated)</label><textarea name="known_skills" id="in-known" rows="2" placeholder="Python, Flask, CSS..." onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200 custom-scroll resize-none">{{ user.known_skills_str }}</textarea></div>
-                  <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Skills You Want to Know (comma separated)</label><textarea name="learning_skills" id="in-learning" rows="2" placeholder="AI, Docker, React..." onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200 custom-scroll resize-none">{{ user.learning_skills_str }}</textarea></div>
+              <div class="section-body p-5 font-body" id="mastery-learning">
+                <!-- VIEW MODE (default) -->
+                <div class="flex items-start justify-between gap-4" id="skills-view">
+                  <div class="min-w-0 space-y-3 flex-1">
+                    <div>
+                      <div class="text-[10px] font-bold tracking-wider text-ink-400 uppercase mb-1.5">Mastered Stack</div>
+                      <div class="flex flex-wrap gap-1.5 view-known">
+                        {% for s in user.known_skills %}<span class="px-2.5 py-1 bg-cream-100 dark:bg-ink-800 text-ink-700 dark:text-cream-300 text-[11px] font-bold rounded-full">{{ s }}</span>{% endfor %}
+                        {% if not user.known_skills %}<span class="text-xs text-ink-400">Add the skills you know</span>{% endif %}
+                      </div>
+                    </div>
+                    <div>
+                      <div class="text-[10px] font-bold tracking-wider text-ink-400 uppercase mb-1.5">Learning Goals</div>
+                      <div class="flex flex-wrap gap-1.5 view-learning">
+                        {% for s in user.learning_skills %}<span class="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 text-[11px] font-bold rounded-full">{{ s }}</span>{% endfor %}
+                        {% if not user.learning_skills %}<span class="text-xs text-ink-400">Add skills you want to learn</span>{% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  <button type="button" onclick="openSkillsEdit()" class="px-3 py-1.5 rounded-lg border border-ink-300 dark:border-ink-700 hover:bg-cream-100 dark:hover:bg-ink-800 text-ink-700 dark:text-cream-300 text-xs font-semibold transition-all whitespace-nowrap shrink-0">✏️ Edit</button>
+                </div>
+                <!-- EDIT MODE (hidden until "Edit" is clicked) -->
+                <div class="space-y-4 hidden" id="skills-edit">
+                  <div class="space-y-4">
+                    <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Skills You Know (comma separated) <span class="text-rose-500">*</span></label><textarea name="known_skills" id="in-known" rows="2" placeholder="Python, Flask, CSS..." onkeyup="sync(); clearFieldError(this)" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200 custom-scroll resize-none">{{ user.known_skills_str }}</textarea></div>
+                    <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Skills You Want to Know (comma separated) <span class="text-rose-500">*</span></label><textarea name="learning_skills" id="in-learning" rows="2" placeholder="AI, Docker, React..." onkeyup="sync(); clearFieldError(this)" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200 custom-scroll resize-none">{{ user.learning_skills_str }}</textarea></div>
+                  </div>
+                  <div class="flex items-center justify-end gap-2 pt-2 border-t border-cream-200 dark:border-ink-800">
+                    <button type="button" onclick="cancelSkillsEdit()" class="px-4 py-2 text-ink-500 dark:text-ink-400 text-xs font-bold rounded-lg hover:bg-cream-100 dark:hover:bg-ink-800 transition-all">Cancel</button>
+                    <button type="button" onclick="saveSkillsCard()" id="skills-save-btn" class="px-5 py-2 bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold rounded-lg transition-all hover:-translate-y-0.5 active:scale-95">✓ Save</button>
                 </div>
               </div>
             </div>
@@ -282,15 +325,31 @@ body { font-family: 'DM Sans', sans-serif; }
               <div class="section-title font-display text-base font-bold text-ink-900 dark:text-cream-50 px-5 py-4 bg-cream-100/50 dark:bg-ink-800/40 border-b border-cream-200 dark:border-ink-700 flex items-center gap-3 cursor-pointer select-none" onclick="toggleSection('career-params')">
                 <span class="w-1.5 h-6 bg-ink-900 dark:bg-gold rounded-full"></span> Career Parameters <i class="fas fa-chevron-down text-ink-400 sec-chevron ml-auto"></i>
               </div>
-              <div class="section-body p-5 font-body space-y-4" id="career-params">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Exp (Years)</label><input type="number" name="experience_years" id="in-exp" value="{{ user.experience_years }}" min="0" max="50" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
-                  <div class="sm:col-span-2 space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Current Status</label>
-                    <select name="current_status" id="in-status" onchange="sync(); toggleExpSection()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200 cursor-pointer">
-                      <option value="Student"  {% if user.current_status == 'Student'  %}selected{% endif %}>Student</option>
-                      <option value="Working"  {% if user.current_status == 'Working'  %}selected{% endif %}>Working Professional</option>
-                      <option value="Fresher"  {% if user.current_status == 'Fresher'  %}selected{% endif %}>Fresher</option>
-                    </select>
+              <div class="section-body p-5 font-body" id="career-params">
+                <!-- VIEW MODE (default) -->
+                <div class="flex items-start justify-between gap-4" id="career-view">
+                  <div class="min-w-0 space-y-1">
+                    <div class="text-xs"><span class="text-ink-400 font-semibold">Status:</span> <span class="font-bold text-ink-900 dark:text-cream-50 view-status">{{ user.current_status or 'Not set' }}</span></div>
+                    <div class="text-xs"><span class="text-ink-400 font-semibold">Experience:</span> <span class="font-bold text-ink-900 dark:text-cream-50 view-exp">{{ user.experience_years or '0' }} Years</span></div>
+                  </div>
+                  <button type="button" onclick="openCareerEdit()" class="px-3 py-1.5 rounded-lg border border-ink-300 dark:border-ink-700 hover:bg-cream-100 dark:hover:bg-ink-800 text-ink-700 dark:text-cream-300 text-xs font-semibold transition-all whitespace-nowrap shrink-0">✏️ Edit</button>
+                </div>
+                <!-- EDIT MODE (hidden until "Edit" is clicked) -->
+                <div class="space-y-4 hidden" id="career-edit">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Exp (Years)</label><input type="number" name="experience_years" id="in-exp" value="{{ user.experience_years }}" min="0" max="50" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
+                    <div class="sm:col-span-2 space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Current Status <span class="text-rose-500">*</span></label>
+                      <select name="current_status" id="in-status" onchange="sync(); toggleExpSection(); clearFieldError(this)" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200 cursor-pointer">
+                        <option value="" {% if not user.current_status %}selected{% endif %} disabled>Select status…</option>
+                        <option value="Student"  {% if user.current_status == 'Student'  %}selected{% endif %}>Student</option>
+                        <option value="Working"  {% if user.current_status == 'Working'  %}selected{% endif %}>Working Professional</option>
+                        <option value="Fresher"  {% if user.current_status == 'Fresher'  %}selected{% endif %}>Fresher</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-end gap-2 pt-2 border-t border-cream-200 dark:border-ink-800">
+                    <button type="button" onclick="cancelCareerEdit()" class="px-4 py-2 text-ink-500 dark:text-ink-400 text-xs font-bold rounded-lg hover:bg-cream-100 dark:hover:bg-ink-800 transition-all">Cancel</button>
+                    <button type="button" onclick="saveCareerCard()" id="career-save-btn" class="px-5 py-2 bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold rounded-lg transition-all hover:-translate-y-0.5 active:scale-95">✓ Save</button>
                   </div>
                 </div>
               </div>
@@ -323,33 +382,33 @@ body { font-family: 'DM Sans', sans-serif; }
                     <!-- EDIT FIELDS (hidden until "Edit" is clicked) -->
                     <div class="edu-edit-fields space-y-3" style="display:none;">
                       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Institution (College / School / University)</label><input type="text" class="edu-institution w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.institution }}" placeholder="e.g. IIT Bombay" oninput="serializeEdu()"></div>
-                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Degree</label><input type="text" class="edu-degree w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.degree }}" placeholder="e.g. B.Tech / 12th / 10th" oninput="serializeEdu()"></div>
-                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Field of Study</label><input type="text" class="edu-field w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.field }}" placeholder="e.g. Computer Science (AI/ML)" oninput="serializeEdu()"></div>
+                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Institution (College / School / University) <span class="text-rose-500">*</span></label><input type="text" class="edu-institution w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.institution }}" placeholder="e.g. IIT Bombay" oninput="serializeEdu(); clearFieldError(this)"></div>
+                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Degree <span class="text-rose-500">*</span></label><input type="text" class="edu-degree w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.degree }}" placeholder="e.g. B.Tech / 12th / 10th" oninput="serializeEdu(); clearFieldError(this)"></div>
+                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Field of Study <span class="text-rose-500">*</span></label><input type="text" class="edu-field w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.field }}" placeholder="e.g. Computer Science (AI/ML)" oninput="serializeEdu(); clearFieldError(this)"></div>
                         <div class="grid grid-cols-2 gap-2">
                           <div class="space-y-1.5">
-                            <label class="text-xs font-bold text-ink-600 dark:text-cream-400">Grade Type</label>
+                            <label class="text-xs font-bold text-ink-600 dark:text-cream-400">Grade Type <span class="text-rose-500">*</span></label>
                             <select class="edu-grade-type w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all cursor-pointer" onchange="updateGradeMax(this)">
                               <option value="CGPA" {% if edu.grade_type != 'Percentage' %}selected{% endif %}>CGPA</option>
                               <option value="Percentage" {% if edu.grade_type == 'Percentage' %}selected{% endif %}>Percentage</option>
                             </select>
                           </div>
                           <div class="space-y-1.5">
-                            <label class="text-xs font-bold text-ink-600 dark:text-cream-400">Grade Value</label>
-                            <input type="number" step="0.01" min="0" max="{% if edu.grade_type == 'Percentage' %}100{% else %}10{% endif %}" class="edu-grade-value w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.grade_value }}" placeholder="e.g. 8.7" oninput="if(this.value<0)this.value=0;serializeEdu()">
+                            <label class="text-xs font-bold text-ink-600 dark:text-cream-400">Grade Value <span class="text-rose-500">*</span></label>
+                            <input type="number" step="0.01" min="0" max="{% if edu.grade_type == 'Percentage' %}100{% else %}10{% endif %}" class="edu-grade-value w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.grade_value }}" placeholder="e.g. 8.7" oninput="if(this.value<0)this.value=0;serializeEdu();clearFieldError(this)">
                           </div>
                         </div>
-                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year</label><input type="number" class="edu-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.from_year }}" placeholder="2022" min="1980" max="2030" oninput="serializeEdu()"></div>
+                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year <span class="text-rose-500">*</span></label><input type="number" class="edu-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.from_year }}" placeholder="2022" min="1980" max="2030" oninput="serializeEdu(); clearFieldError(this)"></div>
                         <div class="space-y-1.5">
-                          <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year</label>
-                          <input type="number" class="edu-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.to_year if not edu.is_current else '' }}" placeholder="{{ now().year if now else 2026 }}" min="1980" max="2030" oninput="serializeEdu()" {% if edu.is_current %}disabled{% endif %}>
+                          <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year <span class="text-rose-500">*</span> <span class="font-normal text-ink-400">(unless studying)</span></label>
+                          <input type="number" class="edu-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.to_year if not edu.is_current else '' }}" placeholder="{{ now().year if now else 2026 }}" min="1980" max="2030" oninput="serializeEdu(); clearFieldError(this)" {% if edu.is_current %}disabled{% endif %}>
                           <label class="text-[11px] font-bold text-ink-500 flex items-center gap-1.5 mt-2 cursor-pointer select-none">
                             <input type="checkbox" class="edu-current rounded text-ink-900 focus:ring-0 accent-ink-900 w-3.5 h-3.5" onchange="handleEduCurrentToggle(this)" {% if edu.is_current %}checked{% endif %}> Currently studying here
                           </label>
                         </div>
                       </div>
                       <div class="flex gap-2">
-                        <button type="button" onclick="toggleEduMode(this)" class="px-4 py-1.5 rounded bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold transition-all">✓ Done</button>
+                        <button type="button" onclick="saveEducationCard(this)" class="px-4 py-1.5 rounded bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold transition-all">✓ Done</button>
                         <button type="button" onclick="removeEduEntry(this)" class="px-3 py-1 rounded border border-rose-300 hover:bg-rose-50 text-rose-600 dark:border-rose-950 dark:hover:bg-rose-950/20 text-xs font-semibold transition-all">🗑 Remove Entry</button>
                       </div>
                     </div>
@@ -390,12 +449,12 @@ body { font-family: 'DM Sans', sans-serif; }
                     <!-- EDIT FIELDS (hidden until "Edit" is clicked) -->
                     <div class="exp-edit-fields space-y-3" style="display:none;">
                       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Company</label><input type="text" class="exp-company w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.company }}" placeholder="e.g. Google" oninput="serializeExp()"></div>
-                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Role / Position</label><input type="text" class="exp-role w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.role }}" placeholder="e.g. Software Engineer" oninput="serializeExp()"></div>
-                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year</label><input type="number" class="exp-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.from_year }}" placeholder="2020" min="1980" max="2030" oninput="serializeExp(); autoCalcYears()"></div>
+                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Company <span class="text-rose-500">*</span></label><input type="text" class="exp-company w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.company }}" placeholder="e.g. Google" oninput="serializeExp(); clearFieldError(this)"></div>
+                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Role / Position <span class="text-rose-500">*</span></label><input type="text" class="exp-role w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.role }}" placeholder="e.g. Software Engineer" oninput="serializeExp(); clearFieldError(this)"></div>
+                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year <span class="text-rose-500">*</span></label><input type="number" class="exp-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.from_year }}" placeholder="2020" min="1980" max="2030" oninput="serializeExp(); autoCalcYears(); clearFieldError(this)"></div>
                         <div class="space-y-1.5">
-                          <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year</label>
-                          <input type="number" class="exp-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.to_year if not exp.is_current else '' }}" placeholder="{{ now().year if now else 2025 }}" min="1980" max="2030" oninput="serializeExp(); autoCalcYears()" {% if exp.is_current %}disabled{% endif %}>
+                          <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year <span class="text-rose-500">*</span> <span class="font-normal text-ink-400">(unless working)</span></label>
+                          <input type="number" class="exp-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.to_year if not exp.is_current else '' }}" placeholder="{{ now().year if now else 2025 }}" min="1980" max="2030" oninput="serializeExp(); autoCalcYears(); clearFieldError(this)" {% if exp.is_current %}disabled{% endif %}>
                           <label class="text-[11px] font-bold text-ink-500 flex items-center gap-1.5 mt-2 cursor-pointer select-none">
                             <input type="checkbox" class="exp-current rounded text-ink-900 focus:ring-0 accent-ink-900 w-3.5 h-3.5" onchange="handleCurrentToggle(this)" {% if exp.is_current %}checked{% endif %}> Currently working here
                           </label>
@@ -406,7 +465,7 @@ body { font-family: 'DM Sans', sans-serif; }
                         <textarea class="exp-bullets w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" rows="4" placeholder="Increased model accuracy by 12% through feature engineering&#10;Redesigned UI components for consistency across 15+ screens&#10;Reduced API response time by 30% via query optimization" oninput="serializeExp()">{% if exp.bullets %}{{ exp.bullets|join('\n') }}{% endif %}</textarea>
                       </div>
                       <div class="flex gap-2">
-                        <button type="button" onclick="toggleExpMode(this)" class="px-4 py-1.5 rounded bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold transition-all">✓ Done</button>
+                        <button type="button" onclick="saveExperienceCard(this)" class="px-4 py-1.5 rounded bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold transition-all">✓ Done</button>
                         <button type="button" onclick="removeExpEntry(this)" class="px-3 py-1 rounded border border-rose-300 hover:bg-rose-50 text-rose-600 dark:border-rose-950 dark:hover:bg-rose-950/20 text-xs font-semibold transition-all">🗑 Remove Entry</button>
                       </div>
                     </div>
@@ -422,18 +481,34 @@ body { font-family: 'DM Sans', sans-serif; }
               <div class="section-title font-display text-base font-bold text-ink-900 dark:text-cream-50 px-5 py-4 bg-cream-100/50 dark:bg-ink-800/40 border-b border-cream-200 dark:border-ink-700 flex items-center gap-3 cursor-pointer select-none" onclick="toggleSection('social-links')">
                 <span class="w-1.5 h-6 bg-ink-900 dark:bg-gold rounded-full"></span> Social Links <i class="fas fa-chevron-down text-ink-400 sec-chevron ml-auto"></i>
               </div>
-              <div class="section-body p-5 font-body space-y-4" id="social-links">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">LinkedIn URL</label><input type="url" name="linkedin_url" id="in-linkedin" value="{{ user.linkedin_url }}" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
-                  <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">GitHub URL</label><input type="url" name="github_url" id="in-github" value="{{ user.github_url }}" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
-                  <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Instagram URL</label><input type="url" name="instagram_url" id="in-instagram" value="{{ user.instagram_url }}" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
-                  <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Facebook URL</label><input type="url" name="facebook_url" id="in-facebook" value="{{ user.facebook_url }}" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
+              <div class="section-body p-5 font-body" id="social-links">
+                <!-- VIEW MODE (default) -->
+                <div class="flex items-start justify-between gap-4" id="social-view">
+                  <div class="min-w-0 flex flex-wrap gap-3">
+                    <a href="{{ user.linkedin_url }}" target="_blank" class="text-xs font-semibold {% if user.linkedin_url %}text-ink-700 dark:text-cream-300 hover:underline{% else %}text-ink-300 dark:text-ink-600 pointer-events-none{% endif %}"><i class="fab fa-linkedin"></i> LinkedIn</a>
+                    <a href="{{ user.github_url }}" target="_blank" class="text-xs font-semibold {% if user.github_url %}text-ink-700 dark:text-cream-300 hover:underline{% else %}text-ink-300 dark:text-ink-600 pointer-events-none{% endif %}"><i class="fab fa-github"></i> GitHub</a>
+                    <a href="{{ user.instagram_url }}" target="_blank" class="text-xs font-semibold {% if user.instagram_url %}text-ink-700 dark:text-cream-300 hover:underline{% else %}text-ink-300 dark:text-ink-600 pointer-events-none{% endif %}"><i class="fab fa-instagram"></i> Instagram</a>
+                    <a href="{{ user.facebook_url }}" target="_blank" class="text-xs font-semibold {% if user.facebook_url %}text-ink-700 dark:text-cream-300 hover:underline{% else %}text-ink-300 dark:text-ink-600 pointer-events-none{% endif %}"><i class="fab fa-facebook"></i> Facebook</a>
+                  </div>
+                  <button type="button" onclick="openSocialEdit()" class="px-3 py-1.5 rounded-lg border border-ink-300 dark:border-ink-700 hover:bg-cream-100 dark:hover:bg-ink-800 text-ink-700 dark:text-cream-300 text-xs font-semibold transition-all whitespace-nowrap shrink-0">✏️ Edit</button>
+                </div>
+                <!-- EDIT MODE (hidden until "Edit" is clicked) -->
+                <div class="space-y-4 hidden" id="social-edit">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">LinkedIn URL</label><input type="url" name="linkedin_url" id="in-linkedin" value="{{ user.linkedin_url }}" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
+                    <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">GitHub URL</label><input type="url" name="github_url" id="in-github" value="{{ user.github_url }}" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
+                    <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Instagram URL</label><input type="url" name="instagram_url" id="in-instagram" value="{{ user.instagram_url }}" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
+                    <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Facebook URL</label><input type="url" name="facebook_url" id="in-facebook" value="{{ user.facebook_url }}" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
+                  </div>
+                  <div class="flex items-center justify-end gap-2 pt-2 border-t border-cream-200 dark:border-ink-800">
+                    <button type="button" onclick="cancelSocialEdit()" class="px-4 py-2 text-ink-500 dark:text-ink-400 text-xs font-bold rounded-lg hover:bg-cream-100 dark:hover:bg-ink-800 transition-all">Cancel</button>
+                    <button type="button" onclick="saveSocialCard()" id="social-save-btn" class="px-5 py-2 bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold rounded-lg transition-all hover:-translate-y-0.5 active:scale-95">✓ Save</button>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <button type="submit" class="w-full py-4 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-body font-bold text-sm rounded-xl tracking-wide transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-98">Commit Architecture & Update</button>
-          </form>
+          </div>
 
           <!-- Certificates Box -->
           <div class="form-section border border-cream-200 dark:border-ink-700 rounded-2xl overflow-hidden transition-all duration-300 mt-4">
@@ -642,8 +717,281 @@ window.onload = () => { sync(); updateCertPreview(); };
 function showToast(msg, type = 'success') {
   const toast = document.getElementById('toast');
   toast.innerHTML = msg;
+  toast.classList.remove('bg-ink-900', 'dark:bg-cream-100', 'text-cream-100', 'dark:text-ink-900', 'bg-rose-600', 'text-white');
+  if (type === 'error') {
+    toast.classList.add('bg-rose-600', 'text-white');
+  } else {
+    toast.classList.add('bg-ink-900', 'dark:bg-cream-100', 'text-cream-100', 'dark:text-ink-900');
+  }
   toast.classList.remove('translate-y-24', 'opacity-0');
   setTimeout(() => toast.classList.add('translate-y-24', 'opacity-0'), 3200);
+}
+
+// ── Shared per-card required-field validation helpers ──
+function markFieldError(el) {
+  if (!el) return;
+  el.classList.add('border-rose-500', 'ring-4', 'ring-rose-500/10');
+}
+
+function clearFieldError(el) {
+  if (!el) return;
+  el.classList.remove('border-rose-500', 'ring-4', 'ring-rose-500/10');
+}
+
+function validateRequired(ids) {
+  // Returns true if every field id in `ids` has a non-empty value; marks empty ones red.
+  let valid = true;
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!el.value.trim()) {
+      markFieldError(el);
+      valid = false;
+    } else {
+      clearFieldError(el);
+    }
+  });
+  return valid;
+}
+
+async function postCard(url, formData, btn) {
+  const originalText = btn ? btn.textContent : null;
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  try {
+    const res = await fetch(url, { method: 'POST', body: formData });
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    return { success: false, error: 'Network error. Please try again.' };
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = originalText; }
+  }
+}
+
+function handleSaveResult(data) {
+  if (data.success) {
+    showToast('✓ Saved');
+    if (data.reward_granted) {
+      setTimeout(() => showToast('🎉 +30 XP — Profile 100% Complete!'), 600);
+    }
+  } else {
+    showToast(data.error || 'Something went wrong.', 'error');
+  }
+  return data.success;
+}
+
+// ── Core Identity ──
+async function saveIdentityCard() {
+  if (!validateRequired(['in-name', 'in-title', 'in-loc'])) {
+    showToast('Please fill all required fields.', 'error');
+    return;
+  }
+  const fd = new FormData();
+  fd.append('name', document.getElementById('in-name').value.trim());
+  fd.append('title', document.getElementById('in-title').value.trim());
+  fd.append('location', document.getElementById('in-loc').value.trim());
+  fd.append('about_me', document.getElementById('in-bio').value.trim());
+  const fileInput = document.getElementById('in-profile-pic');
+  if (fileInput && fileInput.files[0]) fd.append('profile_pic', fileInput.files[0]);
+
+  const data = await postCard('/profile/save/identity', fd, document.getElementById('identity-save-btn'));
+  handleSaveResult(data);
+}
+
+// ── Mastery & Learning ──
+async function saveSkillsCard() {
+  const known = document.getElementById('in-known');
+  const learning = document.getElementById('in-learning');
+  const knownList = known.value.split(',').map(s => s.trim()).filter(Boolean);
+  const learningList = learning.value.split(',').map(s => s.trim()).filter(Boolean);
+
+  let valid = true;
+  if (!knownList.length) { markFieldError(known); valid = false; } else { clearFieldError(known); }
+  if (!learningList.length) { markFieldError(learning); valid = false; } else { clearFieldError(learning); }
+  if (!valid) {
+    showToast('Add at least one skill on each side.', 'error');
+    return;
+  }
+
+  const fd = new FormData();
+  fd.append('known_skills', known.value);
+  fd.append('learning_skills', learning.value);
+
+  const data = await postCard('/profile/save/skills', fd, document.getElementById('skills-save-btn'));
+  if (handleSaveResult(data) && data.added_goal) {
+    setTimeout(() => showToast(`🚀 New goal detected! <a href="${data.roadmap_url}" style="text-decoration:underline">Generate a roadmap for "${data.added_goal}"?</a>`), 600);
+  }
+}
+
+// ── Career Parameters ──
+async function saveCareerCard() {
+  if (!validateRequired(['in-status'])) {
+    showToast('Current Status is required.', 'error');
+    return;
+  }
+  const fd = new FormData();
+  fd.append('current_status', document.getElementById('in-status').value);
+  fd.append('experience_years', document.getElementById('in-exp').value || '0');
+
+  const data = await postCard('/profile/save/career', fd, document.getElementById('career-save-btn'));
+  handleSaveResult(data);
+}
+
+// ── Education (multi-entry) ──
+function validateEduEntries() {
+  const entries = document.querySelectorAll('.edu-entry');
+  if (!entries.length) {
+    showToast('Add at least one education entry.', 'error');
+    return false;
+  }
+  let valid = true;
+  entries.forEach(entry => {
+    const fields = {
+      institution: entry.querySelector('.edu-institution'),
+      degree: entry.querySelector('.edu-degree'),
+      field: entry.querySelector('.edu-field'),
+      gradeValue: entry.querySelector('.edu-grade-value'),
+      from: entry.querySelector('.edu-from'),
+      to: entry.querySelector('.edu-to'),
+    };
+    const isCurrent = entry.querySelector('.edu-current')?.checked || false;
+    let entryValid = true;
+    Object.entries(fields).forEach(([key, el]) => {
+      if (!el) return;
+      if (key === 'to' && isCurrent) { clearFieldError(el); return; }
+      if (!el.value.trim()) { markFieldError(el); entryValid = false; }
+      else { clearFieldError(el); }
+    });
+    if (!entryValid) {
+      valid = false;
+      // Make sure the offending entry is visible in edit mode so the user can see the red fields
+      const editFields = entry.querySelector('.edu-edit-fields');
+      const viewCard = entry.querySelector('.edu-view-card');
+      if (editFields && editFields.style.display === 'none') {
+        viewCard.style.display = 'none';
+        editFields.style.display = 'block';
+      }
+    }
+  });
+  if (!valid) showToast('Every field is required on every education entry.', 'error');
+  return valid;
+}
+
+function refreshEduEntryView(entry) {
+  const viewCard = entry.querySelector('.edu-view-card');
+  const editFields = entry.querySelector('.edu-edit-fields');
+  const institution = entry.querySelector('.edu-institution')?.value.trim() || 'Institution';
+  const degree       = entry.querySelector('.edu-degree')?.value.trim() || 'Degree';
+  const field         = entry.querySelector('.edu-field')?.value.trim() || '';
+  const gradeType     = entry.querySelector('.edu-grade-type')?.value || 'CGPA';
+  const gradeValue    = entry.querySelector('.edu-grade-value')?.value.trim() || '';
+  const fromYear      = entry.querySelector('.edu-from')?.value.trim() || '';
+  const toYear        = entry.querySelector('.edu-to')?.value.trim() || '';
+  const isCurrent     = entry.querySelector('.edu-current')?.checked || false;
+
+  const gradeStr = gradeValue ? (gradeValue + (gradeType === 'Percentage' ? '%' : ' CGPA')) : '';
+  const yearsStr = fromYear ? (fromYear + ' – ' + (isCurrent ? 'Present' : (toYear || ''))) : '';
+  const metaStr  = [gradeStr, yearsStr].filter(Boolean).join(' · ');
+
+  viewCard.querySelector('.view-degree').textContent      = degree + (field ? ' in ' + field : '');
+  viewCard.querySelector('.view-institution').textContent = institution;
+  viewCard.querySelector('.view-meta').textContent        = metaStr;
+
+  editFields.style.display = 'none';
+  viewCard.style.display = 'flex';
+}
+
+async function saveEducationCard(btn) {
+  if (!validateEduEntries()) return;
+  serializeEdu();
+  const fd = new FormData();
+  fd.append('education_json', document.getElementById('education-json').value);
+  const data = await postCard('/profile/save/education', fd, btn);
+  if (handleSaveResult(data)) {
+    document.querySelectorAll('.edu-entry').forEach(refreshEduEntryView);
+  }
+}
+
+// ── Work Experience (multi-entry) ──
+function validateExpEntries() {
+  const studentStatus = document.getElementById('in-status')?.value === 'Student';
+  const entries = document.querySelectorAll('.exp-entry');
+  if (!studentStatus && !entries.length) {
+    showToast('Add at least one work experience entry.', 'error');
+    return false;
+  }
+  let valid = true;
+  entries.forEach(entry => {
+    const fields = {
+      company: entry.querySelector('.exp-company'),
+      role: entry.querySelector('.exp-role'),
+      from: entry.querySelector('.exp-from'),
+      to: entry.querySelector('.exp-to'),
+    };
+    const isCurrent = entry.querySelector('.exp-current')?.checked || false;
+    let entryValid = true;
+    Object.entries(fields).forEach(([key, el]) => {
+      if (!el) return;
+      if (key === 'to' && isCurrent) { clearFieldError(el); return; }
+      if (!el.value.trim()) { markFieldError(el); entryValid = false; }
+      else { clearFieldError(el); }
+    });
+    if (!entryValid) {
+      valid = false;
+      const editFields = entry.querySelector('.exp-edit-fields');
+      const viewCard = entry.querySelector('.exp-view-card');
+      if (editFields && editFields.style.display === 'none') {
+        viewCard.style.display = 'none';
+        editFields.style.display = 'block';
+      }
+    }
+  });
+  if (!valid) showToast('Company, Role, and Years are required on every experience entry.', 'error');
+  return valid;
+}
+
+function refreshExpEntryView(entry) {
+  const viewCard = entry.querySelector('.exp-view-card');
+  const editFields = entry.querySelector('.exp-edit-fields');
+  const company   = entry.querySelector('.exp-company')?.value.trim() || 'Company';
+  const role      = entry.querySelector('.exp-role')?.value.trim() || 'Role';
+  const fromYear  = entry.querySelector('.exp-from')?.value.trim() || '';
+  const toYear    = entry.querySelector('.exp-to')?.value.trim() || '';
+  const isCurrent = entry.querySelector('.exp-current')?.checked || false;
+  const yearsStr  = fromYear ? (fromYear + ' – ' + (isCurrent ? 'Present' : (toYear || ''))) : '';
+  const bullets   = (entry.querySelector('.exp-bullets')?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
+
+  viewCard.querySelector('.view-role').textContent    = role;
+  viewCard.querySelector('.view-company').textContent = company;
+  viewCard.querySelector('.view-meta').textContent    = yearsStr;
+  const bulletsList = viewCard.querySelector('.view-bullets');
+  bulletsList.innerHTML = bullets.map(b => `<li>${b}</li>`).join('');
+  bulletsList.classList.toggle('hidden', bullets.length === 0);
+
+  editFields.style.display = 'none';
+  viewCard.style.display = 'flex';
+}
+
+async function saveExperienceCard(btn) {
+  if (!validateExpEntries()) return;
+  serializeExp();
+  const fd = new FormData();
+  fd.append('work_experience_json', document.getElementById('work-exp-json').value);
+  const data = await postCard('/profile/save/experience', fd, btn);
+  if (handleSaveResult(data)) {
+    document.querySelectorAll('.exp-entry').forEach(refreshExpEntryView);
+  }
+}
+
+// ── Social Links (nothing required) ──
+async function saveSocialCard() {
+  const fd = new FormData();
+  fd.append('linkedin_url', document.getElementById('in-linkedin').value.trim());
+  fd.append('github_url', document.getElementById('in-github').value.trim());
+  fd.append('instagram_url', document.getElementById('in-instagram').value.trim());
+  fd.append('facebook_url', document.getElementById('in-facebook').value.trim());
+  const data = await postCard('/profile/save/social', fd, document.getElementById('social-save-btn'));
+  handleSaveResult(data);
 }
 
 function openAddCert() {
@@ -887,12 +1235,12 @@ function addExpEntry() {
     </div>
     <div class="exp-edit-fields space-y-3">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Company</label><input type="text" class="exp-company w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. Google" oninput="serializeExp()"></div>
-        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Role / Position</label><input type="text" class="exp-role w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. Software Engineer" oninput="serializeExp()"></div>
-        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year</label><input type="number" class="exp-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="2020" min="1980" max="2030" oninput="serializeExp(); autoCalcYears()"></div>
+        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Company <span class="text-rose-500">*</span></label><input type="text" class="exp-company w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. Google" oninput="serializeExp(); clearFieldError(this)"></div>
+        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Role / Position <span class="text-rose-500">*</span></label><input type="text" class="exp-role w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. Software Engineer" oninput="serializeExp(); clearFieldError(this)"></div>
+        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year <span class="text-rose-500">*</span></label><input type="number" class="exp-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="2020" min="1980" max="2030" oninput="serializeExp(); autoCalcYears(); clearFieldError(this)"></div>
         <div class="space-y-1.5">
-          <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year</label>
-          <input type="number" class="exp-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="${new Date().getFullYear()}" min="1980" max="2030" oninput="serializeExp(); autoCalcYears()">
+          <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year <span class="text-rose-500">*</span> <span class="font-normal text-ink-400">(unless working)</span></label>
+          <input type="number" class="exp-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="${new Date().getFullYear()}" min="1980" max="2030" oninput="serializeExp(); autoCalcYears(); clearFieldError(this)">
           <label class="text-[11px] font-bold text-ink-500 flex items-center gap-1.5 mt-2 cursor-pointer select-none">
             <input type="checkbox" class="exp-current rounded text-ink-900 focus:ring-0 accent-ink-900 w-3.5 h-3.5" onchange="handleCurrentToggle(this)"> Currently working here
           </label>
@@ -903,7 +1251,7 @@ function addExpEntry() {
         <textarea class="exp-bullets w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" rows="4" placeholder="Increased model accuracy by 12% through feature engineering&#10;Redesigned UI components for consistency across 15+ screens&#10;Reduced API response time by 30% via query optimization" oninput="serializeExp()"></textarea>
       </div>
       <div class="flex gap-2">
-        <button type="button" onclick="toggleExpMode(this)" class="px-4 py-1.5 rounded bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold transition-all">✓ Done</button>
+        <button type="button" onclick="saveExperienceCard(this)" class="px-4 py-1.5 rounded bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold transition-all">✓ Done</button>
         <button type="button" onclick="removeExpEntry(this)" class="px-3 py-1 rounded border border-rose-300 hover:bg-rose-50 text-rose-600 dark:border-rose-950 dark:hover:bg-rose-950/20 text-xs font-semibold transition-all">🗑 Remove Entry</button>
       </div>
     </div>
@@ -913,13 +1261,20 @@ function addExpEntry() {
 }
 
 function removeExpEntry(btn) {
+  const isStudent = document.getElementById('in-status')?.value === 'Student';
+  const list = document.getElementById('exp-entries-list');
+  const totalEntries = list.querySelectorAll('.exp-entry').length;
+  if (!isStudent && totalEntries <= 1) {
+    showToast('Work Experience needs at least one entry — edit it instead of removing.', 'error');
+    return;
+  }
   btn.closest('.exp-entry').remove();
   serializeExp();
   autoCalcYears();
-  const list = document.getElementById('exp-entries-list');
   if (!list.querySelector('.exp-entry')) {
     list.innerHTML = '<p id="no-exp-msg" class="text-xs text-ink-400 dark:text-ink-500 font-semibold">No experience entries yet. Click "+ Add Entry" to expand portfolio layers.</p>';
   }
+  saveExperienceCard();
 }
 
 function handleCurrentToggle(checkbox) {
@@ -1026,33 +1381,33 @@ function addEduEntry() {
     </div>
     <div class="edu-edit-fields space-y-3">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Institution (College / School / University)</label><input type="text" class="edu-institution w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. IIT Bombay" oninput="serializeEdu()"></div>
-        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Degree</label><input type="text" class="edu-degree w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. B.Tech / 12th / 10th" oninput="serializeEdu()"></div>
-        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Field of Study</label><input type="text" class="edu-field w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. Computer Science (AI/ML)" oninput="serializeEdu()"></div>
+        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Institution (College / School / University) <span class="text-rose-500">*</span></label><input type="text" class="edu-institution w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. IIT Bombay" oninput="serializeEdu(); clearFieldError(this)"></div>
+        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Degree <span class="text-rose-500">*</span></label><input type="text" class="edu-degree w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. B.Tech / 12th / 10th" oninput="serializeEdu(); clearFieldError(this)"></div>
+        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Field of Study <span class="text-rose-500">*</span></label><input type="text" class="edu-field w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. Computer Science (AI/ML)" oninput="serializeEdu(); clearFieldError(this)"></div>
         <div class="grid grid-cols-2 gap-2">
           <div class="space-y-1.5">
-            <label class="text-xs font-bold text-ink-600 dark:text-cream-400">Grade Type</label>
+            <label class="text-xs font-bold text-ink-600 dark:text-cream-400">Grade Type <span class="text-rose-500">*</span></label>
             <select class="edu-grade-type w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all cursor-pointer" onchange="updateGradeMax(this)">
               <option value="CGPA" selected>CGPA</option>
               <option value="Percentage">Percentage</option>
             </select>
           </div>
           <div class="space-y-1.5">
-            <label class="text-xs font-bold text-ink-600 dark:text-cream-400">Grade Value</label>
-            <input type="number" step="0.01" min="0" max="10" class="edu-grade-value w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. 8.7" oninput="if(this.value<0)this.value=0;serializeEdu()">
+            <label class="text-xs font-bold text-ink-600 dark:text-cream-400">Grade Value <span class="text-rose-500">*</span></label>
+            <input type="number" step="0.01" min="0" max="10" class="edu-grade-value w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. 8.7" oninput="if(this.value<0)this.value=0;serializeEdu();clearFieldError(this)">
           </div>
         </div>
-        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year</label><input type="number" class="edu-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="2022" min="1980" max="2030" oninput="serializeEdu()"></div>
+        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year <span class="text-rose-500">*</span></label><input type="number" class="edu-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="2022" min="1980" max="2030" oninput="serializeEdu(); clearFieldError(this)"></div>
         <div class="space-y-1.5">
-          <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year</label>
-          <input type="number" class="edu-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="${new Date().getFullYear()}" min="1980" max="2030" oninput="serializeEdu()">
+          <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year <span class="text-rose-500">*</span> <span class="font-normal text-ink-400">(unless studying)</span></label>
+          <input type="number" class="edu-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="${new Date().getFullYear()}" min="1980" max="2030" oninput="serializeEdu(); clearFieldError(this)">
           <label class="text-[11px] font-bold text-ink-500 flex items-center gap-1.5 mt-2 cursor-pointer select-none">
             <input type="checkbox" class="edu-current rounded text-ink-900 focus:ring-0 accent-ink-900 w-3.5 h-3.5" onchange="handleEduCurrentToggle(this)"> Currently studying here
           </label>
         </div>
       </div>
       <div class="flex gap-2">
-        <button type="button" onclick="toggleEduMode(this)" class="px-4 py-1.5 rounded bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold transition-all">✓ Done</button>
+        <button type="button" onclick="saveEducationCard(this)" class="px-4 py-1.5 rounded bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold transition-all">✓ Done</button>
         <button type="button" onclick="removeEduEntry(this)" class="px-3 py-1 rounded border border-rose-300 hover:bg-rose-50 text-rose-600 dark:border-rose-950 dark:hover:bg-rose-950/20 text-xs font-semibold transition-all">🗑 Remove Entry</button>
       </div>
     </div>

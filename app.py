@@ -382,6 +382,58 @@ def add_xp(user_id, points, reason="Action"):
         return False
 
 
+def check_and_award_profile_complete(user_id):
+    """Re-checks ALL mandatory fields across every profile card (not just the one
+    just saved) and awards the one-time +30 XP 'Profile 100% Complete' bonus the
+    moment the very last required card becomes complete. Safe to call after any
+    individual card save — it's a no-op if already awarded or still incomplete."""
+    try:
+        user_data = users_collection.find_one({'_id': ObjectId(user_id)})
+        if not user_data or user_data.get('profile_complete_reward'):
+            return False
+
+        # Core Identity — Name, Job Title, Location mandatory (Bio/Pic are user's choice)
+        if not (user_data.get('name','').strip() and user_data.get('title','').strip() and user_data.get('location','').strip()):
+            return False
+
+        # Mastery & Learning — at least one skill on each side
+        if not user_data.get('known_skills') or not user_data.get('learning_skills'):
+            return False
+
+        # Career Parameters — Current Status drives the rest of the profile
+        current_status = user_data.get('current_status','').strip()
+        if not current_status:
+            return False
+
+        # Education — at least one entry, every field on every entry filled
+        # (To Year is exempt when "Currently studying" is checked)
+        education = user_data.get('education', [])
+        if not education:
+            return False
+        for edu in education:
+            if not (edu.get('institution') and edu.get('degree') and edu.get('field')
+                    and edu.get('grade_type') and edu.get('grade_value') and edu.get('from_year')
+                    and (edu.get('is_current') or edu.get('to_year'))):
+                return False
+
+        # Work Experience — only required for non-Students; achievements stay optional
+        if current_status != 'Student':
+            work_experience = user_data.get('work_experience', [])
+            if not work_experience:
+                return False
+            for exp in work_experience:
+                if not (exp.get('company') and exp.get('role') and exp.get('from_year')
+                        and (exp.get('is_current') or exp.get('to_year'))):
+                    return False
+
+        add_xp(user_id, 30, "Profile 100% Complete")
+        users_collection.update_one({'_id': ObjectId(user_id)}, {'$set': {'profile_complete_reward': True}})
+        return True
+    except Exception as e:
+        print(f"Error checking profile completeness: {e}")
+        return False
+
+
 def recalculate_xp(user_id):
     """Recalculates XP from scratch based on actual user data in DB.
     Fixes any double-counting or incorrect XP values."""
@@ -786,129 +838,9 @@ def logout():
     flash("You have been logged out successfully.", "success")
     return redirect(url_for('index'))
 
-@app.route('/profile', methods=['GET', 'POST'])
+@app.route('/profile', methods=['GET'])
 @login_required
 def profile():
-    if request.method == 'POST':
-        old_user_data = users_collection.find_one({'_id': ObjectId(current_user.id)})
-        old_learning_skills = set(old_user_data.get('learning_skills', []))
-        profile_pic_fn = old_user_data.get('profile_pic', 'default.jpg')
-        if 'profile_pic' in request.files:
-            file = request.files['profile_pic']
-            if file and file.filename != '':
-                filename = secure_filename(file.filename)
-                random_hex = secrets.token_hex(8)
-                _, f_ext = os.path.splitext(filename)
-                profile_pic_fn = random_hex + f_ext
-                file.save(os.path.join(app.root_path, 'static/profile_pics', profile_pic_fn))
-        new_learning_skills_list = [s.strip() for s in request.form.get('learning_skills', '').split(',') if s.strip()]
-
-        # FIX: Prevent negative experience years
-        try:
-            exp_years = max(0, int(request.form.get('experience_years') or 0))
-        except (ValueError, TypeError):
-            exp_years = 0
-
-        update_data = {
-            'name': request.form.get('name', '').strip(),
-            'title': request.form.get('title', '').strip(),
-            'about_me': request.form.get('about_me', '').strip(),
-            'location': request.form.get('location', '').strip(),
-            'github_url': request.form.get('github_url', '').strip(),
-            'linkedin_url': request.form.get('linkedin_url', '').strip(),
-            'instagram_url': request.form.get('instagram_url', '').strip(),
-            'facebook_url': request.form.get('facebook_url', '').strip(),
-            'experience_years': str(exp_years),
-            'current_status': request.form.get('current_status', '').strip(),
-            'availability': request.form.get('availability', '').strip(),
-            'career_goal': request.form.get('career_goal', '').strip(),
-            'known_skills': [s.strip() for s in request.form.get('known_skills', '').split(',') if s.strip()],
-            'learning_skills': new_learning_skills_list,
-            'profile_pic': profile_pic_fn
-        }
-
-        # Work experience entries — only save if not Student with 0 years
-        import json as _json
-        exp_entries_raw = request.form.get('work_experience_json', '[]')
-        try:
-            exp_entries = _json.loads(exp_entries_raw)
-            # Sanitize each entry
-            clean_entries = []
-            for e in exp_entries:
-                if e.get('company','').strip() and e.get('role','').strip():
-                    raw_bullets = e.get('bullets', [])
-                    clean_bullets = [sanitize(b) for b in raw_bullets if isinstance(b, str) and b.strip()][:10]
-                    clean_entries.append({
-                        'company': sanitize(e.get('company','')),
-                        'role':    sanitize(e.get('role','')),
-                        'from_year': sanitize(e.get('from_year','')),
-                        'to_year':   sanitize(e.get('to_year','')),
-                        'is_current': bool(e.get('is_current', False)),
-                        'bullets': clean_bullets
-                    })
-            update_data['work_experience'] = clean_entries
-        except Exception:
-            pass
-
-        # Education entries (Institution / Degree / Field of Study / Grade / Years)
-        edu_entries_raw = request.form.get('education_json', '[]')
-        try:
-            edu_entries = _json.loads(edu_entries_raw)
-            clean_edu_entries = []
-            for e in edu_entries:
-                if e.get('institution','').strip() or e.get('degree','').strip():
-                    grade_type = sanitize(e.get('grade_type','')) or 'CGPA'
-                    if grade_type not in ('CGPA', 'Percentage'):
-                        grade_type = 'CGPA'
-                    grade_value = sanitize(str(e.get('grade_value','')))
-                    clean_edu_entries.append({
-                        'institution': sanitize(e.get('institution','')),
-                        'degree':      sanitize(e.get('degree','')),
-                        'field':       sanitize(e.get('field','')),
-                        'grade_type':  grade_type,
-                        'grade_value': grade_value,
-                        'from_year':   sanitize(e.get('from_year','')),
-                        'to_year':     sanitize(e.get('to_year','')),
-                        'is_current':  bool(e.get('is_current', False))
-                    })
-            update_data['education'] = clean_edu_entries
-            # Derive legacy/flat fields from the primary (first-listed) entry — keeps
-            # older code paths (AI prompt context, onboarding checklist, etc.) working.
-            if clean_edu_entries:
-                primary_edu = clean_edu_entries[0]
-                update_data['education_college'] = primary_edu['institution']
-                update_data['education_degree']  = primary_edu['degree']
-                update_data['education_field']   = primary_edu['field']
-                if primary_edu['grade_value']:
-                    suffix = '%' if primary_edu['grade_type'] == 'Percentage' else ' CGPA'
-                    update_data['education_grade'] = f"{primary_edu['grade_value']}{suffix}"
-                else:
-                    update_data['education_grade'] = ''
-            else:
-                update_data['education_college'] = ''
-                update_data['education_degree']  = ''
-                update_data['education_field']   = ''
-                update_data['education_grade']   = ''
-        except Exception:
-            pass
-
-        # PROFILE 100% COMPLETE REWARD (+30 XP) — only once, loophole-safe
-        req_fields = ['about_me', 'location', 'education_college', 'education_degree', 'github_url']
-        if all(update_data.get(f) for f in req_fields) and not old_user_data.get('profile_complete_reward'):
-            add_xp(current_user.id, 30, "Profile 100% Complete")
-            update_data['profile_complete_reward'] = True
-
-        users_collection.update_one({'_id': ObjectId(current_user.id)}, {'$set': update_data})
-        flash('Profile updated successfully!', 'success')
-        new_learning_skills = set(new_learning_skills_list)
-        added_skills = list(new_learning_skills - old_learning_skills)
-        if added_skills:
-            goal_str = added_skills[0]
-            link = url_for('roadmap_generator', goal=goal_str)
-            message = Markup(f'New goal detected! 🚀 <a href="{link}">Generate a roadmap for "{goal_str}"?</a>')
-            flash(message, 'info')
-        return redirect(url_for('profile'))
-
     user_data = users_collection.find_one({'_id': ObjectId(current_user.id)})
     profile_pic_filename = user_data.get('profile_pic', 'default.jpg')
     profile_pic_url = url_for('static', filename='profile_pics/' + profile_pic_filename)
@@ -936,6 +868,209 @@ def profile():
     streak = user_data.get('streak_count', 0)
     progress_pct = int((xp / level_info['next_xp']) * 100) if level_info['next_xp'] != "Max" else 100
     return render_template('profile.html', user=user_profile, xp=xp, level_info=level_info, streak=streak, progress_pct=progress_pct)
+
+
+# ─── PER-CARD PROFILE SAVE ENDPOINTS ───
+# Each profile "card" saves independently via fetch() instead of one big form
+# submission. Every endpoint re-runs check_and_award_profile_complete() so the
+# +30 XP bonus fires the instant the LAST required card becomes complete,
+# whichever card that happens to be.
+
+@app.route('/profile/save/identity', methods=['POST'])
+@login_required
+def profile_save_identity():
+    try:
+        name = sanitize(request.form.get('name', '').strip())
+        title = sanitize(request.form.get('title', '').strip())
+        location = sanitize(request.form.get('location', '').strip())
+        about_me = sanitize(request.form.get('about_me', '').strip())
+
+        if not (name and title and location):
+            return jsonify({'success': False, 'error': 'Full Name, Job Title, and Location are required.'}), 400
+
+        update_data = {'name': name, 'title': title, 'location': location, 'about_me': about_me}
+
+        if 'profile_pic' in request.files:
+            file = request.files['profile_pic']
+            if file and file.filename != '':
+                filename = secure_filename(file.filename)
+                random_hex = secrets.token_hex(8)
+                _, f_ext = os.path.splitext(filename)
+                profile_pic_fn = random_hex + f_ext
+                file.save(os.path.join(app.root_path, 'static/profile_pics', profile_pic_fn))
+                update_data['profile_pic'] = profile_pic_fn
+
+        users_collection.update_one({'_id': ObjectId(current_user.id)}, {'$set': update_data})
+        reward_granted = check_and_award_profile_complete(current_user.id)
+        profile_pic_url = None
+        if 'profile_pic' in update_data:
+            profile_pic_url = url_for('static', filename='profile_pics/' + update_data['profile_pic'])
+        return jsonify({'success': True, 'reward_granted': reward_granted, 'profile_pic_url': profile_pic_url})
+    except Exception as e:
+        print(f"Error saving identity card: {e}")
+        return jsonify({'success': False, 'error': 'Something went wrong. Please try again.'}), 500
+
+
+@app.route('/profile/save/skills', methods=['POST'])
+@login_required
+def profile_save_skills():
+    try:
+        old_user_data = users_collection.find_one({'_id': ObjectId(current_user.id)})
+        old_learning_skills = set(old_user_data.get('learning_skills', []))
+
+        known_skills = [sanitize(s.strip()) for s in request.form.get('known_skills', '').split(',') if s.strip()]
+        new_learning_skills_list = [sanitize(s.strip()) for s in request.form.get('learning_skills', '').split(',') if s.strip()]
+
+        if not known_skills or not new_learning_skills_list:
+            return jsonify({'success': False, 'error': 'Add at least one skill on each side.'}), 400
+
+        users_collection.update_one({'_id': ObjectId(current_user.id)}, {'$set': {
+            'known_skills': known_skills, 'learning_skills': new_learning_skills_list
+        }})
+        reward_granted = check_and_award_profile_complete(current_user.id)
+
+        added_goal = None
+        new_learning_skills = set(new_learning_skills_list)
+        added_skills = list(new_learning_skills - old_learning_skills)
+        if added_skills:
+            added_goal = added_skills[0]
+
+        return jsonify({
+            'success': True, 'reward_granted': reward_granted,
+            'added_goal': added_goal,
+            'roadmap_url': url_for('roadmap_generator', goal=added_goal) if added_goal else None
+        })
+    except Exception as e:
+        print(f"Error saving skills card: {e}")
+        return jsonify({'success': False, 'error': 'Something went wrong. Please try again.'}), 500
+
+
+@app.route('/profile/save/career', methods=['POST'])
+@login_required
+def profile_save_career():
+    try:
+        current_status = sanitize(request.form.get('current_status', '').strip())
+        if not current_status:
+            return jsonify({'success': False, 'error': 'Current Status is required.'}), 400
+
+        try:
+            exp_years = max(0, int(request.form.get('experience_years') or 0))
+        except (ValueError, TypeError):
+            exp_years = 0
+
+        users_collection.update_one({'_id': ObjectId(current_user.id)}, {'$set': {
+            'current_status': current_status, 'experience_years': str(exp_years)
+        }})
+        reward_granted = check_and_award_profile_complete(current_user.id)
+        return jsonify({'success': True, 'reward_granted': reward_granted})
+    except Exception as e:
+        print(f"Error saving career card: {e}")
+        return jsonify({'success': False, 'error': 'Something went wrong. Please try again.'}), 500
+
+
+@app.route('/profile/save/education', methods=['POST'])
+@login_required
+def profile_save_education():
+    try:
+        edu_entries_raw = request.form.get('education_json', '[]')
+        edu_entries = json.loads(edu_entries_raw)
+
+        if not edu_entries:
+            return jsonify({'success': False, 'error': 'Add at least one education entry.'}), 400
+
+        clean_edu_entries = []
+        for e in edu_entries:
+            grade_type = sanitize(e.get('grade_type', '')) or 'CGPA'
+            if grade_type not in ('CGPA', 'Percentage'):
+                grade_type = 'CGPA'
+            grade_value = sanitize(str(e.get('grade_value', '')))
+            institution = sanitize(e.get('institution', ''))
+            degree = sanitize(e.get('degree', ''))
+            field = sanitize(e.get('field', ''))
+            from_year = sanitize(e.get('from_year', ''))
+            to_year = sanitize(e.get('to_year', ''))
+            is_current = bool(e.get('is_current', False))
+
+            if not (institution and degree and field and grade_value and from_year and (is_current or to_year)):
+                return jsonify({'success': False, 'error': 'Every field is required on every education entry (To Year is only optional if "Currently studying" is checked).'}), 400
+
+            clean_edu_entries.append({
+                'institution': institution, 'degree': degree, 'field': field,
+                'grade_type': grade_type, 'grade_value': grade_value,
+                'from_year': from_year, 'to_year': to_year, 'is_current': is_current
+            })
+
+        update_data = {'education': clean_edu_entries}
+        primary_edu = clean_edu_entries[0]
+        update_data['education_college'] = primary_edu['institution']
+        update_data['education_degree'] = primary_edu['degree']
+        update_data['education_field'] = primary_edu['field']
+        suffix = '%' if primary_edu['grade_type'] == 'Percentage' else ' CGPA'
+        update_data['education_grade'] = f"{primary_edu['grade_value']}{suffix}"
+
+        users_collection.update_one({'_id': ObjectId(current_user.id)}, {'$set': update_data})
+        reward_granted = check_and_award_profile_complete(current_user.id)
+        return jsonify({'success': True, 'reward_granted': reward_granted})
+    except Exception as e:
+        print(f"Error saving education card: {e}")
+        return jsonify({'success': False, 'error': 'Something went wrong. Please try again.'}), 500
+
+
+@app.route('/profile/save/experience', methods=['POST'])
+@login_required
+def profile_save_experience():
+    try:
+        current_status = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'current_status': 1}).get('current_status', '')
+        exp_entries_raw = request.form.get('work_experience_json', '[]')
+        exp_entries = json.loads(exp_entries_raw)
+
+        # Work Experience is only mandatory for non-Students
+        if current_status != 'Student' and not exp_entries:
+            return jsonify({'success': False, 'error': 'Add at least one work experience entry.'}), 400
+
+        clean_entries = []
+        for e in exp_entries:
+            company = sanitize(e.get('company', ''))
+            role = sanitize(e.get('role', ''))
+            from_year = sanitize(e.get('from_year', ''))
+            to_year = sanitize(e.get('to_year', ''))
+            is_current = bool(e.get('is_current', False))
+            raw_bullets = e.get('bullets', [])
+            clean_bullets = [sanitize(b) for b in raw_bullets if isinstance(b, str) and b.strip()][:10]
+
+            if not (company and role and from_year and (is_current or to_year)):
+                return jsonify({'success': False, 'error': 'Company, Role, and Years are required on every experience entry (achievements are optional).'}), 400
+
+            clean_entries.append({
+                'company': company, 'role': role, 'from_year': from_year,
+                'to_year': to_year, 'is_current': is_current, 'bullets': clean_bullets
+            })
+
+        users_collection.update_one({'_id': ObjectId(current_user.id)}, {'$set': {'work_experience': clean_entries}})
+        reward_granted = check_and_award_profile_complete(current_user.id)
+        return jsonify({'success': True, 'reward_granted': reward_granted})
+    except Exception as e:
+        print(f"Error saving experience card: {e}")
+        return jsonify({'success': False, 'error': 'Something went wrong. Please try again.'}), 500
+
+
+@app.route('/profile/save/social', methods=['POST'])
+@login_required
+def profile_save_social():
+    try:
+        update_data = {
+            'linkedin_url': sanitize(request.form.get('linkedin_url', '').strip()),
+            'github_url': sanitize(request.form.get('github_url', '').strip()),
+            'instagram_url': sanitize(request.form.get('instagram_url', '').strip()),
+            'facebook_url': sanitize(request.form.get('facebook_url', '').strip()),
+        }
+        users_collection.update_one({'_id': ObjectId(current_user.id)}, {'$set': update_data})
+        reward_granted = check_and_award_profile_complete(current_user.id)
+        return jsonify({'success': True, 'reward_granted': reward_granted})
+    except Exception as e:
+        print(f"Error saving social card: {e}")
+        return jsonify({'success': False, 'error': 'Something went wrong. Please try again.'}), 500
+
 
 @app.route('/roadmap_generator', methods=['GET', 'POST'])
 @login_required
