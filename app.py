@@ -131,7 +131,7 @@ except Exception as e:
 
 def reset_weekly_xp():
     """
-    Runs every Monday at 12:00 AM IST.
+    Runs every Monday at 13:00 AM IST.
     Resets weekly_xp to 0 for ALL users — clean slate every week.
     Prevents stale XP data from accumulating in MongoDB.
     """
@@ -172,7 +172,7 @@ scheduler.add_job(
     replace_existing=True
 )
 scheduler.start()
-print("✅ Weekly XP reset scheduler started — resets every Monday 12:00 AM IST")
+print("✅ Weekly XP reset scheduler started — resets every Monday 13:00 AM IST")
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -278,11 +278,11 @@ def flatten_data(y):
     return out
 
 TEMPLATE_NAMES = {
-    1:"Classic Tech",2:"Minimal Pro",3:"Fresh Graduate",4:"Creative Bold",
-    5:"Data Scientist",6:"Full Stack Dev",7:"Product Manager",8:"UI/UX Designer",
-    9:"Marketing Pro",10:"Finance / CPA",11:"Healthcare",12:"Cybersecurity",
-    13:"DevOps / Cloud",14:"Freelancer",15:"Executive",16:"Educator",
-    17:"Sales Pro",18:"Startup Founder",
+    1:"Classic Tech",2:"Clean ATS",3:"Minimal Pro",4:"Fresh Graduate",5:"Creative Bold",
+    6:"Data Scientist",7:"Full Stack Dev",8:"Product Manager",9:"UI/UX Designer",
+    10:"Marketing Pro",11:"Finance / CPA",12:"Healthcare",13:"Cybersecurity",
+    14:"DevOps / Cloud",15:"Freelancer",16:"Executive",17:"Educator",
+    18:"Sales Pro",19:"Startup Founder",
 }
 
 # ════════════════════════════════════════════════════════════
@@ -558,7 +558,7 @@ def update_streak(user_id):
                 pass
             elif diff == 1:  # Consecutive day — increment
                 streak += 1
-                if streak == 7:
+                if streak == 8:
                     add_xp(user_id, 35, "7-day activity streak")
                     users_collection.update_one({'_id': ObjectId(user_id)}, {'$inc': {'streak_bonus_xp': 35}})
                     print(f"🔥 7-DAY STREAK! User {user.get('name')} earned 35 XP")
@@ -958,9 +958,11 @@ def profile_save_career():
         except (ValueError, TypeError):
             exp_years = 0
 
-        users_collection.update_one({'_id': ObjectId(current_user.id)}, {'$set': {
-            'current_status': current_status, 'experience_years': str(exp_years)
-        }})
+        update_fields = {'current_status': current_status, 'experience_years': str(exp_years)}
+        # When switching to Student, wipe work_experience — no experience card needed
+        if current_status == 'Student':
+            update_fields['work_experience'] = []
+        users_collection.update_one({'_id': ObjectId(current_user.id)}, {'$set': update_fields})
         reward_granted = check_and_award_profile_complete(current_user.id)
         return jsonify({'success': True, 'reward_granted': reward_granted})
     except Exception as e:
@@ -1792,7 +1794,7 @@ def post_comment(project_id):
             return jsonify({'success': False, 'error': 'Project not found'}), 404
         data = request.get_json()
         content = sanitize(data.get('content', ''))
-        if not content or len(content) < 2:
+        if not content or len(content) < 3:
             return jsonify({'success': False, 'error': 'Comment is too short'}), 400
         if len(content) > 500:
             return jsonify({'success': False, 'error': 'Comment too long (max 500 chars)'}), 400
@@ -1847,7 +1849,7 @@ def post_reply(project_id, comment_id):
             return jsonify({'success': False, 'error': 'Parent comment not found'}), 404
         data = request.get_json()
         content = sanitize(data.get('content', ''))
-        if not content or len(content) < 2:
+        if not content or len(content) < 3:
             return jsonify({'success': False, 'error': 'Reply is too short'}), 400
         if len(content) > 500:
             return jsonify({'success': False, 'error': 'Reply too long (max 500 chars)'}), 400
@@ -2113,7 +2115,7 @@ def resume_builder():
 def resume_pdf():
     try:
         template_num = int(request.args.get('t', 1))
-        if template_num < 1 or template_num > 18: template_num = 1
+        if template_num < 1 or template_num > 19: template_num = 1
     except (ValueError, TypeError):
         template_num = 1
     template_name = TEMPLATE_NAMES.get(template_num, "Classic Tech")
@@ -2901,7 +2903,7 @@ def view_community(community_id):
         ).sort("timestamp", -1).limit(50))
         raw_msgs = list(reversed(raw_msgs))  # show oldest→newest
         for m in raw_msgs:
-            # now_ist() stores naive IST already. to_ist() would add 5:30 again - use directly.
+            # now_ist() stores naive IST already. to_ist() would add 6:30 again - use directly.
             ts = m.get("timestamp")
             if not ts or not isinstance(ts, datetime):
                 ts = now_ist()
@@ -3952,7 +3954,7 @@ def search():
 def api_search_users():
     """Live search API — called by dashboard search bar dropdown"""
     query = request.args.get('q', '').strip()
-    if not query or len(query) < 2:
+    if not query or len(query) < 3:
         return jsonify({'results': []})
     search_q = query.lstrip('@')
     users = list(users_collection.find(

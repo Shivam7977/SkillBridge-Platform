@@ -316,6 +316,7 @@ body { font-family: 'DM Sans', sans-serif; }
                   <div class="flex items-center justify-end gap-2 pt-2 border-t border-cream-200 dark:border-ink-800">
                     <button type="button" onclick="cancelSkillsEdit()" class="px-4 py-2 text-ink-500 dark:text-ink-400 text-xs font-bold rounded-lg hover:bg-cream-100 dark:hover:bg-ink-800 transition-all">Cancel</button>
                     <button type="button" onclick="saveSkillsCard()" id="skills-save-btn" class="px-5 py-2 bg-ink-900 dark:bg-gold text-cream-50 dark:text-ink-900 text-xs font-bold rounded-lg transition-all hover:-translate-y-0.5 active:scale-95">✓ Save</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -928,6 +929,17 @@ async function saveCareerCard() {
     view.querySelector('.view-exp').textContent = expYears + ' Years';
     document.getElementById('career-edit').classList.add('hidden');
     document.getElementById('career-view').classList.remove('hidden');
+    // If switched to Student, clear the experience card UI and DB
+    if (status === 'Student') {
+      const expList = document.getElementById('exp-entries-list');
+      if (expList) {
+        expList.innerHTML = '<p id="no-exp-msg" class="text-xs text-ink-400 dark:text-ink-500 font-semibold">No experience entries yet. Click "+ Add Entry" to expand portfolio layers.</p>';
+      }
+      // Silently persist empty array to DB
+      const expFd = new FormData();
+      expFd.append('work_experience_json', '[]');
+      await postCard('/profile/save/experience', expFd, null);
+    }
   }
 }
 
@@ -1009,11 +1021,10 @@ async function saveEducationCard(btn) {
 // ── Work Experience (multi-entry) ──
 function validateExpEntries() {
   const studentStatus = document.getElementById('in-status')?.value === 'Student';
+  // Students have no experience requirement — always valid
+  if (studentStatus) return true;
   const entries = document.querySelectorAll('.exp-entry');
-  if (!studentStatus && !entries.length) {
-    showToast('Add at least one work experience entry.', 'error');
-    return false;
-  }
+  // Non-students CAN have 0 entries (they may have just cleared all) — allow save
   let valid = true;
   entries.forEach(entry => {
     const fields = {
@@ -1067,11 +1078,14 @@ function refreshExpEntryView(entry) {
 }
 
 async function saveExperienceCard(btn) {
-  if (!validateExpEntries()) return;
+  // When btn is null it's an auto-save after remove — skip full validation
+  if (btn !== null && btn !== undefined) {
+    if (!validateExpEntries()) return;
+  }
   serializeExp();
   const fd = new FormData();
   fd.append('work_experience_json', document.getElementById('work-exp-json').value);
-  const data = await postCard('/profile/save/experience', fd, btn);
+  const data = await postCard('/profile/save/experience', fd, btn || null);
   if (handleSaveResult(data)) {
     document.querySelectorAll('.exp-entry').forEach(refreshExpEntryView);
   }
@@ -1394,20 +1408,15 @@ function addExpEntry() {
 }
 
 function removeExpEntry(btn) {
-  const isStudent = document.getElementById('in-status')?.value === 'Student';
   const list = document.getElementById('exp-entries-list');
-  const totalEntries = list.querySelectorAll('.exp-entry').length;
-  if (!isStudent && totalEntries <= 1) {
-    showToast('Work Experience needs at least one entry — edit it instead of removing.', 'error');
-    return;
-  }
   btn.closest('.exp-entry').remove();
   serializeExp();
   autoCalcYears();
   if (!list.querySelector('.exp-entry')) {
     list.innerHTML = '<p id="no-exp-msg" class="text-xs text-ink-400 dark:text-ink-500 font-semibold">No experience entries yet. Click "+ Add Entry" to expand portfolio layers.</p>';
   }
-  saveExperienceCard();
+  // Pass a dummy sentinel so postCard spinner is skipped gracefully
+  saveExperienceCard(null);
 }
 
 function handleCurrentToggle(checkbox) {
