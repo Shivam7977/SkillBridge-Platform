@@ -806,14 +806,19 @@ function cancelIdentityEdit() {
 }
 
 async function saveIdentityCard() {
-  if (!validateRequired(['in-name', 'in-title', 'in-loc'])) {
-    showToast('Please fill all required fields.', 'error');
-    return;
-  }
-  const name = document.getElementById('in-name').value.trim();
-  const title = document.getElementById('in-title').value.trim();
+  const name     = document.getElementById('in-name').value.trim();
+  const title    = document.getElementById('in-title').value.trim();
   const location = document.getElementById('in-loc').value.trim();
-  const aboutMe = document.getElementById('in-bio').value.trim();
+  const aboutMe  = document.getElementById('in-bio').value.trim();
+  // Rule: blank card is fine. But if any field filled, all three must be present.
+  const anyFilled = name || title || location;
+  if (anyFilled) {
+    let ok = true;
+    if (!name)     { markFieldError(document.getElementById('in-name'));  ok = false; }
+    if (!title)    { markFieldError(document.getElementById('in-title')); ok = false; }
+    if (!location) { markFieldError(document.getElementById('in-loc'));   ok = false; }
+    if (!ok) { showToast('Name, Job Title, and Location are required together.', 'error'); return; }
+  }
 
   const fd = new FormData();
   fd.append('name', name);
@@ -867,14 +872,9 @@ async function saveSkillsCard() {
   const learning = document.getElementById('in-learning');
   const knownList = known.value.split(',').map(s => s.trim()).filter(Boolean);
   const learningList = learning.value.split(',').map(s => s.trim()).filter(Boolean);
-
-  let valid = true;
-  if (!knownList.length) { markFieldError(known); valid = false; } else { clearFieldError(known); }
-  if (!learningList.length) { markFieldError(learning); valid = false; } else { clearFieldError(learning); }
-  if (!valid) {
-    showToast('Add at least one skill on each side.', 'error');
-    return;
-  }
+  // Both are independent — blank is fine. No forced minimum.
+  clearFieldError(known);
+  clearFieldError(learning);
 
   const fd = new FormData();
   fd.append('known_skills', known.value);
@@ -910,12 +910,10 @@ function cancelCareerEdit() {
 }
 
 async function saveCareerCard() {
-  if (!validateRequired(['in-status'])) {
-    showToast('Current Status is required.', 'error');
-    return;
-  }
-  const status = document.getElementById('in-status').value;
+  const status   = document.getElementById('in-status').value;
   const expYears = document.getElementById('in-exp').value || '0';
+  // Blank career card is allowed — user can clear it entirely.
+  // If status is set that's the only real anchor; years default to 0.
 
   const fd = new FormData();
   fd.append('current_status', status);
@@ -929,27 +927,14 @@ async function saveCareerCard() {
     view.querySelector('.view-exp').textContent = expYears + ' Years';
     document.getElementById('career-edit').classList.add('hidden');
     document.getElementById('career-view').classList.remove('hidden');
-    // If switched to Student, clear the experience card UI and DB
-    if (status === 'Student') {
-      const expList = document.getElementById('exp-entries-list');
-      if (expList) {
-        expList.innerHTML = '<p id="no-exp-msg" class="text-xs text-ink-400 dark:text-ink-500 font-semibold">No experience entries yet. Click "+ Add Entry" to expand portfolio layers.</p>';
-      }
-      // Silently persist empty array to DB
-      const expFd = new FormData();
-      expFd.append('work_experience_json', '[]');
-      await postCard('/profile/save/experience', expFd, null);
-    }
   }
 }
 
 // ── Education (multi-entry) ──
 function validateEduEntries() {
   const entries = document.querySelectorAll('.edu-entry');
-  if (!entries.length) {
-    showToast('Add at least one education entry.', 'error');
-    return false;
-  }
+  // 0 entries = blank card = allowed
+  if (!entries.length) return true;
   let valid = true;
   entries.forEach(entry => {
     const fields = {
@@ -1008,11 +993,14 @@ function refreshEduEntryView(entry) {
 }
 
 async function saveEducationCard(btn) {
-  if (!validateEduEntries()) return;
+  // btn===null means auto-save after remove — skip manual validation
+  if (btn !== null && btn !== undefined) {
+    if (!validateEduEntries()) return;
+  }
   serializeEdu();
   const fd = new FormData();
   fd.append('education_json', document.getElementById('education-json').value);
-  const data = await postCard('/profile/save/education', fd, btn);
+  const data = await postCard('/profile/save/education', fd, btn || null);
   if (handleSaveResult(data)) {
     document.querySelectorAll('.edu-entry').forEach(refreshEduEntryView);
   }
@@ -1020,11 +1008,9 @@ async function saveEducationCard(btn) {
 
 // ── Work Experience (multi-entry) ──
 function validateExpEntries() {
-  const studentStatus = document.getElementById('in-status')?.value === 'Student';
-  // Students have no experience requirement — always valid
-  if (studentStatus) return true;
   const entries = document.querySelectorAll('.exp-entry');
-  // Non-students CAN have 0 entries (they may have just cleared all) — allow save
+  // 0 entries = blank card = allowed for everyone
+  if (!entries.length) return true;
   let valid = true;
   entries.forEach(entry => {
     const fields = {
@@ -1078,7 +1064,7 @@ function refreshExpEntryView(entry) {
 }
 
 async function saveExperienceCard(btn) {
-  // When btn is null it's an auto-save after remove — skip full validation
+  // btn===null means auto-save after remove — skip manual validation
   if (btn !== null && btn !== undefined) {
     if (!validateExpEntries()) return;
   }
@@ -1415,7 +1401,6 @@ function removeExpEntry(btn) {
   if (!list.querySelector('.exp-entry')) {
     list.innerHTML = '<p id="no-exp-msg" class="text-xs text-ink-400 dark:text-ink-500 font-semibold">No experience entries yet. Click "+ Add Entry" to expand portfolio layers.</p>';
   }
-  // Pass a dummy sentinel so postCard spinner is skipped gracefully
   saveExperienceCard(null);
 }
 
@@ -1560,17 +1545,12 @@ function addEduEntry() {
 
 function removeEduEntry(btn) {
   const list = document.getElementById('edu-entries-list');
-  const totalEntries = list.querySelectorAll('.edu-entry').length;
-  if (totalEntries <= 1) {
-    showToast('Education needs at least one entry — edit it instead of removing.', 'error');
-    return;
-  }
   btn.closest('.edu-entry').remove();
   serializeEdu();
   if (!list.querySelector('.edu-entry')) {
     list.innerHTML = '<p id="no-edu-msg" class="text-xs text-ink-400 dark:text-ink-500 font-semibold">No education entries yet. Click "+ Add Entry" to add your 10th, 12th, degree, etc.</p>';
   }
-  saveEducationCard();
+  saveEducationCard(null);
 }
 
 function handleEduCurrentToggle(checkbox) {
