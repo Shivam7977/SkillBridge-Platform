@@ -51,6 +51,15 @@
 }
 
 /* ── PAGE LAYOUT ── */
+:root {
+  --bg: #f8f4ec;
+  --surface: #fff;
+  --primary: #1a1714;
+  --accent: #c4973a;
+  --text: #1a1714;
+  --muted: #9c9488;
+  --border: #f0e9d8;
+}
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html { background: #e2e8f0; }
 body {
@@ -68,7 +77,7 @@ body {
   min-height: 1123px;
 }
 
-══════
+/* ══════════════════════════════════════
    SHARED RESUME UTILITIES
 ═══════════════════════════════════════ */
 
@@ -152,7 +161,7 @@ body {
 #t1 .about{font-size:.83rem;color:#475569;line-height:1.72;}
 
 /* ═══════════════════════════════════════
-   T2 – MINIMAL PRO
+   T3 – MINIMAL PRO
    Editorial black rules · single serif name
 ═══════════════════════════════════════ */
 #t3{font-family:'DM Sans',sans-serif;padding:50px 58px;}
@@ -174,7 +183,7 @@ body {
 #t3 .tags span{font-size:.7rem;color:var(--muted);font-weight:600;}
 
 /* ═══════════════════════════════════════
-   T3 – FRESH GRADUATE
+   T4 – FRESH GRADUATE
    Mint green pastel · "open to work" badge
 ═══════════════════════════════════════ */
 #t4{font-family:'Sora',sans-serif;}
@@ -202,7 +211,7 @@ body {
   font-size:.82rem;color:#065f46;line-height:1.72;}
 
 /* ═══════════════════════════════════════
-   T4 – CREATIVE DESIGNER
+   T5 – CREATIVE DESIGNER
    Ink black + crimson diagonal slash
 ═══════════════════════════════════════ */
 #t5{font-family:'Josefin Sans',sans-serif;background:#0a0a0a;color:#fff;}
@@ -229,7 +238,7 @@ body {
 #t5 .about{font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.8;font-weight:300;}
 
 /* ═══════════════════════════════════════
-   T5 – DATA SCIENTIST
+   T6 – DATA SCIENTIST
    Deep slate · skill bars · stat counters
 ═══════════════════════════════════════ */
 #t6{font-family:'Outfit',sans-serif;background:#0f172a;color:#e2e8f0;}
@@ -264,7 +273,7 @@ body {
 #t6 .about{font-size:.82rem;color:#94a3b8;line-height:1.75;}
 
 /* ═══════════════════════════════════════
-   T6 – FULL STACK DEVELOPER
+   T7 – FULL STACK DEVELOPER
    Terminal / monospace aesthetic, green on black
 ═══════════════════════════════════════ */
 #t7{font-family:'Space Mono',monospace;background:#0d1117;color:#c9d1d9;}
@@ -293,7 +302,7 @@ body {
 #t7 .about{font-size:.78rem;color:#8b949e;line-height:1.8;}
 
 /* ═══════════════════════════════════════
-   T7 – PRODUCT MANAGER
+   T8 – PRODUCT MANAGER
    Warm amber · bold KPI accents
 ═══════════════════════════════════════ */
 #t8{font-family:'Sora',sans-serif;}
@@ -320,7 +329,7 @@ body {
 #t8 .about{font-size:.83rem;color:#44403c;line-height:1.72;}
 
 /* ═══════════════════════════════════════
-   T8 – UI/UX DESIGNER
+   T9 – UI/UX DESIGNER
    Lavender soft · avatar initials · portfolio grid
 ═══════════════════════════════════════ */
 #t9{font-family:'DM Sans',sans-serif;background:#faf7ff;}
@@ -353,7 +362,7 @@ body {
 #t9 .es{font-size:.76rem;color:#7c3aed;margin-top:2px;}
 
 /* ═══════════════════════════════════════
-   T9 – MARKETING PRO
+   T10 – MARKETING PRO
    Bold coral-red · impact-first layout
 ═══════════════════════════════════════ */
 #t10{font-family:'Outfit',sans-serif;}
@@ -382,7 +391,7 @@ body {
 #t10 .es{font-size:.78rem;color:#dc2626;margin-top:2px;}
 
 /* ═══════════════════════════════════════
-   T10 – FINANCE / CPA
+   T11 – FINANCE / CPA
    Navy + gold · traditional serif gravitas
 ═══════════════════════════════════════ */
 #t11{font-family:'Libre Baskerville',serif;}
@@ -413,7 +422,7 @@ body {
 #t11 .es{font-size:.78rem;color:#c8a951;font-family:'DM Sans',sans-serif;margin-top:2px;}
 
 /* ═══════════════════════════════════════
-   T11 – HEALTHCARE / MEDICAL
+   T12 – HEALTHCARE / MEDICAL
    Teal + white · clinical structure
 ═══════════════════════════════════════ */
 #t12{font-family:'Outfit',sans-serif;}
@@ -440,7 +449,7 @@ body {
 #t12 .es{font-size:.76rem;color:#0d9488;margin-top:2px;}
 
 /* ═══════════════════════════════════════
-   T12 – CYBERSECURITY
+   T13 – CYBERSECURITY
    Near-black + warning red · scanline texture
 ═══════════════════════════════════════ */
 #t13{font-family:'Space Mono',monospace;background:#080810;color:#dde1e7;}
@@ -467,7 +476,7 @@ body {
 #t13 .about{font-size:.76rem;color:rgba(255,255,255,.52);line-height:1.8;}
 
 /* ═══════════════════════════════════════
-   T13 – DEVOPS / CLOUD
+   T14 – DEVOPS / CLOUD
    Sky-to-indigo gradient · infrastructure grid look
 ═══════════════════════════════════════ */
 #t14{font-family:'Outfit',sans-serif;}
@@ -493,7 +502,7 @@ body {
 #t14 .about{font-size:.82rem;color:#374151;line-height:1.72;}
 
 /* ═══════════════════════════════════════
-   T14 – FREELANCER / CREATIVE WRITER
+   T15 – FREELANCER / CREATIVE WRITER
    Cream parchment · oversized serif · ink editorial
 ═══════════════════════════════════════ */
 #t15{font-family:'Crimson Pro',serif;background:#fffef8;}
@@ -518,7 +527,7 @@ body {
   border-bottom:1px dotted #ccc;padding-bottom:6px;font-family:'DM Sans',sans-serif;}
 
 /* ═══════════════════════════════════════
-   T15 – EXECUTIVE / SENIOR LEADER
+   T16 – EXECUTIVE / SENIOR LEADER
    Charcoal luxury · purple micro-accents
 ═══════════════════════════════════════ */
 #t16{font-family:'DM Serif Display',serif;background:#fff;}
@@ -550,7 +559,7 @@ body {
 #t16 .sk-item::before{content:'';width:6px;height:6px;border-radius:50%;background:#a78bfa;flex-shrink:0;}
 
 /* ═══════════════════════════════════════
-   T16 – EDUCATOR / TEACHER
+   T17 – EDUCATOR / TEACHER
    Warm sage green · welcoming rounded style
 ═══════════════════════════════════════ */
 #t17{font-family:'Sora',sans-serif;}
@@ -579,7 +588,7 @@ body {
 #t17 .es{font-size:.76rem;color:#16a34a;margin-top:2px;}
 
 /* ═══════════════════════════════════════
-   T17 – SALES PROFESSIONAL
+   T18 – SALES PROFESSIONAL
    Royal blue · metrics bar · results-driven
 ═══════════════════════════════════════ */
 #t18{font-family:'Outfit',sans-serif;}
@@ -609,7 +618,7 @@ body {
 #t18 .es{font-size:.78rem;color:#2563eb;margin-top:2px;}
 
 /* ═══════════════════════════════════════
-   T18 – STARTUP FOUNDER
+   T19 – STARTUP FOUNDER
    Pitch-black · oversized Fraunces · orange fire
 ═══════════════════════════════════════ */
 #t19{font-family:'Fraunces',serif;background:#0a0a0a;color:#fff;}
@@ -678,6 +687,13 @@ body {
 #t2 .t19-achieve-item{font-size:.81rem;color:#222;margin-bottom:4px;display:flex;gap:7px;}
 #t2 .t19-achieve-item::before{content:'•';color:#111;flex-shrink:0;}
 
+
+@media print {
+  .print-bar { display: none !important; }
+  body { padding-top: 0 !important; background: #fff !important; }
+  html { background: #fff !important; }
+  .page-wrap { box-shadow: none !important; margin: 0 !important; }
+}
 /* ── OVERRIDE: show ONLY the selected template ── */
 .rt { display: none !important; }
 .rt.on { display: flex !important; }
@@ -873,6 +889,7 @@ body {
     {% endfor %}
   </div>
   {% endif %}
+  <div style="flex:1;min-height:16px;display:block;"></div>
 </div>
 <div id="t3" class="rt">
   <div class="nm">{{ user.name or 'Your Name' }}</div>
@@ -1411,8 +1428,6 @@ body {
     </div>
   </div>
 </div>
-</div>
-
 
 </div><!-- /scaleWrapper -->
 
@@ -1425,7 +1440,7 @@ if (target) target.classList.add('on');
 
 // Auto-print if ?print=1 in URL
 if (new URLSearchParams(window.location.search).get('print') === '1') {
-  window.addEventListener('load', () => setTimeout(() => window.print(), 800));
+  document.fonts.ready.then(() => window.print());
 }
 
 // ── MOBILE SCALE (preview only, not print) ──
