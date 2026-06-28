@@ -163,6 +163,9 @@ body { font-family:'DM Sans',sans-serif; }
 .preview-wrap { background:#e5d9c0; border-radius:20px; padding:14px; min-height:820px; overflow:auto; }
 .dark .preview-wrap { background:#2c2820; }
 .preview-inner { border-radius:14px; overflow:hidden; box-shadow:0 24px 60px rgba(26,23,20,.18); background:transparent; }
+/* Ensure all links inside resume preview are always clickable */
+.rt a { pointer-events:auto !important; cursor:pointer !important; }
+.preview-wrap a, .preview-inner a { pointer-events:auto !important; }
 
 /* ── MOBILE: scale resume preview to fit screen ── */
 @media (max-width: 1023px) {
@@ -173,7 +176,7 @@ body { font-family:'DM Sans',sans-serif; }
   .vsep { display: none !important; }
   .preview-wrap {
     min-height: 0 !important;
-    overflow: hidden !important;
+    overflow: auto !important;  /* was hidden — caused links at edges to be unclickable */
     padding: 10px !important;
   }
 }
@@ -304,7 +307,7 @@ body { font-family:'DM Sans',sans-serif; }
 /* ── T1 CLASSIC TECH ── */
 #t1{font-family:'Outfit',sans-serif;}
 #t1 .h{background:linear-gradient(135deg,#1e1b4b 0%,#312e81 60%,#4c1d95 100%);color:#fff;padding:38px 46px;position:relative;overflow:hidden;}
-#t1 .h::after{content:'';position:absolute;width:280px;height:280px;border-radius:50%;background:rgba(139,92,246,.15);top:-90px;right:-70px;}
+#t1 .h::after{content:'';position:absolute;width:280px;height:280px;border-radius:50%;background:rgba(139,92,246,.15);top:-90px;right:-70px;pointer-events:none;}
 #t1 .h-name{font-size:2.5rem;font-weight:800;line-height:1.05;position:relative;z-index:1;}
 #t1 .h-role{font-size:.88rem;opacity:.7;margin-top:5px;letter-spacing:.05em;position:relative;z-index:1;}
 #t1 .h-row{display:flex;flex-wrap:wrap;gap:16px;margin-top:16px;position:relative;z-index:1;}
@@ -373,7 +376,7 @@ body { font-family:'DM Sans',sans-serif; }
 /* ── T5 CREATIVE DESIGNER ── */
 #t5{font-family:'Josefin Sans',sans-serif;background:#0a0a0a;color:#fff;}
 #t5 .h{padding:46px 48px 36px;position:relative;}
-#t5 .h::before{content:'';position:absolute;right:0;top:0;width:42%;height:100%;background:#e11d48;clip-path:polygon(22% 0%,100% 0%,100% 100%,0% 100%);}
+#t5 .h::before{content:'';position:absolute;right:0;top:0;width:42%;height:100%;background:#e11d48;clip-path:polygon(22% 0%,100% 0%,100% 100%,0% 100%);pointer-events:none;}
 #t5 .nm{font-size:2.8rem;font-weight:700;letter-spacing:.04em;line-height:1;position:relative;z-index:1;}
 #t5 .role{font-size:.8rem;letter-spacing:.22em;text-transform:uppercase;color:#e11d48;margin-top:7px;font-weight:300;position:relative;z-index:1;}
 #t5 .row{display:flex;flex-wrap:wrap;gap:14px;margin-top:18px;position:relative;z-index:1;}
@@ -570,7 +573,7 @@ body { font-family:'DM Sans',sans-serif; }
 /* ── T13 CYBERSECURITY ── */
 #t13{font-family:'Space Mono',monospace;background:#080810;color:#dde1e7;}
 #t13 .h{padding:42px 48px;position:relative;overflow:hidden;}
-#t13 .h::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 22px,rgba(220,38,38,.04) 22px,rgba(220,38,38,.04) 23px);}
+#t13 .h::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 22px,rgba(220,38,38,.04) 22px,rgba(220,38,38,.04) 23px);pointer-events:none;}
 #t13 .alert{color:#dc2626;font-size:.68rem;letter-spacing:.22em;margin-bottom:9px;position:relative;z-index:1;}
 #t13 .nm{font-size:2.1rem;font-weight:700;color:#fff;line-height:1.1;position:relative;z-index:1;}
 #t13 .role{font-size:.75rem;color:#dc2626;letter-spacing:.1em;margin-top:5px;position:relative;z-index:1;}
@@ -592,7 +595,7 @@ body { font-family:'DM Sans',sans-serif; }
 /* ── T14 DEVOPS ── */
 #t14{font-family:'Outfit',sans-serif;}
 #t14 .h{background:linear-gradient(130deg,#0284c7,#4f46e5,#7c3aed);color:#fff;padding:42px 50px;position:relative;overflow:hidden;}
-#t14 .h::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 80% -20%,rgba(255,255,255,.1),transparent);}
+#t14 .h::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 80% -20%,rgba(255,255,255,.1),transparent);pointer-events:none;}
 #t14 .nm{font-size:2.5rem;font-weight:800;line-height:1.1;position:relative;z-index:1;}
 #t14 .role{font-size:.86rem;opacity:.78;margin-top:4px;position:relative;z-index:1;}
 #t14 .row{display:flex;flex-wrap:wrap;gap:14px;margin-top:16px;position:relative;z-index:1;}
@@ -1873,11 +1876,15 @@ function liveUpdate() {
     if (a.querySelector && a.querySelector('.fa-envelope')) {
       if (email) {
         a.href = 'mailto:' + email;
-        // last text node
         const nodes = Array.from(a.childNodes).filter(n => n.nodeType === 3);
-        if (nodes.length) nodes[nodes.length-1].textContent = email;
-        else a.append(email);
+        if (nodes.length) {
+          nodes[nodes.length-1].textContent = email;
+        } else {
+          const tn = document.createTextNode(email);
+          a.appendChild(tn);
+        }
       }
+      // If no email in panel, keep whatever href was server-rendered — don't touch it
     }
     if (a.querySelector && a.querySelector('.fa-linkedin') && linkedin) a.href = linkedin;
     if (a.querySelector && a.querySelector('.fa-github') && github) a.href = github;
@@ -2033,32 +2040,38 @@ applyTheme(localStorage.getItem('sb-theme') || 'light');
     if (!wrap || !inner) return;
 
     if (window.innerWidth >= 1024) {
-      // Desktop: reset
+      // Desktop: reset all scaling — links work natively
       inner.style.transform = '';
       inner.style.transformOrigin = '';
+      inner.style.zoom = '';
       inner.style.width = '';
       inner.style.height = '';
       wrap.style.height = '';
       wrap.style.minHeight = '';
+      wrap.style.overflow = '';
+      wrap.style.position = '';
       return;
     }
 
-    // Mobile: fix inner to A4 size
-    inner.style.width  = A4_W + 'px';
-    inner.style.height = A4_H + 'px';
-    inner.style.overflow = 'hidden';
-
-    // Scale to fit available width
     var availW = wrap.clientWidth - 20;
     var scale  = availW / A4_W;
 
-    inner.style.transformOrigin = 'top left';
+    // Use transform:scale for ALL browsers.
+    // zoom visually scales but DOM hit areas stay at original 794px width —
+    // links on the right side of the header fall outside the visible viewport
+    // so clicks never register. transform:scale + manual wrap height fixes this.
+    inner.style.zoom = '';
+    inner.style.width = A4_W + 'px';
     inner.style.transform = 'scale(' + scale + ')';
+    inner.style.transformOrigin = 'top left';
+    inner.style.display = 'block';
 
-    // Wrap height = A4 height * scale + padding
-    wrap.style.minHeight = '0';
+    // Set wrap height = scaled A4 height so content below doesn't overlap
     wrap.style.height = Math.ceil(A4_H * scale + 20) + 'px';
-    wrap.style.overflow = 'hidden';
+    wrap.style.minHeight = '0';
+    // overflow:visible so hit areas are not clipped by the wrapper bounds
+    wrap.style.overflow = 'visible';
+    wrap.style.position = 'relative';
   }
 
   window.addEventListener('load', scalePreview);
