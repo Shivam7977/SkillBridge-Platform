@@ -59,11 +59,13 @@ tailwind.config = {
 .dark { --bg:#1a1714; --surface:#2c2820; --border:#3d3830; --text:#f0e9d8; --muted:#7a7268; }
 
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'DM Sans',sans-serif; }
+body { font-family:'DM Sans',sans-serif; overflow-x:hidden; }
 
 /* ══ LAYOUT WRAPPERS ══ */
-.rb-page { display:flex; min-height:100vh; }
-.rb-main { flex:1; padding:2rem 2.5rem; transition:padding-right .3s ease; min-width:0; }
+.rb-page { display:flex; min-height:100vh; overflow-x:hidden; }
+.rb-main { flex:1; padding:2rem 2rem; transition:padding-right .3s ease; min-width:0; overflow-x:hidden; }
+@media(min-width:640px){ .rb-main { padding:2.5rem 2rem; } }
+@media(min-width:1024px){ .rb-main { padding:2.5rem 2.5rem; } }
 .rb-main.panel-open { padding-right:380px; }
 
 /* ══ PAGE HEADER CARD ══ */
@@ -169,18 +171,32 @@ body { font-family:'DM Sans',sans-serif; }
 
 /* ── MOBILE: scale resume preview to fit screen ── */
 @media (max-width: 1023px) {
-  /* Single column — prevents tcards from overlapping the preview and intercepting clicks */
+  /* Single column layout */
   .layout { grid-template-columns: 1fr !important; }
-  /* Hide sidebar control panel on mobile; template switching via mob-tpl-toggle instead */
+  /* Hide desktop control panel; use mobile toggle instead */
   .cp { display: none !important; }
   /* Show the mobile template toggle button */
   #mob-tpl-toggle { display: block !important; }
   .rt.on { min-height: 0 !important; overflow: visible !important; }
   .vsep { display: none !important; }
+  /* Right column wrapper: constrain to full width, clip overflow */
+  .layout > div:last-child {
+    min-width: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    max-width: 100% !important;
+  }
+  /* Preview wrap: full width of its container */
   .preview-wrap {
     min-height: 0 !important;
-    overflow: visible !important;
+    overflow: hidden !important;
     padding: 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .preview-inner {
+    max-width: 100% !important;
   }
 }
 
@@ -268,13 +284,11 @@ body { font-family:'DM Sans',sans-serif; }
 /* ══ RESPONSIVE ══ */
 @media(max-width:1280px) { #edit-panel { width:320px; } }
 @media(max-width:1023px){
-  .rb-main { padding:1.5rem 1rem; }
-  .page-header-card { flex-direction:column; align-items:flex-start; border-radius:18px; }
+  .rb-main { padding:1.25rem 1rem; overflow-x:hidden; }
   .btns { width:100%; flex-wrap:wrap; }
-  .btns .btn { flex:1; justify-content:center; font-size:.78rem; padding:9px 10px; }
   .layout { grid-template-columns:1fr!important; }
   .cp { position:static!important; }
-  .preview-wrap { min-height:400px; }
+  .preview-wrap { min-height:0 !important; }
   .rb-main.panel-open { padding-right:1rem; }
   #edit-panel { width:100vw!important; top:auto!important; bottom:0; height:70vh; border-left:none!important; border-top:1px solid #e5d9c0; border-radius:20px 20px 0 0; }
   .dark #edit-panel { border-top-color:#3d3830!important; }
@@ -871,16 +885,30 @@ body { font-family:'DM Sans',sans-serif; }
   <!-- ══ MAIN CONTENT ══ -->
   <main class="rb-main flex-1 min-w-0">
   <!-- ══ PAGE HEADER ══ -->
-  <div class="page-header-card">
-    <div>
-      <h1>Resume Builder</h1>
-      <p>19 career-specific templates · auto-filled from your profile · one-click PDF</p>
-      <div class="badge-pill"><i class="fas fa-bolt" style="color:#c4973a;font-size:.6rem;"></i> Auto-filled from your profile</div>
+  <div class="bg-white dark:bg-ink-800 border border-cream-200 dark:border-ink-700 rounded-3xl p-6 sm:p-8 shadow-sm mb-7 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.02] dark:opacity-[0.04] pointer-events-none">
+      <div class="absolute left-1/3 top-0 bottom-0 w-px bg-ink-900 dark:bg-cream-50"></div>
+      <div class="absolute left-2/3 top-0 bottom-0 w-px bg-ink-900 dark:bg-cream-50"></div>
     </div>
-    <div class="btns">
-      <button class="btn btn-o" onclick="toggleEditPanel()"><i class="fas fa-pen"></i> Edit Content</button>
-      <button class="btn btn-o" onclick="copyHTML()"><i class="fas fa-copy"></i> Copy HTML</button>
-      <button class="btn btn-p" onclick="openPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 relative z-10">
+      <div class="space-y-1.5">
+        <h1 class="font-display text-3xl sm:text-4xl font-black tracking-tight text-ink-900 dark:text-cream-100 leading-tight">Resume Builder</h1>
+        <p class="text-ink-500 dark:text-ink-400 text-sm font-body leading-relaxed">19 career-specific templates · auto-filled from your profile · one-click PDF</p>
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cream-100 dark:bg-ink-900 border border-cream-300 dark:border-ink-700 text-[11px] font-bold text-ink-400 dark:text-ink-500 uppercase tracking-widest mt-1">
+          <i class="fas fa-bolt" style="color:#c4973a;font-size:.55rem;"></i> Auto-filled from your profile
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-3 w-full sm:w-auto flex-shrink-0">
+        <button onclick="toggleEditPanel()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-white dark:bg-ink-700 border border-cream-300 dark:border-ink-600 text-ink-900 dark:text-cream-100 font-body font-semibold text-sm rounded-xl tracking-wide transition-all hover:bg-cream-50 dark:hover:bg-ink-600 hover:-translate-y-0.5 shadow-sm">
+          <i class="fas fa-pen text-xs"></i> Edit Content
+        </button>
+        <button onclick="copyHTML()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-white dark:bg-ink-700 border border-cream-300 dark:border-ink-600 text-ink-900 dark:text-cream-100 font-body font-semibold text-sm rounded-xl tracking-wide transition-all hover:bg-cream-50 dark:hover:bg-ink-600 hover:-translate-y-0.5 shadow-sm">
+          <i class="fas fa-copy text-xs"></i> Copy HTML
+        </button>
+        <button onclick="openPDF()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-body font-semibold text-sm rounded-xl tracking-wide transition-all hover:opacity-90 hover:-translate-y-0.5 shadow-sm">
+          <i class="fas fa-file-pdf text-xs"></i> Download PDF
+        </button>
+      </div>
     </div>
   </div>
 
@@ -987,11 +1015,11 @@ body { font-family:'DM Sans',sans-serif; }
   .dark .ep-lbl { color:#7a7268; }
   </style>
 
-  <div class="layout">
+  <div class="layout" id="main-layout">
     <div class="cp">
       <div class="cp-sec">
         <div class="cp-lbl"><i class="fas fa-palette"></i> Choose Template</div>
-        <div class="tpl-list">
+        <div class="tpl-list" id="desktop-tpl-list">
           <div class="tcard on" onclick="sw(1,this)"><div class="tcard-ico" style="background:#ede9fe;color:#6d28d9"><i class="fas fa-columns"></i></div><div><div class="tcard-name">Classic Tech</div><div class="tcard-tag">Software · Engineering</div></div></div>
           <div class="tcard" onclick="sw(2,this)"><div class="tcard-ico" style="background:#f8fafc;color:#111;border:1px solid #e2e8f0"><i class="fas fa-file-alt"></i></div><div><div class="tcard-name">Clean ATS</div><div class="tcard-tag">Universal · ATS-Friendly</div></div></div>
           <div class="tcard" onclick="sw(3,this)"><div class="tcard-ico" style="background:#f1f5f9;color:#0f172a"><i class="fas fa-align-left"></i></div><div><div class="tcard-name">Minimal Pro</div><div class="tcard-tag">Any field · Universal</div></div></div>
@@ -1031,22 +1059,16 @@ body { font-family:'DM Sans',sans-serif; }
       </div>
     </div>
 
-    <!-- Mobile-only: template chooser toggle (hidden on desktop) -->
-    <div id="mob-tpl-toggle" style="display:none;margin-bottom:10px;">
-      <button onclick="document.getElementById('mob-tpl-panel').style.display = document.getElementById('mob-tpl-panel').style.display === 'none' ? 'block' : 'none'" style="width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid #e5d9c0;background:#fdfcf8;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:700;color:#1a1714;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-        <i class="fas fa-palette"></i> Change Template
+    <!-- RIGHT COLUMN: mobile toggle + preview -->
+    <div style="min-width:0;width:100%;overflow:hidden;">
+    <!-- Mobile-only: template chooser toggle (hidden on desktop, shown by @media CSS) -->
+    <div id="mob-tpl-toggle" style="display:none;margin-bottom:12px;">
+      <button onclick="var p=document.getElementById('mob-tpl-panel');p.style.display=p.style.display==='none'||p.style.display===''?'block':'none'" style="width:100%;padding:11px 16px;border-radius:14px;border:1.5px solid #e5d9c0;background:#fff;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:700;color:#1a1714;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 1px 4px rgba(26,23,20,.06);transition:all .18s;">
+        <i class="fas fa-palette" style="color:#c4973a;"></i> Change Template
       </button>
-      <div id="mob-tpl-panel" style="display:none;margin-top:8px;background:#fff;border:1px solid #f0e9d8;border-radius:16px;padding:12px;max-height:260px;overflow-y:auto;">
+      <div id="mob-tpl-panel" style="display:none;margin-top:8px;background:#fff;border:1px solid #f0e9d8;border-radius:16px;padding:12px;max-height:300px;overflow-y:auto;box-shadow:0 4px 16px rgba(26,23,20,.08);">
         <div class="tpl-list" id="mob-tpl-list"></div>
       </div>
-    </div>
-
-    <!-- Mobile-only: template chooser toggle -->
-    <div id="mob-tpl-toggle" style="display:none;margin-bottom:10px;">
-      <button onclick="var p=document.getElementById('mob-tpl-panel');p.style.display=p.style.display==='none'?'block':'none'" style="width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid #e5d9c0;background:#fdfcf8;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:700;color:#1a1714;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-        <i class="fas fa-palette"></i> Change Template
-      </button>
-      <div id="mob-tpl-panel" style="display:none;margin-top:8px;background:#fff;border:1px solid #f0e9d8;border-radius:16px;padding:12px;max-height:260px;overflow-y:auto;"></div>
     </div>
     <div class="preview-wrap" id="previewWrap">
       <div class="preview-inner" id="previewInner">
@@ -1684,7 +1706,8 @@ body { font-family:'DM Sans',sans-serif; }
 </div>
 
 
-      </div></div></div></main>
+      </div></div></div></div></main>
+<!-- closes: previewInner, previewWrap, right-col wrapper, layout grid, rb-main -->
 </div><!-- /.flex -->
 
 <script>
@@ -1695,8 +1718,15 @@ function sw(n, el) {
   document.getElementById('t' + n).classList.add('on');
   el.classList.add('on');
   cur = n;
+  // Sync selection in mob-tpl-list too (clone cards)
+  const mobList = document.getElementById('mob-tpl-list');
+  if (mobList) {
+    mobList.querySelectorAll('.tcard').forEach(b => b.classList.remove('on'));
+    const mobCards = mobList.querySelectorAll('.tcard');
+    if (mobCards[n - 1]) mobCards[n - 1].classList.add('on');
+  }
   // Re-apply mobile scale after template switch
-  if (window.scalePreview) setTimeout(window.scalePreview, 50);
+  if (window.scalePreview) setTimeout(window.scalePreview, 80);
   liveUpdate();
 }
 function openPDF() { window.open('/resume_pdf?t=' + cur, '_blank'); }
@@ -1710,8 +1740,12 @@ function copyHTML() {
 <style>${allStyles}</style>
 </head><body>${el.outerHTML}`;
   navigator.clipboard.writeText(html).then(() => {
-    const b = document.querySelector('.btn-o[onclick="copyHTML()"]');
-    if(b){const orig=b.innerHTML;b.innerHTML='<i class="fas fa-check"></i> Copied!';setTimeout(()=>b.innerHTML=orig,2000);}
+    // Flash feedback on all copy buttons
+    document.querySelectorAll('[onclick="copyHTML()"]').forEach(b => {
+      const orig = b.innerHTML;
+      b.innerHTML = '<i class="fas fa-check"></i> Copied!';
+      setTimeout(() => b.innerHTML = orig, 2000);
+    });
   });
 }
 
@@ -2060,51 +2094,54 @@ applyTheme(localStorage.getItem('sb-theme') || 'light');
     if (!wrap || !inner) return;
 
     if (window.innerWidth >= 1024) {
-      // Desktop: reset all scaling — links work natively
-      inner.style.transform = '';
-      inner.style.transformOrigin = '';
-      inner.style.zoom = '';
-      inner.style.width = '';
+      // Desktop: reset everything
+      inner.style.zoom   = '';
+      inner.style.width  = '';
       inner.style.height = '';
-      wrap.style.height = '';
-      wrap.style.minHeight = '';
+      wrap.style.height  = '';
+      wrap.style.width   = '';
       wrap.style.overflow = '';
-      wrap.style.position = '';
       return;
     }
 
-    var availW = wrap.clientWidth - 20;
-    var scale  = availW / A4_W;
+    // Mobile: use zoom (shrinks DOM layout width, not just visual)
+    // Available width = window width minus sidebar (0 on mobile) minus rb-main padding (16px each side)
+    var availW = window.innerWidth - 32;
+    var zoomRatio = availW / A4_W;
 
-    // Use transform:scale for ALL browsers.
-    // zoom visually scales but DOM hit areas stay at original 794px width —
-    // links on the right side of the header fall outside the visible viewport
-    // so clicks never register. transform:scale + manual wrap height fixes this.
-    inner.style.zoom = '';
-    inner.style.width = A4_W + 'px';
-    inner.style.transform = 'scale(' + scale + ')';
-    inner.style.transformOrigin = 'top left';
+    // zoom: shrinks both visual AND layout — no overflow problem
+    inner.style.zoom   = zoomRatio;
+    inner.style.width  = A4_W + 'px';
+    inner.style.height = A4_H + 'px';
     inner.style.display = 'block';
+    inner.style.transformOrigin = '';
+    inner.style.transform = '';
 
-    // Set wrap height = scaled A4 height so content below doesn't overlap
-    wrap.style.height = Math.ceil(A4_H * scale + 20) + 'px';
-    wrap.style.minHeight = '0';
-    // overflow:visible so hit areas are not clipped by the wrapper bounds
-    wrap.style.overflow = 'visible';
-    wrap.style.position = 'relative';
+    // wrap height = zoomed A4 height + wrap padding
+    var scaledH = Math.ceil(A4_H * zoomRatio);
+    wrap.style.width    = availW + 'px';
+    wrap.style.height   = (scaledH + 20) + 'px';
+    wrap.style.overflow = 'hidden';
+    wrap.style.padding  = '10px';
+    wrap.style.boxSizing = 'border-box';
   }
 
-  window.addEventListener('load', scalePreview);
+  window.addEventListener('load', function() { setTimeout(scalePreview, 80); });
   window.addEventListener('resize', scalePreview);
   window.scalePreview = scalePreview;
 
   // On mobile: clone tcards into the mobile template panel
   window.addEventListener('load', function() {
     if (window.innerWidth >= 1024) return;
-    var src = document.querySelector('.tpl-list');
-    var dest = document.getElementById('mob-tpl-panel');
+    var src = document.getElementById('desktop-tpl-list');
+    var dest = document.getElementById('mob-tpl-list');
     if (src && dest) {
       dest.innerHTML = src.innerHTML;
+      // Fix onclick handlers in cloned cards to also close the panel
+      dest.querySelectorAll('.tcard').forEach(function(card) {
+        var origOnclick = card.getAttribute('onclick');
+        card.setAttribute('onclick', origOnclick + '; document.getElementById("mob-tpl-panel").style.display="none";');
+      });
     }
   });
 })();
