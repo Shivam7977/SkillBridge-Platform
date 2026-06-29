@@ -1876,75 +1876,77 @@ function resetEdits() {
 
 // ── LIVE UPDATE — updates the ACTIVE template only ──
 function liveUpdate() {
-  const name     = document.getElementById('ep-name').value;
-  const title    = document.getElementById('ep-title').value;
-  const email    = document.getElementById('ep-email').value;
-  const location = document.getElementById('ep-location').value;
-  const linkedin = document.getElementById('ep-linkedin').value;
-  const github   = document.getElementById('ep-github').value;
-  const about    = document.getElementById('ep-about').value;
-  const goal     = document.getElementById('ep-goal').value;
+  const epName = document.getElementById('ep-name');
+  if (!epName) { console.error('ep-name not found!'); return; }
+  const name     = epName.value.trim();
+  const title    = document.getElementById('ep-title').value.trim();
+  const email    = document.getElementById('ep-email').value.trim();
+  const location = document.getElementById('ep-location').value.trim();
+  const linkedin = document.getElementById('ep-linkedin').value.trim();
+  const github   = document.getElementById('ep-github').value.trim();
+  const about    = document.getElementById('ep-about').value.trim();
+  const goal     = document.getElementById('ep-goal').value.trim();
   const skills   = document.getElementById('ep-skills').value.split(',').map(s=>s.trim()).filter(Boolean);
   const learning = document.getElementById('ep-learning').value.split(',').map(s=>s.trim()).filter(Boolean);
 
-  // Only update the currently visible template
   const t = document.getElementById('t' + cur);
   if (!t) return;
 
-  // ── Name: .nm class ──
-  t.querySelectorAll('.nm').forEach(el => { if(name) el.textContent = name; });
-  // ── Name: .h-name class (t1) ──
-  t.querySelectorAll('.h-name').forEach(el => { if(name) el.textContent = name; });
+  // ── Name ──
+  t.querySelectorAll('.nm,.h-name').forEach(el => { el.textContent = name; });
 
   // ── Role/Title ──
   t.querySelectorAll('.role,.h-role').forEach(el => {
-    // skip .role inside .kpis or .metrics (those show counts)
     if(!el.closest('.kpis') && !el.closest('.metrics') && !el.closest('.sb2')) {
-      if(title) el.textContent = title;
+      el.textContent = title;
     }
   });
 
-  // ── About — always p.about or .hl ──
-  t.querySelectorAll('p.about, .hl').forEach(el => { el.textContent = about; });
-  // Also inline-style paragraphs inside about sections
+  // ── About: update existing p.about elements ──
+  t.querySelectorAll('p.about').forEach(el => { el.textContent = about; });
+
+  // ── About: section-label based update ──
   t.querySelectorAll('.sec').forEach(sec => {
     const st = sec.querySelector('.st');
     if (!st) return;
-    const label = st.textContent.toLowerCase();
-    if (label.includes('about')||label.includes('summary')||label.includes('philosophy')||label.includes('story')||label.includes('profile')) {
-      sec.querySelectorAll('p:not(.about)').forEach(p => { p.textContent = about; });
-    }
-    if (label.includes('goal')||label.includes('vision')||label.includes('mission')) {
-      sec.querySelectorAll('p').forEach(p => { if(goal !== '') p.textContent = goal; });
-    }
-    // Skills rebuild
-    const lbl = label.replace(/[^a-z]/g,'');
-    const isSkills = ['skills','techstack','corecompetencies','salesskills','subjectareas','coreskills','stack','skills'].includes(lbl);
+    const label = st.textContent.toLowerCase().replace(/[^a-z]/g,'');
+
+    const isAbout = ['aboutme','about','summary','professionalsummary','philosophy','story','profile','thestory'].includes(label);
+    const isGoal  = ['goal','vision','mission','careerobjective'].includes(label);
+    const isSkills = ['skills','techstack','corecompetencies','salesskills','subjectareas','coreskills','stack','capabilities','designtools','clinicalskills'].includes(label);
     const isLearning = label.includes('learning') || label.includes('exploring');
-    if (isSkills) rebuildTags(sec, skills);
-    if (isLearning) rebuildTags(sec, learning);
+
+    if (isAbout) {
+      // Update existing p tags; if none exist, create one
+      let ps = sec.querySelectorAll('p');
+      if (ps.length === 0) {
+        const p = document.createElement('p');
+        p.className = 'about';
+        sec.appendChild(p);
+        ps = [p];
+      }
+      ps.forEach(p => { p.textContent = about; });
+    }
+    if (isGoal && goal) {
+      sec.querySelectorAll('p').forEach(p => { p.textContent = goal; });
+    }
+    if (isSkills && skills.length) rebuildTags(sec, skills);
+    if (isLearning && learning.length) rebuildTags(sec, learning);
   });
 
-  // ── Contact: email, location, linkedin, github ──
+  // ── Contact links ──
   t.querySelectorAll('a').forEach(a => {
-    if (a.querySelector && a.querySelector('.fa-envelope')) {
-      if (email) {
-        a.href = 'https://mail.google.com/mail/?view=cm&to=' + encodeURIComponent(email);
-        const nodes = Array.from(a.childNodes).filter(n => n.nodeType === 3);
-        if (nodes.length) {
-          nodes[nodes.length-1].textContent = email;
-        } else {
-          const tn = document.createTextNode(email);
-          a.appendChild(tn);
-        }
-      }
-      // If no email in panel, keep whatever href was server-rendered — don't touch it
+    if (a.querySelector('.fa-envelope') && email) {
+      a.href = 'https://mail.google.com/mail/?view=cm&to=' + encodeURIComponent(email);
+      const nodes = Array.from(a.childNodes).filter(n => n.nodeType === 3);
+      if (nodes.length) nodes[nodes.length-1].textContent = email;
     }
-    if (a.querySelector && a.querySelector('.fa-linkedin') && linkedin) a.href = linkedin;
-    if (a.querySelector && a.querySelector('.fa-github') && github) a.href = github;
+    if (a.querySelector('.fa-linkedin') && linkedin) a.href = linkedin;
+    if (a.querySelector('.fa-github')   && github)   a.href = github;
   });
-  t.querySelectorAll('span.ci,span.hc').forEach(el => {
-    if (el.querySelector && el.querySelector('.fa-map-marker-alt') && location) {
+  // Location spans
+  t.querySelectorAll('span.ci,span.hc,.contact-item,.hc').forEach(el => {
+    if (el.querySelector('.fa-map-marker-alt') && location) {
       const nodes = Array.from(el.childNodes).filter(n => n.nodeType === 3);
       if (nodes.length) nodes[nodes.length-1].textContent = location;
     }
