@@ -189,7 +189,7 @@ body { font-family: 'DM Sans', sans-serif; }
 #p1 .contact-item{display:flex;align-items:center;gap:8px;font-size:.78rem;color:#666;text-decoration:none;font-family:'DM Sans',sans-serif;transition:.2s;}
 #p1 .contact-item:hover{color:#39ff14;}
 #p1 .contact-item i{color:#39ff14;font-size:.8rem;}
-#p1 footer{padding:24px 48px;font-size:.65rem;color:#333;letter-spacing:.1em;border-top:1px solid #111;}
+#p1 footer{padding:24px 48px;font-size:.65rem;color:#333;letter-spacing:.1em;border-top:1px solid #111;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
 #p1 .certs-grid{display:flex;flex-wrap:wrap;gap:6px;}
 #p1 .cert-tag{font-size:.65rem;color:#39ff14;border:1px solid #1f1f1f;padding:3px 10px;background:#0d0d0d;display:inline-block;}
 
@@ -281,7 +281,7 @@ body { font-family: 'DM Sans', sans-serif; }
 #p3 .contact-item{display:flex;align-items:center;gap:10px;font-size:.82rem;color:rgba(255,255,255,.5);text-decoration:none;transition:.2s;}
 #p3 .contact-item:hover{color:#a78bfa;}
 #p3 .contact-item i{width:32px;height:32px;border-radius:8px;background:rgba(124,58,237,.2);display:flex;align-items:center;justify-content:center;color:#a78bfa;font-size:.8rem;}
-#p3 footer{padding:24px 48px;text-align:center;font-size:.72rem;color:rgba(255,255,255,.2);border-top:1px solid rgba(255,255,255,.05);}
+#p3 footer{padding:24px 48px;font-size:.72rem;color:rgba(255,255,255,.2);border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
 #p3 .cert-pill{padding:8px 18px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);border-radius:8px;font-size:.78rem;font-weight:600;color:#a78bfa;display:inline-block;margin:4px;}
 
 /* ════════════════════════════════
@@ -326,7 +326,7 @@ body { font-family: 'DM Sans', sans-serif; }
 #p4 .contact-label{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#b8906e;font-weight:700;margin-bottom:6px;}
 #p4 .contact-val{font-size:.82rem;font-weight:700;color:#1a0f00;text-decoration:none;word-break:break-all;}
 #p4 .contact-val:hover{color:#c2440b;}
-#p4 footer{padding:20px 52px;font-size:.7rem;color:#b8906e;border-top:1px solid #ecdec8;}
+#p4 footer{padding:20px 52px;font-size:.7rem;color:#b8906e;border-top:1px solid #ecdec8;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
 #p4 .cert-item{background:#fff;border:1px solid #ecdec8;border-radius:8px;padding:12px 14px;margin-bottom:8px;}
 #p4 .cert-item .cn{font-size:.82rem;font-weight:700;color:#1a0f00;} #p4 .cert-item .ci{font-size:.72rem;color:#c2440b;margin-top:2px;}
 
@@ -416,7 +416,7 @@ body { font-family: 'DM Sans', sans-serif; }
 #p6 .contact-item{display:flex;align-items:center;gap:8px;font-size:.8rem;color:rgba(200,214,235,.5);text-decoration:none;transition:.2s;}
 #p6 .contact-item:hover{color:#00fff7;}
 #p6 .contact-item i{color:#00fff7;font-size:.8rem;}
-#p6 footer{padding:20px 48px;font-size:.65rem;color:rgba(200,214,235,.2);border-top:1px solid rgba(0,255,247,.06);letter-spacing:.08em;}
+#p6 footer{padding:20px 48px;font-size:.65rem;color:rgba(200,214,235,.2);border-top:1px solid rgba(0,255,247,.06);letter-spacing:.08em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
 #p6 .cert-tag{font-size:.72rem;padding:5px 13px;border:1px solid rgba(0,255,247,.2);color:#00fff7;background:rgba(0,255,247,.05);display:inline-block;margin:3px;}
 
 /* ═══ RESPONSIVE ═══ */
@@ -780,7 +780,7 @@ body { font-family: 'DM Sans', sans-serif; }
       {% if user.location %}<span class="contact-item"><i class="fas fa-map-marker-alt"></i> {{ user.location }}</span>{% endif %}
     </div>
   </div>
-  <footer>{{ user.name or 'Portfolio' }} © {{ 2025 }}</footer>
+  <footer><span>{{ user.name or 'Portfolio' }} © 2025</span><span>Built with SkillBridge</span></footer>
 </div>
 
 <div id="p2" class="pt">
@@ -950,7 +950,7 @@ body { font-family: 'DM Sans', sans-serif; }
       {% if user.location %}<span class="contact-item"><i class="fas fa-map-marker-alt"></i> {{ user.location }}</span>{% endif %}
     </div>
   </div>
-  <footer>{{ user.name or 'Portfolio' }} © 2025 · Built with SkillBridge</footer>
+  <footer><span>{{ user.name or 'Portfolio' }} © 2025</span><span>Built with SkillBridge</span></footer>
 </div>
 
 <div id="p4" class="pt">
@@ -1029,7 +1029,7 @@ body { font-family: 'DM Sans', sans-serif; }
       {% if user.location %}<div class="contact-item"><div class="contact-label">Location</div><div class="contact-val">{{ user.location }}</div></div>{% endif %}
     </div>
   </div>
-  <footer>{{ user.name or 'Portfolio' }} · {{ user.title or 'Developer' }} · 2025</footer>
+  <footer><span>{{ user.name or 'Portfolio' }} · {{ user.title or 'Developer' }} · 2025</span><span>Built with SkillBridge</span></footer>
 </div>
 
 <div id="p5" class="pt">
@@ -1121,7 +1121,7 @@ body { font-family: 'DM Sans', sans-serif; }
       {% if user.location %}<span class="contact-item"><i class="fas fa-map-marker-alt"></i> {{ user.location }}</span>{% endif %}
     </div></div>
   </div>
-  <footer><span>{{ user.name or 'Portfolio' }}</span><span>2025</span></footer>
+  <footer><span>{{ user.name or 'Portfolio' }} © 2025</span><span>Built with SkillBridge</span></footer>
 </div>
 
 <div id="p6" class="pt">
@@ -1204,7 +1204,7 @@ body { font-family: 'DM Sans', sans-serif; }
       {% if user.location %}<span class="contact-item"><i class="fas fa-map-marker-alt"></i> {{ user.location }}</span>{% endif %}
     </div>
   </div>
-  <footer>{{ user.name or 'Portfolio' }} © 2025 · SKILLBRIDGE</footer>
+  <footer><span>{{ user.name or 'Portfolio' }} © 2025</span><span>Built with SkillBridge</span></footer>
 </div>
 
         </div>

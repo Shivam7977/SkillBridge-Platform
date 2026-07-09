@@ -71,10 +71,40 @@ body {
   background: #e2e8f0;
 }
 .page-wrap {
+  position: relative;
   box-shadow: 0 20px 60px rgba(0,0,0,.25);
   margin: 20px 0 40px;
   width: 794px;
   min-height: 1123px;
+}
+
+/* ── SkillBridge branding badge — bottom-right corner of every resume page ── */
+.sb-badge {
+  position: absolute;
+  bottom: 14px;
+  right: 16px;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(17,17,17,.8);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: .03em;
+  padding: 5px 10px 5px 8px;
+  border-radius: 20px;
+  pointer-events: none;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.sb-badge .sb-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#6366f1,#22c55e);
+  flex-shrink: 0;
 }
 
 /* ══════════════════════════════════════
@@ -1428,6 +1458,8 @@ body {
     </div>
   </div>
 </div>
+
+<div class="sb-badge"><span class="sb-dot"></span>Built with SkillBridge</div>
 
 </div><!-- /scaleWrapper -->
 

@@ -1729,7 +1729,96 @@ function sw(n, el) {
   if (window.scalePreview) setTimeout(window.scalePreview, 80);
   liveUpdate();
 }
-function openPDF() { window.open('/resume_pdf?t=' + cur, '_blank'); }
+function buildStandaloneResumeHTML(num) {
+  const allStyles = Array.from(document.querySelectorAll('style')).map(s => s.innerHTML).join('\n');
+  const el = document.getElementById('t' + num);
+  const html = el.outerHTML; // el already carries the "on" class (it's the active template)
+  const name = (ORIG && ORIG.name) || 'Resume';
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${name} — Resume</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800&family=Sora:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Fraunces:wght@700;900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Josefin+Sans:wght@300;400;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{background:#e2e8f0;}
+body{padding-top:60px;display:flex;justify-content:center;min-height:100vh;font-family:'DM Sans',sans-serif;background:#e2e8f0;}
+.page-wrap{position:relative;box-shadow:0 20px 60px rgba(0,0,0,.25);margin:20px 0 40px;width:794px;min-height:1123px;}
+.print-bar{position:fixed;top:0;left:0;right:0;background:#fff;border-bottom:1px solid #e2e8f0;padding:12px 24px;display:flex;justify-content:space-between;align-items:center;z-index:9999;font-family:'DM Sans',sans-serif;}
+.print-bar strong{font-size:1rem;}
+.print-bar p{font-size:.78rem;opacity:.7;margin-top:2px;}
+.pb-right{display:flex;gap:10px;align-items:center;}
+.pb-btn{padding:8px 20px;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:6px;}
+.pb-back{background:#f1f5f9;color:#334155;}
+.pb-save{background:#111;color:#fff;}
+.sb-badge{position:absolute;bottom:14px;right:16px;z-index:999;display:flex;align-items:center;gap:5px;background:rgba(17,17,17,.8);color:#fff;font-family:'DM Sans',sans-serif;font-size:8.5px;font-weight:600;letter-spacing:.03em;padding:5px 10px 5px 8px;border-radius:20px;pointer-events:none;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.sb-badge .sb-dot{width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#22c55e);flex-shrink:0;}
+@media print {
+  .print-bar{display:none !important;}
+  body{padding-top:0 !important;background:#fff !important;}
+  html{background:#fff !important;}
+  .page-wrap{margin:0 !important;box-shadow:none !important;width:210mm;}
+  .rt.on{width:210mm !important;min-height:auto !important;}
+  @page{size:A4 portrait;margin:0;}
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+}
+</style>
+<style>${allStyles}<\/style>
+</head>
+<body>
+<div class="print-bar">
+  <div><strong>${name} — Resume Preview</strong><p>Your latest edits are included</p></div>
+  <div class="pb-right">
+    <button class="pb-btn pb-back" onclick="window.close()"><i class="fas fa-arrow-left"><\/i> Back<\/button>
+    <button class="pb-btn pb-save" onclick="window.print()"><i class="fas fa-download"><\/i> Save as PDF<\/button>
+  <\/div>
+<\/div>
+<div class="page-wrap" id="pageWrap">
+${html}
+<div class="sb-badge"><span class="sb-dot"><\/span>Built with SkillBridge<\/div>
+<\/div>
+<script>
+(function(){
+  var PAGE_HEIGHT_PX = 1100;
+  function fitResumeToOnePage(){
+    var el = document.querySelector('.rt.on');
+    if(!el) return;
+    el.style.zoom=''; el.style.removeProperty('width'); void el.offsetHeight;
+    var naturalWidth = el.getBoundingClientRect().width;
+    var h0 = el.scrollHeight;
+    if (h0 <= PAGE_HEIGHT_PX) return;
+    var roughScale = PAGE_HEIGHT_PX / h0;
+    var widenedWidth = naturalWidth / roughScale;
+    el.style.setProperty('width', widenedWidth + 'px', 'important');
+    void el.offsetHeight;
+    var h1 = el.scrollHeight;
+    var finalScale = Math.min(1, PAGE_HEIGHT_PX / h1);
+    var finalWidth = naturalWidth / finalScale;
+    el.style.setProperty('width', finalWidth + 'px', 'important');
+    el.style.zoom = finalScale;
+  }
+  function resetFit(){
+    document.querySelectorAll('.rt').forEach(function(el){ el.style.zoom=''; el.style.removeProperty('width'); });
+  }
+  window.addEventListener('beforeprint', fitResumeToOnePage);
+  window.addEventListener('afterprint', resetFit);
+})();
+<\/script>
+<\/body>
+<\/html>`;
+}
+
+function openPDF() {
+  const html = buildStandaloneResumeHTML(cur);
+  const win = window.open('', '_blank');
+  if (!win) { alert('Please allow popups for this site.'); return; }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+}
 function copyHTML() {
   const allStyles = Array.from(document.querySelectorAll('style')).map(s => s.innerHTML).join('\n');
   const el = document.getElementById('t' + cur);
