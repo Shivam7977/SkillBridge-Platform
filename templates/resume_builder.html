@@ -1917,8 +1917,8 @@ function liveUpdate() {
     const isLearning = label.includes('learning') || label.includes('exploring');
 
     if (isAbout) {
-      // Update existing p tags; if none exist, create one
-      let ps = sec.querySelectorAll('p');
+      // Update existing p tags or highlighted (.hl) boxes; if none exist, create one
+      let ps = sec.querySelectorAll('p, .hl');
       if (ps.length === 0) {
         const p = document.createElement('p');
         p.className = 'about';
@@ -1986,7 +1986,7 @@ function liveUpdate() {
     // Education rebuild
     const eduSecs = Array.from(t.querySelectorAll('.t19-sec')).filter(s => s.querySelector('.t19-sec-title') && s.querySelector('.t19-sec-title').textContent.trim() === 'Education');
     eduSecs.forEach(sec => {
-      sec.querySelectorAll('.t19-edu-item[data-ep]').forEach(e => e.remove());
+      sec.querySelectorAll('.t19-edu-item').forEach(e => e.remove());
       epEduEntries.forEach(e => {
         if (!e.institution && !e.degree) return;
         const gradeStr = e.grade_value ? (e.grade_value + (e.grade_type === 'Percentage' ? '%' : ' CGPA')) : '';
@@ -2000,7 +2000,7 @@ function liveUpdate() {
     // Experience rebuild
     const expSecs = Array.from(t.querySelectorAll('.t19-sec')).filter(s => s.querySelector('.t19-sec-title') && s.querySelector('.t19-sec-title').textContent.trim() === 'Experience');
     expSecs.forEach(sec => {
-      sec.querySelectorAll('.t19-exp-item[data-ep]').forEach(e => e.remove());
+      sec.querySelectorAll('.t19-exp-item').forEach(e => e.remove());
       epExpEntries.forEach(e => {
         if (!e.role && !e.company) return;
         const bulletsHtml = (e.bullets||[]).length ? `<ul class="t19-bullets">${e.bullets.map(b=>`<li>${b}</li>`).join('')}</ul>` : '';

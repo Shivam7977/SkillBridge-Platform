@@ -1481,6 +1481,53 @@ if (new URLSearchParams(window.location.search).get('print') === '1') {
   window.addEventListener('load', applyScale);
   window.addEventListener('resize', applyScale);
 })();
+
+// ── FIT TO ONE PAGE (print only) — shrinks the active template so it
+//    always fits a single A4 page, no matter how much content it has.
+//    Works identically for all 19 templates since they all share .rt.on ──
+(function() {
+  var PAGE_HEIGHT_PX = 1100; // ~291mm — a small safety margin under full A4 (1123px)
+
+  function fitResumeToOnePage() {
+    var el = document.querySelector('.rt.on');
+    if (!el) return;
+
+    // Reset any previous fit so we measure clean, natural dimensions
+    el.style.zoom = '';
+    el.style.removeProperty('width');
+    void el.offsetHeight; // force reflow
+
+    var naturalWidth = el.getBoundingClientRect().width;
+    var h0 = el.scrollHeight;
+    if (h0 <= PAGE_HEIGHT_PX) return; // already fits on one page, leave it alone
+
+    // Pass 1 — rough scale estimate; widen the box (zoom still 1) so text
+    // reflows into fewer lines at the wider width before we measure again
+    var roughScale = PAGE_HEIGHT_PX / h0;
+    var widenedWidth = naturalWidth / roughScale;
+    el.style.setProperty('width', widenedWidth + 'px', 'important');
+    void el.offsetHeight;
+    var h1 = el.scrollHeight;
+
+    // Pass 2 — precise final scale based on the reflowed height
+    var finalScale = Math.min(1, PAGE_HEIGHT_PX / h1);
+    var finalWidth = naturalWidth / finalScale;
+    el.style.setProperty('width', finalWidth + 'px', 'important');
+    el.style.zoom = finalScale;
+  }
+
+  function resetFit() {
+    document.querySelectorAll('.rt').forEach(function(el) {
+      el.style.zoom = '';
+      el.style.removeProperty('width');
+    });
+  }
+
+  // beforeprint fires for window.print() too, so this covers both the
+  // "Save as PDF" button and the auto-print (?print=1) branch above
+  window.addEventListener('beforeprint', fitResumeToOnePage);
+  window.addEventListener('afterprint', resetFit);
+})();
 </script>
 </body>
 </html>
