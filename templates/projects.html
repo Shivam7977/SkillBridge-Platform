@@ -417,7 +417,7 @@ body { font-family: 'DM Sans', sans-serif; }
         <span class="sec-title-text">Explore Ecosystem</span>
       </div>
       <div class="text-xs font-bold text-ink-400 dark:text-ink-500 tracking-wide">
-        Showing <span id="showing-count" class="text-ink-700 dark:text-cream-200">{{ other_projects|length }}</span> of <span class="text-ink-700 dark:text-cream-200">{{ total }}</span>
+        Showing <span id="showing-count" class="text-ink-700 dark:text-cream-200">{{ other_projects|length }}</span> of <span class="text-ink-700 dark:text-cream-200">{{ other_total }}</span>
       </div>
     </div>
 
@@ -468,7 +468,7 @@ body { font-family: 'DM Sans', sans-serif; }
       <button class="load-more-btn" id="load-more-btn" onclick="loadMore()">
         <i class="fas fa-plus" style="font-size:.75rem;"></i> Load More Projects
       </button>
-      <div class="pagination-info">Page <span id="cur-page">{{ page }}</span> of {{ total_pages }} · {{ total }} total</div>
+      <div class="pagination-info">Page <span id="cur-page">{{ page }}</span> of {{ total_pages }} · {{ other_total }} total</div>
       <div class="pagination-dots" id="pg-dots">
         {% for i in range(1, [total_pages + 1, 8]|min) %}
         <div class="pg-dot {% if i == page %}active{% endif %}" data-page="{{ i }}"></div>
@@ -479,7 +479,7 @@ body { font-family: 'DM Sans', sans-serif; }
     {% else %}
     <div class="all-seen">
       <div class="all-seen-line"></div>
-      <span>✓ You've explored all {{ total }} projects</span>
+      <span>✓ You've explored all {{ other_total }} projects</span>
       <div class="all-seen-line"></div>
     </div>
     {% endif %}

@@ -1336,7 +1336,8 @@ def projects():
             is_authenticated=is_authenticated,
             page=page,
             total_pages=total_pages,
-            total=other_total,
+            total=total,
+            other_total=other_total,
             has_more=has_more,
             user_bookmark_ids=user_bookmark_ids,
             xp=xp,
@@ -1349,7 +1350,7 @@ def projects():
         _fallback_level = get_level_info(0)
         return render_template('projects.html', recommended_projects=[], other_projects=[],
             profile_incomplete=False, is_authenticated=current_user.is_authenticated,
-            page=1, total_pages=1, total=0, has_more=False,
+            page=1, total_pages=1, total=0, other_total=0, has_more=False,
             xp=0, level_info=_fallback_level, streak=0, progress_pct=0)
 
 @app.route('/api/projects')
