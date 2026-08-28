@@ -272,6 +272,34 @@ body { font-family: 'DM Sans', sans-serif; }
         </div>
       </div>
 
+      <!-- ── NOTIFICATION PREFERENCES ── -->
+      <div class="editorial-card bg-white border border-cream-200 rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
+        <div class="px-6 py-5 border-b border-cream-200 dark:border-ink-700 flex items-center gap-4 cursor-pointer select-none hover:bg-cream-50/50 dark:hover:bg-ink-800/50 transition-colors" onclick="toggleCard('notifications')">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600"><i class="fas fa-envelope-open-text"></i></div>
+          <div class="flex-1">
+            <h2 class="font-display text-lg font-bold text-ink-900 dark:text-cream-50">Notifications</h2>
+            <p class="text-xs text-ink-400 dark:text-ink-500">Choose which email reminders you receive</p>
+          </div>
+          <i class="fas fa-chevron-down text-ink-400 card-chevron" id="chev-notifications"></i>
+        </div>
+
+        <div class="collapsible-body" id="body-notifications">
+          <div class="p-6 font-body">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-cream-50/60 dark:bg-ink-900/30 border border-cream-200/70 dark:border-ink-800 rounded-xl p-4">
+              <div>
+                <div class="font-bold text-ink-900 dark:text-cream-50">Roadmap inactivity emails</div>
+                <div class="text-xs text-ink-500 dark:text-ink-400 mt-1 leading-relaxed">Send me one digest email when my roadmaps need attention. In-app notifications will still appear.</div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer self-start sm:self-center">
+                <input type="checkbox" id="email-reminders-toggle" class="sr-only peer" {% if email_reminders_enabled %}checked{% endif %} onchange="saveEmailPreferences(this.checked)">
+                <span class="w-12 h-6 bg-cream-300 dark:bg-ink-700 rounded-full peer peer-checked:bg-ink-900 dark:peer-checked:bg-gold transition-colors"></span>
+                <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-6"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── ACCOUNT DETAILS INFORMATION ── -->
       <div class="editorial-card bg-white border border-cream-200 rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
         <div class="px-6 py-5 border-b border-cream-200 dark:border-ink-700 flex items-center gap-4 cursor-pointer select-none hover:bg-cream-50/50 dark:hover:bg-ink-800/50 transition-colors" onclick="toggleCard('account')">
@@ -538,7 +566,7 @@ body { font-family: 'DM Sans', sans-serif; }
           <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm bg-gradient-to-br from-ink-900 to-ink-700 text-cream-100 dark:from-gold dark:to-amber-600 dark:text-ink-900 shadow-sm"><i class="fas fa-robot"></i></div>
           <div class="flex-1">
             <h2 class="font-display text-lg font-bold text-ink-900 dark:text-cream-50">AI Usage Today</h2>
-            <p class="text-xs text-ink-400 dark:text-ink-500">Your daily AI credits reset at midnight IST</p>
+            <p class="text-xs text-ink-400 dark:text-ink-500">Your daily AI credits reset at your local midnight</p>
           </div>
           <i class="fas fa-chevron-down text-ink-400 card-chevron open" id="chev-aiusage"></i>
         </div>
@@ -572,7 +600,7 @@ body { font-family: 'DM Sans', sans-serif; }
                 </div>
               </div>
               {% if ai_usage.roadmap_used >= ai_usage.roadmap_limit %}
-              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-50 border border-rose-200 text-xs font-bold text-rose-700 dark:bg-rose-950/20 dark:border-rose-900/40 dark:text-rose-400"><i class="fas fa-ban"></i> Daily limit reached &mdash; resets at midnight IST</div>
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-50 border border-rose-200 text-xs font-bold text-rose-700 dark:bg-rose-950/20 dark:border-rose-900/40 dark:text-rose-400"><i class="fas fa-ban"></i> Daily limit reached &mdash; resets at your local midnight</div>
               {% elif roadmap_pct >= 70 %}
               <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50 border border-amber-200 text-xs font-bold text-amber-700 dark:bg-amber-950/20 dark:border-rose-900/40 dark:text-amber-400"><i class="fas fa-exclamation-triangle"></i> Running low on roadmap credits</div>
               {% endif %}
@@ -606,7 +634,7 @@ body { font-family: 'DM Sans', sans-serif; }
                 </div>
               </div>
               {% if ai_usage.chat_used >= ai_usage.chat_limit %}
-              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-50 border border-rose-200 text-xs font-bold text-rose-700 dark:bg-rose-950/20 dark:border-rose-900/40 dark:text-rose-400"><i class="fas fa-ban"></i> Daily limit reached &mdash; resets at midnight IST</div>
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-50 border border-rose-200 text-xs font-bold text-rose-700 dark:bg-rose-950/20 dark:border-rose-900/40 dark:text-rose-400"><i class="fas fa-ban"></i> Daily limit reached &mdash; resets at your local midnight</div>
               {% elif chat_pct >= 70 %}
               <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50 border border-amber-200 text-xs font-bold text-amber-700 dark:bg-amber-950/20 dark:border-rose-900/40 dark:text-amber-400"><i class="fas fa-exclamation-triangle"></i> Running low on chat credits</div>
               {% endif %}
@@ -616,7 +644,7 @@ body { font-family: 'DM Sans', sans-serif; }
             <div class="p-4 bg-cream-100/60 border border-cream-200 dark:bg-ink-900/40 dark:border-ink-800 rounded-xl text-xs text-ink-500 dark:text-ink-400 flex gap-3 line-relaxed">
               <i class="fas fa-info-circle text-ink-900 dark:text-gold mt-0.5 flex-shrink-0"></i>
               <div>
-                Limits reset daily at <strong>12:00 AM IST</strong>. Credits are per-account and cannot be transferred.
+                Limits reset daily at <strong>your local midnight</strong>. Credits are per-account and cannot be transferred.
                 <a href="{{ url_for('roadmap_generator') }}" class="text-ink-900 font-bold dark:text-gold hover:underline ml-1">Generate a Roadmap &rarr;</a>
               </div>
             </div>
@@ -731,6 +759,26 @@ function showToast(msg, type = 'success') {
   setTimeout(() => toast.classList.add('translate-y-24', 'opacity-0'), 3500);
 }
 
+async function saveEmailPreferences(enabled) {
+  const toggle = document.getElementById('email-reminders-toggle');
+  if (toggle) toggle.disabled = true;
+  try {
+    const res = await fetch('/api/user/email_preferences', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email_reminders_enabled: enabled})
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Could not save preference');
+    showToast(enabled ? 'Roadmap reminder emails enabled.' : 'Roadmap reminder emails disabled.');
+  } catch (e) {
+    if (toggle) toggle.checked = !enabled;
+    showToast('Could not update email preference. Please try again.', 'error');
+  } finally {
+    if (toggle) toggle.disabled = false;
+  }
+}
+
 function confirmDelete() {
   if (confirm('⚠️ Are you sure you want to DELETE your account?\n\nThis will permanently remove all your data, projects, roadmaps, and communities.\n\nThis action CANNOT be undone!')) {
     if (confirm('Last warning! Confirm permanent deletion.')) {
@@ -775,6 +823,14 @@ async function loadAnalytics() {
     }
 }
 
+const xpTimeFmt = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+function formatXpTimestamp(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    return xpTimeFmt.format(d);
+}
+
 function renderChart(chartData) {
     const wrap = document.getElementById('xp-chart-wrap');
     if (!chartData || !chartData.length) {
@@ -808,7 +864,7 @@ function renderTimeline(history) {
             <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs bg-cream-100 border border-cream-200 dark:bg-ink-900 dark:border-ink-800 flex-shrink-0">${icons[h.type] || icons.earn}</div>
             <div class="flex-1 min-w-0 leading-tight">
                 <div class="text-xs font-bold text-ink-900 dark:text-cream-100 truncate">${h.reason}</div>
-                <div class="text-[10px] font-bold text-ink-400 dark:text-ink-500 mt-0.5">${h.timestamp}</div>
+                <div class="text-[10px] font-bold text-ink-400 dark:text-ink-500 mt-0.5">${formatXpTimestamp(h.timestamp_iso)}</div>
             </div>
             <div class="text-sm font-black flex-shrink-0 tracking-tight ${h.type === 'earn' ? 'text-ink-900 dark:text-gold' : 'text-rose-600 dark:text-rose-400'}">${h.type === 'earn' ? '+' : ''}${h.points} XP</div>
         </div>`).join('');

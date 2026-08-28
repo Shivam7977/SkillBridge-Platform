@@ -455,7 +455,7 @@
                         <li class="history-item">
                             <div class="history-item-info">
                                 <p>{{ commit.message }}</p>
-                                <span>Uploaded by {{ commit.user_name or 'Unknown' }} on {{ commit.timestamp.strftime('%B %d, %Y at %I:%M %p UTC') }}</span>
+                                <span>Uploaded by {{ commit.user_name or 'Unknown' }} on <span data-utc="{{ utc_iso(commit.timestamp) }}" data-format="datetime">{{ commit.timestamp.strftime('%B %d, %Y at %I:%M %p UTC') }}</span></span>
                             </div>
                             <a href="{{ url_for('download_project', filename=commit.filename) }}" class="cta-button">
                                 Download (.zip)
@@ -527,7 +527,7 @@
                                             {% if c.username %}<span style="color:var(--color-text-secondary);font-weight:400">@{{ c.username }}</span>{% endif %}
                                             {% if c.is_owner_comment %}<span class="owner-badge">🏅 Owner</span>{% endif %}
                                         </div>
-                                        <div class="comment-date">{{ c.created_at_str }}</div>
+                                        <div class="comment-date" data-utc="{{ c.created_at_iso }}" data-format="date">{{ c.created_at_str }}</div>
                                     </div>
                                 </div>
                                 <div class="comment-body">{{ c.content }}</div>
@@ -582,7 +582,7 @@
                                                     {% if r.username %}<span style="color:var(--color-text-secondary);font-weight:400">@{{ r.username }}</span>{% endif %}
                                                     {% if r.is_owner_comment %}<span class="owner-badge">🏅 Owner</span>{% endif %}
                                                 </div>
-                                                <div class="comment-date">{{ r.created_at_str }}</div>
+                                                <div class="comment-date" data-utc="{{ r.created_at_iso }}" data-format="date">{{ r.created_at_str }}</div>
                                             </div>
                                         </div>
                                         <div class="comment-body">{{ r.content }}</div>
@@ -679,6 +679,20 @@ async function toggleLike(projectId) {
 }
 
 /* ── Char counter ── */
+function formatUtc(iso, format='datetime', fallback='') {
+    if (!iso) return fallback || '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return fallback || '';
+    const opts = format === 'date'
+        ? { month: 'short', day: 'numeric', year: 'numeric' }
+        : { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' };
+    return new Intl.DateTimeFormat(undefined, opts).format(d);
+}
+
+document.querySelectorAll('[data-utc]').forEach(el => {
+    el.textContent = formatUtc(el.dataset.utc, el.dataset.format || 'datetime', el.textContent);
+});
+
 function updateCharCounter(el, counterId, max) {
     const len = el.value.length;
     const counter = document.getElementById(counterId);
@@ -843,7 +857,7 @@ function buildCommentHTML(c, projectId) {
                 onerror="this.src='/static/profile_pics/default.jpg'" alt="${c.user_name}">
             <div class="comment-meta">
                 <div class="comment-author">${c.user_name} ${username} ${ownerBadge}</div>
-                <div class="comment-date">${c.created_at}</div>
+                <div class="comment-date" data-utc="${c.created_at_iso || ''}" data-format="date">${formatUtc(c.created_at_iso, 'date', c.created_at)}</div>
             </div>
         </div>
         <div class="comment-body">${c.content}</div>
@@ -880,7 +894,7 @@ function buildReplyHTML(r) {
                 onerror="this.src='/static/profile_pics/default.jpg'" alt="${r.user_name}" style="width:28px;height:28px">
             <div class="comment-meta">
                 <div class="comment-author">${r.user_name} ${username} ${ownerBadge}</div>
-                <div class="comment-date">${r.created_at}</div>
+                <div class="comment-date" data-utc="${r.created_at_iso || ''}" data-format="date">${formatUtc(r.created_at_iso, 'date', r.created_at)}</div>
             </div>
         </div>
         <div class="comment-body">${r.content}</div>

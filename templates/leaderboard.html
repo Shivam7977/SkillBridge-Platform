@@ -237,7 +237,7 @@ body { font-family: 'DM Sans', sans-serif; }
         <div class="lb-tab-content active" id="tab-weekly">
           <div class="mb-3 text-xs font-bold text-ink-500 dark:text-ink-400 flex items-center gap-2">
             <i class="fas fa-calendar-week text-gold"></i>
-            Week of {{ week_start }}. Resets in {{ hours_until_reset }} hours.
+            Week of <span data-utc="{{ week_start_iso }}" data-format="date">{{ week_start_iso }}</span>. Resets in <span data-utc="{{ next_reset_iso }}" data-format="countdown">{{ fallback_hours }}</span> hours.
           </div>
           <div class="editorial-card rounded-2xl overflow-hidden">
             {% if weekly %}
@@ -329,7 +329,7 @@ body { font-family: 'DM Sans', sans-serif; }
         <div class="rounded-xl border border-cream-200 dark:border-ink-700 bg-cream-50 dark:bg-ink-900/40 p-4">
           <div class="flex items-center justify-between gap-3">
             <span class="text-xs font-black uppercase tracking-wider text-ink-400 dark:text-ink-500">Next Reset</span>
-            <span class="text-sm font-black text-gold">{{ hours_until_reset }}h</span>
+            <span class="text-sm font-black text-gold" data-utc="{{ next_reset_iso }}" data-format="countdown">{{ fallback_hours }}h</span>
           </div>
           <p class="text-xs text-ink-500 dark:text-ink-400 mt-2">Weekly ranks start again after the reset.</p>
         </div>

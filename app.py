@@ -1,16 +1,16 @@
-import os
+﻿import os
 import re
 import random
 import json
 from recommendation_engine import get_recommended_projects
 import secrets
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
 from pymongo import MongoClient
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from bson.objectid import ObjectId
-from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature, BadSignature
 from dotenv import load_dotenv
 from markupsafe import Markup
 from ai_roadmap_generator import configure_ai, generate_roadmap_with_ai, find_youtube_playlist
@@ -82,6 +82,20 @@ def sanitize(text):
 
 resend.api_key = os.getenv("RESEND_API_KEY")
 
+def app_base_url():
+    """Base URL for links generated outside a request context, such as scheduler emails."""
+    return (
+        os.getenv("APP_BASE_URL")
+        or os.getenv("PUBLIC_BASE_URL")
+        or "https://skillbridge-ai.tech"
+    ).rstrip("/")
+
+def make_unsubscribe_token(user_id):
+    return s.dumps({'user_id': str(user_id)}, salt='email-reminders-unsubscribe')
+
+def unsubscribe_url_for(user_id):
+    return f"{app_base_url()}/unsubscribe/{make_unsubscribe_token(user_id)}"
+
 def send_email(to_email, subject, body):
     """Send email via Resend API (works on Render — uses HTTPS not SMTP)."""
     try:
@@ -95,6 +109,35 @@ def send_email(to_email, subject, body):
     except Exception as e:
         print(f"❌ Resend email failed: {e}")
         return False
+
+def send_reminder_digest_email(user_email, user_name, items, user_id=None):
+    """Send one roadmap inactivity email for all stale roadmaps in this run."""
+    if len(items) == 1:
+        rm, _, days = items[0]
+        goal = rm.get('goal', 'roadmap')
+        subject = f"Your '{goal}' roadmap is waiting for you!"
+        body = (
+            f"Hi {user_name},\n\n"
+            f"You haven't made progress on your '{goal}' roadmap in {days} days. "
+            f"Pick up where you left off and keep earning XP!\n\n"
+            f"- SkillBridge"
+        )
+    else:
+        lines = "\n".join(f"- {rm.get('goal', 'roadmap')} ({days} days inactive)" for rm, _, days in items)
+        subject = f"{len(items)} of your roadmaps need attention"
+        body = (
+            f"Hi {user_name},\n\n"
+            f"The following roadmaps haven't seen progress in a while:\n\n"
+            f"{lines}\n\n"
+            f"Jump back in and keep your learning moving forward.\n\n"
+            f"- SkillBridge"
+        )
+    if user_id:
+        body += (
+            "\n\nYou are receiving this because roadmap email reminders are enabled. "
+            f"Unsubscribe: {unsubscribe_url_for(user_id)}"
+        )
+    return send_email(user_email, subject, body)
 
 try:
     # This looks for MONGO_URI in your .env file. 
@@ -131,7 +174,7 @@ except Exception as e:
 
 def reset_weekly_xp():
     """
-    Runs every Monday at 12:00 AM IST.
+    Runs every Monday at 12:00 AM UTC.
     Resets weekly_xp to 0 for ALL users — clean slate every week.
     Prevents stale XP data from accumulating in MongoDB.
     """
@@ -145,34 +188,88 @@ def reset_weekly_xp():
         print(f"❌ Weekly XP Reset failed: {e}")
 
 # Start the background scheduler
-IST_TZ = pytz.timezone('Asia/Kolkata')
-scheduler = BackgroundScheduler(timezone=IST_TZ)
+UTC_TZ = pytz.utc
+DEFAULT_USER_TZ = 'UTC'
+scheduler = BackgroundScheduler(timezone=UTC_TZ)
 
-# ── IST HELPERS ───────────────────────────────────────────────────────────────
+# ── UTC + LOCAL TIME HELPERS ─────────────────────────────────────────────────
 def now_ist():
-    """Current datetime in IST (naive) — use instead of datetime.utcnow()."""
-    return datetime.now(IST_TZ).replace(tzinfo=None)
+    """Legacy name kept for old call sites; timestamps are now stored as UTC."""
+    return now_utc()
+
+def now_utc():
+    """Current UTC datetime stored as naive UTC for MongoDB consistency."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+def get_current_week_start_utc():
+    """Current week ka start — Monday 00:00 IST (= Sunday 18:30 UTC). IST mein DST nahi hota, isliye ye offset hamesha fixed rehta hai — single source of truth for weekly reset boundary (scheduler, add_xp, leaderboard sab isi ko use karte hain)."""
+    now = now_utc()
+    days_since_sunday = (now.weekday() + 1) % 7  # Mon=0..Sun=6 -> days since last Sunday
+    candidate = (now - timedelta(days=days_since_sunday)).replace(hour=18, minute=30, second=0, microsecond=0)
+    if candidate > now:
+        candidate -= timedelta(days=7)
+    return candidate
+
+def get_next_weekly_reset_utc():
+    """Agla weekly reset kab hoga (UTC mein, naive) — Sunday 18:30 UTC = Monday 00:00 IST."""
+    return get_current_week_start_utc() + timedelta(days=7)
+
+def as_utc(dt):
+    """Return a naive UTC datetime from a datetime/string value."""
+    if dt is None:
+        return now_utc()
+    if isinstance(dt, str):
+        try:
+            dt = datetime.fromisoformat(dt.replace('Z', '+00:00'))
+        except ValueError:
+            return now_utc()
+    if not isinstance(dt, datetime):
+        return now_utc()
+    if dt.tzinfo is None:
+        return dt
+    return dt.astimezone(timezone.utc).replace(tzinfo=None)
+
+def utc_iso(dt):
+    """ISO-8601 UTC timestamp for browser-side local timezone rendering."""
+    return as_utc(dt).isoformat(timespec='microseconds') + 'Z'
+
+def fmt_utc(dt, fmt='%I:%M %p'):
+    return as_utc(dt).strftime(fmt)
+
+def get_timezone(tz_name):
+    if tz_name in pytz.all_timezones_set:
+        return pytz.timezone(tz_name)
+    return pytz.timezone(DEFAULT_USER_TZ)
+
+def user_timezone_name(user_id):
+    try:
+        user = users_collection.find_one({'_id': ObjectId(user_id)}, {'timezone': 1}) or {}
+        return user.get('timezone') or DEFAULT_USER_TZ
+    except Exception:
+        return DEFAULT_USER_TZ
+
+def user_today_key(user_id, user_doc=None):
+    tz_name = (user_doc or {}).get('timezone') or user_timezone_name(user_id)
+    return datetime.now(get_timezone(tz_name)).strftime('%Y-%m-%d')
 
 def to_ist(dt):
-    """Datetime already stored as IST naive — return as-is for display."""
-    if dt is None or not isinstance(dt, datetime):
-        return now_ist()
-    if dt.tzinfo is None:
-        return dt  # Already IST naive — no conversion needed
-    return dt.astimezone(IST_TZ).replace(tzinfo=None)
+    """Backward-compatible display helper; prefer utc_iso + browser rendering."""
+    return as_utc(dt)
 
 def fmt_ist(dt, fmt='%I:%M %p'):
-    """Convert UTC datetime to IST and format as string."""
-    return to_ist(dt).strftime(fmt)
+    """Backward-compatible formatter; now formats UTC until the browser localizes it."""
+    return fmt_utc(dt, fmt)
+
+app.jinja_env.globals.update(utc_iso=utc_iso)
 # ─────────────────────────────────────────────────────────────────────────────
 scheduler.add_job(
     reset_weekly_xp,
-    CronTrigger(day_of_week='mon', hour=0, minute=0, timezone=IST_TZ),
+    CronTrigger(day_of_week='sun', hour=18, minute=30, timezone=UTC_TZ),  # = Monday 00:00 IST
     id='weekly_xp_reset',
     replace_existing=True
 )
 scheduler.start()
-print("✅ Weekly XP reset scheduler started — resets every Monday 12:00 AM IST")
+print("✅ Weekly XP reset scheduler started — resets every Monday 12:00 AM UTC")
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -199,23 +296,22 @@ def load_user(user_id):
 
 def check_ai_daily_limit(user_id, action='chat', limit=50):
     """
-    Check and increment AI usage for a user per day in IST timezone.
+    Check and increment AI usage for a user per day in their browser timezone.
     action: 'chat' (limit=50) or 'roadmap' (limit=10)
     Returns True if allowed, False if limit hit.
     Auto-cleans usage entries older than 7 days.
     """
     try:
-        from datetime import timedelta
-        IST = timezone(timedelta(hours=5, minutes=30))
-        today_ist = datetime.now(IST).strftime('%Y-%m-%d')
-        key = f"{action}_{today_ist}"
-
         user = users_collection.find_one(
             {'_id': ObjectId(user_id)},
-            {'ai_usage': 1}
+            {'ai_usage': 1, 'timezone': 1}
         )
         if not user:
             return False, 0, limit
+
+        user_tz = get_timezone(user.get('timezone') or DEFAULT_USER_TZ)
+        today_key = datetime.now(user_tz).strftime('%Y-%m-%d')
+        key = f"{action}_{today_key}"
 
         ai_usage = user.get('ai_usage', {})
         today_count = ai_usage.get(key, 0)
@@ -230,7 +326,7 @@ def check_ai_daily_limit(user_id, action='chat', limit=50):
         )
 
         # Auto-cleanup: remove entries older than 7 days (runs silently)
-        cutoff = (datetime.now(IST) - timedelta(days=7)).strftime('%Y-%m-%d')
+        cutoff = (datetime.now(user_tz) - timedelta(days=7)).strftime('%Y-%m-%d')
         cleaned = {k: v for k, v in ai_usage.items() if k.split('_')[-1] >= cutoff}
         if len(cleaned) < len(ai_usage):
             users_collection.update_one(
@@ -245,19 +341,17 @@ def check_ai_daily_limit(user_id, action='chat', limit=50):
         return True, 0, limit  # fail open — don’t block user on DB error
 
 def get_ai_usage_today(user_id):
-    """Returns today's AI usage counts for a user (IST). Used in settings + admin."""
+    """Returns today's AI usage counts for a user in their browser timezone."""
     try:
-        from datetime import timedelta
-        IST = timezone(timedelta(hours=5, minutes=30))
-        today_ist = datetime.now(IST).strftime('%Y-%m-%d')
-        user = users_collection.find_one({'_id': ObjectId(user_id)}, {'ai_usage': 1})
+        user = users_collection.find_one({'_id': ObjectId(user_id)}, {'ai_usage': 1, 'timezone': 1})
         if not user:
             return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10}
+        today_key = user_today_key(user_id, user)
         ai_usage = user.get('ai_usage', {})
         return {
-            'chat_used':     ai_usage.get(f'chat_{today_ist}', 0),
+            'chat_used':     ai_usage.get(f'chat_{today_key}', 0),
             'chat_limit':    50,
-            'roadmap_used':  ai_usage.get(f'roadmap_{today_ist}', 0),
+            'roadmap_used':  ai_usage.get(f'roadmap_{today_key}', 0),
             'roadmap_limit': 10,
         }
     except Exception as e:
@@ -344,12 +438,10 @@ def add_xp(user_id, points, reason="Action"):
         
         # --- BULLETPROOF WEEKLY RESET LOGIC ---
         last_updated = user.get('weekly_xp_updated')
-        from datetime import timedelta
-        now_time = now_ist()
-        days_since_monday = now_time.weekday()
-        week_start = (now_time - timedelta(days=days_since_monday)).replace(hour=0, minute=0, second=0, microsecond=0)
+        now_time = now_utc()
+        week_start = get_current_week_start_utc()
 
-        # If last updated is older than this week's Monday, reset to 0 before adding new points
+        # If last updated is older than this week's Monday (IST), reset to 0 before adding new points
         if not last_updated or last_updated < week_start:
             users_collection.update_one(
                 {'_id': ObjectId(user_id)},
@@ -538,10 +630,9 @@ def deduct_xp(user_id, points, reason="Action Reversed"):
 def update_streak(user_id):
     """Login par activity streak track karne ka function"""
     try:
-        from datetime import timedelta
-        IST = timezone(timedelta(hours=5, minutes=30))
-        user = users_collection.find_one({'_id': ObjectId(user_id)})
-        today = datetime.now(IST).replace(hour=0, minute=0, second=0, microsecond=0)
+        user = users_collection.find_one({'_id': ObjectId(user_id)}) or {}
+        user_tz = get_timezone(user.get('timezone') or DEFAULT_USER_TZ)
+        today = datetime.now(user_tz).replace(hour=0, minute=0, second=0, microsecond=0)
         last_login = user.get('last_activity_date')
         streak = user.get('streak_count', 0)
 
@@ -549,9 +640,9 @@ def update_streak(user_id):
             if isinstance(last_login, str):
                 last_login = datetime.fromisoformat(last_login.replace("Z", "+00:00"))
             if last_login.tzinfo is None:
-                last_login = last_login.replace(tzinfo=IST)
-            # Convert last_login to IST before comparing
-            last_login = last_login.astimezone(IST).replace(hour=0, minute=0, second=0, microsecond=0)
+                last_login = last_login.replace(tzinfo=timezone.utc)
+            # Convert last_login to the user's browser timezone before comparing
+            last_login = last_login.astimezone(user_tz).replace(hour=0, minute=0, second=0, microsecond=0)
             diff = (today - last_login).days
 
             if diff == 0:  # Same day login — keep streak, just update timestamp
@@ -592,6 +683,81 @@ def create_notification(user_id, notif_type, message, link="#"):
         })
     except Exception as e:
         print(f"Notification error: {e}")
+
+def check_inactive_roadmaps():
+    """Runs daily (7 PM IST). Tracks per-roadmap inactivity but sends one digest per user."""
+    try:
+        thresholds = [(3, 1), (7, 2), (14, 3)]
+        now = now_utc()
+        candidates = roadmaps_collection.find({
+            '$or': [
+                {'reminder_stage': {'$lt': 3}},
+                {'reminder_stage': {'$exists': False}}
+            ]
+        })
+
+        user_reminders = {}
+        for rm in candidates:
+            last_activity = rm.get('last_activity') or rm.get('created_at')
+            if not last_activity:
+                continue
+            last_activity = as_utc(last_activity)
+            days_inactive = (now - last_activity).days
+            current_stage = rm.get('reminder_stage', 0)
+
+            target_stage, target_days = None, None
+            for days, stage in thresholds:
+                if days_inactive >= days and stage > current_stage:
+                    target_stage, target_days = stage, days
+
+            if target_stage is None:
+                continue
+
+            uid = str(rm.get('user_id'))
+            user_reminders.setdefault(uid, []).append((rm, target_stage, target_days))
+
+        sent_count = 0
+        for uid, items in user_reminders.items():
+            try:
+                user = users_collection.find_one({'_id': ObjectId(uid)})
+            except Exception:
+                continue
+            if not user:
+                continue
+
+            if len(items) == 1:
+                rm, _, days = items[0]
+                goal = rm.get('goal', 'your roadmap')
+                message = f'Your "{goal}" roadmap is waiting - {days} days no activity!'
+                link = f"/roadmap/{rm['_id']}"
+            else:
+                names = ", ".join(rm.get('goal', 'a roadmap') for rm, _, _ in items)
+                message = f'{len(items)} of your roadmaps need attention: {names}'
+                link = "/my_roadmaps"
+
+            create_notification(uid, 'info', message, link)
+
+            if user.get('email') and user.get('email_reminders_enabled', True):
+                send_reminder_digest_email(user['email'], user.get('name', 'there'), items, uid)
+
+            for rm, target_stage, _ in items:
+                roadmaps_collection.update_one(
+                    {'_id': rm['_id']},
+                    {'$set': {'reminder_stage': target_stage}}
+                )
+            sent_count += 1
+
+        print(f"✅ Roadmap inactivity check done — {sent_count} users notified")
+    except Exception as e:
+        print(f"❌ Roadmap inactivity check failed: {e}")
+
+scheduler.add_job(
+    check_inactive_roadmaps,
+    CronTrigger(hour=13, minute=30, timezone=UTC_TZ),  # = 7:00 PM IST daily
+    id='roadmap_inactivity_check',
+    replace_existing=True
+)
+print("✅ Roadmap inactivity reminder scheduler started — runs daily at 7 PM IST")
 
 def parse_skills(value):
     if not value:
@@ -801,14 +967,12 @@ def reset_password(token):
 def auto_update_streak():
     """Runs before every request — ensures streak is updated even without re-login"""
     if current_user.is_authenticated:
-        from datetime import timedelta
-        IST = timezone(timedelta(hours=5, minutes=30))
-        today_ist = datetime.now(IST).date()
+        today_local = user_today_key(current_user.id)
         # Store last checked date in session to avoid hitting DB on every single request
         last_checked = session.get('streak_checked_date')
-        if last_checked != str(today_ist):
+        if last_checked != today_local:
             update_streak(current_user.id)
-            session['streak_checked_date'] = str(today_ist)
+            session['streak_checked_date'] = today_local
 
 @app.route('/mainpage')
 @login_required
@@ -1096,10 +1260,10 @@ def roadmap_generator():
             flash("Please enter a goal for your roadmap.", "error")
             return render_template('roadmap_generator.html', goal=goal, **_sidebar)
 
-        # ── AI DAILY CAP CHECK (IST) ──────────────────────────
+        # ── AI DAILY CAP CHECK (browser timezone) ─────────────
         allowed, used, limit = check_ai_daily_limit(current_user.id, 'roadmap')
         if not allowed:
-            flash(f'⚠️ You have used all {limit} roadmap generations for today. Resets at midnight IST.', 'error')
+            flash(f'⚠️ You have used all {limit} roadmap generations for today. Resets at your local midnight.', 'error')
             return render_template('roadmap_generator.html', goal=goal, **_sidebar)
 
     else:
@@ -1147,7 +1311,14 @@ def save_roadmap():
         try:
             roadmap_data = json.loads(roadmap_content_str)
             if isinstance(roadmap_data, dict) and 'stages' in roadmap_data:
-                roadmaps_collection.insert_one({'user_id': ObjectId(current_user.id), 'goal': goal, 'roadmap_content': roadmap_data, 'created_at': now_ist()})
+                roadmaps_collection.insert_one({
+                    'user_id': ObjectId(current_user.id),
+                    'goal': goal,
+                    'roadmap_content': roadmap_data,
+                    'created_at': now_utc(),
+                    'last_activity': now_utc(),
+                    'reminder_stage': 0
+                })
                 flash('Roadmap saved successfully!', 'success')
                 return redirect(url_for('my_roadmaps'))
             else:
@@ -1216,6 +1387,10 @@ def view_roadmap(roadmap_id):
     roadmap = roadmaps_collection.find_one({'_id': obj_id})
     if not roadmap or str(roadmap.get('user_id')) != current_user.id:
         flash("Roadmap not found or permission denied.", "error"); return redirect(url_for('my_roadmaps'))
+    roadmaps_collection.update_one(
+        {'_id': obj_id},
+        {'$set': {'last_activity': now_utc(), 'reminder_stage': 0}}
+    )
     content = roadmap.get('roadmap_content')
     if isinstance(content, str):
         try: content = json.loads(content)
@@ -1247,7 +1422,10 @@ def complete_stage(roadmap_id, stage_index):
             # Only award XP if stage not already completed (prevent re-clicking exploit)
             if not content['stages'][stage_index].get('completed'):
                 content['stages'][stage_index]['completed'] = True
-                roadmaps_collection.update_one({'_id': obj_id}, {'$set': {'roadmap_content': content}})
+                roadmaps_collection.update_one(
+                    {'_id': obj_id},
+                    {'$set': {'roadmap_content': content, 'last_activity': now_utc(), 'reminder_stage': 0}}
+                )
                 add_xp(current_user.id, 5, "Completed Roadmap Stage")
                 flash('Stage marked as complete! +5 XP 🎉', 'success')
             else:
@@ -1655,7 +1833,7 @@ def view_project(project_id):
 
     def fmt_date(dt):
         if dt and hasattr(dt, 'strftime'):
-            return dt.strftime('%b %d, %Y')
+            return fmt_utc(dt, '%b %d, %Y') + ' UTC'
         return ''
 
     comments = []
@@ -1674,6 +1852,7 @@ def view_project(project_id):
             (c['user_id'] == current_user.id or is_admin)
         )
         c['created_at_str'] = fmt_date(c.get('created_at'))
+        c['created_at_iso'] = utc_iso(c.get('created_at'))
         # Fetch replies (1 level only)
         replies = list(comments_collection.find(
             {'parent_id': c_id_obj}
@@ -1692,6 +1871,7 @@ def view_project(project_id):
                 (r['user_id'] == current_user.id or is_admin)
             )
             r['created_at_str'] = fmt_date(r.get('created_at'))
+            r['created_at_iso'] = utc_iso(r.get('created_at'))
         c['replies'] = replies
         comments.append(c)
 
@@ -1805,6 +1985,7 @@ def post_comment(project_id):
             {'name': 1, 'username': 1, 'profile_pic': 1}
         )
         is_owner_comment = str(ObjectId(current_user.id)) == str(project.get('created_by_id'))
+        created_at = now_utc()
         comment_id = comments_collection.insert_one({
             'project_id': obj_id,
             'user_id': ObjectId(current_user.id),
@@ -1814,7 +1995,7 @@ def post_comment(project_id):
             'content': content,
             'parent_id': None,
             'likes': [],
-            'created_at': now_ist(),
+            'created_at': created_at,
             'is_deleted': False
         }).inserted_id
         return jsonify({
@@ -1826,6 +2007,7 @@ def post_comment(project_id):
                 'profile_pic': user.get('profile_pic', 'default.jpg'),
                 'content': content,
                 'created_at': 'Just now',
+                'created_at_iso': utc_iso(created_at),
                 'like_count': 0,
                 'user_liked': False,
                 'is_owner_comment': is_owner_comment,
@@ -1861,6 +2043,7 @@ def post_reply(project_id, comment_id):
         )
         project = projects_collection.find_one({'_id': obj_id}, {'created_by_id': 1})
         is_owner_comment = str(ObjectId(current_user.id)) == str(project.get('created_by_id'))
+        created_at = now_utc()
         reply_id = comments_collection.insert_one({
             'project_id': obj_id,
             'user_id': ObjectId(current_user.id),
@@ -1870,7 +2053,7 @@ def post_reply(project_id, comment_id):
             'content': content,
             'parent_id': parent_id,
             'likes': [],
-            'created_at': now_ist(),
+            'created_at': created_at,
             'is_deleted': False
         }).inserted_id
         return jsonify({
@@ -1882,6 +2065,7 @@ def post_reply(project_id, comment_id):
                 'profile_pic': user.get('profile_pic', 'default.jpg'),
                 'content': content,
                 'created_at': 'Just now',
+                'created_at_iso': utc_iso(created_at),
                 'like_count': 0,
                 'user_liked': False,
                 'is_owner_comment': is_owner_comment,
@@ -1983,7 +2167,8 @@ def get_comments_sorted(project_id):
                     'username': r.get('username', ''),
                     'profile_pic': r.get('profile_pic', 'default.jpg'),
                     'content': r.get('content', ''),
-                    'created_at': fmt_ist(r.get('created_at'), '%b %d, %Y'),
+                    'created_at': fmt_utc(r.get('created_at'), '%b %d, %Y') + ' UTC',
+                    'created_at_iso': utc_iso(r.get('created_at')),
                     'like_count': len(r.get('likes', [])),
                     'user_liked': ObjectId(current_user.id) in r.get('likes', []),
                     'is_owner_comment': str(r.get('user_id')) == str(project.get('created_by_id')),
@@ -1996,7 +2181,8 @@ def get_comments_sorted(project_id):
                 'username': c.get('username', ''),
                 'profile_pic': c.get('profile_pic', 'default.jpg'),
                 'content': c.get('content', ''),
-                'created_at': fmt_ist(c.get('created_at'), '%b %d, %Y'),
+                'created_at': fmt_utc(c.get('created_at'), '%b %d, %Y') + ' UTC',
+                'created_at_iso': utc_iso(c.get('created_at')),
                 'like_count': len(c.get('likes', [])),
                 'user_liked': ObjectId(current_user.id) in c.get('likes', []),
                 'is_owner_comment': str(c.get('user_id')) == str(project.get('created_by_id')),
@@ -2152,10 +2338,10 @@ def chatbot():
         if not user_message:
             return jsonify({'reply': 'Please type a message!'}), 400
 
-        # ── AI DAILY CAP CHECK (IST) ──────────────────────────
+        # ── AI DAILY CAP CHECK (browser timezone) ─────────────
         allowed, used, limit = check_ai_daily_limit(current_user.id, 'chat')
         if not allowed:
-            return jsonify({'reply': f'⚠️ You have used all {limit} AI messages for today. Your limit resets at midnight IST. Come back tomorrow!'}), 429
+            return jsonify({'reply': f'⚠️ You have used all {limit} AI messages for today. Your limit resets at your local midnight. Come back tomorrow!'}), 429
 
         uid = ObjectId(current_user.id)
         chat_doc = chat_history_collection.find_one({'user_id': uid})
@@ -2504,10 +2690,10 @@ def interview_ask():
         personalization = data.get('personalization', 'generic')
         is_first_question = bool(data.get('is_first_question'))
 
-        # ── AI DAILY CAP CHECK (IST) — token-based budgeting (see convo: 100/day) ──
+        # ── AI DAILY CAP CHECK (browser timezone) — token-based budgeting (see convo: 100/day) ──
         allowed, used, limit = check_ai_daily_limit(current_user.id, 'interview', limit=100)
         if not allowed:
-            return jsonify({'reply': f'⚠️ You have used all {limit} interview AI calls for today. Your limit resets at midnight IST. Come back tomorrow!'}), 429
+            return jsonify({'reply': f'⚠️ You have used all {limit} interview AI calls for today. Your limit resets at your local midnight. Come back tomorrow!'}), 429
 
         personalization_ctx = get_interview_profile_context(current_user.id) if personalization == 'profile' else ''
         difficulty = compute_adaptive_difficulty(base_difficulty, history)
@@ -2805,7 +2991,7 @@ def messages_list():
                 sender_user = users_collection.find_one({"_id": res["last_sender"]})
                 sender_name = sender_user.get("name", "User") if sender_user else "User"
             is_unread = (not res["is_read"]) and (not sent_by_me)
-            conversations.append({"user_id": str(other_user["_id"]), "user_name": other_user.get("name", "Unknown"), "username": other_user.get("username", ""), "profile_pic": other_user.get("profile_pic", "default.jpg"), "last_message": res.get("last_message", ""), "timestamp": fmt_ist(res["timestamp"], "%b %d, %I:%M %p"), "is_unread": is_unread, "sent_by_me": sent_by_me, "sender_name": sender_name})
+            conversations.append({"user_id": str(other_user["_id"]), "user_name": other_user.get("name", "Unknown"), "username": other_user.get("username", ""), "profile_pic": other_user.get("profile_pic", "default.jpg"), "last_message": res.get("last_message", ""), "timestamp": fmt_utc(res["timestamp"], "%b %d, %I:%M %p") + " UTC", "timestamp_iso": utc_iso(res["timestamp"]), "is_unread": is_unread, "sent_by_me": sent_by_me, "sender_name": sender_name})
         _u = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'xp': 1, 'streak_count': 1}) or {}
         _xp = _u.get('xp', 0); _li = get_level_info(_xp)
         _streak = _u.get('streak_count', 0)
@@ -2833,6 +3019,8 @@ def chat(receiver_id):
             return redirect(url_for('chat', receiver_id=receiver_id))
         messages_collection.update_many({"sender_id": r_id, "receiver_id": u_id, "is_read": False}, {"$set": {"is_read": True}})
         history = list(messages_collection.find({"$or": [{"sender_id": u_id, "receiver_id": r_id}, {"sender_id": r_id, "receiver_id": u_id}]}).sort("timestamp", 1))
+        for m in history:
+            m["timestamp_iso"] = utc_iso(m.get("timestamp"))
         return render_template('chat.html', receiver=rec, messages=history)
     except Exception as e:
         print(f"Chat Error: {e}"); return redirect(url_for('messages_list'))
@@ -2847,7 +3035,7 @@ def api_dm_messages(receiver_id):
         query = {"$or": [{"sender_id": u_id, "receiver_id": r_id}, {"sender_id": r_id, "receiver_id": u_id}]}
         if since_str:
             try:
-                since_dt = datetime.fromisoformat(since_str)
+                since_dt = as_utc(since_str)
                 query["timestamp"] = {"$gt": since_dt}
             except Exception:
                 pass
@@ -2857,13 +3045,13 @@ def api_dm_messages(receiver_id):
         result = []
         for m in msgs:
             ts = m.get("timestamp")
-            ts_str = ts.strftime('%I:%M %p') + ' IST' if ts else ''
+            ts_str = fmt_utc(ts, '%I:%M %p') + ' UTC' if ts else ''
             result.append({
                 "id": str(m["_id"]),
                 "content": m.get("content", ""),
                 "sender_id": str(m["sender_id"]),
                 "timestamp_str": ts_str,
-                "timestamp_iso": ts.isoformat() if ts else ""
+                "timestamp_iso": utc_iso(ts) if ts else ""
             })
         return jsonify({"messages": result})
     except Exception as e:
@@ -2905,12 +3093,11 @@ def view_community(community_id):
         ).sort("timestamp", -1).limit(50))
         raw_msgs = list(reversed(raw_msgs))  # show oldest→newest
         for m in raw_msgs:
-            # now_ist() stores naive IST already. to_ist() would add 5:30 again - use directly.
             ts = m.get("timestamp")
             if not ts or not isinstance(ts, datetime):
-                ts = now_ist()
+                ts = now_utc()
             m["timestamp"] = ts
-            m["timestamp_iso"] = ts.strftime('%Y-%m-%dT%H:%M:%S.') + f'{ts.microsecond:06d}'
+            m["timestamp_iso"] = utc_iso(ts)
             messages.append(m)
 
     pending_ids   = community.get("pending_requests", [])
@@ -3486,6 +3673,7 @@ def settings():
         member_since=member_since,
         streak=streak,
         ai_usage=ai_usage,
+        email_reminders_enabled=user_data.get('email_reminders_enabled', True),
         username=user_data.get('username', '')
     )
 
@@ -3559,11 +3747,9 @@ def leaderboard():
         {}, {'name': 1, 'xp': 1, 'level': 1, 'badge': 1, 'streak_count': 1, 'profile_pic': 1}
     ).sort('xp', -1).limit(50))
 
-    # ── WEEKLY: top 50 by weekly_xp, reset every Monday ──
-    now = now_ist()
-    # Days since last Monday
-    days_since_monday = now.weekday()  # Monday=0
-    week_start = (now - timedelta(days=days_since_monday)).replace(hour=0, minute=0, second=0, microsecond=0)
+    # ── WEEKLY: top 50 by weekly_xp, reset every Monday 00:00 IST ──
+    week_start = get_current_week_start_utc()
+    next_reset = get_next_weekly_reset_utc()
 
     weekly = list(users_collection.find(
         {'weekly_xp_updated': {'$gte': week_start}},
@@ -3593,10 +3779,8 @@ def leaderboard():
         pic = u.get('profile_pic', 'default.jpg')
         u['profile_pic_url'] = f"/static/profile_pics/{pic}"
 
-    # Next Monday reset time
-    days_until_monday = (7 - days_since_monday) % 7 or 7
-    next_reset = (now + timedelta(days=days_until_monday)).replace(hour=0, minute=0, second=0, microsecond=0)
-    hours_until_reset = int((next_reset - now).total_seconds() / 3600)
+    # Fallback text for before browser JS localizes it (same corrected helper, no drift)
+    fallback_hours = max(0, int((next_reset - now_utc()).total_seconds() // 3600))
 
     # Sidebar widget data
     level_info = get_level_info(current_user_xp)
@@ -3609,8 +3793,9 @@ def leaderboard():
         weekly=weekly,
         current_user_rank=current_user_rank,
         current_user_xp=current_user_xp,
-        hours_until_reset=hours_until_reset,
-        week_start=week_start.strftime('%b %d'),
+        next_reset_iso=utc_iso(next_reset),
+        fallback_hours=fallback_hours,
+        week_start_iso=utc_iso(week_start),
         level_info=level_info,
         progress_pct=progress_pct,
         streak=streak
@@ -3637,18 +3822,21 @@ def xp_history():
         {'user_id': ObjectId(current_user.id)}
     ).sort('timestamp', -1))
 
+    user_tz = get_timezone(user_timezone_name(current_user.id))
+
     result = []
     for h in history:
+        ts = h.get('timestamp')
+        local_dt = pytz.utc.localize(as_utc(ts)).astimezone(user_tz) if ts else None
         result.append({
             'points': h.get('points', 0),
             'reason': h.get('reason', 'Unknown'),
             'type': h.get('type', 'earn'),
-            'timestamp': fmt_ist(h.get('timestamp'), '%Y-%m-%d %H:%M'),
-            'date_only': fmt_ist(h.get('timestamp'), '%b %d, %Y'),
-            'day_key': fmt_ist(h.get('timestamp'), '%Y-%m-%d'),
+            'timestamp_iso': utc_iso(ts),
+            'day_key': local_dt.strftime('%Y-%m-%d') if local_dt else '',
         })
 
-    # Build daily chart data (last 30 days)
+    # Build daily chart data (last 30 days) — bucketed by user's own local day, not UTC
     from collections import defaultdict
     daily = defaultdict(int)
     for h in result:
@@ -3676,9 +3864,7 @@ def get_community_messages(community_id):
     query = {"community_id": ObjectId(community_id)}
     if since:
         try:
-            since_dt = datetime.fromisoformat(since.replace("Z", "+00:00"))
-            if since_dt.tzinfo is not None:
-                since_dt = since_dt.replace(tzinfo=None)
+            since_dt = as_utc(since)
             query["timestamp"] = {"$gt": since_dt}
         except Exception as e:
             print(f"Since parse error: {e}")
@@ -3688,7 +3874,7 @@ def get_community_messages(community_id):
     for msg in messages:
         ts = msg.get('timestamp')
         if not ts or not isinstance(ts, datetime):
-            ts = now_ist()
+            ts = now_utc()
         reactions_raw = msg.get('reactions', {})
         reactions = {k: (len(v) if isinstance(v, list) else int(v)) for k, v in reactions_raw.items()}
         result.append({
@@ -3696,9 +3882,8 @@ def get_community_messages(community_id):
             'sender_id':     str(msg.get('sender_id', '')),
             'sender_name':   msg.get('sender_name', 'Unknown'),
             'message':       msg.get('message', ''),
-            # ts is already IST naive (saved by now_ist()) - strftime directly.
-            'timestamp':     ts.strftime('%I:%M %p') + ' IST',
-            'timestamp_iso': ts.strftime('%Y-%m-%dT%H:%M:%S.') + f'{ts.microsecond:06d}',
+            'timestamp':     fmt_utc(ts, '%I:%M %p') + ' UTC',
+            'timestamp_iso': utc_iso(ts),
             'reactions':     reactions,
             'is_me':         str(msg.get('sender_id', '')) == current_user.id
         })
@@ -3858,6 +4043,48 @@ def onboarding_dismiss():
 # NOTIFICATION ROUTES
 # ════════════════════════════════════════════════════════════
 
+@app.route('/api/user/timezone', methods=['POST'])
+@login_required
+def update_user_timezone():
+    """Store the browser-detected IANA timezone without asking the user."""
+    data = request.get_json(silent=True) or {}
+    tz_name = data.get('timezone', '').strip()
+    if tz_name not in pytz.all_timezones_set:
+        return jsonify({'success': False, 'error': 'Invalid timezone'}), 400
+    users_collection.update_one(
+        {'_id': ObjectId(current_user.id)},
+        {'$set': {'timezone': tz_name, 'timezone_updated_at': now_utc()}}
+    )
+    return jsonify({'success': True, 'timezone': tz_name})
+
+@app.route('/api/user/email_preferences', methods=['POST'])
+@login_required
+def update_email_preferences():
+    """Update optional email reminder preferences; in-app notifications stay enabled."""
+    data = request.get_json(silent=True) or {}
+    enabled = bool(data.get('email_reminders_enabled', False))
+    users_collection.update_one(
+        {'_id': ObjectId(current_user.id)},
+        {'$set': {'email_reminders_enabled': enabled, 'email_preferences_updated_at': now_utc()}}
+    )
+    return jsonify({'success': True, 'email_reminders_enabled': enabled})
+
+@app.route('/unsubscribe/<token>')
+def unsubscribe_email_reminders(token):
+    """One-click unsubscribe from roadmap reminder emails via signed token."""
+    try:
+        payload = s.loads(token, salt='email-reminders-unsubscribe')
+        user_id = payload.get('user_id')
+        obj_id = ObjectId(user_id)
+    except (BadTimeSignature, BadSignature, ValueError, TypeError):
+        return render_template('unsubscribe.html', success=False), 400
+
+    result = users_collection.update_one(
+        {'_id': obj_id},
+        {'$set': {'email_reminders_enabled': False, 'email_preferences_updated_at': now_utc()}}
+    )
+    return render_template('unsubscribe.html', success=result.matched_count > 0)
+
 @app.route('/api/notifications')
 @login_required
 def get_notifications():
@@ -3873,7 +4100,8 @@ def get_notifications():
             'message': n.get('message', ''),
             'link': n.get('link', '#'),
             'is_read': n.get('is_read', False),
-            'created_at': fmt_ist(n.get('created_at'), '%b %d, %I:%M %p')
+            'created_at': fmt_utc(n.get('created_at'), '%b %d, %I:%M %p') + ' UTC',
+            'created_at_iso': utc_iso(n.get('created_at'))
         })
     unread_count = notifications_collection.count_documents(
         {'user_id': ObjectId(current_user.id), 'is_read': False}
@@ -3983,7 +4211,7 @@ def api_search_users():
 @app.route('/api/ai_usage')
 @login_required
 def api_ai_usage():
-    """Returns today's AI usage for the current user (IST)"""
+    """Returns today's AI usage for the current user in their browser timezone."""
     usage = get_ai_usage_today(current_user.id)
     return jsonify(usage)
 
@@ -4031,19 +4259,12 @@ def admin_required(f):
 @admin_required
 def admin_panel():
     # Users
-    from datetime import timedelta
-    IST = timezone(timedelta(hours=5, minutes=30))
-    today_ist = datetime.now(IST).strftime('%Y-%m-%d')
-
     users = list(users_collection.find({}, {
         'name': 1, 'email': 1, 'xp': 1, 'level': 1, 'badge': 1,
         'streak_count': 1, 'is_admin': 1, 'is_banned': 1,
-        'created_at': 1, 'profile_pic': 1, 'ai_usage': 1, 'username': 1,
+        'created_at': 1, 'profile_pic': 1, 'ai_usage': 1, 'timezone': 1, 'username': 1,
         'current_status': 1, 'work_experience': 1, 'experience_years': 1
     }).sort('xp', -1))
-    from datetime import timedelta
-    IST = timezone(timedelta(hours=5, minutes=30))
-    today_ist = datetime.now(IST).strftime('%Y-%m-%d')
 
     for u in users:
         u['_id'] = str(u['_id'])
@@ -4053,11 +4274,9 @@ def admin_panel():
         pic = u.get('profile_pic', 'default.jpg')
         u['profile_pic_url'] = f"/static/profile_pics/{pic}"
         ai = u.get('ai_usage', {})
-        u['ai_chat_today'] = ai.get(f'chat_{today_ist}', 0)
-        u['ai_roadmap_today'] = ai.get(f'roadmap_{today_ist}', 0)
-        ai = u.get('ai_usage', {})
-        u['ai_chat_today'] = ai.get(f'chat_{today_ist}', 0)
-        u['ai_roadmap_today'] = ai.get(f'roadmap_{today_ist}', 0)
+        today_key = user_today_key(u['_id'], u)
+        u['ai_chat_today'] = ai.get(f'chat_{today_key}', 0)
+        u['ai_roadmap_today'] = ai.get(f'roadmap_{today_key}', 0)
 
     # Projects — include views, likes, and comment counts
     projects = list(projects_collection.find().sort('created_at', -1))
@@ -4143,6 +4362,7 @@ def admin_panel():
         c['like_count'] = len(c.get('likes', []))
         c['project_title'] = proj_map.get(c['project_id'], '—')
         dt = c.get('created_at')
+        c['created_at_iso'] = utc_iso(dt) if dt and hasattr(dt, 'strftime') else ''
         c['created_at_str'] = dt.strftime('%b %d, %Y') if dt and hasattr(dt, 'strftime') else '—'
         all_comments.append(c)
 
@@ -4369,6 +4589,7 @@ def admin_project_comments(project_id):
         result = []
         for c in raw:
             dt = c.get('created_at')
+            created_at_iso = utc_iso(dt) if dt and hasattr(dt, 'strftime') else ''
             result.append({
                 '_id': str(c['_id']),
                 'user_name': c.get('user_name', ''),
@@ -4378,6 +4599,7 @@ def admin_project_comments(project_id):
                 'parent_id': str(c['parent_id']) if c.get('parent_id') else None,
                 'like_count': len(c.get('likes', [])),
                 'is_deleted': c.get('is_deleted', False),
+                'created_at_iso': created_at_iso,
                 'created_at_str': dt.strftime('%b %d, %Y at %I:%M %p') if dt and hasattr(dt, 'strftime') else '—',
             })
         return jsonify({'success': True, 'comments': result})

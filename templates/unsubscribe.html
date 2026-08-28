@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Preferences - SkillBridge</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root { --bg:#f8f4ec; --card:#fff; --ink:#1a1714; --muted:#7a7268; --line:#e5d9c0; --gold:#c4973a; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px; background:var(--bg); color:var(--ink); font-family:'DM Sans',sans-serif; }
+    main { width:min(100%, 520px); background:var(--card); border:1px solid var(--line); border-radius:18px; padding:34px; box-shadow:0 24px 70px rgba(26,23,20,.08); }
+    .mark { width:54px; height:54px; border-radius:16px; display:grid; place-items:center; background:rgba(196,151,58,.12); color:var(--gold); font-size:22px; margin-bottom:18px; }
+    h1 { margin:0; font-family:'Playfair Display',serif; font-size:32px; line-height:1.08; }
+    p { margin:12px 0 0; color:var(--muted); line-height:1.6; font-size:15px; }
+    a { display:inline-flex; align-items:center; gap:8px; margin-top:24px; padding:12px 16px; border-radius:12px; background:var(--ink); color:#f8f4ec; text-decoration:none; font-weight:800; font-size:13px; }
+  </style>
+</head>
+<body>
+  <main>
+    {% if success %}
+      <div class="mark"><i class="fas fa-check"></i></div>
+      <h1>You've been unsubscribed.</h1>
+      <p>Roadmap reminder emails are now turned off. You can turn them back on anytime from Settings after logging in.</p>
+      <a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Go to Settings</a>
+    {% else %}
+      <div class="mark"><i class="fas fa-exclamation-triangle"></i></div>
+      <h1>This link is not valid.</h1>
+      <p>The unsubscribe link may be broken or expired. Log in and update your email preferences from Settings.</p>
+      <a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Log In</a>
+    {% endif %}
+  </main>
+</body>
+</html>

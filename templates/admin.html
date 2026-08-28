@@ -480,7 +480,7 @@
                   </td>
                   <td style="font-weight:600;max-width:140px;" class="truncate">{{ c.project_title }}</td>
                   <td class="hide-mobile" style="color:#9c9488;max-width:160px;" class="truncate">{{ c.message }}</td>
-                  <td class="hide-mobile" style="white-space:nowrap;">{{ c.timestamp.strftime('%b %d, %Y') if c.timestamp else 'N/A' }}</td>
+                  <td class="hide-mobile" style="white-space:nowrap;" data-utc="{{ utc_iso(c.timestamp) if c.timestamp else '' }}" data-format="date">{{ c.timestamp.strftime('%b %d, %Y') if c.timestamp else 'N/A' }}</td>
                   <td>
                     {% if c.filename %}
                     <a href="{{ url_for('download_project', filename=c.filename) }}" class="btn btn-purple"><i class="fas fa-download" style="font-size:9px;"></i> <span class="btn-label">View</span></a>
@@ -687,7 +687,7 @@
                   <td style="font-weight:800;color:#dc2626;">{{ p.like_count or 0 }}</td>
                   <td><button class="btn btn-purple" data-tip="View Comments" onclick="openCommentsModal('{{ p._id }}','{{ p.title | e }}')"><i class="fas fa-comments" style="font-size:9px;"></i> {{ p.comment_count or 0 }}</button></td>
                   <td class="hide-mobile" style="font-weight:800;color:#c4973a;">{{ p.bookmark_count or 0 }}</td>
-                  <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;">{{ p.created_at.strftime('%b %d, %Y') if p.created_at else 'N/A' }}</td>
+                  <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;" data-utc="{{ utc_iso(p.created_at) if p.created_at else '' }}" data-format="date">{{ p.created_at.strftime('%b %d, %Y') if p.created_at else 'N/A' }}</td>
                   <td><button class="btn btn-danger" data-tip="Delete Project" onclick="deleteProject('{{ p._id }}','{{ p.title }}','{{ p.community_id or '' }}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete</span></button></td>
                 </tr>
                 {% endfor %}
@@ -724,7 +724,7 @@
                   <td>{{ r.user_name }}{% if r.username %}<br><span class="uhandle">@{{ r.username }}</span>{% endif %}</td>
                   <td class="hide-mobile" style="font-weight:600;">{{ r.stage_count }}</td>
                   <td class="hide-mobile"><span style="font-weight:800;color:#c4973a;">{{ r.completed_stages }}</span><span style="color:#9c9488;">/{{ r.stage_count }}</span></td>
-                  <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;">{{ r.created_at.strftime('%b %d, %Y') if r.created_at else 'N/A' }}</td>
+                  <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;" data-utc="{{ utc_iso(r.created_at) if r.created_at else '' }}" data-format="date">{{ r.created_at.strftime('%b %d, %Y') if r.created_at else 'N/A' }}</td>
                   <td><button class="btn btn-danger" data-tip="Delete Roadmap" onclick="deleteRoadmap('{{ r._id }}','{{ r.goal }}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete</span></button></td>
                 </tr>
                 {% endfor %}
@@ -761,7 +761,7 @@
                   <td>{{ c.owner_name }}{% if c.owner_username %}<br><span class="uhandle">@{{ c.owner_username }}</span>{% endif %}</td>
                   <td class="hide-mobile" style="font-weight:600;">{{ c.member_count }}</td>
                   <td class="hide-mobile"><span style="font-size:10px;font-weight:700;{% if c.visibility=='public' %}color:#15803d;{% else %}color:#9c9488;{% endif %}">{{ c.visibility|capitalize }}</span></td>
-                  <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;">{{ c.created_at.strftime('%b %d, %Y') if c.created_at else 'N/A' }}</td>
+                  <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;" data-utc="{{ utc_iso(c.created_at) if c.created_at else '' }}" data-format="date">{{ c.created_at.strftime('%b %d, %Y') if c.created_at else 'N/A' }}</td>
                   <td><button class="btn btn-danger" data-tip="Delete Community" onclick="deleteCommunity('{{ c._id }}','{{ c.project_title }}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete</span></button></td>
                 </tr>
                 {% endfor %}
@@ -982,6 +982,21 @@ function deleteCommunity(id,title){if(!confirm('Delete community "'+title+'"?'))
 
 // ── COMMENTS MODAL ────────────────────────────────
 function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function formatUtc(iso, format='datetime', fallback=''){
+  if(!iso)return fallback||'';
+  const d=new Date(iso);
+  if(Number.isNaN(d.getTime()))return fallback||'';
+  const opts=format==='date'?{month:'short',day:'numeric',year:'numeric'}:{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'};
+  return new Intl.DateTimeFormat(undefined,opts).format(d);
+}
+document.querySelectorAll('[data-utc]').forEach(el=>{el.textContent=formatUtc(el.dataset.utc,el.dataset.format||'datetime',el.textContent);});
+function syncBrowserTimezone(){
+  const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if(!tz||localStorage.getItem('sb-timezone')===tz)return;
+  fetch('/api/user/timezone',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({timezone:tz})})
+    .then(r=>{if(r.ok)localStorage.setItem('sb-timezone',tz);}).catch(()=>{});
+}
+syncBrowserTimezone();
 function buildComment(c){
   const isReply=!!c.parent_id;
   const indent=isReply?'margin-left:1rem;padding-left:1rem;border-left:2px solid #e5d9c0;':'';
@@ -997,7 +1012,7 @@ function buildComment(c){
       <span style="font-size:11px;font-weight:800;color:#1a1714;">${c.user_name}</span>
       ${c.username?`<span style="font-size:10px;font-weight:700;color:#c4973a;">@${c.username}</span>`:''}
       ${typePill}
-      <span style="font-size:9px;color:#9c9488;margin-left:auto;">${c.created_at_str}</span>
+      <span style="font-size:9px;color:#9c9488;margin-left:auto;">${formatUtc(c.created_at_iso,'datetime',c.created_at_str)}</span>
     </div>
     <div style="font-size:11px;color:#2c2820;line-height:1.5;margin-bottom:6px;word-break:break-word;">
       ${c.is_deleted?'<em style="color:#9c9488">[deleted]</em>':escapeHtml(c.content)}

@@ -999,7 +999,7 @@ async function loadHistory(){
     list.innerHTML = state.historySessions.map((s, i) => {
       const score = s.score || 0;
       const scoreClass = score >= 7 ? 'score-high' : score >= 5 ? 'score-mid' : 'score-low';
-      const date = new Date(s.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
+      const date = new Date(s.created_at).toLocaleDateString(undefined, {day:'numeric',month:'short',year:'numeric'});
       const modeLabel = s.mode === 'technical' ? '💻 Technical' : s.mode === 'communication' ? '🎙️ Communication' : '🚀 Full Interview';
       return `<div class="history-item" onclick="viewSessionDetail(${i})">
         <div>
@@ -1019,7 +1019,7 @@ function viewSessionDetail(i){
   const s = state.historySessions[i];
   if(!s) return;
   const score = s.score || 0;
-  const date = new Date(s.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
+  const date = new Date(s.created_at).toLocaleDateString(undefined, {day:'numeric',month:'short',year:'numeric'});
   const modeLabel = s.mode === 'technical' ? '💻 Technical' : s.mode === 'communication' ? '🎙️ Communication' : '🚀 Full Interview';
 
   document.getElementById('modalTitle').textContent = s.role || 'Interview Session';
@@ -1601,6 +1601,14 @@ function clearTranscript(){
   document.getElementById('voiceTranscript').textContent = 'Your answer will appear here as you speak…';
   document.getElementById('voiceSendBtn').disabled = true;
 }
+</script>
+<script>
+(function syncBrowserTimezone(){
+  const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if(!tz||localStorage.getItem('sb-timezone')===tz)return;
+  fetch('/api/user/timezone',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({timezone:tz})})
+    .then(r=>{if(r.ok)localStorage.setItem('sb-timezone',tz);}).catch(()=>{});
+})();
 </script>
 </body>
 </html>

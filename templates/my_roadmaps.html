@@ -510,7 +510,7 @@
           <a href="{{ url_for('view_roadmap', roadmap_id=roadmap._id) }}" class="roadmap-title">
             {{ roadmap.goal }}
           </a>
-          <span class="card-date">
+          <span class="card-date" data-utc="{{ utc_iso(roadmap.created_at) if roadmap.created_at else '' }}" data-format="date">
             {{ roadmap.created_at.strftime('%b %d, %Y') if roadmap.created_at else '' }}
           </span>
         </div>

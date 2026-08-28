@@ -98,7 +98,57 @@ body.dark .notif-float-badge { border-color: #2c2820 !important; }
         levelup:  { icon: 'fa-trophy',       cls: 'levelup'  },
         info:     { icon: 'fa-info-circle',  cls: 'info'     },
     };
+    const timeFmt = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
+    const dateFmt = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    const dateTimeFmt = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
     let isOpen = false;
+
+    function formatUtc(iso, format, fallback) {
+        if (!iso) return fallback || '';
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return fallback || '';
+        if (format === 'time') return timeFmt.format(d);
+        if (format === 'date') return dateFmt.format(d);
+        if (format === 'countdown') return formatCountdown(d);
+        return dateTimeFmt.format(d);
+    }
+
+    function formatCountdown(targetDate) {
+        const diffMs = targetDate.getTime() - Date.now();
+        if (diffMs <= 0) return 'any moment now';
+        const totalHours = Math.ceil(diffMs / 3600000);
+        if (totalHours < 24) return `${totalHours}h`;
+        const days = Math.floor(totalHours / 24);
+        const hours = totalHours % 24;
+        return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+    }
+
+    function refreshCountdowns() {
+        document.querySelectorAll('[data-format="countdown"]').forEach(el => {
+            el.textContent = formatUtc(el.dataset.utc, 'countdown', el.textContent);
+        });
+    }
+
+    window.SkillBridgeTime = {
+        formatUtc,
+        localizeAll: function(root) {
+            (root || document).querySelectorAll('[data-utc]').forEach(el => {
+                el.textContent = formatUtc(el.dataset.utc, el.dataset.format || 'datetime', el.textContent);
+            });
+        }
+    };
+
+    function syncBrowserTimezone() {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (!tz || localStorage.getItem('sb-timezone') === tz) return;
+        fetch('/api/user/timezone', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({timezone: tz})
+        }).then(res => {
+            if (res.ok) localStorage.setItem('sb-timezone', tz);
+        }).catch(() => {});
+    }
 
     window.toggleNotifDropdown = function(e) {
         e.stopPropagation();
@@ -151,7 +201,7 @@ body.dark .notif-float-badge { border-color: #2c2820 !important; }
                 <div class="notif-icon ${ic.cls}"><i class="fas ${ic.icon}"></i></div>
                 <div class="notif-body">
                     <div class="notif-msg">${n.message}</div>
-                    <div class="notif-time">${n.created_at}</div>
+                    <div class="notif-time">${formatUtc(n.created_at_iso, 'datetime', n.created_at)}</div>
                 </div>
                 ${!n.is_read ? '<div class="notif-unread-dot"></div>' : ''}
             </a>`;
@@ -198,7 +248,10 @@ body.dark .notif-float-badge { border-color: #2c2820 !important; }
         } catch(e) {}
     }
 
+    syncBrowserTimezone();
+    window.SkillBridgeTime.localizeAll();
     updateBadgeCount();
     setInterval(updateBadgeCount, 30000);
+    setInterval(refreshCountdowns, 60000);
 })();
 </script>

@@ -187,7 +187,7 @@ body {
   <div class="messages-box" id="msgContainer">
     {% for msg in messages %}
       {% set is_me = (msg.sender_id|string == current_user.id) %}
-      <div class="msg {{ 'sent' if is_me else 'received' }}">
+      <div class="msg {{ 'sent' if is_me else 'received' }}" data-id="{{ msg._id }}">
         
         <!-- ✅ SENDER NAME LOGIC -->
         <div class="sender-label">
@@ -195,7 +195,7 @@ body {
         </div>
 
         {{ msg.content }}
-        <span class="timestamp">{{ msg.timestamp_ist.strftime('%I:%M %p') + ' IST' if msg.timestamp_ist else msg.timestamp.strftime('%I:%M %p') }}</span>
+        <span class="timestamp" data-utc="{{ msg.timestamp_iso }}" data-format="time">{{ msg.timestamp.strftime('%I:%M %p') }} UTC</span>
       </div>
     {% endfor %}
   </div>
@@ -228,10 +228,23 @@ const RECEIVER_ID = "{{ receiver._id }}";
 const MY_ID       = "{{ current_user.id }}";
 const RECV_NAME   = "{{ receiver.name }}";
 let lastIso = null;
+{% if messages %}
+lastIso = "{{ messages[-1].timestamp_iso }}";
+{% endif %}
 
 function escapeHtml(s){
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+
+function formatUtcTime(iso, fallback='') {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return fallback;
+  return new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(d);
+}
+
+document.querySelectorAll('[data-utc]').forEach(el => {
+  el.textContent = formatUtcTime(el.dataset.utc, el.textContent);
+});
 
 async function pollMessages() {
   try {
@@ -249,7 +262,7 @@ async function pollMessages() {
       const div = document.createElement('div');
       div.className = `msg ${isMe ? 'sent' : 'received'}`;
       div.dataset.id = msg.id;
-      div.innerHTML = `<div class="sender-label">${isMe ? 'Me' : escapeHtml(RECV_NAME)}</div>${escapeHtml(msg.content)}<span class="timestamp">${msg.timestamp_str}</span>`;
+      div.innerHTML = `<div class="sender-label">${isMe ? 'Me' : escapeHtml(RECV_NAME)}</div>${escapeHtml(msg.content)}<span class="timestamp">${formatUtcTime(msg.timestamp_iso, msg.timestamp_str)}</span>`;
       container.appendChild(div);
       lastIso = msg.timestamp_iso;
     });
@@ -276,11 +289,6 @@ if (form && input) {
     } catch(err) {}
   });
 }
-
-// Add data-id to existing rendered messages so dedup works
-document.querySelectorAll('.msg').forEach((el, i) => {
-  if (!el.dataset.id) el.dataset.id = 'init-' + i;
-});
 
 setInterval(pollMessages, 2500);
 </script>

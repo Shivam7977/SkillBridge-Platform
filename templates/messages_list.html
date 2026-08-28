@@ -243,7 +243,7 @@ body { font-family: 'DM Sans', sans-serif; }
               </div>
 
               <div class="message-meta flex items-center gap-3 justify-self-end">
-                <span class="text-[11px] font-bold text-ink-400 dark:text-ink-500 whitespace-nowrap">{{ chat.timestamp }}</span>
+                <span class="text-[11px] font-bold text-ink-400 dark:text-ink-500 whitespace-nowrap" data-utc="{{ chat.timestamp_iso }}" data-format="datetime">{{ chat.timestamp }}</span>
                 {% if chat.is_unread %}
                   <span class="unread-dot" title="Unread"></span>
                 {% endif %}

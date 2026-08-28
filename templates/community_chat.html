@@ -541,9 +541,9 @@ body{font-family:'DM Sans',sans-serif;background:#f8f4ec;color:#1a1714;min-heigh
         {% else %}
         {% set ns = namespace(last_date='', last_sender='') %}
         {% for msg in messages %}
-          {% set msg_date = msg.timestamp.strftime('%b %d, %Y') if msg.timestamp else 'Today' %}
+          {% set msg_date = msg.timestamp.strftime('%Y-%m-%d') if msg.timestamp else 'Today' %}
           {% if msg_date != ns.last_date %}
-            <div class="date-sep">{{ msg_date }}</div>
+            <div class="date-sep" data-utc="{{ msg.timestamp_iso }}" data-format="date">{{ msg.timestamp.strftime('%b %d, %Y') if msg.timestamp else 'Today' }}</div>
             {% set ns.last_date = msg_date %}
             {% set ns.last_sender = '' %}
           {% endif %}
@@ -559,7 +559,7 @@ body{font-family:'DM Sans',sans-serif;background:#f8f4ec;color:#1a1714;min-heigh
                 {% if sender_role == 'owner' %}<span class="role-badge">Owner</span>{% endif %}
               </div>
               <div class="msg-text">{{ msg.message }}</div>
-              <div class="msg-time">{{ msg.timestamp.strftime('%I:%M %p') + ' IST' if msg.timestamp else '' }}</div>
+              <div class="msg-time" data-utc="{{ msg.timestamp_iso }}" data-format="time">{{ msg.timestamp.strftime('%I:%M %p') + ' UTC' if msg.timestamp else '' }}</div>
               {% if is_member %}
               <div class="msg-actions">
                 {% for emoji in ['👍','❤️','🔥','😂'] %}
@@ -761,14 +761,20 @@ function handleKey(e){
   if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}
 }
 
-/* IST time */
-function nowIST(){
-  const utc=Date.now()+new Date().getTimezoneOffset()*60000;
-  const ist=new Date(utc+5.5*3600000);
-  let h=ist.getHours(),m=ist.getMinutes();
-  const ap=h>=12?'PM':'AM';h=h%12||12;
-  return `${h<10?'0'+h:h}:${m<10?'0'+m:m} ${ap} IST`;
+/* Browser-local time */
+function formatUtc(iso, format='time', fallback=''){
+  if(window.SkillBridgeTime) return window.SkillBridgeTime.formatUtc(iso, format, fallback);
+  const d=new Date(iso);
+  if(Number.isNaN(d.getTime())) return fallback;
+  const opts=format==='date'
+    ? {month:'short',day:'numeric',year:'numeric'}
+    : {hour:'numeric',minute:'2-digit'};
+  return new Intl.DateTimeFormat(undefined,opts).format(d);
 }
+function nowLocalTime(){
+  return formatUtc(new Date().toISOString(),'time');
+}
+if(window.SkillBridgeTime) window.SkillBridgeTime.localizeAll(document);
 function escHtml(s){
   if(!s)return'';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -830,7 +836,7 @@ async function sendMessage(){
   const wrap=document.getElementById('messages-wrap');
   const tempId='temp-'+Date.now();
   pendingTempId=tempId;
-  const tempDiv=buildMsg(tempId,true,'',text,nowIST());
+  const tempDiv=buildMsg(tempId,true,'',text,nowLocalTime());
   tempDiv.style.opacity='.5';
   const empty=wrap.querySelector('.empty-state');
   if(empty)empty.remove();
@@ -864,7 +870,7 @@ async function pollMessages(){
       data.messages.forEach(msg=>{
         if(document.getElementById(`msg-${msg.id}`)){lastTimestamp=msg.timestamp_iso;return;}
         if(msg.is_me&&pendingTempId){document.getElementById(pendingTempId)?.remove();pendingTempId=null;}
-        wrap.appendChild(buildMsg(`msg-${msg.id}`,msg.is_me,msg.sender_name,msg.message,msg.timestamp));
+        wrap.appendChild(buildMsg(`msg-${msg.id}`,msg.is_me,msg.sender_name,msg.message,formatUtc(msg.timestamp_iso,'time',msg.timestamp)));
         lastTimestamp=msg.timestamp_iso;added=true;
       });
       if(added&&atBottom)wrap.scrollTop=wrap.scrollHeight;

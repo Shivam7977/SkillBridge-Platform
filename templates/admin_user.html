@@ -365,7 +365,7 @@
               <tr id="pr-{{ p._id }}">
                 <td><strong>{{ p.title }}</strong></td>
                 <td class="hide-sm" style="font-size:.72rem;color:#9c9488;">{{ p.skills_needed|join(', ') if p.skills_needed else '—' }}</td>
-                <td class="hide-sm" style="font-size:.72rem;color:#9c9488;">{{ p.created_at.strftime('%b %d, %Y') if p.created_at else 'N/A' }}</td>
+                <td class="hide-sm" style="font-size:.72rem;color:#9c9488;" data-utc="{{ utc_iso(p.created_at) if p.created_at else '' }}" data-format="date">{{ p.created_at.strftime('%b %d, %Y') if p.created_at else 'N/A' }}</td>
                 <td><button class="btn btn-danger" onclick="deleteProject('{{ p._id }}','{{ p.title }}')"><i class="fas fa-trash"></i></button></td>
               </tr>
               {% endfor %}
@@ -470,7 +470,7 @@
               <div class="tl-dot {{ h.type }}">{{ '+' if h.type == 'earn' else '-' }}</div>
               <div style="flex:1;">
                 <div class="tl-reason">{{ h.reason }}</div>
-                <div class="tl-time">{{ h.timestamp.strftime('%b %d, %Y at %I:%M %p') if h.timestamp else 'N/A' }}</div>
+                <div class="tl-time" data-utc="{{ utc_iso(h.timestamp) if h.timestamp else '' }}" data-format="datetime">{{ h.timestamp.strftime('%b %d, %Y at %I:%M %p') if h.timestamp else 'N/A' }}</div>
               </div>
               <div class="tl-pts {{ h.type }}">{{ '+' if h.points > 0 else '' }}{{ h.points }} XP</div>
             </div>
@@ -517,6 +517,22 @@ function toggleTheme(){
   if(ic) ic.className = isDark?'fas fa-sun':'fas fa-moon';
   if(lb) lb.textContent = isDark?'Light Mode':'Dark Mode';
 }
+
+function formatUtc(iso, format='datetime', fallback=''){
+  if(!iso)return fallback||'';
+  const d=new Date(iso);
+  if(Number.isNaN(d.getTime()))return fallback||'';
+  const opts=format==='date'?{month:'short',day:'numeric',year:'numeric'}:{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'};
+  return new Intl.DateTimeFormat(undefined,opts).format(d);
+}
+document.querySelectorAll('[data-utc]').forEach(el=>{el.textContent=formatUtc(el.dataset.utc,el.dataset.format||'datetime',el.textContent);});
+function syncBrowserTimezone(){
+  const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if(!tz||localStorage.getItem('sb-timezone')===tz)return;
+  fetch('/api/user/timezone',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({timezone:tz})})
+    .then(r=>{if(r.ok)localStorage.setItem('sb-timezone',tz);}).catch(()=>{});
+}
+syncBrowserTimezone();
 
 // Sidebar
 function openSidebar(){
