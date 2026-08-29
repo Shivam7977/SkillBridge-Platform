@@ -159,6 +159,7 @@ try:
     xp_history_collection = db["xp_history"]
     comments_collection = db["comments"]
     interview_sessions_collection = db["interview_sessions"]
+    deleted_accounts_collection = db["deleted_accounts"]
     # Indexes for comments
     comments_collection.create_index([("project_id", 1), ("created_at", -1)])
     comments_collection.create_index([("parent_id", 1)])
@@ -684,6 +685,21 @@ def create_notification(user_id, notif_type, message, link="#"):
     except Exception as e:
         print(f"Notification error: {e}")
 
+def log_account_deletion(user_doc, deleted_by):
+    """Audit record kept AFTER the user document is hard-deleted.
+    deleted_by: 'Self' (user deleted their own account) or the admin's name."""
+    try:
+        deleted_accounts_collection.insert_one({
+            'name': user_doc.get('name', 'Unknown'),
+            'email': user_doc.get('email', ''),
+            'username': user_doc.get('username', ''),
+            'was_banned': user_doc.get('is_banned', False),
+            'deleted_by': deleted_by,
+            'deleted_at': now_utc(),
+        })
+    except Exception as e:
+        print(f"Deletion log error: {e}")
+
 def check_inactive_roadmaps():
     """Runs daily (7 PM IST). Tracks per-roadmap inactivity but sends one digest per user."""
     try:
@@ -743,7 +759,7 @@ def check_inactive_roadmaps():
             for rm, target_stage, _ in items:
                 roadmaps_collection.update_one(
                     {'_id': rm['_id']},
-                    {'$set': {'reminder_stage': target_stage}}
+                    {'$set': {'reminder_stage': target_stage, 'last_reminder_sent_at': now}}
                 )
             sent_count += 1
 
@@ -3717,6 +3733,9 @@ def change_password():
 @login_required
 def delete_account():
     user_id = ObjectId(current_user.id)
+    user_doc = users_collection.find_one({'_id': user_id})
+    if user_doc:
+        log_account_deletion(user_doc, deleted_by='Self')
 
     # Delete all user data
     projects_collection.delete_many({'created_by_id': user_id})
@@ -4261,9 +4280,9 @@ def admin_panel():
     # Users
     users = list(users_collection.find({}, {
         'name': 1, 'email': 1, 'xp': 1, 'level': 1, 'badge': 1,
-        'streak_count': 1, 'is_admin': 1, 'is_banned': 1,
+        'streak_count': 1, 'is_admin': 1, 'is_banned': 1, 'banned_at': 1, 'banned_by': 1,
         'created_at': 1, 'profile_pic': 1, 'ai_usage': 1, 'timezone': 1, 'username': 1,
-        'current_status': 1, 'work_experience': 1, 'experience_years': 1
+        'current_status': 1, 'work_experience': 1, 'experience_years': 1, 'last_activity_date': 1
     }).sort('xp', -1))
 
     for u in users:
@@ -4271,6 +4290,7 @@ def admin_panel():
         u['xp'] = u.get('xp', 0)
         u['streak_count'] = u.get('streak_count', 0)
         u['username'] = u.get('username', '')
+        u['last_login'] = u.get('last_activity_date')
         pic = u.get('profile_pic', 'default.jpg')
         u['profile_pic_url'] = f"/static/profile_pics/{pic}"
         ai = u.get('ai_usage', {})
@@ -4346,6 +4366,8 @@ def admin_panel():
         stages = content.get('stages', []) if isinstance(content, dict) else []
         r['stage_count'] = len(stages)
         r['completed_stages'] = sum(1 for s in stages if isinstance(s, dict) and s.get('completed'))
+        r['last_visited'] = r.get('last_activity')
+        r['last_reminder_sent_at'] = r.get('last_reminder_sent_at')
 
     # Comments — fetch all, enrich with project title and user info
     raw_comments = list(comments_collection.find().sort('created_at', -1))
@@ -4368,6 +4390,11 @@ def admin_panel():
 
     total_comments = comments_collection.count_documents({})
 
+    # Deleted accounts (audit log — survives the hard delete)
+    deleted_accounts = list(deleted_accounts_collection.find().sort('deleted_at', -1))
+    for d in deleted_accounts:
+        d['_id'] = str(d['_id'])
+
     # Stats
     all_projects_stats = list(projects_collection.find({}, {'views': 1, 'likes': 1}))
     stats = {
@@ -4377,6 +4404,7 @@ def admin_panel():
         'total_communities': communities_collection.count_documents({}),
         'pending_approvals': commits_collection.count_documents({'xp_status': 'pending'}),
         'banned_users': users_collection.count_documents({'is_banned': True}),
+        'deleted_accounts': len(deleted_accounts),
         'total_xp_awarded': sum(u.get('xp', 0) for u in users_collection.find({}, {'xp': 1})),
         'total_views': sum(p.get('views', 0) for p in all_projects_stats),
         'total_likes': sum(len(p.get('likes', [])) for p in all_projects_stats),
@@ -4390,6 +4418,7 @@ def admin_panel():
         communities=communities,
         roadmaps=roadmaps,
         all_comments=all_comments,
+        deleted_accounts=deleted_accounts,
         stats=stats
     )
 
@@ -4460,7 +4489,12 @@ def admin_adjust_xp(user_id):
 @login_required
 @admin_required
 def admin_ban_user(user_id):
-    users_collection.update_one({'_id': ObjectId(user_id)}, {'$set': {'is_banned': True}})
+    admin_doc = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'name': 1})
+    admin_name = admin_doc.get('name', 'Admin') if admin_doc else 'Admin'
+    users_collection.update_one(
+        {'_id': ObjectId(user_id)},
+        {'$set': {'is_banned': True, 'banned_at': now_utc(), 'banned_by': admin_name}}
+    )
     create_notification(
         user_id, 'declined',
         'Your account has been suspended by an admin. Contact support if you think this is a mistake.',
@@ -4474,8 +4508,27 @@ def admin_ban_user(user_id):
 @admin_required
 def admin_unban_user(user_id):
     """Unban a user"""
-    users_collection.update_one({'_id': ObjectId(user_id)}, {'$unset': {'is_banned': '$set'}})
+    users_collection.update_one(
+        {'_id': ObjectId(user_id)},
+        {'$unset': {'is_banned': '', 'banned_at': '', 'banned_by': ''}}
+    )
     return jsonify({'success': True})
+
+
+@app.route('/admin/toggle_email_reminders/<user_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_toggle_email_reminders(user_id):
+    """Admin flips a user's roadmap-reminder email preference (e.g. on support request)."""
+    user = users_collection.find_one({'_id': ObjectId(user_id)}, {'email_reminders_enabled': 1})
+    if not user:
+        return jsonify({'success': False, 'error': 'User not found'}), 404
+    new_val = not user.get('email_reminders_enabled', True)
+    users_collection.update_one(
+        {'_id': ObjectId(user_id)},
+        {'$set': {'email_reminders_enabled': new_val, 'email_preferences_updated_at': now_utc()}}
+    )
+    return jsonify({'success': True, 'email_reminders_enabled': new_val})
 
 
 @app.route('/admin/delete_user/<user_id>', methods=['POST'])
@@ -4484,6 +4537,11 @@ def admin_unban_user(user_id):
 def admin_delete_user(user_id):
     """Admin deletes a user and all their data"""
     uid = ObjectId(user_id)
+    user_doc = users_collection.find_one({'_id': uid})
+    admin_doc = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'name': 1})
+    admin_name = admin_doc.get('name', 'Admin') if admin_doc else 'Admin'
+    if user_doc:
+        log_account_deletion(user_doc, deleted_by=admin_name)
     projects_collection.delete_many({'created_by_id': uid})
     roadmaps_collection.delete_many({'user_id': uid})
     commits_collection.delete_many({'user_id': uid})
@@ -4632,6 +4690,10 @@ def admin_user_detail(user_id):
     user['progress_pct'] = progress_pct
     user['streak_count'] = user.get('streak_count', 0)
     user['member_since'] = to_ist(user.get('created_at')).strftime('%B %Y')
+    user['last_login'] = user.get('last_activity_date')
+    user['email_reminders_enabled'] = user.get('email_reminders_enabled', True)
+    user['banned_at'] = user.get('banned_at')
+    user['banned_by'] = user.get('banned_by')
 
     # Projects
     projects = list(projects_collection.find({'created_by_id': uid}).sort('created_at', -1))
@@ -4652,6 +4714,8 @@ def admin_user_detail(user_id):
         stages = content.get('stages', []) if isinstance(content, dict) else []
         r['stage_count'] = len(stages)
         r['completed_stages'] = sum(1 for s in stages if isinstance(s, dict) and s.get('completed'))
+        r['last_visited'] = r.get('last_activity')
+        r['last_reminder_sent_at'] = r.get('last_reminder_sent_at')
 
     # Certificates
     certificates = user.get('certificates', [])

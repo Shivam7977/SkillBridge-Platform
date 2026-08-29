@@ -278,6 +278,7 @@
             {% if user.location %}<span><i class="fas fa-map-marker-alt"></i> {{ user.location }}</span>{% endif %}
             {% if user.experience_years %}<span class="hide-sm"><i class="fas fa-briefcase"></i> {{ user.experience_years }} yrs</span>{% endif %}
             <span class="hide-sm"><i class="fas fa-calendar"></i> {{ user.member_since }}</span>
+            <span><i class="fas fa-clock"></i> Last login: {% if user.last_login %}<span data-utc="{{ utc_iso(user.last_login) }}" data-format="datetime">{{ user.last_login.strftime('%b %d, %Y') }}</span>{% else %}Never{% endif %}</span>
           </div>
           <div class="hero-actions">
             <button class="btn btn-ink" onclick="openXpModal()"><i class="fas fa-coins"></i> <span>Adjust XP</span></button>
@@ -287,6 +288,10 @@
             <button class="btn btn-warning" onclick="banUser()"><i class="fas fa-ban"></i> <span>Ban</span></button>
             {% endif %}
             <button class="btn btn-danger" onclick="deleteUser()"><i class="fas fa-trash"></i> <span>Delete</span></button>
+            <button class="btn {{ 'btn-success' if user.email_reminders_enabled else 'btn-warning' }}" id="notif-btn" onclick="toggleEmailReminders()">
+              <i class="fas fa-bell{{ '' if user.email_reminders_enabled else '-slash' }}" id="notif-icon"></i>
+              <span id="notif-lbl">Reminders: {{ 'On' if user.email_reminders_enabled else 'Off' }}</span>
+            </button>
           </div>
         </div>
       </div>
@@ -300,6 +305,20 @@
         <div class="xp-bar-wrap">
           <div class="xp-bar-label"><span>Progress to next level</span><span>{{ user.xp }} / {{ user.level_info.next_xp }} XP</span></div>
           <div class="xp-bar"><div class="xp-bar-fill" style="width:{{ user.progress_pct }}%"></div></div>
+        </div>
+      </div>
+
+      <!-- ── ACCOUNT INFO ── -->
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-header"><h3><i class="fas fa-shield-alt" style="color:#c4973a;"></i> Account Info</h3></div>
+        <div class="card-body">
+          <div class="info-row"><span class="info-label">Account Created</span><span class="info-value" data-utc="{{ utc_iso(user.created_at) if user.created_at else '' }}" data-format="datetime">{{ user.created_at.strftime('%b %d, %Y at %I:%M %p') if user.created_at else 'N/A' }}</span></div>
+          <div class="info-row"><span class="info-label">Last Login</span><span class="info-value">{% if user.last_login %}<span data-utc="{{ utc_iso(user.last_login) }}" data-format="datetime">{{ user.last_login.strftime('%b %d, %Y at %I:%M %p') }}</span>{% else %}Never{% endif %}</span></div>
+          <div class="info-row"><span class="info-label">Status</span><span class="info-value">{% if user.is_banned %}<span class="pill banned">Banned</span>{% else %}<span style="color:#10b981;font-weight:800;">Active</span>{% endif %}</span></div>
+          {% if user.is_banned %}
+          <div class="info-row"><span class="info-label">Banned By</span><span class="info-value">{{ user.banned_by or '—' }}</span></div>
+          <div class="info-row"><span class="info-label">Banned At</span><span class="info-value">{% if user.banned_at %}<span data-utc="{{ utc_iso(user.banned_at) }}" data-format="datetime">{{ user.banned_at.strftime('%b %d, %Y at %I:%M %p') }}</span>{% else %}—{% endif %}</span></div>
+          {% endif %}
         </div>
       </div>
 
@@ -387,13 +406,15 @@
         <div class="card-body-collapse closed" id="roadmaps-body" style="max-height:0;">
           {% if roadmaps %}
           <table class="adm-table">
-            <thead><tr><th>Goal</th><th class="hide-sm">Stages</th><th class="hide-sm">Progress</th><th>Action</th></tr></thead>
+            <thead><tr><th>Goal</th><th class="hide-sm">Stages</th><th class="hide-sm">Progress</th><th class="hide-sm">Last Visited</th><th class="hide-sm">Last Reminder Sent</th><th>Action</th></tr></thead>
             <tbody>
               {% for r in roadmaps %}
               <tr id="rm-{{ r._id }}">
                 <td><strong>{{ r.goal }}</strong></td>
                 <td class="hide-sm">{{ r.stage_count }}</td>
                 <td class="hide-sm">{{ r.completed_stages }}/{{ r.stage_count }}</td>
+                <td class="hide-sm" style="font-size:.72rem;color:#9c9488;">{% if r.last_visited %}<span data-utc="{{ utc_iso(r.last_visited) }}" data-format="date">{{ r.last_visited.strftime('%b %d, %Y') }}</span>{% else %}—{% endif %}</td>
+                <td class="hide-sm" style="font-size:.72rem;color:#9c9488;">{% if r.last_reminder_sent_at %}<span data-utc="{{ utc_iso(r.last_reminder_sent_at) }}" data-format="date">{{ r.last_reminder_sent_at.strftime('%b %d, %Y') }}</span>{% else %}Never{% endif %}</td>
                 <td><button class="btn btn-danger" onclick="deleteRoadmap('{{ r._id }}','{{ r.goal }}')"><i class="fas fa-trash"></i></button></td>
               </tr>
               {% endfor %}
@@ -590,6 +611,18 @@ function submitXp(){
   if(!points||isNaN(points)){showToast('Enter valid points',true);return;}
   fetch('/admin/adjust_xp/'+USER_ID,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({points,reason})})
   .then(r=>r.json()).then(d=>{ if(d.success){closeXpModal();showToast('XP updated! New total: '+d.new_xp+' ('+d.badge+')');setTimeout(()=>location.reload(),1500);}else showToast(d.error,true); });
+}
+function toggleEmailReminders(){
+  fetch('/admin/toggle_email_reminders/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{
+    if(d.success){
+      const btn=document.getElementById('notif-btn'), icon=document.getElementById('notif-icon'), lbl=document.getElementById('notif-lbl');
+      btn.classList.remove('btn-success','btn-warning');
+      btn.classList.add(d.email_reminders_enabled?'btn-success':'btn-warning');
+      icon.className='fas '+(d.email_reminders_enabled?'fa-bell':'fa-bell-slash');
+      lbl.textContent='Reminders: '+(d.email_reminders_enabled?'On':'Off');
+      showToast('Email reminders turned '+(d.email_reminders_enabled?'on':'off')+' for this user.');
+    } else showToast(d.error,true);
+  });
 }
 function banUser(){ if(!confirm('Ban {{ user.name }}?'))return; fetch('/admin/ban_user/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('User banned.');setTimeout(()=>location.reload(),1200);}else showToast(d.error,true);}); }
 function unbanUser(){ fetch('/admin/unban_user/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('User unbanned.');setTimeout(()=>location.reload(),1200);}else showToast(d.error,true);}); }

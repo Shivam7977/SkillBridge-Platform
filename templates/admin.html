@@ -412,7 +412,7 @@
       </div>
 
       <!-- ── STATS GRID ── -->
-      <div class="stats-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-bottom:20px;">
+      <div class="stats-grid" style="display:grid;grid-template-columns:repeat(8,1fr);gap:12px;margin-bottom:20px;">
 
         <div class="stat-card" onclick="smoothTo('users')" style="cursor:pointer;">
           <div class="stat-label">Total Users</div>
@@ -442,6 +442,11 @@
         <div class="stat-card">
           <div class="stat-label">Banned</div>
           <div class="stat-value" style="color:#dc2626;">{{ stats.banned_users }}</div>
+        </div>
+
+        <div class="stat-card" onclick="smoothTo('users')" style="cursor:pointer;">
+          <div class="stat-label">Deleted</div>
+          <div class="stat-value" style="color:#9c9488;">{{ stats.deleted_accounts }}</div>
         </div>
 
         <div class="stat-card">
@@ -520,6 +525,7 @@
             <button class="tab-btn" onclick="switchTab(event,'users','active')">Active</button>
             <button class="tab-btn" onclick="switchTab(event,'users','banned')">Banned ({{ stats.banned_users }})</button>
             <button class="tab-btn" onclick="switchTab(event,'users','admins')">Admins</button>
+            <button class="tab-btn" onclick="switchTab(event,'users','deleted')">Deleted ({{ stats.deleted_accounts }})</button>
           </div>
           <!-- search -->
           <div class="search-bar">
@@ -536,6 +542,7 @@
                   <th class="hide-mobile">Badge</th>
                   <th class="hide-mobile">Streak</th>
                   <th style="min-width:100px;">🤖 AI</th>
+                  <th class="hide-mobile">Last Login</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr></thead>
@@ -573,6 +580,7 @@
                       {% elif u.is_admin %}<span class="pill pill-admin">Admin</span>
                       {% else %}<span class="pill pill-active">Active</span>{% endif %}
                     </td>
+                    <td class="hide-mobile" style="color:#9c9488;font-size:11px;white-space:nowrap;">{% if u.last_login %}<span data-utc="{{ utc_iso(u.last_login) }}" data-format="date">{{ u.last_login.strftime('%b %d, %Y') }}</span>{% else %}Never{% endif %}</td>
                     <td>
                       <div style="display:flex;gap:4px;flex-wrap:wrap;">
                         <a href="{{ url_for('admin_user_detail', user_id=u._id) }}" class="btn btn-view" data-tip="View"><i class="fas fa-eye" style="font-size:9px;"></i> <span class="btn-label">View</span></a>
@@ -652,6 +660,25 @@
             </table></div>
           </div>
 
+          <!-- DELETED -->
+          <div class="tab-pane" id="users-tab-deleted">
+            {% if deleted_accounts %}
+            <div style="overflow-x:auto;"><table class="adm-table">
+              <thead><tr><th>Name</th><th class="hide-mobile">Email</th><th>Deleted By</th><th class="hide-mobile">Deleted At</th></tr></thead>
+              <tbody>
+                {% for d in deleted_accounts %}
+                <tr>
+                  <td style="font-weight:700;">{{ d.name }}{% if d.username %}<br><span class="uhandle">@{{ d.username }}</span>{% endif %}</td>
+                  <td class="hide-mobile" style="color:#9c9488;">{{ d.email }}</td>
+                  <td><span style="font-size:11px;font-weight:700;{% if d.deleted_by=='Self' %}color:#9c9488;{% else %}color:#c4973a;{% endif %}">{{ d.deleted_by }}</span></td>
+                  <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;" data-utc="{{ utc_iso(d.deleted_at) if d.deleted_at else '' }}" data-format="datetime">{{ d.deleted_at.strftime('%b %d, %Y at %I:%M %p') if d.deleted_at else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table></div>
+            {% else %}<div style="padding:20px;text-align:center;font-size:12px;color:#9c9488;font-weight:600;">No deleted accounts.</div>{% endif %}
+          </div>
+
         </div>
       </div>
 
@@ -714,6 +741,8 @@
                 <th>Goal</th><th>User</th>
                 <th class="hide-mobile">Stages</th>
                 <th class="hide-mobile">Progress</th>
+                <th class="hide-mobile">Last Visited</th>
+                <th class="hide-mobile">Last Reminder Sent</th>
                 <th class="hide-mobile">Created</th>
                 <th>Actions</th>
               </tr></thead>
@@ -724,6 +753,8 @@
                   <td>{{ r.user_name }}{% if r.username %}<br><span class="uhandle">@{{ r.username }}</span>{% endif %}</td>
                   <td class="hide-mobile" style="font-weight:600;">{{ r.stage_count }}</td>
                   <td class="hide-mobile"><span style="font-weight:800;color:#c4973a;">{{ r.completed_stages }}</span><span style="color:#9c9488;">/{{ r.stage_count }}</span></td>
+                  <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;">{% if r.last_visited %}<span data-utc="{{ utc_iso(r.last_visited) }}" data-format="date">{{ r.last_visited.strftime('%b %d, %Y') }}</span>{% else %}—{% endif %}</td>
+                  <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;">{% if r.last_reminder_sent_at %}<span data-utc="{{ utc_iso(r.last_reminder_sent_at) }}" data-format="date">{{ r.last_reminder_sent_at.strftime('%b %d, %Y') }}</span>{% else %}Never{% endif %}</td>
                   <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;" data-utc="{{ utc_iso(r.created_at) if r.created_at else '' }}" data-format="date">{{ r.created_at.strftime('%b %d, %Y') if r.created_at else 'N/A' }}</td>
                   <td><button class="btn btn-danger" data-tip="Delete Roadmap" onclick="deleteRoadmap('{{ r._id }}','{{ r.goal }}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete</span></button></td>
                 </tr>
