@@ -176,6 +176,46 @@
     .modal-input:focus{border-color:#1a1714;}
     .dark .modal-input:focus{border-color:#f0e9d8;}
     .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;}
+
+    /* ── DETAIL MODAL (Project/Roadmap/Community — distinct from xp-modal above) ── */
+    .dmodal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;backdrop-filter:blur(3px);}
+    .dmodal-overlay.show{display:block;}
+    .dmodal-box{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9001;width:94%;max-width:720px;max-height:85vh;background:#fff;border:1px solid #e5d9c0;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.18);overflow:hidden;flex-direction:column;}
+    .dark .dmodal-box{background:#2c2820;border-color:#3d3830;}
+    .dmodal-box.show{display:flex;}
+    .dmodal-head{padding:12px 16px;border-bottom:1px solid #e5d9c0;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+    .dark .dmodal-head{border-color:#3d3830;}
+    .dmodal-body{overflow-y:auto;padding:14px 16px;flex:1;}
+    #dmodal-back{background:none;border:1px solid #e5d9c0;border-radius:7px;width:26px;height:26px;flex-shrink:0;cursor:pointer;color:#7a7268;align-items:center;justify-content:center;font-size:11px;}
+    .dark #dmodal-back{border-color:#3d3830;color:#9c9488;}
+    .detail-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;background:linear-gradient(135deg,#1a1714 0%,#2c2820 60%,#3d3830 100%);border-radius:12px;padding:14px 16px;margin-bottom:14px;}
+    .dstat-lbl{font-size:.62rem;opacity:.7;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#f0e9d8;}
+    .dstat-val{font-size:1.15rem;font-weight:900;margin-top:2px;color:#f0e9d8;}
+    .detail-section{margin-bottom:14px;}
+    .detail-section-h{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#9c9488;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid #f0e9d8;}
+    .dark .detail-section-h{border-color:#3d3830;}
+    .drow{display:flex;justify-content:space-between;align-items:flex-start;padding:.4rem 0;border-bottom:1px solid #f8f4ec;font-size:.8rem;gap:8px;}
+    .dark .drow{border-color:#3d3830;}
+    .drow:last-child{border-bottom:none;}
+    .drow-label{color:#7a7268;font-weight:600;flex-shrink:0;}
+    .drow-value{font-weight:600;text-align:right;color:#1a1714;word-break:break-word;}
+    .dark .drow-value{color:#f0e9d8;}
+    .dpeople-row{display:flex;align-items:center;gap:9px;padding:.4rem 0;border-bottom:1px solid #f8f4ec;}
+    .dark .dpeople-row{border-color:#3d3830;}
+    .dpeople-row:last-child{border-bottom:none;}
+    .dpeople-avatar{width:26px;height:26px;border-radius:7px;object-fit:cover;border:1px solid #e5d9c0;flex-shrink:0;}
+    .dstage-row{display:flex;align-items:center;gap:10px;padding:.45rem 0;border-bottom:1px solid #f8f4ec;}
+    .dark .dstage-row{border-color:#3d3830;}
+    .dstage-status.done{color:#10b981;}
+    .dstage-status.pending{color:#9c9488;}
+    .dprogress-track{height:8px;background:#f0e9d8;border-radius:6px;overflow:hidden;margin-top:5px;}
+    .dark .dprogress-track{background:#3d3830;}
+    .dprogress-fill{height:100%;background:#c4973a;border-radius:6px;}
+    .drole-tag{font-size:.64rem;font-weight:800;padding:2px 8px;border-radius:20px;flex-shrink:0;}
+    .drole-tag.owner{background:rgba(196,151,58,.12);color:#c4973a;}
+    .drole-tag.admin{background:rgba(8,145,178,.1);color:#0891b2;}
+    .drole-tag.member{background:rgba(156,148,136,.12);color:#7a7268;}
+    .dempty{padding:1rem;text-align:center;color:#9c9488;font-size:.8rem;}
     .m-cancel{padding:9px 16px;border-radius:9px;border:1.5px solid #e5d9c0;background:#fff;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;color:#7a7268;font-size:.85rem;}
     .dark .m-cancel{background:#1a1714;border-color:#3d3830;color:#9c9488;}
     .m-confirm{padding:9px 16px;border-radius:9px;border:none;background:#1a1714;color:#f8f4ec;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.85rem;}
@@ -385,7 +425,12 @@
                 <td><strong>{{ p.title }}</strong></td>
                 <td class="hide-sm" style="font-size:.72rem;color:#9c9488;">{{ p.skills_needed|join(', ') if p.skills_needed else '—' }}</td>
                 <td class="hide-sm" style="font-size:.72rem;color:#9c9488;" data-utc="{{ utc_iso(p.created_at) if p.created_at else '' }}" data-format="date">{{ p.created_at.strftime('%b %d, %Y') if p.created_at else 'N/A' }}</td>
-                <td><button class="btn btn-danger" onclick="deleteProject('{{ p._id }}','{{ p.title }}')"><i class="fas fa-trash"></i></button></td>
+                <td>
+                  <div style="display:flex;gap:5px;">
+                    <button class="btn btn-ink" onclick="openProjectDetail('{{ p._id }}')"><i class="fas fa-eye"></i></button>
+                    <button class="btn btn-danger" onclick="deleteProject('{{ p._id }}','{{ p.title }}')"><i class="fas fa-trash"></i></button>
+                  </div>
+                </td>
               </tr>
               {% endfor %}
             </tbody>
@@ -415,7 +460,12 @@
                 <td class="hide-sm">{{ r.completed_stages }}/{{ r.stage_count }}</td>
                 <td class="hide-sm" style="font-size:.72rem;color:#9c9488;">{% if r.last_visited %}<span data-utc="{{ utc_iso(r.last_visited) }}" data-format="date">{{ r.last_visited.strftime('%b %d, %Y') }}</span>{% else %}—{% endif %}</td>
                 <td class="hide-sm" style="font-size:.72rem;color:#9c9488;">{% if r.last_reminder_sent_at %}<span data-utc="{{ utc_iso(r.last_reminder_sent_at) }}" data-format="date">{{ r.last_reminder_sent_at.strftime('%b %d, %Y') }}</span>{% else %}Never{% endif %}</td>
-                <td><button class="btn btn-danger" onclick="deleteRoadmap('{{ r._id }}','{{ r.goal }}')"><i class="fas fa-trash"></i></button></td>
+                <td>
+                  <div style="display:flex;gap:5px;">
+                    <button class="btn btn-ink" onclick="openRoadmapDetail('{{ r._id }}')"><i class="fas fa-eye"></i></button>
+                    <button class="btn btn-danger" onclick="deleteRoadmap('{{ r._id }}','{{ r.goal }}')"><i class="fas fa-trash"></i></button>
+                  </div>
+                </td>
               </tr>
               {% endfor %}
             </tbody>
@@ -459,13 +509,14 @@
         <div class="card-body-collapse closed" id="communities-body" style="max-height:0;">
           {% if communities %}
           <table class="adm-table">
-            <thead><tr><th>Community</th><th>Role</th><th class="hide-sm">Members</th></tr></thead>
+            <thead><tr><th>Community</th><th>Role</th><th class="hide-sm">Members</th><th>Action</th></tr></thead>
             <tbody>
               {% for c in communities %}
               <tr>
                 <td><strong>{{ c.project_title }}</strong></td>
                 <td><span style="font-size:.76rem;font-weight:700;color:{{ '#c4973a' if c.is_owner else '#9c9488' }}">{{ 'Owner' if c.is_owner else 'Member' }}</span></td>
                 <td class="hide-sm">{{ c.member_count }}</td>
+                <td><button class="btn btn-ink" onclick="openCommunityDetail('{{ c._id }}')"><i class="fas fa-eye"></i></button></td>
               </tr>
               {% endfor %}
             </tbody>
@@ -516,6 +567,20 @@
       <button class="m-confirm" onclick="submitXp()">Apply XP</button>
     </div>
   </div>
+</div>
+
+<!-- DETAIL MODAL (Project/Roadmap/Community) -->
+<div class="dmodal-overlay" id="dmodal-overlay" onclick="closeDModal()"></div>
+<div class="dmodal-box" id="dmodal-box">
+  <div class="dmodal-head">
+    <button id="dmodal-back" onclick="dModalBack()" style="display:none;"><i class="fas fa-arrow-left"></i></button>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;font-weight:800;color:#1a1714;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="dmodal-title">Detail</div>
+      <div style="font-size:10px;color:#9c9488;margin-top:2px;" id="dmodal-count"></div>
+    </div>
+    <button onclick="closeDModal()" style="width:26px;height:26px;border-radius:7px;border:1px solid #e5d9c0;background:#fdfcf8;font-size:13px;cursor:pointer;color:#9c9488;flex-shrink:0;">&times;</button>
+  </div>
+  <div class="dmodal-body" id="dmodal-body" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -627,8 +692,196 @@ function toggleEmailReminders(){
 function banUser(){ if(!confirm('Ban {{ user.name }}?'))return; fetch('/admin/ban_user/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('User banned.');setTimeout(()=>location.reload(),1200);}else showToast(d.error,true);}); }
 function unbanUser(){ fetch('/admin/unban_user/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('User unbanned.');setTimeout(()=>location.reload(),1200);}else showToast(d.error,true);}); }
 function deleteUser(){ if(!confirm('Permanently delete {{ user.name }} and ALL their data?'))return; fetch('/admin/delete_user/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('User deleted.');setTimeout(()=>window.location.href='{{ url_for("admin_panel") }}',1500);}else showToast(d.error,true);}); }
-function deleteProject(id,title){ if(!confirm('Delete project "'+title+'"?'))return; fetch('/admin/delete_project/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){document.getElementById('pr-'+id).remove();showToast('Project deleted.');}else showToast(d.error,true);}); }
-function deleteRoadmap(id,goal){ if(!confirm('Delete roadmap "'+goal+'"?'))return; fetch('/admin/delete_roadmap/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){document.getElementById('rm-'+id).remove();showToast('Roadmap deleted.');}else showToast(d.error,true);}); }
+function deleteProject(id,title){ if(!confirm('Delete project "'+title+'"?'))return; fetch('/admin/delete_project/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){const el=document.getElementById('pr-'+id);if(el)el.remove();showToast('Project deleted.');closeDModal();}else showToast(d.error,true);}); }
+function deleteRoadmap(id,goal){ if(!confirm('Delete roadmap "'+goal+'"?'))return; fetch('/admin/delete_roadmap/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){const el=document.getElementById('rm-'+id);if(el)el.remove();showToast('Roadmap deleted.');closeDModal();}else showToast(d.error,true);}); }
+function deleteCommunity(id,title){ if(!confirm('Delete community "'+title+'"?'))return; fetch('/admin/delete_community/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('Community deleted.');closeDModal();}else showToast(d.error,true);}); }
+function escapeHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* ── DETAIL MODAL (shared shell — Project / Roadmap / Community) ── */
+function loadingHtml(){return '<div style="text-align:center;padding:20px;font-size:11px;color:#9c9488;">Loading…</div>';}
+function errorHtml(){return '<div style="padding:16px;color:#dc2626;font-size:11px;">Failed to load.</div>';}
+let dModalStack=[];
+function setDModalScreen(titleText,countText,bodyHtml,showBack){
+  document.getElementById('dmodal-title').textContent=titleText;
+  document.getElementById('dmodal-count').textContent=countText||'';
+  document.getElementById('dmodal-body').innerHTML=bodyHtml;
+  document.getElementById('dmodal-back').style.display=showBack?'flex':'none';
+}
+function pushDModalScreen(){
+  dModalStack.push({title:document.getElementById('dmodal-title').textContent,count:document.getElementById('dmodal-count').textContent,body:document.getElementById('dmodal-body').innerHTML});
+}
+function dModalBack(){
+  const prev=dModalStack.pop();
+  if(!prev){closeDModal();return;}
+  document.getElementById('dmodal-title').textContent=prev.title;
+  document.getElementById('dmodal-count').textContent=prev.count;
+  document.getElementById('dmodal-body').innerHTML=prev.body;
+  document.getElementById('dmodal-back').style.display=dModalStack.length?'flex':'none';
+}
+function openDModalRoot(){
+  dModalStack=[];
+  document.getElementById('dmodal-overlay').classList.add('show');
+  document.getElementById('dmodal-box').classList.add('show');
+}
+function closeDModal(){
+  document.getElementById('dmodal-overlay').classList.remove('show');
+  document.getElementById('dmodal-box').classList.remove('show');
+  dModalStack=[];
+}
+function dPeopleRow(u){
+  return `<div class="dpeople-row">
+    <img src="${u.profile_pic_url}" class="dpeople-avatar" onerror="this.src='/static/profile_pics/default.jpg'">
+    <a href="/admin/user/${u.id}" style="flex:1;text-decoration:none;">
+      <div style="font-size:.78rem;font-weight:700;color:#1a1714;">${u.name}</div>${u.username?`<div style="font-size:.68rem;color:#c4973a;font-weight:600;">@${u.username}</div>`:''}
+    </a>
+  </div>`;
+}
+
+/* ── PROJECT DETAIL ── */
+async function openProjectDetail(id){
+  openDModalRoot();
+  setDModalScreen('Loading…','',loadingHtml(),false);
+  try{
+    const res=await fetch('/admin/project/'+id);
+    const data=await res.json();
+    if(!data.success){setDModalScreen('Error','',errorHtml(),false);return;}
+    setDModalScreen('📁 '+data.project.title,'',renderProjectDetail(data.project),false);
+  }catch(e){setDModalScreen('Error','',errorHtml(),false);}
+}
+function renderProjectDetail(p){
+  const creatorHtml=p.creator?`<a href="/admin/user/${p.creator.id}" style="color:#c4973a;text-decoration:none;">${p.creator.name}</a>${p.creator.username?` <span style="color:#9c9488;">@${p.creator.username}</span>`:''}`:'Unknown';
+  const communityHtml=p.community?`<div class="drow"><span class="drow-label">Community</span><span class="drow-value"><a href="#" onclick="openCommunityDetail('${p.community.id}');return false;" style="color:#c4973a;text-decoration:none;">${escapeHtml(p.community.title)}</a></span></div>`:'';
+  const likersHtml=p.likers.length?p.likers.map(u=>dPeopleRow(u)).join(''):'<div class="dempty">No likes yet.</div>';
+  const saversHtml=p.savers.length?p.savers.map(u=>dPeopleRow(u)).join(''):'<div class="dempty">No saves yet.</div>';
+  return `
+    <div class="detail-stats">
+      <div><div class="dstat-lbl">Views</div><div class="dstat-val">👁️ ${p.views}</div></div>
+      <div><div class="dstat-lbl">Likes</div><div class="dstat-val">❤️ ${p.likers.length}</div></div>
+      <div><div class="dstat-lbl">Comments</div><div class="dstat-val">💬 ${p.comment_count}</div></div>
+      <div><div class="dstat-lbl">Saves</div><div class="dstat-val">🔖 ${p.savers.length}</div></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-h">Project Information</div>
+      <div class="drow"><span class="drow-label">Created by</span><span class="drow-value">${creatorHtml}</span></div>
+      <div class="drow"><span class="drow-label">Description</span><span class="drow-value">${p.description?escapeHtml(p.description):'—'}</span></div>
+      <div class="drow"><span class="drow-label">Skills</span><span class="drow-value">${(p.skills_needed||[]).join(', ')||'—'}</span></div>
+      <div class="drow"><span class="drow-label">Status</span><span class="drow-value">${p.is_completed?'Completed':'In Progress'}</span></div>
+      <div class="drow"><span class="drow-label">Created</span><span class="drow-value">${formatUtc(p.created_at,'date')}</span></div>
+      ${communityHtml}
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-h" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;" onclick="openProjectComments('${p.id}','${escapeHtml(p.title).replace(/'/g,"\\'")}')">
+        <span>Comments</span><span style="font-size:10px;color:#9c9488;">${p.comment_count} <i class="fas fa-arrow-right" style="font-size:9px;"></i></span>
+      </div>
+    </div>
+    <div class="detail-section"><div class="detail-section-h">Likes (${p.likers.length})</div>${likersHtml}</div>
+    <div class="detail-section"><div class="detail-section-h">Saves (${p.savers.length})</div>${saversHtml}</div>
+    <div><button class="btn btn-danger" onclick="deleteProject('${p.id}','${escapeHtml(p.title).replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i> Delete Project</button></div>
+  `;
+}
+async function openProjectComments(projectId,title){
+  pushDModalScreen();
+  setDModalScreen('Loading…','',loadingHtml(),true);
+  try{
+    const res=await fetch('/admin/project_comments/'+projectId);
+    const data=await res.json();
+    if(!data.success){setDModalScreen('Error','',errorHtml(),true);return;}
+    const comments=data.comments;
+    setDModalScreen('💬 '+title, comments.length+' comment'+(comments.length!==1?'s':''), comments.length?comments.map(c=>dBuildComment(c)).join(''):'<div class="dempty">No comments yet.</div>', true);
+  }catch(e){setDModalScreen('Error','',errorHtml(),true);}
+}
+function dBuildComment(c){
+  const delBtn=!c.is_deleted?`<button onclick="dDeleteComment('${c._id}')" class="btn btn-danger" style="font-size:9px;padding:3px 8px;"><i class="fas fa-trash" style="font-size:8px;"></i> Delete</button>`:'<span style="font-size:9px;color:#9c9488;">Deleted</span>';
+  return`<div id="ducmt-${c._id}" style="${c.is_deleted?'opacity:.5;':''}background:#fdfcf8;border:1px solid #f0e9d8;border-radius:9px;padding:10px 12px;">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap;">
+      <span style="font-size:11px;font-weight:800;color:#1a1714;">${c.user_name}</span>
+      ${c.username?`<span style="font-size:10px;font-weight:700;color:#c4973a;">@${c.username}</span>`:''}
+      <span style="font-size:9px;color:#9c9488;margin-left:auto;">${formatUtc(c.created_at_iso,'datetime',c.created_at_str)}</span>
+    </div>
+    <div style="font-size:11px;color:#2c2820;line-height:1.5;margin-bottom:6px;word-break:break-word;">${c.is_deleted?'<em style="color:#9c9488">[deleted]</em>':escapeHtml(c.content)}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:10px;color:#9c9488;"><i class="fas fa-heart" style="color:#dc2626;font-size:9px;"></i> ${c.like_count}</span>${delBtn}</div>
+  </div>`;
+}
+function dDeleteComment(id){
+  if(!confirm('Delete this comment?'))return;
+  fetch('/api/comment/'+id,{method:'DELETE'}).then(r=>r.json()).then(d=>{
+    if(d.success){showToast('Comment deleted.');const el=document.getElementById('ducmt-'+id);if(el){el.style.opacity='.4';}}else showToast(d.error,true);
+  });
+}
+
+/* ── ROADMAP DETAIL ── */
+async function openRoadmapDetail(id){
+  openDModalRoot();
+  setDModalScreen('Loading…','',loadingHtml(),false);
+  try{
+    const res=await fetch('/admin/roadmap/'+id);
+    const data=await res.json();
+    if(!data.success){setDModalScreen('Error','',errorHtml(),false);return;}
+    setDModalScreen('🧭 '+data.roadmap.goal,'',renderRoadmapDetail(data.roadmap),false);
+  }catch(e){setDModalScreen('Error','',errorHtml(),false);}
+}
+function renderRoadmapDetail(r){
+  const creatorHtml=r.creator?`<a href="/admin/user/${r.creator.id}" style="color:#c4973a;text-decoration:none;">${r.creator.name}</a>${r.creator.username?` <span style="color:#9c9488;">@${r.creator.username}</span>`:''}`:'Unknown';
+  const pct=r.stage_count?Math.round(r.completed_stages/r.stage_count*100):0;
+  const stagesHtml=r.stages.length?r.stages.map((s,i)=>`
+    <div class="dstage-row">
+      <span style="font-size:.68rem;font-weight:800;color:#9c9488;width:20px;flex-shrink:0;">${String(i+1).padStart(2,'0')}</span>
+      <span style="flex:1;font-size:.8rem;font-weight:700;color:#1a1714;">${escapeHtml(s.title)}</span>
+      ${s.completed?'<span class="dstage-status done" style="font-size:.68rem;font-weight:800;display:flex;align-items:center;gap:4px;"><i class="fas fa-check-circle"></i> Complete</span>':'<span class="dstage-status pending" style="font-size:.68rem;font-weight:800;display:flex;align-items:center;gap:4px;"><i class="far fa-circle"></i> Pending</span>'}
+    </div>`).join(''):'<div class="dempty">No stages found.</div>';
+  return `
+    <div class="detail-section">
+      <div class="drow"><span class="drow-label">Created by</span><span class="drow-value">${creatorHtml}</span></div>
+      <div class="drow"><span class="drow-label">Created</span><span class="drow-value">${formatUtc(r.created_at,'date')}</span></div>
+    </div>
+    <div style="margin:8px 0 14px;">
+      <div style="display:flex;justify-content:space-between;font-size:.76rem;font-weight:700;margin-bottom:5px;color:#1a1714;"><span>${r.completed_stages} / ${r.stage_count} stages completed</span><span>${pct}%</span></div>
+      <div class="dprogress-track"><div class="dprogress-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="detail-section"><div class="detail-section-h">Stages</div>${stagesHtml}</div>
+    <div class="detail-section">
+      <div class="detail-section-h">Activity</div>
+      <div class="drow"><span class="drow-label">Last Visited</span><span class="drow-value">${r.last_visited?formatUtc(r.last_visited):'—'}</span></div>
+      <div class="drow"><span class="drow-label">Last Reminder Sent</span><span class="drow-value">${r.last_reminder_sent_at?formatUtc(r.last_reminder_sent_at):'Never'}</span></div>
+    </div>
+    <div><button class="btn btn-danger" onclick="deleteRoadmap('${r.id}','${escapeHtml(r.goal).replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i> Delete Roadmap</button></div>
+  `;
+}
+
+/* ── COMMUNITY DETAIL ── */
+async function openCommunityDetail(id){
+  openDModalRoot();
+  setDModalScreen('Loading…','',loadingHtml(),false);
+  try{
+    const res=await fetch('/admin/community/'+id);
+    const data=await res.json();
+    if(!data.success){setDModalScreen('Error','',errorHtml(),false);return;}
+    setDModalScreen('🌐 '+data.community.title,'',renderCommunityDetail(data.community),false);
+  }catch(e){setDModalScreen('Error','',errorHtml(),false);}
+}
+function renderCommunityDetail(c){
+  const ownerHtml=c.owner_id?`<a href="/admin/user/${c.owner_id}" style="color:#c4973a;text-decoration:none;">${escapeHtml(c.owner_name)}</a>`:escapeHtml(c.owner_name||'Unknown');
+  const projHtml=c.linked_project?`<div class="drow"><span class="drow-label">Linked Project</span><span class="drow-value"><a href="#" onclick="openProjectDetail('${c.linked_project.id}');return false;" style="color:#c4973a;text-decoration:none;">${escapeHtml(c.linked_project.title)}</a></span></div>`:'';
+  const membersHtml=c.members.length?c.members.map(m=>`
+    <div class="dpeople-row">
+      <img src="${m.profile_pic_url}" class="dpeople-avatar" onerror="this.src='/static/profile_pics/default.jpg'">
+      <a href="/admin/user/${m.id}" style="flex:1;text-decoration:none;">
+        <div style="font-size:.78rem;font-weight:700;color:#1a1714;">${m.name}</div>${m.username?`<div style="font-size:.68rem;color:#c4973a;font-weight:600;">@${m.username}</div>`:''}
+      </a>
+      <span class="drole-tag ${m.role.toLowerCase()}">${m.role}</span>
+    </div>`).join(''):'<div class="dempty">No members.</div>';
+  return `
+    <div class="detail-section">
+      <div class="drow"><span class="drow-label">Owner</span><span class="drow-value">${ownerHtml}</span></div>
+      <div class="drow"><span class="drow-label">Visibility</span><span class="drow-value">${c.visibility}</span></div>
+      <div class="drow"><span class="drow-label">Created</span><span class="drow-value">${formatUtc(c.created_at,'date')}</span></div>
+      ${projHtml}
+    </div>
+    <div class="detail-section"><div class="detail-section-h">Members (${c.members.length})</div>${membersHtml}</div>
+    <div><button class="btn btn-danger" onclick="deleteCommunity('${c.id}','${escapeHtml(c.title).replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i> Delete Community</button></div>
+  `;
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDModal();}});
 </script>
 </body>
 </html>

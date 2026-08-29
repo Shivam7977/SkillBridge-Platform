@@ -4745,6 +4745,140 @@ def admin_user_detail(user_id):
         work_experience=work_experience
     )
 
+@app.route('/admin/project/<project_id>')
+@login_required
+@admin_required
+def admin_project_detail(project_id):
+    """JSON data for the Project detail modal."""
+    try:
+        obj_id = ObjectId(project_id)
+    except Exception:
+        return jsonify({'success': False, 'error': 'Invalid project ID'}), 400
+    project = projects_collection.find_one({'_id': obj_id})
+    if not project:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+
+    creator_oid = project.get('created_by_id')
+    creator = users_collection.find_one({'_id': creator_oid}, {'name': 1, 'username': 1}) if creator_oid else None
+
+    def _hydrate(ids):
+        docs = list(users_collection.find({'_id': {'$in': ids}}, {'name': 1, 'username': 1, 'profile_pic': 1}))
+        return [{
+            'id': str(u['_id']), 'name': u.get('name', '?'), 'username': u.get('username', ''),
+            'profile_pic_url': f"/static/profile_pics/{u.get('profile_pic', 'default.jpg')}"
+        } for u in docs]
+
+    likers = _hydrate(project.get('likes', []))
+    saver_ids = [u['_id'] for u in users_collection.find({'bookmarks': obj_id}, {'_id': 1})]
+    savers = _hydrate(saver_ids)
+    comment_count = comments_collection.count_documents({'project_id': obj_id, 'is_deleted': {'$ne': True}})
+
+    community_oid = project.get('community_id')
+    community = communities_collection.find_one({'_id': ObjectId(str(community_oid))}, {'project_title': 1}) if community_oid else None
+
+    return jsonify({'success': True, 'project': {
+        'id': str(project['_id']),
+        'title': project.get('title', 'Untitled'),
+        'description': project.get('description', ''),
+        'skills_needed': project.get('skills_needed', []),
+        'tech_stack': project.get('tech_stack', ''),
+        'is_completed': bool(project.get('is_completed') or project.get('status') == 'completed'),
+        'github_link': project.get('github_link', ''),
+        'created_at': utc_iso(project.get('created_at')) if project.get('created_at') else None,
+        'views': project.get('views', 0),
+        'creator': {'id': str(creator['_id']), 'name': creator.get('name'), 'username': creator.get('username', '')} if creator else None,
+        'community': {'id': str(community_oid), 'title': community.get('project_title')} if community else None,
+        'likers': likers,
+        'savers': savers,
+        'comment_count': comment_count,
+    }})
+
+
+@app.route('/admin/roadmap/<roadmap_id>')
+@login_required
+@admin_required
+def admin_roadmap_detail(roadmap_id):
+    """JSON data for the Roadmap detail modal."""
+    try:
+        obj_id = ObjectId(roadmap_id)
+    except Exception:
+        return jsonify({'success': False, 'error': 'Invalid roadmap ID'}), 400
+    roadmap = roadmaps_collection.find_one({'_id': obj_id})
+    if not roadmap:
+        return jsonify({'success': False, 'error': 'Roadmap not found'}), 404
+
+    user_oid = roadmap.get('user_id')
+    creator = users_collection.find_one({'_id': user_oid}, {'name': 1, 'username': 1}) if user_oid else None
+
+    content = roadmap.get('roadmap_content', {})
+    if isinstance(content, str):
+        try:
+            content = json.loads(content)
+        except Exception:
+            content = {}
+    stages = content.get('stages', []) if isinstance(content, dict) else []
+    stage_list = [{
+        'title': (s.get('title') or s.get('name') or f"Stage {i + 1}") if isinstance(s, dict) else f"Stage {i + 1}",
+        'completed': bool(isinstance(s, dict) and s.get('completed'))
+    } for i, s in enumerate(stages)]
+
+    return jsonify({'success': True, 'roadmap': {
+        'id': str(roadmap['_id']),
+        'goal': roadmap.get('goal', 'Untitled'),
+        'creator': {'id': str(creator['_id']), 'name': creator.get('name'), 'username': creator.get('username', '')} if creator else None,
+        'created_at': utc_iso(roadmap.get('created_at')) if roadmap.get('created_at') else None,
+        'stages': stage_list,
+        'stage_count': len(stage_list),
+        'completed_stages': sum(1 for s in stage_list if s['completed']),
+        'last_visited': utc_iso(roadmap.get('last_activity')) if roadmap.get('last_activity') else None,
+        'last_reminder_sent_at': utc_iso(roadmap.get('last_reminder_sent_at')) if roadmap.get('last_reminder_sent_at') else None,
+    }})
+
+
+@app.route('/admin/community/<community_id>')
+@login_required
+@admin_required
+def admin_community_detail(community_id):
+    """JSON data for the Community detail modal."""
+    try:
+        obj_id = ObjectId(community_id)
+    except Exception:
+        return jsonify({'success': False, 'error': 'Invalid community ID'}), 400
+    community = communities_collection.find_one({'_id': obj_id})
+    if not community:
+        return jsonify({'success': False, 'error': 'Community not found'}), 404
+
+    owner_oid = community.get('owner_id')
+    admin_ids = community.get('admins', [])
+    member_ids = community.get('members', [])
+    member_docs = list(users_collection.find({'_id': {'$in': member_ids}}, {'name': 1, 'username': 1, 'profile_pic': 1}))
+    members = []
+    for m in member_docs:
+        role = 'Owner' if m['_id'] == owner_oid else ('Admin' if m['_id'] in admin_ids else 'Member')
+        members.append({
+            'id': str(m['_id']), 'name': m.get('name', '?'), 'username': m.get('username', ''),
+            'profile_pic_url': f"/static/profile_pics/{m.get('profile_pic', 'default.jpg')}",
+            'role': role
+        })
+    role_order = {'Owner': 0, 'Admin': 1, 'Member': 2}
+    members.sort(key=lambda m: role_order.get(m['role'], 3))
+
+    linked_project_oid = community.get('project_id')
+    linked_project = projects_collection.find_one({'_id': linked_project_oid}, {'title': 1}) if linked_project_oid else None
+
+    return jsonify({'success': True, 'community': {
+        'id': str(community['_id']),
+        'title': community.get('project_title', 'Untitled'),
+        'visibility': community.get('visibility', 'public'),
+        'owner_id': str(owner_oid) if owner_oid else None,
+        'owner_name': community.get('owner_name', ''),
+        'created_at': utc_iso(community.get('created_at')) if community.get('created_at') else None,
+        'skills_required': community.get('skills_required', []),
+        'linked_project': {'id': str(linked_project['_id']), 'title': linked_project.get('title')} if linked_project else None,
+        'members': members,
+    }})
+
+
 # ── HEALTH CHECK (keep-alive for Render free tier) ────────
 @app.route('/health')
 def health():

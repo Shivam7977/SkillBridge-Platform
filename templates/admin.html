@@ -293,7 +293,7 @@
     .modal-box{
       display:none;position:fixed;
       top:50%;left:50%;transform:translate(-50%,-50%);
-      z-index:901;width:94%;max-width:640px;max-height:80vh;
+      z-index:901;width:94%;max-width:720px;max-height:85vh;
       background:#fff;border:1px solid #e5d9c0;border-radius:14px;
       box-shadow:0 20px 60px rgba(0,0,0,0.18);
       overflow:hidden;flex-direction:column;
@@ -302,10 +302,55 @@
     .modal-box.show{display:flex;}
     .modal-head{
       padding:12px 16px;border-bottom:1px solid #e5d9c0;
-      display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+      display:flex;align-items:center;gap:10px;flex-shrink:0;
     }
     .dark .modal-head{border-color:#3d3830;}
-    .modal-body{overflow-y:auto;padding:12px 16px;flex:1;}
+    .modal-body{overflow-y:auto;padding:14px 16px;flex:1;}
+    #modal-back{background:none;border:1px solid #e5d9c0;border-radius:7px;width:26px;height:26px;flex-shrink:0;cursor:pointer;color:#7a7268;align-items:center;justify-content:center;font-size:11px;}
+    .dark #modal-back{border-color:#3d3830;color:#9c9488;}
+    #modal-back:hover{color:#1a1714;}
+
+    /* ── DETAIL MODAL CONTENT (project/roadmap/community) ── */
+    .detail-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;background:linear-gradient(135deg,#1a1714 0%,#2c2820 60%,#3d3830 100%);border-radius:12px;padding:14px 16px;margin-bottom:14px;}
+    .dstat-lbl{font-size:.62rem;opacity:.7;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#f0e9d8;}
+    .dstat-val{font-size:1.15rem;font-weight:900;margin-top:2px;color:#f0e9d8;}
+    .detail-section{margin-bottom:14px;}
+    .detail-section-h{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#9c9488;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid #f0e9d8;}
+    .dark .detail-section-h{border-color:#3d3830;}
+    .info-row{display:flex;justify-content:space-between;align-items:flex-start;padding:.4rem 0;border-bottom:1px solid #f8f4ec;font-size:.8rem;gap:8px;}
+    .dark .info-row{border-color:#3d3830;}
+    .info-row:last-child{border-bottom:none;}
+    .info-label{color:#7a7268;font-weight:600;flex-shrink:0;}
+    .info-value{font-weight:600;text-align:right;color:#1a1714;word-break:break-word;}
+    .dark .info-value{color:#f0e9d8;}
+    .people-row{display:flex;align-items:center;gap:9px;padding:.4rem 0;border-bottom:1px solid #f8f4ec;}
+    .dark .people-row{border-color:#3d3830;}
+    .people-row:last-child{border-bottom:none;}
+    .people-avatar{width:26px;height:26px;border-radius:7px;object-fit:cover;border:1px solid #e5d9c0;flex-shrink:0;}
+    .dark .people-avatar{border-color:#3d3830;}
+    .people-name{font-size:.78rem;font-weight:700;color:#1a1714;}
+    .dark .people-name{color:#f0e9d8;}
+    .people-handle{font-size:.68rem;color:#c4973a;font-weight:600;}
+    .stage-row{display:flex;align-items:center;gap:10px;padding:.45rem 0;border-bottom:1px solid #f8f4ec;}
+    .dark .stage-row{border-color:#3d3830;}
+    .stage-row:last-child{border-bottom:none;}
+    .stage-num{font-size:.68rem;font-weight:800;color:#9c9488;width:20px;flex-shrink:0;}
+    .stage-title{flex:1;font-size:.8rem;font-weight:700;color:#1a1714;}
+    .dark .stage-title{color:#f0e9d8;}
+    .stage-status{font-size:.68rem;font-weight:800;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+    .stage-status.done{color:#10b981;}
+    .stage-status.pending{color:#9c9488;}
+    .progress-wrap{margin:8px 0 14px;}
+    .progress-label{display:flex;justify-content:space-between;font-size:.76rem;font-weight:700;margin-bottom:5px;color:#1a1714;}
+    .dark .progress-label{color:#f0e9d8;}
+    .progress-track{height:8px;background:#f0e9d8;border-radius:6px;overflow:hidden;}
+    .dark .progress-track{background:#3d3830;}
+    .progress-fill{height:100%;background:#c4973a;border-radius:6px;transition:width .5s ease;}
+    .role-tag{font-size:.64rem;font-weight:800;padding:2px 8px;border-radius:20px;flex-shrink:0;}
+    .role-tag.owner{background:rgba(196,151,58,.12);color:#c4973a;}
+    .role-tag.admin{background:rgba(8,145,178,.1);color:#0891b2;}
+    .role-tag.member{background:rgba(156,148,136,.12);color:#7a7268;}
+    .empty{padding:1rem;text-align:center;color:#9c9488;font-size:.8rem;}
 
     /* ── RESPONSIVE ── */
     @media(min-width:1024px){ .sidebar{transform:none!important;position:sticky!important;} }
@@ -712,10 +757,15 @@
                   <td class="hide-mobile" style="color:#9c9488;max-width:120px;" class="truncate">{{ p.skills_needed|join(', ') if p.skills_needed else '—' }}</td>
                   <td style="font-weight:800;color:#c4973a;">{{ p.views or 0 }}</td>
                   <td style="font-weight:800;color:#dc2626;">{{ p.like_count or 0 }}</td>
-                  <td><button class="btn btn-purple" data-tip="View Comments" onclick="openCommentsModal('{{ p._id }}','{{ p.title | e }}')"><i class="fas fa-comments" style="font-size:9px;"></i> {{ p.comment_count or 0 }}</button></td>
+                  <td><button class="btn btn-purple" data-tip="View Comments" onclick="openProjectDetail('{{ p._id }}')"><i class="fas fa-comments" style="font-size:9px;"></i> {{ p.comment_count or 0 }}</button></td>
                   <td class="hide-mobile" style="font-weight:800;color:#c4973a;">{{ p.bookmark_count or 0 }}</td>
                   <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;" data-utc="{{ utc_iso(p.created_at) if p.created_at else '' }}" data-format="date">{{ p.created_at.strftime('%b %d, %Y') if p.created_at else 'N/A' }}</td>
-                  <td><button class="btn btn-danger" data-tip="Delete Project" onclick="deleteProject('{{ p._id }}','{{ p.title }}','{{ p.community_id or '' }}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete</span></button></td>
+                  <td>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                      <button class="btn btn-view" data-tip="View" onclick="openProjectDetail('{{ p._id }}')"><i class="fas fa-eye" style="font-size:9px;"></i> <span class="btn-label">View</span></button>
+                      <button class="btn btn-danger" data-tip="Delete Project" onclick="deleteProject('{{ p._id }}','{{ p.title }}','{{ p.community_id or '' }}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete</span></button>
+                    </div>
+                  </td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -756,7 +806,12 @@
                   <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;">{% if r.last_visited %}<span data-utc="{{ utc_iso(r.last_visited) }}" data-format="date">{{ r.last_visited.strftime('%b %d, %Y') }}</span>{% else %}—{% endif %}</td>
                   <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;">{% if r.last_reminder_sent_at %}<span data-utc="{{ utc_iso(r.last_reminder_sent_at) }}" data-format="date">{{ r.last_reminder_sent_at.strftime('%b %d, %Y') }}</span>{% else %}Never{% endif %}</td>
                   <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;" data-utc="{{ utc_iso(r.created_at) if r.created_at else '' }}" data-format="date">{{ r.created_at.strftime('%b %d, %Y') if r.created_at else 'N/A' }}</td>
-                  <td><button class="btn btn-danger" data-tip="Delete Roadmap" onclick="deleteRoadmap('{{ r._id }}','{{ r.goal }}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete</span></button></td>
+                  <td>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                      <button class="btn btn-view" data-tip="View" onclick="openRoadmapDetail('{{ r._id }}')"><i class="fas fa-eye" style="font-size:9px;"></i> <span class="btn-label">View</span></button>
+                      <button class="btn btn-danger" data-tip="Delete Roadmap" onclick="deleteRoadmap('{{ r._id }}','{{ r.goal }}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete</span></button>
+                    </div>
+                  </td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -793,7 +848,12 @@
                   <td class="hide-mobile" style="font-weight:600;">{{ c.member_count }}</td>
                   <td class="hide-mobile"><span style="font-size:10px;font-weight:700;{% if c.visibility=='public' %}color:#15803d;{% else %}color:#9c9488;{% endif %}">{{ c.visibility|capitalize }}</span></td>
                   <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;" data-utc="{{ utc_iso(c.created_at) if c.created_at else '' }}" data-format="date">{{ c.created_at.strftime('%b %d, %Y') if c.created_at else 'N/A' }}</td>
-                  <td><button class="btn btn-danger" data-tip="Delete Community" onclick="deleteCommunity('{{ c._id }}','{{ c.project_title }}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete</span></button></td>
+                  <td>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                      <button class="btn btn-view" data-tip="View" onclick="openCommunityDetail('{{ c._id }}')"><i class="fas fa-eye" style="font-size:9px;"></i> <span class="btn-label">View</span></button>
+                      <button class="btn btn-danger" data-tip="Delete Community" onclick="deleteCommunity('{{ c._id }}','{{ c.project_title }}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete</span></button>
+                    </div>
+                  </td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -813,11 +873,12 @@
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
 <div class="modal-box" id="modal-box">
   <div class="modal-head">
-    <div>
-      <div style="font-size:13px;font-weight:800;color:#1a1714;" class="dark:text-cream-100" id="modal-title">Comments</div>
+    <button id="modal-back" onclick="modalBack()" style="display:none;"><i class="fas fa-arrow-left"></i></button>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;font-weight:800;color:#1a1714;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" class="dark:text-cream-100" id="modal-title">Comments</div>
       <div style="font-size:10px;color:#9c9488;margin-top:2px;" id="modal-count"></div>
     </div>
-    <button onclick="closeModal()" style="width:26px;height:26px;border-radius:7px;border:1px solid #e5d9c0;background:#fdfcf8;font-size:13px;cursor:pointer;color:#9c9488;display:flex;align-items:center;justify-content:center;" class="hover:text-ink-900 dark:bg-ink-700 dark:border-ink-600">&times;</button>
+    <button onclick="closeModal()" style="width:26px;height:26px;border-radius:7px;border:1px solid #e5d9c0;background:#fdfcf8;font-size:13px;cursor:pointer;color:#9c9488;display:flex;align-items:center;justify-content:center;flex-shrink:0;" class="hover:text-ink-900 dark:bg-ink-700 dark:border-ink-600">&times;</button>
   </div>
   <div class="modal-body custom-scroll" id="modal-body" style="gap:8px;display:flex;flex-direction:column;"></div>
 </div>
@@ -1028,6 +1089,176 @@ function syncBrowserTimezone(){
     .then(r=>{if(r.ok)localStorage.setItem('sb-timezone',tz);}).catch(()=>{});
 }
 syncBrowserTimezone();
+function loadingHtml(){return '<div style="text-align:center;padding:20px;font-size:11px;color:#9c9488;">Loading…</div>';}
+function errorHtml(){return '<div style="padding:16px;color:#dc2626;font-size:11px;">Failed to load.</div>';}
+let modalStack=[];
+function setModalScreen(titleText,countText,bodyHtml,showBack){
+  document.getElementById('modal-title').textContent=titleText;
+  document.getElementById('modal-count').textContent=countText||'';
+  document.getElementById('modal-body').innerHTML=bodyHtml;
+  document.getElementById('modal-back').style.display=showBack?'flex':'none';
+}
+function pushModalScreen(){
+  modalStack.push({
+    title:document.getElementById('modal-title').textContent,
+    count:document.getElementById('modal-count').textContent,
+    body:document.getElementById('modal-body').innerHTML
+  });
+}
+function modalBack(){
+  const prev=modalStack.pop();
+  if(!prev){closeModal();return;}
+  document.getElementById('modal-title').textContent=prev.title;
+  document.getElementById('modal-count').textContent=prev.count;
+  document.getElementById('modal-body').innerHTML=prev.body;
+  document.getElementById('modal-back').style.display=modalStack.length?'flex':'none';
+}
+function openModalRoot(){
+  modalStack=[];
+  document.getElementById('modal-overlay').classList.add('show');
+  document.getElementById('modal-box').classList.add('show');
+}
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('show');
+  document.getElementById('modal-box').classList.remove('show');
+  modalStack=[];
+}
+function peopleRow(u){
+  return `<div class="people-row">
+    <img src="${u.profile_pic_url}" class="people-avatar" onerror="this.src='/static/profile_pics/default.jpg'">
+    <a href="/admin/user/${u.id}" style="flex:1;text-decoration:none;">
+      <div class="people-name">${u.name}</div>${u.username?`<div class="people-handle">@${u.username}</div>`:''}
+    </a>
+  </div>`;
+}
+
+/* ── PROJECT DETAIL ── */
+async function openProjectDetail(id){
+  openModalRoot();
+  setModalScreen('Loading…','',loadingHtml(),false);
+  try{
+    const res=await fetch('/admin/project/'+id);
+    const data=await res.json();
+    if(!data.success){setModalScreen('Error','',errorHtml(),false);return;}
+    setModalScreen('📁 '+data.project.title,'',renderProjectDetail(data.project),false);
+  }catch(e){setModalScreen('Error','',errorHtml(),false);}
+}
+function renderProjectDetail(p){
+  const creatorHtml=p.creator?`<a href="/admin/user/${p.creator.id}" style="color:#c4973a;text-decoration:none;">${p.creator.name}</a>${p.creator.username?` <span style="color:#9c9488;">@${p.creator.username}</span>`:''}`:'Unknown';
+  const communityHtml=p.community?`<div class="info-row"><span class="info-label">Community</span><span class="info-value"><a href="#" onclick="openCommunityDetail('${p.community.id}');return false;" style="color:#c4973a;text-decoration:none;">${escapeHtml(p.community.title)}</a></span></div>`:'';
+  const likersHtml=p.likers.length?p.likers.map(u=>peopleRow(u)).join(''):'<div class="empty">No likes yet.</div>';
+  const saversHtml=p.savers.length?p.savers.map(u=>peopleRow(u)).join(''):'<div class="empty">No saves yet.</div>';
+  return `
+    <div class="detail-stats">
+      <div><div class="dstat-lbl">Views</div><div class="dstat-val">👁️ ${p.views}</div></div>
+      <div><div class="dstat-lbl">Likes</div><div class="dstat-val">❤️ ${p.likers.length}</div></div>
+      <div><div class="dstat-lbl">Comments</div><div class="dstat-val">💬 ${p.comment_count}</div></div>
+      <div><div class="dstat-lbl">Saves</div><div class="dstat-val">🔖 ${p.savers.length}</div></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-h">Project Information</div>
+      <div class="info-row"><span class="info-label">Created by</span><span class="info-value">${creatorHtml}</span></div>
+      <div class="info-row"><span class="info-label">Description</span><span class="info-value">${p.description?escapeHtml(p.description):'—'}</span></div>
+      <div class="info-row"><span class="info-label">Skills</span><span class="info-value">${(p.skills_needed||[]).join(', ')||'—'}</span></div>
+      <div class="info-row"><span class="info-label">Status</span><span class="info-value">${p.is_completed?'Completed':'In Progress'}</span></div>
+      <div class="info-row"><span class="info-label">Created</span><span class="info-value">${formatUtc(p.created_at,'date')}</span></div>
+      ${communityHtml}
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-h" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;" onclick="openProjectComments('${p.id}','${escapeHtml(p.title).replace(/'/g,"\\'")}')">
+        <span>Comments</span><span style="font-size:10px;color:#9c9488;">${p.comment_count} <i class="fas fa-arrow-right" style="font-size:9px;"></i></span>
+      </div>
+    </div>
+    <div class="detail-section"><div class="detail-section-h">Likes (${p.likers.length})</div>${likersHtml}</div>
+    <div class="detail-section"><div class="detail-section-h">Saves (${p.savers.length})</div>${saversHtml}</div>
+    <div><button class="btn btn-danger" onclick="deleteProject('${p.id}','${escapeHtml(p.title).replace(/'/g,"\\'")}','${p.community?p.community.id:''}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete Project</span></button></div>
+  `;
+}
+async function openProjectComments(projectId,title){
+  pushModalScreen();
+  setModalScreen('Loading…','',loadingHtml(),true);
+  try{
+    const res=await fetch('/admin/project_comments/'+projectId);
+    const data=await res.json();
+    if(!data.success){setModalScreen('Error','',errorHtml(),true);return;}
+    const comments=data.comments;
+    setModalScreen('💬 '+title, comments.length+' comment'+(comments.length!==1?'s':''), comments.length?comments.map(c=>buildComment(c)).join(''):'<div class="empty">No comments yet.</div>', true);
+  }catch(e){setModalScreen('Error','',errorHtml(),true);}
+}
+
+/* ── ROADMAP DETAIL ── */
+async function openRoadmapDetail(id){
+  openModalRoot();
+  setModalScreen('Loading…','',loadingHtml(),false);
+  try{
+    const res=await fetch('/admin/roadmap/'+id);
+    const data=await res.json();
+    if(!data.success){setModalScreen('Error','',errorHtml(),false);return;}
+    setModalScreen('🧭 '+data.roadmap.goal,'',renderRoadmapDetail(data.roadmap),false);
+  }catch(e){setModalScreen('Error','',errorHtml(),false);}
+}
+function renderRoadmapDetail(r){
+  const creatorHtml=r.creator?`<a href="/admin/user/${r.creator.id}" style="color:#c4973a;text-decoration:none;">${r.creator.name}</a>${r.creator.username?` <span style="color:#9c9488;">@${r.creator.username}</span>`:''}`:'Unknown';
+  const pct=r.stage_count?Math.round(r.completed_stages/r.stage_count*100):0;
+  const stagesHtml=r.stages.length?r.stages.map((s,i)=>`
+    <div class="stage-row">
+      <span class="stage-num">${String(i+1).padStart(2,'0')}</span>
+      <span class="stage-title">${escapeHtml(s.title)}</span>
+      ${s.completed?'<span class="stage-status done"><i class="fas fa-check-circle"></i> Complete</span>':'<span class="stage-status pending"><i class="far fa-circle"></i> Pending</span>'}
+    </div>`).join(''):'<div class="empty">No stages found.</div>';
+  return `
+    <div class="detail-section">
+      <div class="info-row"><span class="info-label">Created by</span><span class="info-value">${creatorHtml}</span></div>
+      <div class="info-row"><span class="info-label">Created</span><span class="info-value">${formatUtc(r.created_at,'date')}</span></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>${r.completed_stages} / ${r.stage_count} stages completed</span><span>${pct}%</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="detail-section"><div class="detail-section-h">Stages</div>${stagesHtml}</div>
+    <div class="detail-section">
+      <div class="detail-section-h">Activity</div>
+      <div class="info-row"><span class="info-label">Last Visited</span><span class="info-value">${r.last_visited?formatUtc(r.last_visited):'—'}</span></div>
+      <div class="info-row"><span class="info-label">Last Reminder Sent</span><span class="info-value">${r.last_reminder_sent_at?formatUtc(r.last_reminder_sent_at):'Never'}</span></div>
+    </div>
+    <div><button class="btn btn-danger" onclick="deleteRoadmap('${r.id}','${escapeHtml(r.goal).replace(/'/g,"\\'")}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete Roadmap</span></button></div>
+  `;
+}
+
+/* ── COMMUNITY DETAIL ── */
+async function openCommunityDetail(id){
+  openModalRoot();
+  setModalScreen('Loading…','',loadingHtml(),false);
+  try{
+    const res=await fetch('/admin/community/'+id);
+    const data=await res.json();
+    if(!data.success){setModalScreen('Error','',errorHtml(),false);return;}
+    setModalScreen('🌐 '+data.community.title,'',renderCommunityDetail(data.community),false);
+  }catch(e){setModalScreen('Error','',errorHtml(),false);}
+}
+function renderCommunityDetail(c){
+  const ownerHtml=c.owner_id?`<a href="/admin/user/${c.owner_id}" style="color:#c4973a;text-decoration:none;">${escapeHtml(c.owner_name)}</a>`:escapeHtml(c.owner_name||'Unknown');
+  const projHtml=c.linked_project?`<div class="info-row"><span class="info-label">Linked Project</span><span class="info-value"><a href="#" onclick="openProjectDetail('${c.linked_project.id}');return false;" style="color:#c4973a;text-decoration:none;">${escapeHtml(c.linked_project.title)}</a></span></div>`:'';
+  const membersHtml=c.members.length?c.members.map(m=>`
+    <div class="people-row">
+      <img src="${m.profile_pic_url}" class="people-avatar" onerror="this.src='/static/profile_pics/default.jpg'">
+      <a href="/admin/user/${m.id}" style="flex:1;text-decoration:none;">
+        <div class="people-name">${m.name}</div>${m.username?`<div class="people-handle">@${m.username}</div>`:''}
+      </a>
+      <span class="role-tag ${m.role.toLowerCase()}">${m.role}</span>
+    </div>`).join(''):'<div class="empty">No members.</div>';
+  return `
+    <div class="detail-section">
+      <div class="info-row"><span class="info-label">Owner</span><span class="info-value">${ownerHtml}</span></div>
+      <div class="info-row"><span class="info-label">Visibility</span><span class="info-value">${c.visibility}</span></div>
+      <div class="info-row"><span class="info-label">Created</span><span class="info-value">${formatUtc(c.created_at,'date')}</span></div>
+      ${projHtml}
+    </div>
+    <div class="detail-section"><div class="detail-section-h">Members (${c.members.length})</div>${membersHtml}</div>
+    <div><button class="btn btn-danger" onclick="deleteCommunity('${c.id}','${escapeHtml(c.title).replace(/'/g,"\\'")}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete Community</span></button></div>
+  `;
+}
+
 function buildComment(c){
   const isReply=!!c.parent_id;
   const indent=isReply?'margin-left:1rem;padding-left:1rem;border-left:2px solid #e5d9c0;':'';
@@ -1054,23 +1285,6 @@ function buildComment(c){
     </div>
   </div>`;
 }
-async function openCommentsModal(projectId,title){
-  const overlay=document.getElementById('modal-overlay');
-  const box=document.getElementById('modal-box');
-  const body=document.getElementById('modal-body');
-  document.getElementById('modal-title').textContent='💬 '+title;
-  document.getElementById('modal-count').textContent='Loading…';
-  body.innerHTML='<div style="text-align:center;padding:20px;font-size:11px;color:#9c9488;">Loading…</div>';
-  overlay.classList.add('show');box.classList.add('show');
-  try{
-    const res=await fetch('/admin/project_comments/'+projectId);
-    const data=await res.json();
-    if(!data.success){body.innerHTML='<div style="padding:16px;color:#dc2626;font-size:11px;">Failed to load.</div>';return;}
-    const comments=data.comments;
-    document.getElementById('modal-count').textContent=comments.length+' comment'+(comments.length!==1?'s':'');
-    body.innerHTML=comments.length?comments.map(c=>buildComment(c)).join(''):'<div style="text-align:center;padding:20px;font-size:11px;color:#9c9488;">No comments yet.</div>';
-  }catch(e){body.innerHTML='<div style="padding:16px;color:#dc2626;font-size:11px;">Error loading.</div>';}
-}
 function adminDeleteComment(id){
   if(!confirm('Delete this comment?'))return;
   fetch('/api/comment/'+id,{method:'DELETE'}).then(r=>r.json()).then(d=>{
@@ -1085,10 +1299,6 @@ function adminDeleteComment(id){
       showToast('Comment deleted.');
     }else showToast(d.error,true);
   });
-}
-function closeModal(){
-  document.getElementById('modal-overlay').classList.remove('show');
-  document.getElementById('modal-box').classList.remove('show');
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeSidebar();}});
 </script>
