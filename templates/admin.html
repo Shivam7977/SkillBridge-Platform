@@ -490,8 +490,8 @@
         </div>
 
         <div class="stat-card" onclick="smoothTo('users')" style="cursor:pointer;">
-          <div class="stat-label">Deleted</div>
-          <div class="stat-value" style="color:#9c9488;">{{ stats.deleted_accounts }}</div>
+          <div class="stat-label">🗑️ Trash</div>
+          <div class="stat-value" style="color:#9c9488;">{{ stats.trash_count }}</div>
         </div>
 
         <div class="stat-card">
@@ -570,6 +570,7 @@
             <button class="tab-btn" onclick="switchTab(event,'users','active')">Active</button>
             <button class="tab-btn" onclick="switchTab(event,'users','banned')">Banned ({{ stats.banned_users }})</button>
             <button class="tab-btn" onclick="switchTab(event,'users','admins')">Admins</button>
+            <button class="tab-btn" onclick="switchTab(event,'users','trash')">🗑️ Trash ({{ stats.trash_count }})</button>
             <button class="tab-btn" onclick="switchTab(event,'users','deleted')">Deleted ({{ stats.deleted_accounts }})</button>
           </div>
           <!-- search -->
@@ -629,12 +630,16 @@
                     <td>
                       <div style="display:flex;gap:4px;flex-wrap:wrap;">
                         <a href="{{ url_for('admin_user_detail', user_id=u._id) }}" class="btn btn-view" data-tip="View"><i class="fas fa-eye" style="font-size:9px;"></i> <span class="btn-label">View</span></a>
+                        {% if u._id != current_user.id %}
                         {% if u.is_banned %}
                         <button class="btn btn-success" data-tip="Unban User" onclick="unbanUser('{{ u._id }}')"><i class="fas fa-unlock" style="font-size:9px;"></i> <span class="btn-label">Unban</span></button>
                         {% else %}
                         <button class="btn btn-warning" data-tip="Ban User" onclick="banUser('{{ u._id }}')"><i class="fas fa-ban" style="font-size:9px;"></i> <span class="btn-label">Ban</span></button>
                         {% endif %}
                         <button class="btn btn-danger" data-tip="Delete User" onclick="deleteUser('{{ u._id }}','{{ u.name }}')"><i class="fas fa-trash" style="font-size:9px;"></i></button>
+                        {% else %}
+                        <span style="font-size:10px;font-weight:700;color:#9c9488;padding:6px 8px;">This is you</span>
+                        {% endif %}
                       </div>
                     </td>
                   </tr>
@@ -662,7 +667,7 @@
                         <div style="display:flex;align-items:center;gap:5px;"><span style="font-size:10px;">🗺️</span><div class="ai-bar-track"><div class="ai-bar-fill" style="width:{{ [(u.ai_roadmap_today/10*100)|int,100]|min }}%;background:{% if u.ai_roadmap_today>=10 %}#dc2626{% else %}#c4973a{% endif %};"></div></div><span style="font-size:9px;font-weight:700;color:#9c9488;">{{ u.ai_roadmap_today }}/10</span></div>
                       </div>
                     </td>
-                    <td><div style="display:flex;gap:4px;flex-wrap:wrap;"><a href="{{ url_for('admin_user_detail', user_id=u._id) }}" class="btn btn-view" data-tip="View"><i class="fas fa-eye" style="font-size:9px;"></i> <span class="btn-label">View</span></a><button class="btn btn-warning" data-tip="Ban User" onclick="banUser('{{ u._id }}')"><i class="fas fa-ban" style="font-size:9px;"></i> <span class="btn-label">Ban</span></button><button class="btn btn-danger" data-tip="Delete User" onclick="deleteUser('{{ u._id }}','{{ u.name }}')"><i class="fas fa-trash" style="font-size:9px;"></i></button></div></td>
+                    <td><div style="display:flex;gap:4px;flex-wrap:wrap;"><a href="{{ url_for('admin_user_detail', user_id=u._id) }}" class="btn btn-view" data-tip="View"><i class="fas fa-eye" style="font-size:9px;"></i> <span class="btn-label">View</span></a>{% if u._id != current_user.id %}<button class="btn btn-warning" data-tip="Ban User" onclick="banUser('{{ u._id }}')"><i class="fas fa-ban" style="font-size:9px;"></i> <span class="btn-label">Ban</span></button><button class="btn btn-danger" data-tip="Delete User" onclick="deleteUser('{{ u._id }}','{{ u.name }}')"><i class="fas fa-trash" style="font-size:9px;"></i></button>{% else %}<span style="font-size:10px;font-weight:700;color:#9c9488;padding:6px 8px;">This is you</span>{% endif %}</div></td>
                   </tr>
                   {% endfor %}
                 </tbody>
@@ -703,6 +708,26 @@
                 {% endfor %}
               </tbody>
             </table></div>
+          </div>
+
+          <!-- TRASH (30-day grace period) -->
+          <div class="tab-pane" id="users-tab-trash">
+            {% if trash_accounts %}
+            <div style="overflow-x:auto;"><table class="adm-table">
+              <thead><tr><th>Name</th><th class="hide-mobile">Email</th><th>Requested By</th><th>Days Left</th><th>Actions</th></tr></thead>
+              <tbody>
+                {% for t in trash_accounts %}
+                <tr id="trash-{{ t._id }}">
+                  <td style="font-weight:700;">{{ t.name }}{% if t.is_banned %} <span class="pill pill-banned" style="font-size:9px;">Also Banned</span>{% endif %}{% if t.username %}<br><span class="uhandle">@{{ t.username }}</span>{% endif %}</td>
+                  <td class="hide-mobile" style="color:#9c9488;">{{ t.email }}</td>
+                  <td><span style="font-size:11px;font-weight:700;{% if t.deletion_requested_by=='Self' %}color:#9c9488;{% else %}color:#c4973a;{% endif %}">{{ t.deletion_requested_by }}</span></td>
+                  <td><span style="font-size:11px;font-weight:800;{% if t.days_left <= 3 %}color:#dc2626;{% else %}color:#1a1714;{% endif %}">{{ t.days_left }} day{{ 's' if t.days_left != 1 else '' }}</span></td>
+                  <td><button class="btn btn-success" onclick="restoreAccount('{{ t._id }}','{{ t.name }}')"><i class="fas fa-undo" style="font-size:9px;"></i> <span class="btn-label">Restore</span></button> <a href="{{ url_for('admin_user_detail', user_id=t._id) }}" class="btn btn-view" data-tip="View"><i class="fas fa-eye" style="font-size:9px;"></i></a></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table></div>
+            {% else %}<div style="padding:20px;text-align:center;font-size:12px;color:#9c9488;font-weight:600;">Trash is empty.</div>{% endif %}
           </div>
 
           <!-- DELETED -->
@@ -752,7 +777,7 @@
               <tbody>
                 {% for p in projects %}
                 <tr id="pr-{{ p._id }}">
-                  <td style="font-weight:700;max-width:150px;" class="truncate">{{ p.title }}</td>
+                  <td style="font-weight:700;max-width:150px;" class="truncate">{{ p.title }}{% if p.hidden %} <span title="Creator is banned/trashed — hidden from public" style="font-size:9px;font-weight:800;color:#9c9488;background:rgba(156,148,136,.15);padding:1px 6px;border-radius:10px;">🙈 Hidden</span>{% endif %}</td>
                   <td>{{ p.created_by_name }}{% if p.created_by_username %}<br><span class="uhandle">@{{ p.created_by_username }}</span>{% endif %}</td>
                   <td class="hide-mobile" style="color:#9c9488;max-width:120px;" class="truncate">{{ p.skills_needed|join(', ') if p.skills_needed else '—' }}</td>
                   <td style="font-weight:800;color:#c4973a;">{{ p.views or 0 }}</td>
@@ -799,12 +824,12 @@
               <tbody>
                 {% for r in roadmaps %}
                 <tr id="rm-{{ r._id }}">
-                  <td style="font-weight:700;max-width:200px;" class="truncate">{{ r.goal }}</td>
+                  <td style="font-weight:700;max-width:200px;" class="truncate">{{ r.goal }}{% if r.hidden %} <span title="Creator is banned/trashed — hidden from public" style="font-size:9px;font-weight:800;color:#9c9488;background:rgba(156,148,136,.15);padding:1px 6px;border-radius:10px;">🙈 Hidden</span>{% endif %}</td>
                   <td>{{ r.user_name }}{% if r.username %}<br><span class="uhandle">@{{ r.username }}</span>{% endif %}</td>
                   <td class="hide-mobile" style="font-weight:600;">{{ r.stage_count }}</td>
                   <td class="hide-mobile"><span style="font-weight:800;color:#c4973a;">{{ r.completed_stages }}</span><span style="color:#9c9488;">/{{ r.stage_count }}</span></td>
                   <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;">{% if r.last_visited %}<span data-utc="{{ utc_iso(r.last_visited) }}" data-format="date">{{ r.last_visited.strftime('%b %d, %Y') }}</span>{% else %}—{% endif %}</td>
-                  <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;">{% if r.last_reminder_sent_at %}<span data-utc="{{ utc_iso(r.last_reminder_sent_at) }}" data-format="date">{{ r.last_reminder_sent_at.strftime('%b %d, %Y') }}</span>{% else %}Never{% endif %}</td>
+                  <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;">{% if r.is_fully_complete %}<span style="font-size:10px;font-weight:800;color:#10b981;">✅ Complete</span>{% elif r.last_reminder_sent_at %}<span data-utc="{{ utc_iso(r.last_reminder_sent_at) }}" data-format="date">{{ r.last_reminder_sent_at.strftime('%b %d, %Y') }}</span>{% else %}Never{% endif %}</td>
                   <td class="hide-mobile" style="color:#9c9488;white-space:nowrap;" data-utc="{{ utc_iso(r.created_at) if r.created_at else '' }}" data-format="date">{{ r.created_at.strftime('%b %d, %Y') if r.created_at else 'N/A' }}</td>
                   <td>
                     <div style="display:flex;gap:4px;flex-wrap:wrap;">
@@ -843,7 +868,7 @@
               <tbody>
                 {% for c in communities %}
                 <tr id="cm-{{ c._id }}">
-                  <td style="font-weight:700;max-width:180px;" class="truncate">{{ c.project_title }}</td>
+                  <td style="font-weight:700;max-width:180px;" class="truncate">{{ c.project_title }}{% if c.hidden %} <span title="Owner is banned/trashed and no member could take over — hidden from public" style="font-size:9px;font-weight:800;color:#9c9488;background:rgba(156,148,136,.15);padding:1px 6px;border-radius:10px;">🙈 Hidden</span>{% endif %}</td>
                   <td>{{ c.owner_name }}{% if c.owner_username %}<br><span class="uhandle">@{{ c.owner_username }}</span>{% endif %}</td>
                   <td class="hide-mobile" style="font-weight:600;">{{ c.member_count }}</td>
                   <td class="hide-mobile"><span style="font-size:10px;font-weight:700;{% if c.visibility=='public' %}color:#15803d;{% else %}color:#9c9488;{% endif %}">{{ c.visibility|capitalize }}</span></td>
@@ -996,7 +1021,8 @@ function approveCommit(id){if(!confirm('Approve and award +50 XP?'))return;fetch
 function rejectCommit(id){if(!confirm('Reject this upload?'))return;fetch('/admin/reject_commit/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){document.getElementById('cr-'+id).remove();showToast('Upload rejected.');}else showToast(d.error,true);});}
 function banUser(id){if(!confirm('Ban this user?'))return;fetch('/admin/ban_user/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success)location.reload();else showToast(d.error,true);});}
 function unbanUser(id){if(!confirm('Unban this user?'))return;fetch('/admin/unban_user/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success)location.reload();else showToast(d.error,true);});}
-function deleteUser(id,name){if(!confirm('Permanently delete '+name+' and ALL their data?'))return;fetch('/admin/delete_user/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success)location.reload();else showToast(d.error,true);});}
+function deleteUser(id,name){if(!confirm('Move '+name+' to Trash? Their account will be permanently deleted in 30 days unless restored.'))return;fetch('/admin/delete_user/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success)location.reload();else showToast(d.error,true);});}
+function restoreAccount(id,name){if(!confirm('Restore '+name+'\'s account? This cancels the scheduled deletion.'))return;fetch('/admin/restore_account/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success)location.reload();else showToast(d.error,true);});}
 // ── ADMIN PROJECT DELETE MODAL ────────────────────────────
 let _adminDelId = null, _adminDelHasCommunity = false;
 
@@ -1148,7 +1174,9 @@ function renderProjectDetail(p){
   const communityHtml=p.community?`<div class="info-row"><span class="info-label">Community</span><span class="info-value"><a href="#" onclick="openCommunityDetail('${p.community.id}');return false;" style="color:#c4973a;text-decoration:none;">${escapeHtml(p.community.title)}</a></span></div>`:'';
   const likersHtml=p.likers.length?p.likers.map(u=>peopleRow(u)).join(''):'<div class="empty">No likes yet.</div>';
   const saversHtml=p.savers.length?p.savers.map(u=>peopleRow(u)).join(''):'<div class="empty">No saves yet.</div>';
+  const hiddenBanner=p.hidden?`<div style="background:rgba(156,148,136,.15);border:1px solid rgba(156,148,136,.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11px;font-weight:700;color:#7a7268;">🙈 Hidden from public — creator is banned or in Trash</div>`:'';
   return `
+    ${hiddenBanner}
     <div class="detail-stats">
       <div><div class="dstat-lbl">Views</div><div class="dstat-val">👁️ ${p.views}</div></div>
       <div><div class="dstat-lbl">Likes</div><div class="dstat-val">❤️ ${p.likers.length}</div></div>
@@ -1206,7 +1234,9 @@ function renderRoadmapDetail(r){
       <span class="stage-title">${escapeHtml(s.title)}</span>
       ${s.completed?'<span class="stage-status done"><i class="fas fa-check-circle"></i> Complete</span>':'<span class="stage-status pending"><i class="far fa-circle"></i> Pending</span>'}
     </div>`).join(''):'<div class="empty">No stages found.</div>';
+  const hiddenBanner=r.hidden?`<div style="background:rgba(156,148,136,.15);border:1px solid rgba(156,148,136,.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11px;font-weight:700;color:#7a7268;">🙈 Hidden from public — creator is banned or in Trash</div>`:'';
   return `
+    ${hiddenBanner}
     <div class="detail-section">
       <div class="info-row"><span class="info-label">Created by</span><span class="info-value">${creatorHtml}</span></div>
       <div class="info-row"><span class="info-label">Created</span><span class="info-value">${formatUtc(r.created_at,'date')}</span></div>
@@ -1219,7 +1249,7 @@ function renderRoadmapDetail(r){
     <div class="detail-section">
       <div class="detail-section-h">Activity</div>
       <div class="info-row"><span class="info-label">Last Visited</span><span class="info-value">${r.last_visited?formatUtc(r.last_visited):'—'}</span></div>
-      <div class="info-row"><span class="info-label">Last Reminder Sent</span><span class="info-value">${r.last_reminder_sent_at?formatUtc(r.last_reminder_sent_at):'Never'}</span></div>
+      <div class="info-row"><span class="info-label">Last Reminder Sent</span><span class="info-value">${r.is_fully_complete?'<span style="color:#10b981;font-weight:800;">✅ Complete — reminders paused</span>':(r.last_reminder_sent_at?formatUtc(r.last_reminder_sent_at):'Never')}</span></div>
     </div>
     <div><button class="btn btn-danger" onclick="deleteRoadmap('${r.id}','${escapeHtml(r.goal).replace(/'/g,"\\'")}')"><i class="fas fa-trash" style="font-size:9px;"></i> <span class="btn-label">Delete Roadmap</span></button></div>
   `;
@@ -1247,7 +1277,9 @@ function renderCommunityDetail(c){
       </a>
       <span class="role-tag ${m.role.toLowerCase()}">${m.role}</span>
     </div>`).join(''):'<div class="empty">No members.</div>';
+  const hiddenBanner=c.hidden?`<div style="background:rgba(156,148,136,.15);border:1px solid rgba(156,148,136,.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11px;font-weight:700;color:#7a7268;">🙈 Hidden from public — owner is banned/trashed and no member could take over</div>`:'';
   return `
+    ${hiddenBanner}
     <div class="detail-section">
       <div class="info-row"><span class="info-label">Owner</span><span class="info-value">${ownerHtml}</span></div>
       <div class="info-row"><span class="info-label">Visibility</span><span class="info-value">${c.visibility}</span></div>

@@ -322,12 +322,20 @@
           </div>
           <div class="hero-actions">
             <button class="btn btn-ink" onclick="openXpModal()"><i class="fas fa-coins"></i> <span>Adjust XP</span></button>
+            {% if user._id == current_user.id %}
+            <span style="font-size:11px;font-weight:700;color:#9c9488;padding:6px 8px;">This is your own account — Ban/Delete disabled</span>
+            {% else %}
             {% if user.is_banned %}
             <button class="btn btn-success" onclick="unbanUser()"><i class="fas fa-unlock"></i> <span>Unban</span></button>
             {% else %}
             <button class="btn btn-warning" onclick="banUser()"><i class="fas fa-ban"></i> <span>Ban</span></button>
             {% endif %}
-            <button class="btn btn-danger" onclick="deleteUser()"><i class="fas fa-trash"></i> <span>Delete</span></button>
+            {% if user.pending_deletion %}
+            <button class="btn btn-success" onclick="restoreAccount()"><i class="fas fa-undo"></i> <span>Restore ({{ user.days_left }}d left)</span></button>
+            {% else %}
+            <button class="btn btn-danger" onclick="deleteUser()"><i class="fas fa-trash"></i> <span>Move to Trash</span></button>
+            {% endif %}
+            {% endif %}
             <button class="btn {{ 'btn-success' if user.email_reminders_enabled else 'btn-warning' }}" id="notif-btn" onclick="toggleEmailReminders()">
               <i class="fas fa-bell{{ '' if user.email_reminders_enabled else '-slash' }}" id="notif-icon"></i>
               <span id="notif-lbl">Reminders: {{ 'On' if user.email_reminders_enabled else 'Off' }}</span>
@@ -354,10 +362,15 @@
         <div class="card-body">
           <div class="info-row"><span class="info-label">Account Created</span><span class="info-value" data-utc="{{ utc_iso(user.created_at) if user.created_at else '' }}" data-format="datetime">{{ user.created_at.strftime('%b %d, %Y at %I:%M %p') if user.created_at else 'N/A' }}</span></div>
           <div class="info-row"><span class="info-label">Last Login</span><span class="info-value">{% if user.last_login %}<span data-utc="{{ utc_iso(user.last_login) }}" data-format="datetime">{{ user.last_login.strftime('%b %d, %Y at %I:%M %p') }}</span>{% else %}Never{% endif %}</span></div>
-          <div class="info-row"><span class="info-label">Status</span><span class="info-value">{% if user.is_banned %}<span class="pill banned">Banned</span>{% else %}<span style="color:#10b981;font-weight:800;">Active</span>{% endif %}</span></div>
+          <div class="info-row"><span class="info-label">Status</span><span class="info-value">{% if user.pending_deletion %}<span style="color:#9c9488;font-weight:800;">🗑️ In Trash</span>{% elif user.is_banned %}<span class="pill banned">Banned</span>{% else %}<span style="color:#10b981;font-weight:800;">Active</span>{% endif %}</span></div>
           {% if user.is_banned %}
           <div class="info-row"><span class="info-label">Banned By</span><span class="info-value">{{ user.banned_by or '—' }}</span></div>
           <div class="info-row"><span class="info-label">Banned At</span><span class="info-value">{% if user.banned_at %}<span data-utc="{{ utc_iso(user.banned_at) }}" data-format="datetime">{{ user.banned_at.strftime('%b %d, %Y at %I:%M %p') }}</span>{% else %}—{% endif %}</span></div>
+          {% endif %}
+          {% if user.pending_deletion %}
+          <div class="info-row"><span class="info-label">Deletion Requested By</span><span class="info-value">{{ user.deletion_requested_by or '—' }}</span></div>
+          <div class="info-row"><span class="info-label">Deletion Requested At</span><span class="info-value">{% if user.deletion_requested_at %}<span data-utc="{{ utc_iso(user.deletion_requested_at) }}" data-format="datetime">{{ user.deletion_requested_at.strftime('%b %d, %Y at %I:%M %p') }}</span>{% else %}—{% endif %}</span></div>
+          <div class="info-row"><span class="info-label">Auto-Purge In</span><span class="info-value" style="color:{{ '#dc2626' if user.days_left <= 3 else '#1a1714' }};">{{ user.days_left }} day{{ 's' if user.days_left != 1 else '' }}</span></div>
           {% endif %}
         </div>
       </div>
@@ -459,7 +472,7 @@
                 <td class="hide-sm">{{ r.stage_count }}</td>
                 <td class="hide-sm">{{ r.completed_stages }}/{{ r.stage_count }}</td>
                 <td class="hide-sm" style="font-size:.72rem;color:#9c9488;">{% if r.last_visited %}<span data-utc="{{ utc_iso(r.last_visited) }}" data-format="date">{{ r.last_visited.strftime('%b %d, %Y') }}</span>{% else %}—{% endif %}</td>
-                <td class="hide-sm" style="font-size:.72rem;color:#9c9488;">{% if r.last_reminder_sent_at %}<span data-utc="{{ utc_iso(r.last_reminder_sent_at) }}" data-format="date">{{ r.last_reminder_sent_at.strftime('%b %d, %Y') }}</span>{% else %}Never{% endif %}</td>
+                <td class="hide-sm" style="font-size:.72rem;color:#9c9488;">{% if r.is_fully_complete %}<span style="font-weight:800;color:#10b981;">✅ Complete</span>{% elif r.last_reminder_sent_at %}<span data-utc="{{ utc_iso(r.last_reminder_sent_at) }}" data-format="date">{{ r.last_reminder_sent_at.strftime('%b %d, %Y') }}</span>{% else %}Never{% endif %}</td>
                 <td>
                   <div style="display:flex;gap:5px;">
                     <button class="btn btn-ink" onclick="openRoadmapDetail('{{ r._id }}')"><i class="fas fa-eye"></i></button>
@@ -513,7 +526,7 @@
             <tbody>
               {% for c in communities %}
               <tr>
-                <td><strong>{{ c.project_title }}</strong></td>
+                <td><strong>{{ c.project_title }}</strong>{% if c.hidden %} <span title="Owner is banned/trashed and no member could take over — hidden from public" style="font-size:9px;font-weight:800;color:#9c9488;background:rgba(156,148,136,.15);padding:1px 6px;border-radius:10px;">🙈 Hidden</span>{% endif %}</td>
                 <td><span style="font-size:.76rem;font-weight:700;color:{{ '#c4973a' if c.is_owner else '#9c9488' }}">{{ 'Owner' if c.is_owner else 'Member' }}</span></td>
                 <td class="hide-sm">{{ c.member_count }}</td>
                 <td><button class="btn btn-ink" onclick="openCommunityDetail('{{ c._id }}')"><i class="fas fa-eye"></i></button></td>
@@ -691,7 +704,8 @@ function toggleEmailReminders(){
 }
 function banUser(){ if(!confirm('Ban {{ user.name }}?'))return; fetch('/admin/ban_user/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('User banned.');setTimeout(()=>location.reload(),1200);}else showToast(d.error,true);}); }
 function unbanUser(){ fetch('/admin/unban_user/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('User unbanned.');setTimeout(()=>location.reload(),1200);}else showToast(d.error,true);}); }
-function deleteUser(){ if(!confirm('Permanently delete {{ user.name }} and ALL their data?'))return; fetch('/admin/delete_user/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('User deleted.');setTimeout(()=>window.location.href='{{ url_for("admin_panel") }}',1500);}else showToast(d.error,true);}); }
+function deleteUser(){ if(!confirm('Move {{ user.name }} to Trash? Their account will be permanently deleted in 30 days unless restored.'))return; fetch('/admin/delete_user/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('Moved to Trash.');setTimeout(()=>window.location.reload(),1200);}else showToast(d.error,true);}); }
+function restoreAccount(){ if(!confirm('Restore {{ user.name }}\'s account? This cancels the scheduled deletion.'))return; fetch('/admin/restore_account/'+USER_ID,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('Account restored.');setTimeout(()=>window.location.reload(),1200);}else showToast(d.error,true);}); }
 function deleteProject(id,title){ if(!confirm('Delete project "'+title+'"?'))return; fetch('/admin/delete_project/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){const el=document.getElementById('pr-'+id);if(el)el.remove();showToast('Project deleted.');closeDModal();}else showToast(d.error,true);}); }
 function deleteRoadmap(id,goal){ if(!confirm('Delete roadmap "'+goal+'"?'))return; fetch('/admin/delete_roadmap/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){const el=document.getElementById('rm-'+id);if(el)el.remove();showToast('Roadmap deleted.');closeDModal();}else showToast(d.error,true);}); }
 function deleteCommunity(id,title){ if(!confirm('Delete community "'+title+'"?'))return; fetch('/admin/delete_community/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){showToast('Community deleted.');closeDModal();}else showToast(d.error,true);}); }
@@ -753,7 +767,9 @@ function renderProjectDetail(p){
   const communityHtml=p.community?`<div class="drow"><span class="drow-label">Community</span><span class="drow-value"><a href="#" onclick="openCommunityDetail('${p.community.id}');return false;" style="color:#c4973a;text-decoration:none;">${escapeHtml(p.community.title)}</a></span></div>`:'';
   const likersHtml=p.likers.length?p.likers.map(u=>dPeopleRow(u)).join(''):'<div class="dempty">No likes yet.</div>';
   const saversHtml=p.savers.length?p.savers.map(u=>dPeopleRow(u)).join(''):'<div class="dempty">No saves yet.</div>';
+  const hiddenBanner=p.hidden?`<div style="background:rgba(156,148,136,.15);border:1px solid rgba(156,148,136,.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11px;font-weight:700;color:#7a7268;">🙈 Hidden from public — creator is banned or in Trash</div>`:'';
   return `
+    ${hiddenBanner}
     <div class="detail-stats">
       <div><div class="dstat-lbl">Views</div><div class="dstat-val">👁️ ${p.views}</div></div>
       <div><div class="dstat-lbl">Likes</div><div class="dstat-val">❤️ ${p.likers.length}</div></div>
@@ -829,7 +845,9 @@ function renderRoadmapDetail(r){
       <span style="flex:1;font-size:.8rem;font-weight:700;color:#1a1714;">${escapeHtml(s.title)}</span>
       ${s.completed?'<span class="dstage-status done" style="font-size:.68rem;font-weight:800;display:flex;align-items:center;gap:4px;"><i class="fas fa-check-circle"></i> Complete</span>':'<span class="dstage-status pending" style="font-size:.68rem;font-weight:800;display:flex;align-items:center;gap:4px;"><i class="far fa-circle"></i> Pending</span>'}
     </div>`).join(''):'<div class="dempty">No stages found.</div>';
+  const hiddenBanner=r.hidden?`<div style="background:rgba(156,148,136,.15);border:1px solid rgba(156,148,136,.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11px;font-weight:700;color:#7a7268;">🙈 Hidden from public — creator is banned or in Trash</div>`:'';
   return `
+    ${hiddenBanner}
     <div class="detail-section">
       <div class="drow"><span class="drow-label">Created by</span><span class="drow-value">${creatorHtml}</span></div>
       <div class="drow"><span class="drow-label">Created</span><span class="drow-value">${formatUtc(r.created_at,'date')}</span></div>
@@ -842,7 +860,7 @@ function renderRoadmapDetail(r){
     <div class="detail-section">
       <div class="detail-section-h">Activity</div>
       <div class="drow"><span class="drow-label">Last Visited</span><span class="drow-value">${r.last_visited?formatUtc(r.last_visited):'—'}</span></div>
-      <div class="drow"><span class="drow-label">Last Reminder Sent</span><span class="drow-value">${r.last_reminder_sent_at?formatUtc(r.last_reminder_sent_at):'Never'}</span></div>
+      <div class="drow"><span class="drow-label">Last Reminder Sent</span><span class="drow-value">${r.is_fully_complete?'<span style="color:#10b981;font-weight:800;">✅ Complete — reminders paused</span>':(r.last_reminder_sent_at?formatUtc(r.last_reminder_sent_at):'Never')}</span></div>
     </div>
     <div><button class="btn btn-danger" onclick="deleteRoadmap('${r.id}','${escapeHtml(r.goal).replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i> Delete Roadmap</button></div>
   `;
@@ -870,7 +888,9 @@ function renderCommunityDetail(c){
       </a>
       <span class="drole-tag ${m.role.toLowerCase()}">${m.role}</span>
     </div>`).join(''):'<div class="dempty">No members.</div>';
+  const hiddenBanner=c.hidden?`<div style="background:rgba(156,148,136,.15);border:1px solid rgba(156,148,136,.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11px;font-weight:700;color:#7a7268;">🙈 Hidden from public — owner is banned/trashed and no member could take over</div>`:'';
   return `
+    ${hiddenBanner}
     <div class="detail-section">
       <div class="drow"><span class="drow-label">Owner</span><span class="drow-value">${ownerHtml}</span></div>
       <div class="drow"><span class="drow-label">Visibility</span><span class="drow-value">${c.visibility}</span></div>

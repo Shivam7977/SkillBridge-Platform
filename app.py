@@ -289,7 +289,10 @@ def load_user(user_id):
     try:
         obj_id = ObjectId(user_id)
         user_data = users_collection.find_one({"_id": obj_id})
-        if user_data:
+        # Banned or pending-deletion accounts are rejected here too — this runs on
+        # EVERY request, so it kills an already-open session immediately, not just
+        # future login attempts.
+        if user_data and not user_data.get('is_banned') and not user_data.get('pending_deletion'):
             return User(user_data)
     except Exception as e:
         print(f"Error loading user {user_id}: {e}")
@@ -685,6 +688,49 @@ def create_notification(user_id, notif_type, message, link="#"):
     except Exception as e:
         print(f"Notification error: {e}")
 
+def sync_hidden_flag(user_id):
+    """hidden = True if the user is banned OR pending deletion, else False.
+    Cascades onto their own content (projects, comments). For owned communities:
+    if another active (non-banned, non-trashed) member exists, ownership transfers
+    to them so the community stays alive for everyone else — only hidden as a last
+    resort when no other active member exists. A transferred community is never
+    clawed back on unban/restore; only communities they STILL own get un-hidden."""
+    user = users_collection.find_one({'_id': user_id}, {'is_banned': 1, 'pending_deletion': 1})
+    if not user:
+        return
+    should_hide = bool(user.get('is_banned')) or bool(user.get('pending_deletion'))
+    projects_collection.update_many({'created_by_id': user_id}, {'$set': {'hidden': should_hide}})
+    comments_collection.update_many({'user_id': user_id}, {'$set': {'hidden': should_hide}})
+
+    if should_hide:
+        owned = list(communities_collection.find({'owner_id': user_id}))
+        for c in owned:
+            admin_ids = [m for m in c.get('admins', []) if m != user_id]
+            member_ids = [m for m in c.get('members', []) if m != user_id and m not in admin_ids]
+            # Co-admins get first refusal on ownership, then regular members
+            new_owner_id, new_owner = None, None
+            for cand_id in admin_ids + member_ids:
+                cand = users_collection.find_one(
+                    {'_id': cand_id, 'is_banned': {'$ne': True}, 'pending_deletion': {'$ne': True}},
+                    {'name': 1}
+                )
+                if cand:
+                    new_owner_id, new_owner = cand_id, cand
+                    break
+            if new_owner:
+                communities_collection.update_one(
+                    {'_id': c['_id']},
+                    {'$set': {'owner_id': new_owner_id, 'owner_name': new_owner.get('name', 'Unknown'), 'hidden': False},
+                     '$pull': {'admins': new_owner_id}}
+                )
+            else:
+                communities_collection.update_one({'_id': c['_id']}, {'$set': {'hidden': True}})
+    else:
+        # Unban/restore — only un-hide communities they still currently own; a
+        # community already transferred to someone else stays with its new owner.
+        communities_collection.update_many({'owner_id': user_id}, {'$set': {'hidden': False}})
+
+
 def log_account_deletion(user_doc, deleted_by):
     """Audit record kept AFTER the user document is hard-deleted.
     deleted_by: 'Self' (user deleted their own account) or the admin's name."""
@@ -700,6 +746,45 @@ def log_account_deletion(user_doc, deleted_by):
     except Exception as e:
         print(f"Deletion log error: {e}")
 
+def purge_expired_accounts():
+    """Runs daily. Permanently deletes accounts whose 30-day trash period has expired —
+    only place a permanent, irreversible delete happens. Reuses the full cascade-cleanup
+    (orphaned likes/bookmarks/comments/community-membership) worked out earlier."""
+    try:
+        now = now_utc()
+        expired = list(users_collection.find({'pending_deletion': True, 'purge_at': {'$lte': now}}))
+        for user_doc in expired:
+            uid = user_doc['_id']
+            log_account_deletion(user_doc, deleted_by=user_doc.get('deletion_requested_by', 'Self'))
+
+            own_project_ids = [p['_id'] for p in projects_collection.find({'created_by_id': uid}, {'_id': 1})]
+            if own_project_ids:
+                users_collection.update_many({}, {'$pull': {'bookmarks': {'$in': own_project_ids}}})
+                comments_collection.delete_many({'project_id': {'$in': own_project_ids}})
+            projects_collection.update_many({'likes': uid}, {'$pull': {'likes': uid}})
+
+            owned_community_ids = [c['_id'] for c in communities_collection.find({'owner_id': uid}, {'_id': 1})]
+            if owned_community_ids:
+                community_messages_collection.delete_many({'community_id': {'$in': owned_community_ids}})
+                communities_collection.delete_many({'_id': {'$in': owned_community_ids}})
+
+            communities_collection.update_many(
+                {'owner_id': {'$ne': uid}},
+                {'$pull': {'members': uid, 'admins': uid, 'pending_requests': uid}}
+            )
+
+            projects_collection.delete_many({'created_by_id': uid})
+            roadmaps_collection.delete_many({'user_id': uid})
+            commits_collection.delete_many({'user_id': uid})
+            chat_history_collection.delete_one({'user_id': uid})
+            notifications_collection.delete_many({'user_id': uid})
+            xp_history_collection.delete_many({'user_id': uid})
+            comments_collection.delete_many({'user_id': uid})
+            users_collection.delete_one({'_id': uid})
+    except Exception as e:
+        print(f"Purge expired accounts error: {e}")
+
+
 def check_inactive_roadmaps():
     """Runs daily (7 PM IST). Tracks per-roadmap inactivity but sends one digest per user."""
     try:
@@ -711,9 +796,27 @@ def check_inactive_roadmaps():
                 {'reminder_stage': {'$exists': False}}
             ]
         })
+        skip_user_ids = set(u['_id'] for u in users_collection.find(
+            {'$or': [{'is_banned': True}, {'pending_deletion': True}]}, {'_id': 1}
+        ))
 
         user_reminders = {}
         for rm in candidates:
+            # Skip banned or trashed users — they can't use the platform, no point nudging them
+            if rm.get('user_id') in skip_user_ids:
+                continue
+
+            # Skip roadmaps that are already 100% complete — nothing to "resume"
+            content = rm.get('roadmap_content', {})
+            if isinstance(content, str):
+                try:
+                    content = json.loads(content)
+                except Exception:
+                    content = {}
+            stages = content.get('stages', []) if isinstance(content, dict) else []
+            if stages and all(isinstance(s, dict) and s.get('completed') for s in stages):
+                continue
+
             last_activity = rm.get('last_activity') or rm.get('created_at')
             if not last_activity:
                 continue
@@ -775,6 +878,14 @@ scheduler.add_job(
 )
 print("✅ Roadmap inactivity reminder scheduler started — runs daily at 7 PM IST")
 
+scheduler.add_job(
+    purge_expired_accounts,
+    CronTrigger(hour=18, minute=30, timezone=UTC_TZ),  # = midnight IST daily
+    id='purge_expired_accounts',
+    replace_existing=True
+)
+print("✅ Trash purge scheduler started — runs daily at midnight IST")
+
 def parse_skills(value):
     if not value:
         return []
@@ -829,7 +940,7 @@ def signup():
         if not _re.match(r'^[a-z0-9_]{3,20}$', username):
             flash("Username must be 3-20 characters, letters/numbers/underscores only.", "error")
             return redirect(url_for('signup'))
-        if users_collection.find_one({'username': username}):
+        if users_collection.find_one({'username': username, 'pending_deletion': {'$ne': True}}):
             flash("That username is already taken. Try another.", "error")
             return redirect(url_for('signup'))
         if password != confirm_password:
@@ -839,7 +950,7 @@ def signup():
         if not password_pattern.match(password):
             flash("Password must be at least 8 characters and include uppercase, lowercase, number, and special symbol (@$!%*?&).", "error")
             return redirect(url_for('signup'))
-        if users_collection.find_one({'email': email}):          # ← now correctly indented inside POST
+        if users_collection.find_one({'email': email, 'pending_deletion': {'$ne': True}}):          # ← now correctly indented inside POST
             flash("An account with this email already exists. Try logging in.", "error")
             return redirect(url_for('login'))
         otp = random.randint(100000, 999999)
@@ -872,7 +983,7 @@ def check_username():
     import re as _re
     if not _re.match(r'^[a-z0-9_]{3,20}$', username):
         return jsonify({'available': False, 'error': 'Username must be 3-20 chars, letters/numbers/underscores only'})
-    existing = users_collection.find_one({'username': username}, {'_id': 1})
+    existing = users_collection.find_one({'username': username, 'pending_deletion': {'$ne': True}}, {'_id': 1})
     return jsonify({'available': existing is None})
 
 @app.route('/verify', methods=['GET', 'POST'])
@@ -924,7 +1035,13 @@ def login():
         if not email or not password:
              flash("Email and password are required.", "error"); return redirect(url_for('login'))
         user_data = users_collection.find_one({'email': email})
-        if user_data and not user_data.get('is_banned') and bcrypt.check_password_hash(user_data.get('password', ''), password):
+        if user_data and bcrypt.check_password_hash(user_data.get('password', ''), password):
+            if user_data.get('is_banned'):
+                flash("Your account has been suspended. Contact support if you think this is a mistake.", "error")
+                return redirect(url_for('login'))
+            if user_data.get('pending_deletion'):
+                flash("This account is scheduled for deletion and can no longer be accessed.", "error")
+                return redirect(url_for('login'))
             user = User(user_data)
             login_user(user, remember=remember)
             update_streak(str(user_data['_id']))  # STREAK TRACKING on every login
@@ -1463,14 +1580,16 @@ def projects():
         is_authenticated = current_user.is_authenticated
 
         # Total count of ALL projects for display
-        total = projects_collection.count_documents({})
+        not_hidden = {'hidden': {'$ne': True}}
+        total = projects_collection.count_documents(not_hidden)
 
         if is_authenticated:
             recommended_projects = get_recommended_projects(current_user.id, users_collection, projects_collection)
+            recommended_projects = [p for p in recommended_projects if not p.get('hidden')]
             rec_ids = [p['_id'] for p in recommended_projects]
 
             # other_projects = all projects NOT in recommended
-            other_query = {'_id': {'$nin': rec_ids}} if rec_ids else {}
+            other_query = {'_id': {'$nin': rec_ids}, **not_hidden} if rec_ids else dict(not_hidden)
             other_total = projects_collection.count_documents(other_query)
             other_projects = list(projects_collection.find(other_query)
                 .sort('created_at', -1)
@@ -1485,7 +1604,7 @@ def projects():
                 profile_incomplete = True
         else:
             other_total = total
-            other_projects = list(projects_collection.find()
+            other_projects = list(projects_collection.find(not_hidden)
                 .sort('created_at', -1)
                 .skip((page - 1) * PER_PAGE)
                 .limit(PER_PAGE))
@@ -1555,11 +1674,12 @@ def api_projects():
         page = request.args.get('page', 1, type=int)
         is_authenticated = current_user.is_authenticated
 
+        not_hidden = {'hidden': {'$ne': True}}
         if is_authenticated:
             recommended_ids = [p['_id'] for p in get_recommended_projects(current_user.id, users_collection, projects_collection)]
-            query = {'_id': {'$nin': recommended_ids}}
+            query = {'_id': {'$nin': recommended_ids}, **not_hidden}
         else:
-            query = {}
+            query = dict(not_hidden)
 
         total = projects_collection.count_documents(query)
         projects_list = list(projects_collection.find(query)
@@ -1791,6 +1911,8 @@ def delete_project(project_id):
         # Delete the project itself
         projects_collection.delete_one({'_id': ObjectId(project_id)})
         commits_collection.delete_many({'project_id': ObjectId(project_id)})
+        comments_collection.delete_many({'project_id': ObjectId(project_id)})
+        users_collection.update_many({}, {'$pull': {'bookmarks': ObjectId(project_id)}})
 
         if not project.get('pre_gamification'):
             deduct_xp(current_user.id, 10, "Project Deleted")
@@ -1808,6 +1930,15 @@ def view_project(project_id):
     project = projects_collection.find_one({'_id': obj_id})
     if not project:
         flash('Project not found.', 'error'); return redirect(url_for('projects'))
+
+    if project.get('hidden'):
+        is_admin_viewer = False
+        if current_user.is_authenticated:
+            me = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'is_admin': 1})
+            is_admin_viewer = bool(me and me.get('is_admin'))
+        if not is_admin_viewer:
+            flash('This project is no longer available.', 'error'); return redirect(url_for('projects'))
+
     is_owner = False
     if current_user.is_authenticated and str(project.get('created_by_id')) == current_user.id:
         is_owner = True
@@ -1844,7 +1975,7 @@ def view_project(project_id):
         is_admin = user_doc.get('is_admin', False) if user_doc else False
 
     raw_top = list(comments_collection.find(
-        {'project_id': obj_id, 'parent_id': None}
+        {'project_id': obj_id, 'parent_id': None, 'hidden': {'$ne': True}}
     ).sort('created_at', -1))
 
     def fmt_date(dt):
@@ -1871,7 +2002,7 @@ def view_project(project_id):
         c['created_at_iso'] = utc_iso(c.get('created_at'))
         # Fetch replies (1 level only)
         replies = list(comments_collection.find(
-            {'parent_id': c_id_obj}
+            {'parent_id': c_id_obj, 'hidden': {'$ne': True}}
         ).sort('created_at', 1))
         for r in replies:
             r['_id'] = str(r['_id'])
@@ -2167,14 +2298,14 @@ def get_comments_sorted(project_id):
         project = projects_collection.find_one({'_id': obj_id}, {'created_by_id': 1})
         if not project:
             return jsonify({'success': False}), 404
-        raw_top = list(comments_collection.find({'project_id': obj_id, 'parent_id': None}))
+        raw_top = list(comments_collection.find({'project_id': obj_id, 'parent_id': None, 'hidden': {'$ne': True}}))
         if sort_by == 'top':
             raw_top.sort(key=lambda c: len(c.get('likes', [])), reverse=True)
         else:
             raw_top.sort(key=lambda c: c.get('created_at', datetime.min), reverse=True)
         result = []
         for c in raw_top:
-            replies = list(comments_collection.find({'parent_id': c['_id']}).sort('created_at', 1))
+            replies = list(comments_collection.find({'parent_id': c['_id'], 'hidden': {'$ne': True}}).sort('created_at', 1))
             reply_list = []
             for r in replies:
                 reply_list.append({
@@ -3083,6 +3214,11 @@ def view_community(community_id):
     if not community:
         flash("Community not found", "error"); return redirect(url_for("find_communities"))
 
+    if community.get('hidden'):
+        me = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'is_admin': 1})
+        if not (me and me.get('is_admin')):
+            flash("This community is no longer available.", "error"); return redirect(url_for("find_communities"))
+
     user_id   = ObjectId(current_user.id)
     is_owner  = community.get("owner_id") == user_id
     is_admin  = user_id in community.get("admins", [])
@@ -3090,7 +3226,8 @@ def view_community(community_id):
     is_public = community.get("visibility") == "public"
 
     member_users = list(users_collection.find(
-        {"_id": {"$in": community.get("members", [])}}, {"name": 1, "username": 1}
+        {"_id": {"$in": community.get("members", [])}, "is_banned": {"$ne": True}, "pending_deletion": {"$ne": True}},
+        {"name": 1, "username": 1}
     ))
     members_data = []
     for u in member_users:
@@ -3345,7 +3482,7 @@ def find_communities():
 
     # Joined communities (member but not owner) — load all, usually few
     joined_communities = list(communities_collection.find(
-        {"members": user_id, "owner_id": {"$ne": user_id}}
+        {"members": user_id, "owner_id": {"$ne": user_id}, "hidden": {"$ne": True}}
     ).sort("created_at", -1))
     for c in joined_communities:
         c["is_owner"] = False
@@ -3360,7 +3497,7 @@ def find_communities():
     PER_PAGE = 9
     page = request.args.get('page', 1, type=int)
     exclude_ids = [c["_id"] for c in my_communities + joined_communities]
-    other_query = {"_id": {"$nin": exclude_ids}}
+    other_query = {"_id": {"$nin": exclude_ids}, "hidden": {"$ne": True}}
     other_total = communities_collection.count_documents(other_query)
     other_communities = list(communities_collection.find(other_query)
         .sort("created_at", -1)
@@ -3733,22 +3870,32 @@ def change_password():
 @login_required
 def delete_account():
     user_id = ObjectId(current_user.id)
-    user_doc = users_collection.find_one({'_id': user_id})
-    if user_doc:
-        log_account_deletion(user_doc, deleted_by='Self')
 
-    # Delete all user data
-    projects_collection.delete_many({'created_by_id': user_id})
-    roadmaps_collection.delete_many({'user_id': user_id})
-    commits_collection.delete_many({'user_id': user_id})
-    chat_history_collection.delete_one({'user_id': user_id})
-    notifications_collection.delete_many({'user_id': user_id})
-    xp_history_collection.delete_many({'user_id': user_id})
-    comments_collection.delete_many({'user_id': user_id})
-    users_collection.delete_one({'_id': user_id})
+    # Sole-admin lockout guard — this route is the regular Settings "delete my
+    # account" flow, completely separate from the admin panel's ban/delete
+    # buttons, so it needed its own check. If this account is the only admin,
+    # trashing it would leave nobody who can log into /admin to restore it.
+    self_doc = users_collection.find_one({'_id': user_id}, {'is_admin': 1})
+    if self_doc and self_doc.get('is_admin'):
+        other_admins = users_collection.count_documents({
+            'is_admin': True, '_id': {'$ne': user_id},
+            'is_banned': {'$ne': True}, 'pending_deletion': {'$ne': True}
+        })
+        if other_admins == 0:
+            flash("You're the only active admin — deleting this account would lock everyone out of the admin panel. Promote another admin first.", "error")
+            return redirect(url_for('settings'))
+
+    purge_at = now_utc() + timedelta(days=30)
+    users_collection.update_one({'_id': user_id}, {'$set': {
+        'pending_deletion': True,
+        'deletion_requested_at': now_utc(),
+        'deletion_requested_by': 'Self',
+        'purge_at': purge_at,
+    }})
+    sync_hidden_flag(user_id)
 
     logout_user()
-    flash('Your account and all associated data have been deleted.', 'info')
+    flash('Your account has been scheduled for deletion. It will be permanently removed in 30 days.', 'info')
     return redirect(url_for('index'))
 
 
@@ -3762,8 +3909,9 @@ def leaderboard():
     from datetime import timedelta
 
     # ── ALL TIME: top 50 by total XP ──
+    visible_filter = {'is_banned': {'$ne': True}, 'pending_deletion': {'$ne': True}}
     all_time = list(users_collection.find(
-        {}, {'name': 1, 'xp': 1, 'level': 1, 'badge': 1, 'streak_count': 1, 'profile_pic': 1}
+        visible_filter, {'name': 1, 'xp': 1, 'level': 1, 'badge': 1, 'streak_count': 1, 'profile_pic': 1}
     ).sort('xp', -1).limit(50))
 
     # ── WEEKLY: top 50 by weekly_xp, reset every Monday 00:00 IST ──
@@ -3771,7 +3919,7 @@ def leaderboard():
     next_reset = get_next_weekly_reset_utc()
 
     weekly = list(users_collection.find(
-        {'weekly_xp_updated': {'$gte': week_start}},
+        {**visible_filter, 'weekly_xp_updated': {'$gte': week_start}},
         {'name': 1, 'weekly_xp': 1, 'level': 1, 'badge': 1, 'streak_count': 1, 'profile_pic': 1}
     ).sort('weekly_xp', -1).limit(50))
 
@@ -3955,7 +4103,7 @@ def api_community_members(community_id):
     owner_id   = community.get('owner_id')
 
     # Build mongo query
-    query = {'_id': {'$in': member_ids}}
+    query = {'_id': {'$in': member_ids}, 'is_banned': {'$ne': True}, 'pending_deletion': {'$ne': True}}
     if q:
         query['name'] = {'$regex': q, '$options': 'i'}
 
@@ -4277,8 +4425,8 @@ def admin_required(f):
 @login_required
 @admin_required
 def admin_panel():
-    # Users
-    users = list(users_collection.find({}, {
+    # Users — pending-deletion accounts live in the Trash tab, not here
+    users = list(users_collection.find({'pending_deletion': {'$ne': True}}, {
         'name': 1, 'email': 1, 'xp': 1, 'level': 1, 'badge': 1,
         'streak_count': 1, 'is_admin': 1, 'is_banned': 1, 'banned_at': 1, 'banned_by': 1,
         'created_at': 1, 'profile_pic': 1, 'ai_usage': 1, 'timezone': 1, 'username': 1,
@@ -4366,6 +4514,7 @@ def admin_panel():
         stages = content.get('stages', []) if isinstance(content, dict) else []
         r['stage_count'] = len(stages)
         r['completed_stages'] = sum(1 for s in stages if isinstance(s, dict) and s.get('completed'))
+        r['is_fully_complete'] = bool(stages) and r['completed_stages'] == r['stage_count']
         r['last_visited'] = r.get('last_activity')
         r['last_reminder_sent_at'] = r.get('last_reminder_sent_at')
 
@@ -4390,7 +4539,17 @@ def admin_panel():
 
     total_comments = comments_collection.count_documents({})
 
-    # Deleted accounts (audit log — survives the hard delete)
+    # Trash — accounts currently in their 30-day grace period, restorable
+    trash_accounts = list(users_collection.find(
+        {'pending_deletion': True},
+        {'name': 1, 'email': 1, 'username': 1, 'deletion_requested_at': 1, 'deletion_requested_by': 1, 'purge_at': 1, 'is_banned': 1}
+    ).sort('purge_at', 1))
+    for t in trash_accounts:
+        t['_id'] = str(t['_id'])
+        purge_at = t.get('purge_at')
+        t['days_left'] = max(0, (purge_at - now_utc()).days) if purge_at else 0
+
+    # Deleted accounts (audit log — written only when the 30-day grace period actually expires)
     deleted_accounts = list(deleted_accounts_collection.find().sort('deleted_at', -1))
     for d in deleted_accounts:
         d['_id'] = str(d['_id'])
@@ -4398,12 +4557,13 @@ def admin_panel():
     # Stats
     all_projects_stats = list(projects_collection.find({}, {'views': 1, 'likes': 1}))
     stats = {
-        'total_users': users_collection.count_documents({}),
+        'total_users': users_collection.count_documents({'pending_deletion': {'$ne': True}}),
         'total_projects': projects_collection.count_documents({}),
         'total_roadmaps': roadmaps_collection.count_documents({}),
         'total_communities': communities_collection.count_documents({}),
         'pending_approvals': commits_collection.count_documents({'xp_status': 'pending'}),
         'banned_users': users_collection.count_documents({'is_banned': True}),
+        'trash_count': len(trash_accounts),
         'deleted_accounts': len(deleted_accounts),
         'total_xp_awarded': sum(u.get('xp', 0) for u in users_collection.find({}, {'xp': 1})),
         'total_views': sum(p.get('views', 0) for p in all_projects_stats),
@@ -4419,6 +4579,7 @@ def admin_panel():
         roadmaps=roadmaps,
         all_comments=all_comments,
         deleted_accounts=deleted_accounts,
+        trash_accounts=trash_accounts,
         stats=stats
     )
 
@@ -4489,12 +4650,15 @@ def admin_adjust_xp(user_id):
 @login_required
 @admin_required
 def admin_ban_user(user_id):
+    if user_id == current_user.id:
+        return jsonify({'success': False, 'error': "You can't ban your own account."}), 400
     admin_doc = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'name': 1})
     admin_name = admin_doc.get('name', 'Admin') if admin_doc else 'Admin'
     users_collection.update_one(
         {'_id': ObjectId(user_id)},
         {'$set': {'is_banned': True, 'banned_at': now_utc(), 'banned_by': admin_name}}
     )
+    sync_hidden_flag(ObjectId(user_id))
     create_notification(
         user_id, 'declined',
         'Your account has been suspended by an admin. Contact support if you think this is a mistake.',
@@ -4512,6 +4676,7 @@ def admin_unban_user(user_id):
         {'_id': ObjectId(user_id)},
         {'$unset': {'is_banned': '', 'banned_at': '', 'banned_by': ''}}
     )
+    sync_hidden_flag(ObjectId(user_id))
     return jsonify({'success': True})
 
 
@@ -4535,21 +4700,34 @@ def admin_toggle_email_reminders(user_id):
 @login_required
 @admin_required
 def admin_delete_user(user_id):
-    """Admin deletes a user and all their data"""
+    """Admin schedules a user for deletion — moved to Trash for 30 days, not deleted immediately."""
+    if user_id == current_user.id:
+        return jsonify({'success': False, 'error': "You can't delete your own account."}), 400
     uid = ObjectId(user_id)
-    user_doc = users_collection.find_one({'_id': uid})
     admin_doc = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'name': 1})
     admin_name = admin_doc.get('name', 'Admin') if admin_doc else 'Admin'
-    if user_doc:
-        log_account_deletion(user_doc, deleted_by=admin_name)
-    projects_collection.delete_many({'created_by_id': uid})
-    roadmaps_collection.delete_many({'user_id': uid})
-    commits_collection.delete_many({'user_id': uid})
-    chat_history_collection.delete_one({'user_id': uid})
-    notifications_collection.delete_many({'user_id': uid})
-    xp_history_collection.delete_many({'user_id': uid})
-    comments_collection.delete_many({'user_id': uid})  # delete all comments & replies
-    users_collection.delete_one({'_id': uid})
+    purge_at = now_utc() + timedelta(days=30)
+    users_collection.update_one({'_id': uid}, {'$set': {
+        'pending_deletion': True,
+        'deletion_requested_at': now_utc(),
+        'deletion_requested_by': admin_name,
+        'purge_at': purge_at,
+    }})
+    sync_hidden_flag(uid)
+    return jsonify({'success': True})
+
+
+@app.route('/admin/restore_account/<user_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_restore_account(user_id):
+    """Pull a user out of the 30-day trash — undoes delete-request completely."""
+    uid = ObjectId(user_id)
+    users_collection.update_one(
+        {'_id': uid},
+        {'$unset': {'pending_deletion': '', 'deletion_requested_at': '', 'deletion_requested_by': '', 'purge_at': ''}}
+    )
+    sync_hidden_flag(uid)
     return jsonify({'success': True})
 
 
@@ -4592,6 +4770,8 @@ def admin_delete_project(project_id):
 
     projects_collection.delete_one({'_id': ObjectId(project_id)})
     commits_collection.delete_many({'project_id': ObjectId(project_id)})
+    comments_collection.delete_many({'project_id': ObjectId(project_id)})
+    users_collection.update_many({}, {'$pull': {'bookmarks': ObjectId(project_id)}})
     return jsonify({'success': True})
 
 
@@ -4694,6 +4874,12 @@ def admin_user_detail(user_id):
     user['email_reminders_enabled'] = user.get('email_reminders_enabled', True)
     user['banned_at'] = user.get('banned_at')
     user['banned_by'] = user.get('banned_by')
+    user['pending_deletion'] = user.get('pending_deletion', False)
+    user['deletion_requested_at'] = user.get('deletion_requested_at')
+    user['deletion_requested_by'] = user.get('deletion_requested_by')
+    purge_at = user.get('purge_at')
+    user['purge_at'] = purge_at
+    user['days_left'] = max(0, (purge_at - now_utc()).days) if purge_at else 0
 
     # Projects
     projects = list(projects_collection.find({'created_by_id': uid}).sort('created_at', -1))
@@ -4714,6 +4900,7 @@ def admin_user_detail(user_id):
         stages = content.get('stages', []) if isinstance(content, dict) else []
         r['stage_count'] = len(stages)
         r['completed_stages'] = sum(1 for s in stages if isinstance(s, dict) and s.get('completed'))
+        r['is_fully_complete'] = bool(stages) and r['completed_stages'] == r['stage_count']
         r['last_visited'] = r.get('last_activity')
         r['last_reminder_sent_at'] = r.get('last_reminder_sent_at')
 
@@ -4783,6 +4970,7 @@ def admin_project_detail(project_id):
         'skills_needed': project.get('skills_needed', []),
         'tech_stack': project.get('tech_stack', ''),
         'is_completed': bool(project.get('is_completed') or project.get('status') == 'completed'),
+        'hidden': bool(project.get('hidden')),
         'github_link': project.get('github_link', ''),
         'created_at': utc_iso(project.get('created_at')) if project.get('created_at') else None,
         'views': project.get('views', 0),
@@ -4830,6 +5018,8 @@ def admin_roadmap_detail(roadmap_id):
         'stages': stage_list,
         'stage_count': len(stage_list),
         'completed_stages': sum(1 for s in stage_list if s['completed']),
+        'is_fully_complete': bool(stage_list) and all(s['completed'] for s in stage_list),
+        'hidden': bool(roadmap.get('hidden')),
         'last_visited': utc_iso(roadmap.get('last_activity')) if roadmap.get('last_activity') else None,
         'last_reminder_sent_at': utc_iso(roadmap.get('last_reminder_sent_at')) if roadmap.get('last_reminder_sent_at') else None,
     }})
@@ -4874,6 +5064,7 @@ def admin_community_detail(community_id):
         'owner_name': community.get('owner_name', ''),
         'created_at': utc_iso(community.get('created_at')) if community.get('created_at') else None,
         'skills_required': community.get('skills_required', []),
+        'hidden': bool(community.get('hidden')),
         'linked_project': {'id': str(linked_project['_id']), 'title': linked_project.get('title')} if linked_project else None,
         'members': members,
     }})
