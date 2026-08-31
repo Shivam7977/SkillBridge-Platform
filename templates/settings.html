@@ -675,9 +675,15 @@ body { font-family: 'DM Sans', sans-serif; }
               <a href="{{ url_for('logout') }}" class="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border-2 border-cream-200 font-bold text-ink-900 dark:border-ink-800 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-ink-800 text-xs tracking-wider uppercase transition-all active:scale-95 text-center decoration-none">
                 <i class="fas fa-sign-out-alt opacity-80"></i> Logout from SkillBridge
               </a>
+              {% if is_sole_admin %}
+              <button class="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border-2 border-cream-200 font-bold bg-cream-50 dark:bg-ink-800 text-ink-400 dark:text-cream-500 text-xs tracking-wider uppercase cursor-not-allowed opacity-60" disabled title="You're the only admin — promote another admin before you can delete this account">
+                <i class="fas fa-lock opacity-80"></i> Delete Disabled — Only Admin
+              </button>
+              {% else %}
               <button class="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border-2 border-rose-200 font-bold bg-white dark:bg-ink-900 text-rose-600 hover:bg-rose-50 dark:border-rose-950 dark:hover:bg-rose-950/30 text-xs tracking-wider uppercase transition-all active:scale-95" onclick="confirmDelete()">
                 <i class="fas fa-trash-alt opacity-80"></i> Delete My Account Permanently
               </button>
+              {% endif %}
             </div>
           </div>
         </div>

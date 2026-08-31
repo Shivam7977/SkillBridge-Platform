@@ -688,6 +688,18 @@ def create_notification(user_id, notif_type, message, link="#"):
     except Exception as e:
         print(f"Notification error: {e}")
 
+def is_sole_active_admin(user_id):
+    """True if user_id is an admin and no OTHER active (non-banned, non-trashed) admin exists."""
+    user_doc = users_collection.find_one({'_id': user_id}, {'is_admin': 1})
+    if not user_doc or not user_doc.get('is_admin'):
+        return False
+    other_admins = users_collection.count_documents({
+        'is_admin': True, '_id': {'$ne': user_id},
+        'is_banned': {'$ne': True}, 'pending_deletion': {'$ne': True}
+    })
+    return other_admins == 0
+
+
 def sync_hidden_flag(user_id):
     """hidden = True if the user is banned OR pending deletion, else False.
     Cascades onto their own content (projects, comments). For owned communities:
@@ -3817,6 +3829,10 @@ def settings():
 
     ai_usage = get_ai_usage_today(current_user.id)  # ← AI daily cap data
 
+    # Only relevant if this account is an admin — hides the self-delete button
+    # when deleting it would lock everyone out of the admin panel
+    is_sole_admin = is_sole_active_admin(ObjectId(current_user.id))
+
     return render_template(
         'settings.html',
         user=user_data,
@@ -3827,7 +3843,8 @@ def settings():
         streak=streak,
         ai_usage=ai_usage,
         email_reminders_enabled=user_data.get('email_reminders_enabled', True),
-        username=user_data.get('username', '')
+        username=user_data.get('username', ''),
+        is_sole_admin=is_sole_admin
     )
 
 @app.route('/change_password', methods=['POST'])
@@ -3875,15 +3892,9 @@ def delete_account():
     # account" flow, completely separate from the admin panel's ban/delete
     # buttons, so it needed its own check. If this account is the only admin,
     # trashing it would leave nobody who can log into /admin to restore it.
-    self_doc = users_collection.find_one({'_id': user_id}, {'is_admin': 1})
-    if self_doc and self_doc.get('is_admin'):
-        other_admins = users_collection.count_documents({
-            'is_admin': True, '_id': {'$ne': user_id},
-            'is_banned': {'$ne': True}, 'pending_deletion': {'$ne': True}
-        })
-        if other_admins == 0:
-            flash("You're the only active admin — deleting this account would lock everyone out of the admin panel. Promote another admin first.", "error")
-            return redirect(url_for('settings'))
+    if is_sole_active_admin(user_id):
+        flash("You're the only active admin — deleting this account would lock everyone out of the admin panel. Promote another admin first.", "error")
+        return redirect(url_for('settings'))
 
     purge_at = now_utc() + timedelta(days=30)
     users_collection.update_one({'_id': user_id}, {'$set': {
