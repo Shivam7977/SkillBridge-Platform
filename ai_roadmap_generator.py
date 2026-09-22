@@ -4,17 +4,23 @@ import json
 import os
 import httplib2
 
+# Model: gemini-3-flash-preview (current recommended flash model as of late 2026).
+# If you'd rather stay on the older line, "gemini-2.5-flash" also works with the
+# same generateContent endpoint — just swap the constant below.
+GEMINI_MODEL = "gemini-3-flash-preview"
+GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
+
 
 def get_api_keys():
-    """Get all available Mistral API keys for rotation."""
+    """Get all available Gemini API keys for rotation."""
     keys = [
-        os.getenv("MISTRAL_API_KEY_1"),
-        os.getenv("MISTRAL_API_KEY_2"),
+        os.getenv("GEMINI_API_KEY_1"),
+        os.getenv("GEMINI_API_KEY_2"),
     ]
     keys = [k for k in keys if k]  # remove None/empty
 
     if not keys:
-        raise ValueError("No MISTRAL_API_KEY found in environment variables.")
+        raise ValueError("No GEMINI_API_KEY found in environment variables.")
 
     return keys
 
@@ -22,12 +28,12 @@ def get_api_keys():
 def configure_ai():
     """Validates at least one API key exists on startup."""
     keys = get_api_keys()
-    print(f"✅ Mistral AI configured with {len(keys)} API key(s).")
+    print(f"✅ Gemini AI configured with {len(keys)} API key(s).")
 
 
 def get_youtube_service():
     """Initializes the YouTube Data API service with a 10s timeout.
-    
+
     httplib2 is what googleapiclient uses internally — setting timeout here
     is the only reliable way to prevent it from blocking Gunicorn workers.
     Without this, a slow YouTube response kills the entire worker process.
@@ -64,30 +70,55 @@ def find_youtube_playlist(query):
     return "#", "No playlist found"
 
 
-def call_mistral(prompt, api_key):
-    """Call Mistral API and return response text."""
+def call_gemini(prompt, api_key):
+    """Call Gemini API and return response text."""
+    url = f"{GEMINI_API_BASE}/{GEMINI_MODEL}:generateContent"
     response = http_requests.post(
-        "https://api.mistral.ai/v1/chat/completions",
+        url,
         headers={
-            "Authorization": f"Bearer {api_key}",
+            "x-goog-api-key": api_key,
             "Content-Type": "application/json"
         },
         json={
-            "model": "mistral-small-latest",
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 8192,
-            "temperature": 0.7
+            "contents": [
+                {"role": "user", "parts": [{"text": prompt}]}
+            ],
+            "generationConfig": {
+                "temperature": 0.7,
+                "maxOutputTokens": 8192,
+                # Ask Gemini to hand back raw JSON directly — saves us the
+                # markdown-fence stripping dance we needed for Mistral.
+                "responseMimeType": "application/json"
+            }
         },
         timeout=60
     )
     if response.status_code == 429:
         raise Exception("429 quota exhausted")
     response.raise_for_status()
-    return response.json()['choices'][0]['message']['content']
+    data = response.json()
+
+    # Standard success path: candidates[0].content.parts[0].text
+    candidates = data.get("candidates") or []
+    if not candidates:
+        # Common failure mode: response got cut off by safety filters or
+        # max-token limits, so there are no candidates at all.
+        feedback = data.get("promptFeedback", {})
+        raise Exception(f"No candidates returned by Gemini. promptFeedback={feedback}")
+
+    candidate = candidates[0]
+    finish_reason = candidate.get("finishReason")
+    parts = candidate.get("content", {}).get("parts", [])
+    text = "".join(p.get("text", "") for p in parts)
+
+    if not text:
+        raise Exception(f"Empty response text from Gemini (finishReason={finish_reason})")
+
+    return text
 
 
 def generate_roadmap_with_ai(skill_to_learn):
-    """Generates a learning roadmap, rotating Mistral API keys on quota errors."""
+    """Generates a learning roadmap, rotating Gemini API keys on quota errors."""
     keys = get_api_keys()
 
     prompt = f"""
@@ -120,8 +151,8 @@ def generate_roadmap_with_ai(skill_to_learn):
     # Try each key in rotation until one works
     for i, key in enumerate(keys):
         try:
-            print(f"\n🤖 Trying Mistral key {i+1}/{len(keys)} for '{skill_to_learn}'...")
-            response_text = call_mistral(prompt, key)
+            print(f"\n🤖 Trying Gemini key {i+1}/{len(keys)} for '{skill_to_learn}'...")
+            response_text = call_gemini(prompt, key)
 
             print("\n--- RAW AI RESPONSE ---")
             print(response_text)
@@ -129,7 +160,9 @@ def generate_roadmap_with_ai(skill_to_learn):
 
             response_text = response_text.strip()
 
-            # Strip markdown code fences if present
+            # Strip markdown code fences if present (Gemini usually won't add
+            # them when responseMimeType=application/json, but this is a
+            # harmless safety net in case that changes).
             if response_text.startswith("```"):
                 parts = response_text.split("```")
                 if len(parts) >= 2:
@@ -169,12 +202,12 @@ def generate_roadmap_with_ai(skill_to_learn):
 
         except Exception as e:
             error_str = str(e)
-            if '429' in error_str or 'quota' in error_str.lower() or 'rate' in error_str.lower():
-                print(f"⚠️ Mistral key {i+1} quota exhausted — trying next key...")
+            if '429' in error_str or 'quota' in error_str.lower() or 'rate' in error_str.lower() or 'resource_exhausted' in error_str.lower():
+                print(f"⚠️ Gemini key {i+1} quota exhausted — trying next key...")
                 continue
             else:
                 print(f"❌ Error with key {i+1}: {e}")
                 return None
 
-    print("❌ All Mistral keys exhausted or failed.")
+    print("❌ All Gemini keys exhausted or failed.")
     return None

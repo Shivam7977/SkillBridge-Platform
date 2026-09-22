@@ -375,6 +375,11 @@ tailwind.config = {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-4px); }
   }
+  .followup-badge {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--gold); background: rgba(196,151,58,0.12);
+    padding: 2px 8px; border-radius: 99px; margin-bottom: 6px;
+  }
 
   /* Input area */
   .input-area { margin-top: 16px; }
@@ -663,6 +668,8 @@ tailwind.config = {
       <div class="step-dot" id="dot3">3</div>
       <div class="step-line" id="line3"></div>
       <div class="step-dot" id="dot4">4</div>
+      <div class="step-line" id="line4"></div>
+      <div class="step-dot" id="dot5">5</div>
     </div>
 
     <!-- Step 1: Role -->
@@ -714,27 +721,27 @@ tailwind.config = {
       </div>
     </div>
 
-    <!-- Step 3: Mode -->
+    <!-- Step 3: Interview Type -->
     <div id="step3" class="card" style="display:none;">
-      <h3 style="font-size:17px;font-weight:600;margin-bottom:6px;">Interview mode</h3>
-      <p style="font-size:13px;color:#6b6560;margin-bottom:18px;">Choose how you want to practice today.</p>
+      <h3 style="font-size:17px;font-weight:600;margin-bottom:6px;">What type of interview?</h3>
+      <p style="font-size:13px;color:#6b6560;margin-bottom:18px;">Choose the round — you'll pick how you want to answer next.</p>
       <div class="mode-grid">
         <div class="mode-card" onclick="selectMode(this,'technical')">
           <div class="mode-icon">💻</div>
           <h4>Technical Round</h4>
-          <p>DSA, coding logic, scenario & concept questions. Text-based answers.</p>
+          <p>DSA, coding logic, scenario & concept questions.</p>
           <span class="mode-tag" style="background:rgba(26,23,20,0.06);color:var(--ink);">6 questions</span>
         </div>
-        <div class="mode-card" onclick="selectMode(this,'communication')">
-          <div class="mode-icon">🎙️</div>
-          <h4>Communication Round</h4>
-          <p>Behavioral, project-based & HR questions. Voice-enabled with camera.</p>
+        <div class="mode-card" onclick="selectMode(this,'behavioral')">
+          <div class="mode-icon">🗣️</div>
+          <h4>Behavioral Round</h4>
+          <p>Behavioral, project-based & HR questions.</p>
           <span class="mode-tag" style="background:rgba(26,23,20,0.06);color:var(--ink);">5 questions</span>
         </div>
         <div class="mode-card" onclick="selectMode(this,'full')">
           <div class="mode-icon">🚀</div>
           <h4>Full Interview</h4>
-          <p>Complete simulation — technical + communication rounds combined.</p>
+          <p>Complete simulation — technical + behavioral rounds combined.</p>
           <span class="mode-tag" style="background:rgba(196,151,58,0.12);color:#8a6515;">9 questions</span>
         </div>
       </div>
@@ -744,8 +751,35 @@ tailwind.config = {
       </div>
     </div>
 
-    <!-- Step 4: Personalization -->
+    <!-- Step 4: Answer Method -->
     <div id="step4" class="card" style="display:none;">
+      <h3 style="font-size:17px;font-weight:600;margin-bottom:6px;">How do you want to answer?</h3>
+      <p style="font-size:13px;color:#6b6560;margin-bottom:18px;">Independent of interview type — mix and match however suits your practice.</p>
+      <div class="mode-grid">
+        <div class="mode-card" onclick="selectAnswerMethod(this,'written')">
+          <div class="mode-icon">⌨️</div>
+          <h4>Written</h4>
+          <p>Type your answers in a text box. Great for technical, logic-heavy rounds.</p>
+        </div>
+        <div class="mode-card" onclick="selectAnswerMethod(this,'voice')">
+          <div class="mode-icon">🎙️</div>
+          <h4>Voice</h4>
+          <p>Speak your answers with camera on. Good for practicing real delivery.</p>
+        </div>
+        <div class="mode-card" onclick="selectAnswerMethod(this,'both')">
+          <div class="mode-icon">🔄</div>
+          <h4>Both</h4>
+          <p>Full Interview: written for Technical, voice for Behavioral. Single rounds use the closest fit.</p>
+        </div>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:10px;">
+        <button class="btn-outline" onclick="prevStep(3)">← Back</button>
+        <button class="btn-primary" onclick="nextStep(5)" id="step4Next" disabled>Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 5: Personalization -->
+    <div id="step5" class="card" style="display:none;">
       <h3 style="font-size:17px;font-weight:600;margin-bottom:6px;">Personalize your interview?</h3>
       <p style="font-size:13px;color:#6b6560;margin-bottom:18px;">Let the AI interviewer read your profile for targeted project & skill questions.</p>
 
@@ -765,7 +799,7 @@ tailwind.config = {
       </div>
 
       <div style="margin-top:20px;display:flex;gap:10px;">
-        <button class="btn-outline" onclick="prevStep(3)">← Back</button>
+        <button class="btn-outline" onclick="prevStep(4)">← Back</button>
         <button class="btn-primary" onclick="beginInterview()">Start Interview 🚀</button>
       </div>
     </div>
@@ -851,6 +885,10 @@ tailwind.config = {
             <span class="session-detail-val" id="sideMode">—</span>
           </div>
           <div class="session-detail">
+            <span class="session-detail-label">Answer Method</span>
+            <span class="session-detail-val" id="sideMethod">—</span>
+          </div>
+          <div class="session-detail">
             <span class="session-detail-label">Profile</span>
             <span class="session-detail-val" id="sideProfile">—</span>
           </div>
@@ -931,13 +969,28 @@ tailwind.config = {
 <script>
 // ── State ──
 const state = {
-  role: '', difficulty: '', mode: '', personalization: 'profile',
+  role: '', difficulty: '', interviewType: '', answerMethod: '', personalization: 'profile',
   history: [], qNumber: 0, totalQ: 6,
   scores: [], currentPhase: 'technical',
   techDone: false, isListening: false, transcript: '',
   recognition: null,
-  historySessions: []
+  historySessions: [],
+  awaitingFollowup: false
 };
+
+// ── Answer-method resolution: independent of interview type. For "Both" on a
+// Full interview, technical questions are written and behavioral questions
+// are voice — matching how a real candidate might mix formats. For "Both" on
+// a single-type interview, there's no second phase to split across, so it
+// falls back to the format that fits that type.
+function getInputMethodForPhase(phase){
+  if(state.answerMethod === 'written') return 'written';
+  if(state.answerMethod === 'voice') return 'voice';
+  if(state.interviewType === 'full'){
+    return phase === 'technical' ? 'written' : 'voice';
+  }
+  return state.interviewType === 'technical' ? 'written' : 'voice';
+}
 
 // ── Theme (read-only here — matches mainpage.html; toggle lives in Settings) ──
 applyTheme(localStorage.getItem('sb-theme') || 'light');
@@ -977,7 +1030,7 @@ function showHistory(){
 }
 function startSetup(){
   // Reset state
-  Object.assign(state, {role:'',difficulty:'',mode:'',personalization:'profile',history:[],qNumber:0,scores:[],techDone:false});
+  Object.assign(state, {role:'',difficulty:'',interviewType:'',answerMethod:'',personalization:'profile',history:[],qNumber:0,scores:[],techDone:false,awaitingFollowup:false});
   resetWizard();
   showScreen('screenSetup');
 }
@@ -1000,7 +1053,7 @@ async function loadHistory(){
       const score = s.score || 0;
       const scoreClass = score >= 7 ? 'score-high' : score >= 5 ? 'score-mid' : 'score-low';
       const date = new Date(s.created_at).toLocaleDateString(undefined, {day:'numeric',month:'short',year:'numeric'});
-      const modeLabel = s.mode === 'technical' ? '💻 Technical' : s.mode === 'communication' ? '🎙️ Communication' : '🚀 Full Interview';
+      const modeLabel = s.mode === 'technical' ? '💻 Technical' : (s.mode === 'behavioral' || s.mode === 'communication') ? '🗣️ Behavioral' : '🚀 Full Interview';
       return `<div class="history-item" onclick="viewSessionDetail(${i})">
         <div>
           <div class="history-role">${s.role}</div>
@@ -1020,7 +1073,7 @@ function viewSessionDetail(i){
   if(!s) return;
   const score = s.score || 0;
   const date = new Date(s.created_at).toLocaleDateString(undefined, {day:'numeric',month:'short',year:'numeric'});
-  const modeLabel = s.mode === 'technical' ? '💻 Technical' : s.mode === 'communication' ? '🎙️ Communication' : '🚀 Full Interview';
+  const modeLabel = s.mode === 'technical' ? '💻 Technical' : (s.mode === 'behavioral' || s.mode === 'communication') ? '🗣️ Behavioral' : '🚀 Full Interview';
 
   document.getElementById('modalTitle').textContent = s.role || 'Interview Session';
   document.getElementById('modalMeta').textContent = `${modeLabel} · ${s.difficulty} · ${date} · Score: ${score}/10`;
@@ -1112,13 +1165,14 @@ function escapeHtml(str){
 
 // ── Wizard ──
 function resetWizard(){
-  for(let i=1;i<=4;i++){
+  for(let i=1;i<=5;i++){
     const step = document.getElementById('step'+i);
     step.style.display = i===1 ? 'block' : 'none';
     const dot = document.getElementById('dot'+i);
     dot.className = 'step-dot' + (i===1?' active':'');
+    dot.innerHTML = i;
   }
-  for(let i=1;i<=3;i++) document.getElementById('line'+i).className = 'step-line';
+  for(let i=1;i<=4;i++) document.getElementById('line'+i).className = 'step-line';
   document.getElementById('roleInput').value = '';
   document.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
   document.querySelectorAll('.diff-card').forEach(c=>c.classList.remove('selected'));
@@ -1126,6 +1180,9 @@ function resetWizard(){
   document.getElementById('step1Next').disabled = true;
   document.getElementById('step2Next').disabled = true;
   document.getElementById('step3Next').disabled = true;
+  document.getElementById('step4Next').disabled = true;
+  state.interviewType = '';
+  state.answerMethod = '';
   selectPersonal('profile');
 }
 
@@ -1136,7 +1193,7 @@ function nextStep(to){
   document.getElementById('dot'+from).className = 'step-dot done';
   document.getElementById('dot'+from).innerHTML = '<i class="fa-solid fa-check" style="font-size:10px;"></i>';
   document.getElementById('dot'+to).className = 'step-dot active';
-  if(from <= 3) document.getElementById('line'+from).className = 'step-line done';
+  document.getElementById('line'+from).className = 'step-line done';
 }
 function prevStep(to){
   const from = to + 1;
@@ -1146,7 +1203,7 @@ function prevStep(to){
   document.getElementById('dot'+from).innerHTML = from;
   document.getElementById('dot'+to).className = 'step-dot active';
   document.getElementById('dot'+(to)).innerHTML = to;
-  if(to <= 3) document.getElementById('line'+to).className = 'step-line';
+  document.getElementById('line'+to).className = 'step-line';
 }
 
 // Role
@@ -1171,13 +1228,21 @@ function selectDiff(el, diff){
   document.getElementById('step2Next').disabled = false;
 }
 
-// Mode
-function selectMode(el, mode){
-  document.querySelectorAll('.mode-card').forEach(c=>c.classList.remove('selected'));
+// Interview Type
+function selectMode(el, type){
+  document.querySelectorAll('#step3 .mode-card').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
-  state.mode = mode;
-  state.totalQ = mode==='technical' ? 6 : mode==='communication' ? 5 : 9;
+  state.interviewType = type;
+  state.totalQ = type==='technical' ? 6 : type==='behavioral' ? 5 : 9;
   document.getElementById('step3Next').disabled = false;
+}
+
+// Answer Method
+function selectAnswerMethod(el, method){
+  document.querySelectorAll('#step4 .mode-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.answerMethod = method;
+  document.getElementById('step4Next').disabled = false;
 }
 
 // Personalization
@@ -1194,18 +1259,21 @@ async function beginInterview(){
   // Set up UI
   document.getElementById('sideRole').textContent = state.role;
   document.getElementById('sideDiff').textContent = state.difficulty.charAt(0).toUpperCase()+state.difficulty.slice(1);
-  document.getElementById('sideMode').textContent = state.mode==='technical'?'💻 Technical':state.mode==='communication'?'🎙️ Communication':'🚀 Full Interview';
+  document.getElementById('sideMode').textContent = state.interviewType==='technical' ? '💻 Technical' : state.interviewType==='behavioral' ? '🗣️ Behavioral' : '🚀 Full Interview';
+  document.getElementById('sideMethod').textContent = state.answerMethod==='written' ? '⌨️ Written' : state.answerMethod==='voice' ? '🎙️ Voice' : '🔄 Both';
   document.getElementById('sideProfile').textContent = state.personalization==='profile'?'Personalized':'Generic';
   document.getElementById('userRoleLabel').textContent = state.role;
 
   state.qNumber = 0;
   state.history = [];
   state.scores = [];
-  state.currentPhase = 'technical';
+  state.awaitingFollowup = false;
+  state.currentPhase = state.interviewType === 'full' ? 'technical' : state.interviewType;
   state.techDone = false;
 
-  // Camera
-  const needsCamera = state.mode !== 'technical';
+  // Camera + input mode — driven by answer method, not interview type
+  const activeMethod = getInputMethodForPhase(state.currentPhase);
+  const needsCamera = activeMethod === 'voice';
   const cameraBox = document.getElementById('cameraBox');
   if(needsCamera){
     cameraBox.style.display = 'block';
@@ -1219,15 +1287,15 @@ async function beginInterview(){
     cameraBox.style.display = 'none';
   }
 
-  // Input mode
-  const isTechPhase = state.mode === 'technical' || (state.mode === 'full' && !state.techDone);
-  document.getElementById('textInput').style.display = isTechPhase ? 'block' : 'none';
-  document.getElementById('voiceInput').style.display = !isTechPhase ? 'block' : 'none';
+  document.getElementById('textInput').style.display = activeMethod === 'written' ? 'block' : 'none';
+  document.getElementById('voiceInput').style.display = activeMethod === 'voice' ? 'block' : 'none';
 
   // Phase card
-  if(state.mode === 'full'){
+  if(state.interviewType === 'full'){
     document.getElementById('phaseCard').style.display = 'block';
     document.getElementById('phaseText').textContent = '💻 Technical Phase (Q1–5)';
+  } else {
+    document.getElementById('phaseCard').style.display = 'none';
   }
 
   // Clear chat
@@ -1239,23 +1307,39 @@ async function beginInterview(){
 }
 
 // ── Question flow ──
-function totalTechQ(){ return state.mode==='technical'?6:state.mode==='full'?5:0; }
-function totalCommQ(){ return state.mode==='communication'?5:state.mode==='full'?4:0; }
+function totalTechQ(){ return state.interviewType==='technical'?6:state.interviewType==='full'?5:0; }
+function totalBehavioralQ(){ return state.interviewType==='behavioral'?5:state.interviewType==='full'?4:0; }
 
 async function askNextQuestion(){
   state.qNumber++;
   const total = state.totalQ;
 
   // Switch phase in full mode
-  if(state.mode==='full' && state.qNumber === 6 && !state.techDone){
+  if(state.interviewType==='full' && state.qNumber === 6 && !state.techDone){
     state.techDone = true;
-    state.currentPhase = 'communication';
-    document.getElementById('textInput').style.display = 'none';
-    document.getElementById('voiceInput').style.display = 'block';
-    document.getElementById('phaseText').textContent = '🎙️ Communication Phase (Q6–9)';
-    appendSystemMsg('Phase 1 complete! Now switching to Communication Round. The AI will ask behavioral and project-based questions. Use your voice or type.');
-    // Init speech recognition for comm phase
-    initSpeechRecognition();
+    state.currentPhase = 'behavioral';
+    const newMethod = getInputMethodForPhase('behavioral');
+    document.getElementById('textInput').style.display = newMethod === 'written' ? 'block' : 'none';
+    document.getElementById('voiceInput').style.display = newMethod === 'voice' ? 'block' : 'none';
+    document.getElementById('phaseText').textContent = '🗣️ Behavioral Phase (Q6–9)';
+    appendSystemMsg('Phase 1 complete! Now switching to the Behavioral Round. The AI will ask behavioral and project-based questions.' + (newMethod === 'voice' ? ' Use your voice or type.' : ' Type your answers.'));
+
+    // Turn the camera on/off for the new phase's method
+    const cameraBox = document.getElementById('cameraBox');
+    if(newMethod === 'voice'){
+      cameraBox.style.display = 'block';
+      if(!document.getElementById('cameraFeed').srcObject){
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({video:true,audio:false});
+          document.getElementById('cameraFeed').srcObject = stream;
+        } catch(e){
+          cameraBox.innerHTML = `<div class="camera-disabled"><i class="fa-solid fa-video-slash"></i><span>Camera unavailable</span></div>`;
+        }
+      }
+      initSpeechRecognition();
+    } else {
+      cameraBox.style.display = 'none';
+    }
   }
 
   updateProgress();
@@ -1265,7 +1349,7 @@ async function askNextQuestion(){
     return;
   }
 
-  const currentMode = state.mode==='full' ? (state.currentPhase) : state.mode;
+  const currentMode = state.interviewType==='full' ? (state.currentPhase) : state.interviewType;
   showTyping();
 
   try {
@@ -1281,7 +1365,7 @@ async function askNextQuestion(){
         q_number: state.qNumber,
         total_q: total,
         personalization: state.personalization,
-        is_first_question: state.qNumber === 1 || (state.mode==='full' && state.qNumber===6)
+        is_first_question: state.qNumber === 1 || (state.interviewType==='full' && state.qNumber===6)
       })
     });
     const data = await res.json();
@@ -1328,7 +1412,9 @@ async function submitVoiceAnswer(){
 }
 
 async function getAIFeedback(answer){
-  const currentMode = state.mode==='full' ? state.currentPhase : state.mode;
+  const currentMode = state.interviewType==='full' ? state.currentPhase : state.interviewType;
+  const isFollowupAnswer = state.awaitingFollowup;
+  state.awaitingFollowup = false; // consume the flag — cap is 1 follow-up per question
   showTyping();
   try {
     const res = await fetch('/interview/ask', {
@@ -1343,7 +1429,8 @@ async function getAIFeedback(answer){
         q_number: state.qNumber,
         total_q: state.totalQ,
         personalization: state.personalization,
-        is_first_question: false
+        is_first_question: false,
+        is_followup_answer: isFollowupAnswer
       })
     });
     const data = await res.json();
@@ -1354,10 +1441,21 @@ async function getAIFeedback(answer){
       if(scoreMatch){
         const sc = parseFloat(scoreMatch[1]);
         state.scores.push(sc);
-        updateScoreLog(sc);
+        updateScoreLog(sc, isFollowupAnswer);
       }
       appendFeedbackMsg(data.reply);
       state.history.push({role:'assistant', content: data.reply});
+
+      // If the AI included a follow-up, show it as the next question directly —
+      // no extra API call needed. Wait for the candidate's answer before
+      // advancing to the next real question.
+      if(data.followup){
+        state.awaitingFollowup = true;
+        appendFollowupMsg(data.followup);
+        state.history.push({role:'assistant', content: data.followup});
+        enableInput();
+        return;
+      }
     } else {
       const fallback = '⚠️ Score: 0/10\nCould not get feedback for this answer (server returned no response). Moving on.';
       appendFeedbackMsg(fallback);
@@ -1418,7 +1516,8 @@ async function saveReportToHistory(){
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         role: state.role,
-        mode: state.mode,
+        mode: state.interviewType,
+        answer_method: state.answerMethod,
         difficulty: state.difficulty,
         score: state.lastScore,
         history: state.history,
@@ -1448,10 +1547,10 @@ function showReport(score, reportText){
   document.getElementById('reportScore').textContent = score + '/10';
 
   let verdictClass, verdictText;
-  if(score >= 8){ verdictClass='verdict-strong'; verdictText='Strong Hire ✅'; }
-  else if(score >= 6.5){ verdictClass='verdict-yes'; verdictText='Hire ✅'; }
-  else if(score >= 5){ verdictClass='verdict-maybe'; verdictText='Maybe ⚠️'; }
-  else { verdictClass='verdict-no'; verdictText='Not Yet ❌'; }
+  if(score >= 8){ verdictClass='verdict-strong'; verdictText='Interview Ready ✅'; }
+  else if(score >= 6.5){ verdictClass='verdict-yes'; verdictText='Good — Keep Practicing 👍'; }
+  else if(score >= 5){ verdictClass='verdict-maybe'; verdictText='Needs Improvement ⚠️'; }
+  else { verdictClass='verdict-no'; verdictText='More Preparation Recommended 📘'; }
 
   const verdictEl = document.getElementById('reportVerdict');
   verdictEl.className = 'report-verdict ' + verdictClass;
@@ -1490,6 +1589,14 @@ function appendFeedbackMsg(text){
   const div = document.createElement('div');
   div.className = 'msg msg-ai';
   div.innerHTML = `<div class="msg-avatar">AI</div><div class="msg-feedback">${text.replace(/\n/g,'<br>')}</div>`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+function appendFollowupMsg(text){
+  const area = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'msg msg-ai';
+  div.innerHTML = `<div class="msg-avatar">AI</div><div class="msg-bubble"><span class="followup-badge">Follow-up</span><br>${text.replace(/\n/g,'<br>')}</div>`;
   area.appendChild(div);
   area.scrollTop = area.scrollHeight;
 }
@@ -1535,12 +1642,13 @@ function updateProgress(){
   document.getElementById('progressLabel').textContent = `Question ${state.qNumber} of ${state.totalQ}`;
   document.getElementById('qCounter').textContent = `${state.qNumber} / ${state.totalQ}`;
 }
-function updateScoreLog(score){
+function updateScoreLog(score, isFollowup){
   const log = document.getElementById('scoreLog');
   if(log.querySelector('div[style]')) log.innerHTML = '';
   const item = document.createElement('div');
   item.className = 'score-log-item';
-  item.innerHTML = `<span class="score-q">Q${state.qNumber}</span><span class="score-val">${score}/10</span>`;
+  const label = isFollowup ? `Q${state.qNumber} (follow-up)` : `Q${state.qNumber}`;
+  item.innerHTML = `<span class="score-q">${label}</span><span class="score-val">${score}/10</span>`;
   log.appendChild(item);
 }
 

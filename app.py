@@ -13,7 +13,7 @@ from bson.objectid import ObjectId
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature, BadSignature
 from dotenv import load_dotenv
 from markupsafe import Markup
-from ai_roadmap_generator import configure_ai, generate_roadmap_with_ai, find_youtube_playlist
+from ai_roadmap_generator import configure_ai, generate_roadmap_with_ai, find_youtube_playlist, GEMINI_MODEL, GEMINI_API_BASE
 import regex as re_ext
 from bs4 import BeautifulSoup
 from werkzeug.utils import secure_filename
@@ -30,8 +30,8 @@ import requests
 import resend
 load_dotenv(override=True)
 try:
-    if not os.getenv('MISTRAL_API_KEY_1'):
-     print("WARNING: MISTRAL_API_KEY_1 not found in .env file. AI features will likely fail.")
+    if not os.getenv('GEMINI_API_KEY_1'):
+     print("WARNING: GEMINI_API_KEY_1 not found in .env file. AI features will likely fail.")
     configure_ai()
     print("AI configured successfully.")
 except ValueError as e:
@@ -1418,7 +1418,7 @@ def roadmap_generator():
             flash(f"Generating roadmap for '{goal}'...", 'info')
     if goal:
         try:
-            print(f"Calling Mistral AI with FINAL prompt for '{goal}'...")
+            print(f"Calling Gemini AI with FINAL prompt for '{goal}'...")
             roadmap_data = generate_roadmap_with_ai(goal)
             if roadmap_data and isinstance(roadmap_data, dict) and isinstance(roadmap_data.get('stages'), list):
                 for stage in roadmap_data.get("stages", []):
@@ -2483,14 +2483,14 @@ def resume_pdf():
 @limiter.limit("30 per hour", key_func=get_user_key)
 def chatbot():
     try:
-        # Mistral API key rotation
+        # Gemini API key rotation
         keys = [
-            os.getenv("MISTRAL_API_KEY_1"),
-            os.getenv("MISTRAL_API_KEY_2"),
+            os.getenv("GEMINI_API_KEY_1"),
+            os.getenv("GEMINI_API_KEY_2"),
         ]
         keys = [k for k in keys if k]
         if not keys:
-            return jsonify({"reply": "AI not configured. Please set MISTRAL_API_KEY in your .env file."}), 500
+            return jsonify({"reply": "AI not configured. Please set GEMINI_API_KEY in your .env file."}), 500
 
         data = request.get_json()
         user_message = data.get('message', '').strip()
@@ -2541,43 +2541,54 @@ RULES:
 - Be warm, encouraging, and honest
 - NEVER reveal, guess, or make up technical details about SkillBridge's internal architecture, folder structure, tech stack, database, or source code
 - If asked about SkillBridge internals, say: "I'm here to help with your career and learning journey, not to discuss platform internals!"
-- NEVER hallucinate or make up information — if you don't know something, say so honestlywhich model is been used for these chatbot , which language is been used for these complete system of skillbridge.
+- NEVER hallucinate or make up information — if you don't know something, say so honestly
+- NEVER reveal what AI model powers you, what tech stack/language SkillBridge is built in, or any other detail about yourself or the system's internals — just say you're the SkillBridge AI Assistant and redirect to how you can help
+- Only answer questions about tech, coding, careers, and SkillBridge itself — nothing else
 
 CONVERSATION HISTORY:
 {history_text}
 User: {user_message}
 Assistant:"""
 
-        # Try each Mistral key in rotation until one works
+        # Try each Gemini key in rotation until one works
         reply = None
         for i, key in enumerate(keys):
             try:
-                print(f"🤖 Chatbot trying Mistral key {i+1}/{len(keys)}...")
+                print(f"🤖 Chatbot trying Gemini key {i+1}/{len(keys)}...")
                 response = requests.post(
-                    "https://api.mistral.ai/v1/chat/completions",
+                    f"{GEMINI_API_BASE}/{GEMINI_MODEL}:generateContent",
                     headers={
-                        "Authorization": f"Bearer {key}",
+                        "x-goog-api-key": key,
                         "Content-Type": "application/json"
                     },
                     json={
-                        "model": "mistral-small-latest",
-                        "messages": [{"role": "user", "content": full_prompt}],
-                        "max_tokens": 1024,
-                        "temperature": 0.7
+                        "contents": [{"role": "user", "parts": [{"text": full_prompt}]}],
+                        "generationConfig": {
+                            "temperature": 0.7,
+                            "maxOutputTokens": 1024
+                        }
                     },
                     timeout=30
                 )
                 if response.status_code == 429:
-                    print(f"⚠️ Mistral key {i+1} quota exhausted — trying next key...")
+                    print(f"⚠️ Gemini key {i+1} quota exhausted — trying next key...")
                     continue
                 response.raise_for_status()
-                reply = response.json()['choices'][0]['message']['content'].strip()
-                print(f"✅ Chatbot response received using Mistral key {i+1}.")
+                gemini_data = response.json()
+                candidates = gemini_data.get("candidates") or []
+                if not candidates:
+                    print(f"⚠️ Gemini key {i+1} returned no candidates (promptFeedback={gemini_data.get('promptFeedback')}) — trying next key...")
+                    continue
+                reply = "".join(p.get("text", "") for p in candidates[0].get("content", {}).get("parts", [])).strip()
+                if not reply:
+                    print(f"⚠️ Gemini key {i+1} returned empty text — trying next key...")
+                    continue
+                print(f"✅ Chatbot response received using Gemini key {i+1}.")
                 break
             except Exception as key_err:
                 err_str = str(key_err)
-                if '429' in err_str or 'quota' in err_str.lower() or 'rate' in err_str.lower():
-                    print(f"⚠️ Mistral key {i+1} rate limited — trying next key...")
+                if '429' in err_str or 'quota' in err_str.lower() or 'rate' in err_str.lower() or 'resource_exhausted' in err_str.lower():
+                    print(f"⚠️ Gemini key {i+1} rate limited — trying next key...")
                     continue
                 else:
                     raise key_err
@@ -2658,40 +2669,52 @@ def compute_adaptive_difficulty(base_difficulty, history):
     return INTERVIEW_DIFF_LADDER[idx]
 
 
-def call_mistral_interview(prompt, max_tokens=350):
+def call_interview_ai(prompt, max_tokens=350):
     """Same key-rotation pattern as the chatbot. Uses dedicated
-    MISTRAL_INTERVIEW_KEY_1/2 if set (so a busy interview session can't eat
-    the chatbot/roadmap quota), falling back to the shared keys otherwise."""
+    GEMINI_INTERVIEW_KEY_1/2 if set (so a busy interview session can't eat
+    the chatbot/roadmap quota), falling back to the shared keys otherwise.
+    (Function name kept as-is so the /interview/ask call site below doesn't
+    need touching — it's a Gemini call under the hood now.)"""
     keys = [
-        os.getenv("MISTRAL_INTERVIEW_KEY_1") or os.getenv("MISTRAL_API_KEY_1"),
-        os.getenv("MISTRAL_INTERVIEW_KEY_2") or os.getenv("MISTRAL_API_KEY_2"),
+        os.getenv("GEMINI_INTERVIEW_KEY_1") or os.getenv("GEMINI_API_KEY_1"),
+        os.getenv("GEMINI_INTERVIEW_KEY_2") or os.getenv("GEMINI_API_KEY_2"),
     ]
     keys = [k for k in keys if k]
     if not keys:
         return None
     for i, key in enumerate(keys):
         try:
-            print(f"🎤 Interview AI trying Mistral key {i+1}/{len(keys)}...")
+            print(f"🎤 Interview AI trying Gemini key {i+1}/{len(keys)}...")
             response = requests.post(
-                "https://api.mistral.ai/v1/chat/completions",
-                headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                f"{GEMINI_API_BASE}/{GEMINI_MODEL}:generateContent",
+                headers={"x-goog-api-key": key, "Content-Type": "application/json"},
                 json={
-                    "model": "mistral-small-latest",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": max_tokens,
-                    "temperature": 0.7
+                    "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+                    "generationConfig": {
+                        "temperature": 0.7,
+                        "maxOutputTokens": max_tokens
+                    }
                 },
                 timeout=30
             )
             if response.status_code == 429:
-                print(f"⚠️ Interview Mistral key {i+1} quota exhausted — trying next key...")
+                print(f"⚠️ Interview Gemini key {i+1} quota exhausted — trying next key...")
                 continue
             response.raise_for_status()
-            return response.json()['choices'][0]['message']['content'].strip()
+            gemini_data = response.json()
+            candidates = gemini_data.get("candidates") or []
+            if not candidates:
+                print(f"⚠️ Interview Gemini key {i+1} returned no candidates (promptFeedback={gemini_data.get('promptFeedback')}) — trying next key...")
+                continue
+            text = "".join(p.get("text", "") for p in candidates[0].get("content", {}).get("parts", [])).strip()
+            if not text:
+                print(f"⚠️ Interview Gemini key {i+1} returned empty text — trying next key...")
+                continue
+            return text
         except Exception as key_err:
             err_str = str(key_err)
-            if '429' in err_str or 'quota' in err_str.lower() or 'rate' in err_str.lower():
-                print(f"⚠️ Interview Mistral key {i+1} rate limited — trying next key...")
+            if '429' in err_str or 'quota' in err_str.lower() or 'rate' in err_str.lower() or 'resource_exhausted' in err_str.lower():
+                print(f"⚠️ Interview Gemini key {i+1} rate limited — trying next key...")
                 continue
             else:
                 raise key_err
@@ -2746,7 +2769,7 @@ def build_interview_question_prompt(mode, role, difficulty, q_number, total_q, i
         "\n\nNo profile personalization requested for this session — keep questions purely role/difficulty based."
     )
 
-    return f"""You are a professional interviewer conducting a {difficulty}-difficulty {'technical' if mode == 'technical' else 'communication/HR'} round for a {role} candidate.
+    return f"""You are a professional interviewer conducting a {difficulty}-difficulty {'technical' if mode == 'technical' else 'behavioral/HR'} round for a {role} candidate.
 
 This is question {q_number} of {total_q} in this round. Ask exactly ONE interview question focused on {focus}
 {opener}
@@ -2755,7 +2778,7 @@ Never repeat a question already asked earlier in this conversation.{profile_bloc
 Output ONLY the question text (with the brief greeting if instructed above). No "Question:" labels, no numbering, no markdown headers."""
 
 
-def build_interview_eval_prompt(mode, role, difficulty, is_final, personalization_ctx):
+def build_interview_eval_prompt(mode, role, difficulty, is_final, personalization_ctx, allow_followup=False):
     """System prompt for evaluating the candidate's last answer."""
     rubric = (
         "correctness, depth of reasoning, edge-case awareness, and clarity of explanation" if mode == 'technical'
@@ -2765,19 +2788,30 @@ def build_interview_eval_prompt(mode, role, difficulty, is_final, personalizatio
     if is_final:
         closing = ("\n\nThis is the LAST question of the session. After scoring this answer, also add a short "
                    "closing summary (3-5 sentences) covering: overall strengths shown across the round, the "
-                   "single biggest area to improve, and a hiring-style verdict (Strong Hire / Hire / Maybe / "
-                   "Not Yet) for this round.")
+                   "single biggest area to improve, and a readiness-style verdict (Interview Ready / Good — "
+                   "Keep Practicing / Needs Improvement / More Preparation Recommended) for this round. "
+                   "Never phrase this as a hiring decision (avoid words like 'hire').")
+
+    followup_rule = ""
+    if allow_followup and not is_final:
+        followup_rule = ("\n\nFOLLOW-UP RULE: If — and only if — this answer scores between 5 and 7.9 out of 10 "
+                          "(shows partial understanding but is incomplete, vague, or could go deeper), add ONE "
+                          "short, natural clarifying follow-up question a real interviewer would ask to probe "
+                          "this same answer further. Put it on its own line after the exact marker "
+                          "'---FOLLOWUP---' with nothing else on that marker line. If the score is 8 or above, "
+                          "or below 5, do NOT include a follow-up or the marker at all — just move on.")
+
     profile_block = f"\n\n{personalization_ctx}" if personalization_ctx else ""
 
-    return f"""You are evaluating a candidate's answer in a {difficulty}-difficulty {'technical' if mode == 'technical' else 'communication/HR'} interview round for a {role} candidate.
+    return f"""You are evaluating a candidate's answer in a {difficulty}-difficulty {'technical' if mode == 'technical' else 'behavioral/HR'} interview round for a {role} candidate.
 
 Judge the answer on: {rubric}.
 
 Respond in EXACTLY this format:
 Score: X/10
-<2-4 sentence feedback — be specific and honest about what was good and what to improve>{closing}
+<2-4 sentence feedback — be specific and honest about what was good and what to improve>{closing}{followup_rule}
 
-Do not ask a new question here. Do not add any other headers or labels.{profile_block}"""
+Do not ask a new question here unless the FOLLOW-UP RULE above applies. Do not add any other headers or labels.{profile_block}"""
 
 
 @app.route('/interview')
@@ -2812,6 +2846,7 @@ def interview_history():
             result.append({
                 'role': s.get('role', ''),
                 'mode': s.get('mode', ''),
+                'answer_method': s.get('answer_method', 'written'),
                 'difficulty': s.get('difficulty', ''),
                 'score': s.get('score', 0),
                 'created_at': created.isoformat() if isinstance(created, datetime) else str(created or ''),
@@ -2831,7 +2866,11 @@ def interview_ask():
     try:
         data = request.get_json() or {}
         role = sanitize(data.get('role', '') or 'Software Engineer')[:80]
-        mode = data.get('mode') if data.get('mode') in ('technical', 'communication') else 'technical'
+        # 'communication' kept as an accepted legacy alias so older frontend builds
+        # (which still send it) keep working; normalized to 'behavioral' internally.
+        mode = data.get('mode') if data.get('mode') in ('technical', 'behavioral', 'communication') else 'technical'
+        if mode == 'communication':
+            mode = 'behavioral'
         base_difficulty = data.get('difficulty') if data.get('difficulty') in INTERVIEW_DIFF_LADDER else 'medium'
         history = data.get('history') or []
         if not isinstance(history, list):
@@ -2848,6 +2887,10 @@ def interview_ask():
             total_q = 6
         personalization = data.get('personalization', 'generic')
         is_first_question = bool(data.get('is_first_question'))
+        # True only when this call is evaluating the candidate's answer to a
+        # follow-up question we ourselves generated — caps follow-ups at 1 per
+        # question by telling the eval prompt not to offer another one.
+        is_followup_answer = bool(data.get('is_followup_answer'))
 
         # ── AI DAILY CAP CHECK (browser timezone) — token-based budgeting (see convo: 100/day) ──
         allowed, used, limit = check_ai_daily_limit(current_user.id, 'interview', limit=100)
@@ -2865,16 +2908,19 @@ def interview_ask():
         if user_answer:
             # Evaluating the candidate's last answer — no new question here
             is_final = q_number >= total_q
-            system_prompt = build_interview_eval_prompt(mode, role, difficulty, is_final, personalization_ctx)
+            # Only offer a follow-up when this isn't itself a follow-up answer
+            # (caps it at one per question) and it isn't the closing question.
+            allow_followup = (not is_final) and (not is_followup_answer)
+            system_prompt = build_interview_eval_prompt(mode, role, difficulty, is_final, personalization_ctx, allow_followup=allow_followup)
             full_prompt = f"{system_prompt}\n\nCONVERSATION SO FAR:\n{history_text}\nCandidate's answer to evaluate: {user_answer}\n\nYour evaluation:"
-            max_tokens = 450 if is_final else 280
+            max_tokens = 450 if is_final else (330 if allow_followup else 280)
         else:
             # Generating the next (or first) question
             system_prompt = build_interview_question_prompt(mode, role, difficulty, q_number, total_q, is_first_question, personalization_ctx)
             full_prompt = f"{system_prompt}\n\nCONVERSATION SO FAR:\n{history_text}\nYour next question:"
             max_tokens = 220
 
-        reply = call_mistral_interview(full_prompt, max_tokens=max_tokens)
+        reply = call_interview_ai(full_prompt, max_tokens=max_tokens)
         if not reply:
             return jsonify({'reply': '⚠️ All AI keys are currently quota-limited. Please try again in a few minutes.'}), 429
 
@@ -2883,7 +2929,20 @@ def interview_ask():
         if m:
             score = float(m.group(1))
 
-        return jsonify({'reply': reply, 'difficulty': difficulty, 'score': score})
+        # Split out a follow-up question if the model included one, but never
+        # trust it blindly — only honor it when we actually allowed a follow-up
+        # for this turn AND the score genuinely falls in the 5–7.9 band. This
+        # protects the "max 1 follow-up per question" cap even if the model
+        # ignores the instruction.
+        followup = None
+        if user_answer and '---FOLLOWUP---' in reply:
+            main_part, _, followup_part = reply.partition('---FOLLOWUP---')
+            reply = main_part.strip()
+            followup_candidate = followup_part.strip()
+            if allow_followup and followup_candidate and score is not None and 5 <= score < 8:
+                followup = followup_candidate
+
+        return jsonify({'reply': reply, 'difficulty': difficulty, 'score': score, 'followup': followup})
 
     except Exception as e:
         import traceback
@@ -2898,8 +2957,12 @@ def interview_save():
     try:
         data = request.get_json() or {}
         role = sanitize(data.get('role', ''))[:80]
-        mode = data.get('mode') if data.get('mode') in ('technical', 'communication', 'full') else 'technical'
+        # 'communication' kept as a legacy alias, normalized to 'behavioral'.
+        mode = data.get('mode') if data.get('mode') in ('technical', 'behavioral', 'communication', 'full') else 'technical'
+        if mode == 'communication':
+            mode = 'behavioral'
         difficulty = data.get('difficulty') if data.get('difficulty') in INTERVIEW_DIFF_LADDER else 'medium'
+        answer_method = data.get('answer_method') if data.get('answer_method') in ('written', 'voice', 'both') else 'written'
         try:
             score = round(float(data.get('score', 0)), 1)
         except (TypeError, ValueError):
@@ -2914,6 +2977,7 @@ def interview_save():
             'user_id': uid,
             'role': role,
             'mode': mode,
+            'answer_method': answer_method,
             'difficulty': difficulty,
             'score': score,
             'history': history[-30:],
@@ -3096,6 +3160,14 @@ def view_user_profile(user_id):
         user_data = users_collection.find_one({'_id': obj_id})
         if not user_data:
             flash("User not found.", "error"); return redirect(url_for('projects'))
+
+        if user_data.get('is_banned') or user_data.get('pending_deletion'):
+            is_admin_viewer = False
+            if current_user.is_authenticated:
+                me = users_collection.find_one({'_id': ObjectId(current_user.id)}, {'is_admin': 1})
+                is_admin_viewer = bool(me and me.get('is_admin'))
+            if not is_admin_viewer:
+                flash("This profile is no longer available.", "error"); return redirect(url_for('projects'))
         profile_pic_filename = user_data.get('profile_pic', 'default.jpg')
         profile_pic_url = url_for('static', filename='profile_pics/' + profile_pic_filename)
         user_profile = {
@@ -3117,7 +3189,7 @@ def view_user_profile(user_id):
         level_info = get_level_info(xp)
         streak = user_data.get('streak_count', 1)
         progress_pct = int((xp / level_info['next_xp']) * 100) if level_info['next_xp'] != "Max" else 100
-        user_projects = list(projects_collection.find({'created_by_id': obj_id}).sort('created_at', -1))
+        user_projects = list(projects_collection.find({'created_by_id': obj_id, 'hidden': {'$ne': True}}).sort('created_at', -1))
         for p in user_projects:
             p['_id'] = str(p['_id'])
             p['created_by_id'] = str(p.get('created_by_id', ''))
@@ -4333,7 +4405,7 @@ def search():
             {'$or': [
                 {'name': {'$regex': search_query, '$options': 'i'}},
                 {'username': {'$regex': search_query, '$options': 'i'}},
-            ]},
+            ], 'is_banned': {'$ne': True}, 'pending_deletion': {'$ne': True}},
             {'name': 1, 'username': 1, 'title': 1, 'profile_pic': 1,
              'xp': 1, 'badge': 1, 'level': 1, 'known_skills': 1}
         ).limit(20))
@@ -4369,7 +4441,7 @@ def api_search_users():
         {'$or': [
             {'name': {'$regex': search_q, '$options': 'i'}},
             {'username': {'$regex': search_q, '$options': 'i'}},
-        ]},
+        ], 'is_banned': {'$ne': True}, 'pending_deletion': {'$ne': True}},
         {'name': 1, 'username': 1, 'title': 1, 'profile_pic': 1, 'badge': 1, 'xp': 1}
     ).limit(8))
     results = []
