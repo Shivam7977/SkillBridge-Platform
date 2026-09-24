@@ -4,23 +4,33 @@ import json
 import os
 import httplib2
 
-# Model: gemini-3-flash-preview (current recommended flash model as of late 2026).
-# If you'd rather stay on the older line, "gemini-2.5-flash" also works with the
-# same generateContent endpoint — just swap the constant below.
-GEMINI_MODEL = "gemini-3-flash-preview"
-GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
+# Groq: OpenAI-compatible endpoint, extremely generous free tier — no
+# "thinking budget" weirdness like Gemini, and no credit card needed.
+# https://console.groq.com/docs/rate-limits
+#
+# NOTE: llama-3.1-8b-instant and llama-3.3-70b-versatile were DEPRECATED by
+# Groq on 16 Aug 2026 (shutdown — calls now 404). Using Groq's own recommended
+# replacements below.
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+# Used for roadmap generation — bigger model, better at following the
+# detailed JSON structure instructions. (was llama-3.3-70b-versatile)
+GROQ_MODEL = "openai/gpt-oss-120b"
+# Used for chatbot + interview (app.py) — smaller/faster, same generous
+# free-tier limits, plenty good for conversational Q&A and evaluation.
+# (was llama-3.1-8b-instant)
+GROQ_MODEL_FAST = "openai/gpt-oss-20b"
 
 
 def get_api_keys():
-    """Get all available Gemini API keys for rotation."""
+    """Get all available Groq API keys for rotation."""
     keys = [
-        os.getenv("GEMINI_API_KEY_1"),
-        os.getenv("GEMINI_API_KEY_2"),
+        os.getenv("GROQ_API_KEY_1"),
+        os.getenv("GROQ_API_KEY_2"),
     ]
     keys = [k for k in keys if k]  # remove None/empty
 
     if not keys:
-        raise ValueError("No GEMINI_API_KEY found in environment variables.")
+        raise ValueError("No GROQ_API_KEY found in environment variables.")
 
     return keys
 
@@ -28,7 +38,7 @@ def get_api_keys():
 def configure_ai():
     """Validates at least one API key exists on startup."""
     keys = get_api_keys()
-    print(f"✅ Gemini AI configured with {len(keys)} API key(s).")
+    print(f"✅ Groq AI configured with {len(keys)} API key(s).")
 
 
 def get_youtube_service():
@@ -70,27 +80,26 @@ def find_youtube_playlist(query):
     return "#", "No playlist found"
 
 
-def call_gemini(prompt, api_key):
-    """Call Gemini API and return response text."""
-    url = f"{GEMINI_API_BASE}/{GEMINI_MODEL}:generateContent"
+def call_groq(prompt, api_key, model=GROQ_MODEL, max_tokens=8192, json_mode=True):
+    """Call Groq's OpenAI-compatible chat completions API and return response text."""
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": max_tokens,
+        "temperature": 0.7
+    }
+    if json_mode:
+        # Groq's structured-output JSON mode — model is constrained to emit
+        # valid JSON, so we don't have to strip markdown fences most of the time.
+        payload["response_format"] = {"type": "json_object"}
+
     response = http_requests.post(
-        url,
+        GROQ_API_URL,
         headers={
-            "x-goog-api-key": api_key,
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         },
-        json={
-            "contents": [
-                {"role": "user", "parts": [{"text": prompt}]}
-            ],
-            "generationConfig": {
-                "temperature": 0.7,
-                "maxOutputTokens": 8192,
-                # Ask Gemini to hand back raw JSON directly — saves us the
-                # markdown-fence stripping dance we needed for Mistral.
-                "responseMimeType": "application/json"
-            }
-        },
+        json=payload,
         timeout=60
     )
     if response.status_code == 429:
@@ -98,27 +107,21 @@ def call_gemini(prompt, api_key):
     response.raise_for_status()
     data = response.json()
 
-    # Standard success path: candidates[0].content.parts[0].text
-    candidates = data.get("candidates") or []
-    if not candidates:
-        # Common failure mode: response got cut off by safety filters or
-        # max-token limits, so there are no candidates at all.
-        feedback = data.get("promptFeedback", {})
-        raise Exception(f"No candidates returned by Gemini. promptFeedback={feedback}")
+    choices = data.get("choices") or []
+    if not choices:
+        raise Exception(f"No choices returned by Groq. Response: {data}")
 
-    candidate = candidates[0]
-    finish_reason = candidate.get("finishReason")
-    parts = candidate.get("content", {}).get("parts", [])
-    text = "".join(p.get("text", "") for p in parts)
+    finish_reason = choices[0].get("finish_reason")
+    text = (choices[0].get("message", {}) or {}).get("content", "")
 
     if not text:
-        raise Exception(f"Empty response text from Gemini (finishReason={finish_reason})")
+        raise Exception(f"Empty response text from Groq (finish_reason={finish_reason})")
 
     return text
 
 
 def generate_roadmap_with_ai(skill_to_learn):
-    """Generates a learning roadmap, rotating Gemini API keys on quota errors."""
+    """Generates a learning roadmap, rotating Groq API keys on quota errors."""
     keys = get_api_keys()
 
     prompt = f"""
@@ -151,8 +154,8 @@ def generate_roadmap_with_ai(skill_to_learn):
     # Try each key in rotation until one works
     for i, key in enumerate(keys):
         try:
-            print(f"\n🤖 Trying Gemini key {i+1}/{len(keys)} for '{skill_to_learn}'...")
-            response_text = call_gemini(prompt, key)
+            print(f"\n🤖 Trying Groq key {i+1}/{len(keys)} for '{skill_to_learn}'...")
+            response_text = call_groq(prompt, key, model=GROQ_MODEL, max_tokens=8192, json_mode=True)
 
             print("\n--- RAW AI RESPONSE ---")
             print(response_text)
@@ -160,9 +163,8 @@ def generate_roadmap_with_ai(skill_to_learn):
 
             response_text = response_text.strip()
 
-            # Strip markdown code fences if present (Gemini usually won't add
-            # them when responseMimeType=application/json, but this is a
-            # harmless safety net in case that changes).
+            # Strip markdown code fences if present (json_mode usually
+            # prevents this, but it's a harmless safety net).
             if response_text.startswith("```"):
                 parts = response_text.split("```")
                 if len(parts) >= 2:
@@ -202,12 +204,12 @@ def generate_roadmap_with_ai(skill_to_learn):
 
         except Exception as e:
             error_str = str(e)
-            if '429' in error_str or 'quota' in error_str.lower() or 'rate' in error_str.lower() or 'resource_exhausted' in error_str.lower():
-                print(f"⚠️ Gemini key {i+1} quota exhausted — trying next key...")
+            if '429' in error_str or 'quota' in error_str.lower() or 'rate' in error_str.lower():
+                print(f"⚠️ Groq key {i+1} quota exhausted — trying next key...")
                 continue
             else:
                 print(f"❌ Error with key {i+1}: {e}")
                 return None
 
-    print("❌ All Gemini keys exhausted or failed.")
+    print("❌ All Groq keys exhausted or failed.")
     return None

@@ -13,7 +13,7 @@ from bson.objectid import ObjectId
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature, BadSignature
 from dotenv import load_dotenv
 from markupsafe import Markup
-from ai_roadmap_generator import configure_ai, generate_roadmap_with_ai, find_youtube_playlist, GEMINI_MODEL, GEMINI_API_BASE
+from ai_roadmap_generator import configure_ai, generate_roadmap_with_ai, find_youtube_playlist, GROQ_API_URL, GROQ_MODEL_FAST
 import regex as re_ext
 from bs4 import BeautifulSoup
 from werkzeug.utils import secure_filename
@@ -30,8 +30,8 @@ import requests
 import resend
 load_dotenv(override=True)
 try:
-    if not os.getenv('GEMINI_API_KEY_1'):
-     print("WARNING: GEMINI_API_KEY_1 not found in .env file. AI features will likely fail.")
+    if not os.getenv('GROQ_API_KEY_1'):
+     print("WARNING: GROQ_API_KEY_1 not found in .env file. AI features will likely fail.")
     configure_ai()
     print("AI configured successfully.")
 except ValueError as e:
@@ -1418,7 +1418,7 @@ def roadmap_generator():
             flash(f"Generating roadmap for '{goal}'...", 'info')
     if goal:
         try:
-            print(f"Calling Gemini AI with FINAL prompt for '{goal}'...")
+            print(f"Calling Groq AI with FINAL prompt for '{goal}'...")
             roadmap_data = generate_roadmap_with_ai(goal)
             if roadmap_data and isinstance(roadmap_data, dict) and isinstance(roadmap_data.get('stages'), list):
                 for stage in roadmap_data.get("stages", []):
@@ -2483,14 +2483,14 @@ def resume_pdf():
 @limiter.limit("30 per hour", key_func=get_user_key)
 def chatbot():
     try:
-        # Gemini API key rotation
+        # Groq API key rotation
         keys = [
-            os.getenv("GEMINI_API_KEY_1"),
-            os.getenv("GEMINI_API_KEY_2"),
+            os.getenv("GROQ_API_KEY_1"),
+            os.getenv("GROQ_API_KEY_2"),
         ]
         keys = [k for k in keys if k]
         if not keys:
-            return jsonify({"reply": "AI not configured. Please set GEMINI_API_KEY in your .env file."}), 500
+            return jsonify({"reply": "AI not configured. Please set GROQ_API_KEY in your .env file."}), 500
 
         data = request.get_json()
         user_message = data.get('message', '').strip()
@@ -2550,45 +2550,44 @@ CONVERSATION HISTORY:
 User: {user_message}
 Assistant:"""
 
-        # Try each Gemini key in rotation until one works
+        # Try each Groq key in rotation until one works
         reply = None
         for i, key in enumerate(keys):
             try:
-                print(f"🤖 Chatbot trying Gemini key {i+1}/{len(keys)}...")
+                print(f"🤖 Chatbot trying Groq key {i+1}/{len(keys)}...")
                 response = requests.post(
-                    f"{GEMINI_API_BASE}/{GEMINI_MODEL}:generateContent",
+                    GROQ_API_URL,
                     headers={
-                        "x-goog-api-key": key,
+                        "Authorization": f"Bearer {key}",
                         "Content-Type": "application/json"
                     },
                     json={
-                        "contents": [{"role": "user", "parts": [{"text": full_prompt}]}],
-                        "generationConfig": {
-                            "temperature": 0.7,
-                            "maxOutputTokens": 1024
-                        }
+                        "model": GROQ_MODEL_FAST,
+                        "messages": [{"role": "user", "content": full_prompt}],
+                        "max_tokens": 1024,
+                        "temperature": 0.7
                     },
                     timeout=30
                 )
                 if response.status_code == 429:
-                    print(f"⚠️ Gemini key {i+1} quota exhausted — trying next key...")
+                    print(f"⚠️ Groq key {i+1} quota exhausted — trying next key...")
                     continue
                 response.raise_for_status()
-                gemini_data = response.json()
-                candidates = gemini_data.get("candidates") or []
-                if not candidates:
-                    print(f"⚠️ Gemini key {i+1} returned no candidates (promptFeedback={gemini_data.get('promptFeedback')}) — trying next key...")
+                groq_data = response.json()
+                choices = groq_data.get("choices") or []
+                if not choices:
+                    print(f"⚠️ Groq key {i+1} returned no choices ({groq_data}) — trying next key...")
                     continue
-                reply = "".join(p.get("text", "") for p in candidates[0].get("content", {}).get("parts", [])).strip()
+                reply = (choices[0].get("message", {}) or {}).get("content", "").strip()
                 if not reply:
-                    print(f"⚠️ Gemini key {i+1} returned empty text — trying next key...")
+                    print(f"⚠️ Groq key {i+1} returned empty text — trying next key...")
                     continue
-                print(f"✅ Chatbot response received using Gemini key {i+1}.")
+                print(f"✅ Chatbot response received using Groq key {i+1}.")
                 break
             except Exception as key_err:
                 err_str = str(key_err)
-                if '429' in err_str or 'quota' in err_str.lower() or 'rate' in err_str.lower() or 'resource_exhausted' in err_str.lower():
-                    print(f"⚠️ Gemini key {i+1} rate limited — trying next key...")
+                if '429' in err_str or 'quota' in err_str.lower() or 'rate' in err_str.lower():
+                    print(f"⚠️ Groq key {i+1} rate limited — trying next key...")
                     continue
                 else:
                     raise key_err
@@ -2671,50 +2670,47 @@ def compute_adaptive_difficulty(base_difficulty, history):
 
 def call_interview_ai(prompt, max_tokens=350):
     """Same key-rotation pattern as the chatbot. Uses dedicated
-    GEMINI_INTERVIEW_KEY_1/2 if set (so a busy interview session can't eat
-    the chatbot/roadmap quota), falling back to the shared keys otherwise.
-    (Function name kept as-is so the /interview/ask call site below doesn't
-    need touching — it's a Gemini call under the hood now.)"""
+    GROQ_INTERVIEW_KEY_1/2 if set (so a busy interview session can't eat
+    the chatbot/roadmap quota), falling back to the shared keys otherwise."""
     keys = [
-        os.getenv("GEMINI_INTERVIEW_KEY_1") or os.getenv("GEMINI_API_KEY_1"),
-        os.getenv("GEMINI_INTERVIEW_KEY_2") or os.getenv("GEMINI_API_KEY_2"),
+        os.getenv("GROQ_INTERVIEW_KEY_1") or os.getenv("GROQ_API_KEY_1"),
+        os.getenv("GROQ_INTERVIEW_KEY_2") or os.getenv("GROQ_API_KEY_2"),
     ]
     keys = [k for k in keys if k]
     if not keys:
         return None
     for i, key in enumerate(keys):
         try:
-            print(f"🎤 Interview AI trying Gemini key {i+1}/{len(keys)}...")
+            print(f"🎤 Interview AI trying Groq key {i+1}/{len(keys)}...")
             response = requests.post(
-                f"{GEMINI_API_BASE}/{GEMINI_MODEL}:generateContent",
-                headers={"x-goog-api-key": key, "Content-Type": "application/json"},
+                GROQ_API_URL,
+                headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
                 json={
-                    "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-                    "generationConfig": {
-                        "temperature": 0.7,
-                        "maxOutputTokens": max_tokens
-                    }
+                    "model": GROQ_MODEL_FAST,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": max_tokens,
+                    "temperature": 0.7
                 },
                 timeout=30
             )
             if response.status_code == 429:
-                print(f"⚠️ Interview Gemini key {i+1} quota exhausted — trying next key...")
+                print(f"⚠️ Interview Groq key {i+1} quota exhausted — trying next key...")
                 continue
             response.raise_for_status()
-            gemini_data = response.json()
-            candidates = gemini_data.get("candidates") or []
-            if not candidates:
-                print(f"⚠️ Interview Gemini key {i+1} returned no candidates (promptFeedback={gemini_data.get('promptFeedback')}) — trying next key...")
+            groq_data = response.json()
+            choices = groq_data.get("choices") or []
+            if not choices:
+                print(f"⚠️ Interview Groq key {i+1} returned no choices ({groq_data}) — trying next key...")
                 continue
-            text = "".join(p.get("text", "") for p in candidates[0].get("content", {}).get("parts", [])).strip()
+            text = (choices[0].get("message", {}) or {}).get("content", "").strip()
             if not text:
-                print(f"⚠️ Interview Gemini key {i+1} returned empty text — trying next key...")
+                print(f"⚠️ Interview Groq key {i+1} returned empty text (finish_reason={choices[0].get('finish_reason')}) — trying next key...")
                 continue
             return text
         except Exception as key_err:
             err_str = str(key_err)
-            if '429' in err_str or 'quota' in err_str.lower() or 'rate' in err_str.lower() or 'resource_exhausted' in err_str.lower():
-                print(f"⚠️ Interview Gemini key {i+1} rate limited — trying next key...")
+            if '429' in err_str or 'quota' in err_str.lower() or 'rate' in err_str.lower():
+                print(f"⚠️ Interview Groq key {i+1} rate limited — trying next key...")
                 continue
             else:
                 raise key_err
@@ -2913,12 +2909,12 @@ def interview_ask():
             allow_followup = (not is_final) and (not is_followup_answer)
             system_prompt = build_interview_eval_prompt(mode, role, difficulty, is_final, personalization_ctx, allow_followup=allow_followup)
             full_prompt = f"{system_prompt}\n\nCONVERSATION SO FAR:\n{history_text}\nCandidate's answer to evaluate: {user_answer}\n\nYour evaluation:"
-            max_tokens = 450 if is_final else (330 if allow_followup else 280)
+            max_tokens = 550 if is_final else (430 if allow_followup else 380)
         else:
             # Generating the next (or first) question
             system_prompt = build_interview_question_prompt(mode, role, difficulty, q_number, total_q, is_first_question, personalization_ctx)
             full_prompt = f"{system_prompt}\n\nCONVERSATION SO FAR:\n{history_text}\nYour next question:"
-            max_tokens = 220
+            max_tokens = 300
 
         reply = call_interview_ai(full_prompt, max_tokens=max_tokens)
         if not reply:
