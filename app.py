@@ -13,7 +13,7 @@ from bson.objectid import ObjectId
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature, BadSignature
 from dotenv import load_dotenv
 from markupsafe import Markup
-from ai_roadmap_generator import configure_ai, generate_roadmap_with_ai, find_youtube_playlist, GROQ_API_URL, GROQ_MODEL_FAST
+from ai_roadmap_generator import configure_ai, generate_roadmap_with_ai, find_youtube_playlist, get_paid_course_link, GROQ_API_URL, GROQ_MODEL_FAST
 import regex as re_ext
 from bs4 import BeautifulSoup
 from werkzeug.utils import secure_filename
@@ -1425,20 +1425,30 @@ def roadmap_generator():
             if roadmap_data and isinstance(roadmap_data, dict) and isinstance(roadmap_data.get('stages'), list):
                 for stage in roadmap_data.get("stages", []):
                     learning_modules = stage.get("learning_modules", [])
-                    if not isinstance(learning_modules, list): continue
-                    for module in learning_modules:
-                         resources = module.get("resources", [])
-                         if not isinstance(resources, list): continue
-                         for resource in resources:
-                            if isinstance(resource, dict) and resource.get("type") == "Free YouTube Playlist":
-                                query = resource.get("youtube_search_query", goal)
-                                try:
-                                    url, title = find_youtube_playlist(query)
-                                    resource["url"] = url if url else "#"
-                                    resource["title"] = title if title else f"Playlist for: {query}"
-                                except Exception as e_yt:
-                                    print(f"Error finding YouTube playlist for '{query}': {e_yt}")
-                                    resource["url"] = "#"; resource["title"] = f"Error finding playlist"
+                    if isinstance(learning_modules, list):
+                        for module in learning_modules:
+                             resources = module.get("resources", [])
+                             if not isinstance(resources, list): continue
+                             for resource in resources:
+                                if isinstance(resource, dict) and resource.get("type") == "Free YouTube Playlist":
+                                    query = resource.get("youtube_search_query", goal)
+                                    try:
+                                        url, title = find_youtube_playlist(query)
+                                        resource["url"] = url if url else "#"
+                                        resource["title"] = title if title else f"Playlist for: {query}"
+                                    except Exception as e_yt:
+                                        print(f"Error finding YouTube playlist for '{query}': {e_yt}")
+                                        resource["url"] = "#"; resource["title"] = f"Error finding playlist"
+                    # Paid course link — the model gives us a title/provider, never a
+                    # real URL (it would just be hallucinated), so we build a search
+                    # link on the named platform (or Google, if unrecognized).
+                    paid_course = stage.get("paid_course_resource")
+                    if isinstance(paid_course, dict) and paid_course.get("title"):
+                        try:
+                            paid_course["url"] = get_paid_course_link(paid_course.get("title", ""), paid_course.get("provider", ""))
+                        except Exception as e_pc:
+                            print(f"Error building paid course link: {e_pc}")
+                            paid_course["url"] = "#"
                 return render_template('roadmap_generator.html', roadmap_data=roadmap_data, goal=goal, **_sidebar)
             else:
                 print(f"AI response invalid or missing stages for goal '{goal}'. Response: {roadmap_data}")

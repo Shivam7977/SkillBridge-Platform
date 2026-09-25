@@ -3,6 +3,7 @@ from googleapiclient.discovery import build
 import json
 import os
 import httplib2
+import urllib.parse
 
 # Groq: OpenAI-compatible endpoint, extremely generous free tier — no
 # "thinking budget" weirdness like Gemini, and no credit card needed.
@@ -61,11 +62,21 @@ def get_youtube_service():
 
 
 def find_youtube_playlist(query):
-    """Searches YouTube for a playlist and returns the top result."""
+    """Searches YouTube for a playlist and returns the top result.
+
+    YouTube Data API's free quota is only 10,000 units/day, and a search
+    call costs 100 units — ~100 searches/day, shared across every user.
+    One roadmap alone burns 12-15 of those. Once quota runs out (or any
+    other API error happens), we fall back to a plain YouTube search-results
+    URL — that needs no API/quota at all, so the link is never dead, it's
+    just less precisely curated (search results instead of one exact pick).
+    """
+    fallback_url = f"https://www.youtube.com/results?search_query={urllib.parse.quote_plus(query)}"
+
     youtube = get_youtube_service()
     if not youtube:
         print("❌ YouTube service is None — API key missing or build() failed")
-        return "#", "YouTube API Key Not Configured"
+        return fallback_url, f"Search: {query}"
     try:
         print(f"🔍 Searching YouTube for: {query}")
         request = youtube.search().list(part="snippet", q=query, type="playlist", maxResults=1)
@@ -78,10 +89,30 @@ def find_youtube_playlist(query):
             print(f"✅ Found playlist: {title}")
             return f"https://www.youtube.com/playlist?list={playlist_id}", title
         else:
-            print("⚠️ YouTube returned 0 items for this query")
+            print("⚠️ YouTube returned 0 items for this query — falling back to search link")
     except Exception as e:
-        print(f"❌ YouTube playlist search failed: {type(e).__name__}: {e}")
-    return "#", "No playlist found"
+        print(f"❌ YouTube playlist search failed: {type(e).__name__}: {e} — falling back to search link")
+    return fallback_url, f"Search: {query}"
+
+
+def get_paid_course_link(title, provider=""):
+    """Builds a clickable link for a paid_course_resource without trusting
+    the model to give us a real, non-hallucinated URL. Known platforms get
+    a direct search on that platform; anything else falls back to a Google
+    search for the course name + provider."""
+    query = f"{title} {provider}".strip()
+    provider_lower = (provider or "").lower()
+    if "udemy" in provider_lower:
+        return f"https://www.udemy.com/courses/search/?q={urllib.parse.quote_plus(title)}"
+    if "coursera" in provider_lower:
+        return f"https://www.coursera.org/search?query={urllib.parse.quote_plus(title)}"
+    if "edx" in provider_lower:
+        return f"https://www.edx.org/search?q={urllib.parse.quote_plus(title)}"
+    if "linkedin" in provider_lower:
+        return f"https://www.linkedin.com/learning/search?keywords={urllib.parse.quote_plus(title)}"
+    if "pluralsight" in provider_lower:
+        return f"https://www.pluralsight.com/search?q={urllib.parse.quote_plus(title)}"
+    return f"https://www.google.com/search?q={urllib.parse.quote_plus(query + ' course')}"
 
 
 def call_groq(prompt, api_key, model=GROQ_MODEL, max_tokens=8192, json_mode=True):

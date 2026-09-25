@@ -252,6 +252,16 @@ nav.sidebar, .dashboard-container > aside.sidebar, body > aside.sidebar { displa
                     </div>
                 {% endif %}
 
+                {% set paid_course = stage.get('paid_course_resource') %}
+                {% if paid_course is mapping and paid_course.get('title') %}
+                <div class="border border-dashed border-emerald-500 dark:border-emerald-600 rounded-2xl p-5 bg-emerald-50/30 dark:bg-emerald-900/10 space-y-1.5 font-body">
+                    <span class="text-[10px] font-bold tracking-wider text-ink-400 uppercase block">Recommended Paid Course</span>
+                    <h4 class="font-display text-sm font-bold text-ink-900 dark:text-gold flex items-center gap-1.5 leading-none"><i class="fas fa-graduation-cap text-emerald-600"></i> {% if paid_course.get('url') %}<a href="{{ paid_course.url }}" target="_blank" class="hover:underline inline-flex items-center gap-1">{{ paid_course.get('title') }} <i class="fas fa-external-link-alt text-[9px] opacity-70"></i></a>{% else %}{{ paid_course.get('title') }}{% endif %}</h4>
+                    {% if paid_course.get('provider') %}<p class="text-xs font-bold text-emerald-700 dark:text-emerald-400">{{ paid_course.provider }}</p>{% endif %}
+                    {% if paid_course.get('note') %}<p class="text-xs text-ink-500 dark:text-ink-400 leading-relaxed max-w-2xl">{{ paid_course.note }}</p>{% endif %}
+                </div>
+                {% endif %}
+
                 {% set project_idea = stage.get('project_idea') %}
                 {% if project_idea is mapping %}
                 <div class="border border-dashed border-gold rounded-2xl p-5 bg-cream-50/20 dark:bg-ink-900/10 space-y-2.5 font-body">

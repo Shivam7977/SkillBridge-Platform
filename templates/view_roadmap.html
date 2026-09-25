@@ -294,6 +294,31 @@
                                                 {% endif %}
                                             </div>
                                             {% endfor %}
+
+                                            {% set paid_course = stage.get('paid_course_resource') %}
+                                            {% if paid_course is mapping and paid_course.get('title') %}
+                                            <div class="module" style="border-left: 3px solid var(--color-success, #10b981);">
+                                                <h4>🎓 Recommended Paid Course: {% if paid_course.get('url') %}<a href="{{ paid_course.url }}" target="_blank" class="resource-link">{{ paid_course.title }}</a>{% else %}{{ paid_course.title }}{% endif %}</h4>
+                                                {% if paid_course.get('provider') %}<p style="font-weight:700;">{{ paid_course.provider }}</p>{% endif %}
+                                                {% if paid_course.get('note') %}<p>{{ paid_course.note }}</p>{% endif %}
+                                            </div>
+                                            {% endif %}
+
+                                            {% set project_idea = stage.get('project_idea') %}
+                                            {% if project_idea is mapping and project_idea.get('title') %}
+                                            <div class="module" style="border-left: 3px solid var(--color-gold, #d4af37);">
+                                                <h4>💡 Project: {{ project_idea.title }}</h4>
+                                                {% if project_idea.get('description') %}<p>{{ project_idea.description }}</p>{% endif %}
+                                                {% set core_features = project_idea.get('core_features', []) %}
+                                                {% if core_features %}
+                                                <ul>
+                                                    {% for feature in core_features %}
+                                                        <li>{{ feature }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                                {% endif %}
+                                            </div>
+                                            {% endif %}
                                         {% endif %}
                                     </div>
                                 </div>
