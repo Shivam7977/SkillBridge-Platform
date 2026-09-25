@@ -159,11 +159,28 @@ nav.sidebar, .dashboard-container > aside.sidebar, body > aside.sidebar { displa
         <p class="text-xs text-ink-500 dark:text-ink-400 font-body">Enter a role, skill, or topic to generate an AI-powered, project-based learning plan.</p>
     </div>
 
-    <form action="{{ url_for('roadmap_generator') }}" method="POST" class="flex flex-col sm:flex-row gap-3 font-body">
+    <form id="roadmap-gen-form" action="{{ url_for('roadmap_generator') }}" method="POST" class="flex flex-col sm:flex-row gap-3 font-body">
         <input type="text" name="goal" value="{{ goal or '' }}" placeholder="e.g., 'Become a Full Stack Developer' or 'Master React'" required
                class="flex-1 px-4 py-3 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm placeholder-ink-400 focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200">
-        <button type="submit" class="px-6 py-3 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-bold text-xs rounded-xl tracking-wider uppercase transition-all hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0 shadow-sm flex-shrink-0">Generate Matrix</button>
+        <button id="roadmap-gen-btn" type="submit" class="px-6 py-3 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-bold text-xs rounded-xl tracking-wider uppercase transition-all hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0 shadow-sm flex-shrink-0">Generate Matrix</button>
     </form>
+
+    <!-- In-page loading card: shown right in the results area the instant the
+         form submits, and stays visible for the whole wait since this is a
+         normal (non-AJAX) form POST — the browser doesn't repaint until the
+         new page arrives, so this naturally covers the whole "backend is
+         working" period without touching the sidebar or rest of the page. -->
+    <div id="roadmap-gen-overlay" class="hidden editorial-card bg-white border border-cream-200 dark:bg-ink-900/40 dark:border-ink-800 rounded-3xl p-10 shadow-sm flex flex-col items-center justify-center gap-4 mt-6">
+        <div class="w-10 h-10 border-4 border-ink-900/20 dark:border-cream-100/20 border-t-ink-900 dark:border-t-gold rounded-full animate-spin"></div>
+        <p class="font-display text-sm font-bold text-ink-900 dark:text-cream-100 tracking-wide">Generating your roadmap…</p>
+        <p class="text-xs text-ink-500 dark:text-ink-400 font-body max-w-xs text-center">This can take up to a minute — the AI is building stages and finding resources for you.</p>
+    </div>
+    <script>
+        document.getElementById('roadmap-gen-form').addEventListener('submit', function () {
+            document.getElementById('roadmap-gen-overlay').classList.remove('hidden');
+            document.getElementById('roadmap-gen-btn').disabled = true;
+        });
+    </script>
 
     <div class="pt-1">
         <a href="{{ url_for('my_roadmaps') }}" class="text-xs font-bold uppercase tracking-wider text-ink-900 dark:text-gold hover-line">View my saved roadmaps →</a>

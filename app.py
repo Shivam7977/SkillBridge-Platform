@@ -351,18 +351,20 @@ def get_ai_usage_today(user_id):
     try:
         user = users_collection.find_one({'_id': ObjectId(user_id)}, {'ai_usage': 1, 'timezone': 1})
         if not user:
-            return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10}
+            return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10, 'interview_used': 0, 'interview_limit': 100}
         today_key = user_today_key(user_id, user)
         ai_usage = user.get('ai_usage', {})
         return {
-            'chat_used':     ai_usage.get(f'chat_{today_key}', 0),
-            'chat_limit':    50,
-            'roadmap_used':  ai_usage.get(f'roadmap_{today_key}', 0),
-            'roadmap_limit': 10,
+            'chat_used':      ai_usage.get(f'chat_{today_key}', 0),
+            'chat_limit':     50,
+            'roadmap_used':   ai_usage.get(f'roadmap_{today_key}', 0),
+            'roadmap_limit':  10,
+            'interview_used': ai_usage.get(f'interview_{today_key}', 0),
+            'interview_limit': 100,
         }
     except Exception as e:
         print(f"get_ai_usage_today error: {e}")
-        return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10}
+        return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10, 'interview_used': 0, 'interview_limit': 100}
 
 def flatten_data(y):
     out = {}
@@ -1408,7 +1410,7 @@ def roadmap_generator():
             return render_template('roadmap_generator.html', goal=goal, **_sidebar)
 
         # ── AI DAILY CAP CHECK (browser timezone) ─────────────
-        allowed, used, limit = check_ai_daily_limit(current_user.id, 'roadmap')
+        allowed, used, limit = check_ai_daily_limit(current_user.id, 'roadmap', limit=10)
         if not allowed:
             flash(f'⚠️ You have used all {limit} roadmap generations for today. Resets at your local midnight.', 'error')
             return render_template('roadmap_generator.html', goal=goal, **_sidebar)
