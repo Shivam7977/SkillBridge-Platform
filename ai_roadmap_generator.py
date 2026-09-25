@@ -9,20 +9,24 @@ import httplib2
 # https://console.groq.com/docs/rate-limits
 #
 # NOTE: llama-3.1-8b-instant and llama-3.3-70b-versatile were DEPRECATED by
-# Groq on 16 Aug 2026 (shutdown — calls now 404). Using Groq's own recommended
-# replacements below.
+# Groq on 16 Aug 2026 (shutdown — calls now 404). Their gpt-oss-* replacements
+# turned out to be reasoning models with no way to fully turn reasoning off
+# (minimum is "low", still eats into max_tokens). qwen/qwen3.8-27b is the one
+# Groq model with a genuine non-thinking mode (reasoning_effort="none") — same
+# direct-answer behavior as Mistral, same generous free tier (30 RPM / 14,400
+# RPD), used for everything below.
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-# Used for roadmap generation — bigger model, better at following the
-# detailed JSON structure instructions. (was llama-3.3-70b-versatile)
-GROQ_MODEL = "openai/gpt-oss-120b"
-# Used for chatbot + interview (app.py) — smaller/faster, same generous
-# free-tier limits, plenty good for conversational Q&A and evaluation.
-# (was llama-3.1-8b-instant)
-GROQ_MODEL_FAST = "openai/gpt-oss-20b"
+# Used for roadmap generation.
+GROQ_MODEL = "qwen/qwen3.8-27b"
+# Used for chatbot + interview (app.py). Same model as above — kept as a
+# separate constant in case you ever want to split them again later.
+GROQ_MODEL_FAST = "qwen/qwen3.8-27b"
 
 
 def get_api_keys():
-    """Get all available Groq API keys for rotation."""
+    """Both Groq keys, shared across roadmap generation, the chatbot, AND
+    the interview (app.py) — one rotation pool, tried in order (key 1 first,
+    automatically falls back to key 2 on failure), same pattern as Mistral."""
     keys = [
         os.getenv("GROQ_API_KEY_1"),
         os.getenv("GROQ_API_KEY_2"),
@@ -30,7 +34,7 @@ def get_api_keys():
     keys = [k for k in keys if k]  # remove None/empty
 
     if not keys:
-        raise ValueError("No GROQ_API_KEY found in environment variables.")
+        raise ValueError("No GROQ_API_KEY_1 found in environment variables.")
 
     return keys
 
@@ -86,7 +90,11 @@ def call_groq(prompt, api_key, model=GROQ_MODEL, max_tokens=8192, json_mode=True
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
         "max_tokens": max_tokens,
-        "temperature": 0.7
+        "temperature": 0.7,
+        # qwen3.8-27b has a genuine non-thinking mode — "none" disables
+        # reasoning entirely (unlike gpt-oss, which has no off-switch and
+        # always burns some of max_tokens on invisible reasoning).
+        "reasoning_effort": "none"
     }
     if json_mode:
         # Groq's structured-output JSON mode — model is constrained to emit
@@ -129,7 +137,7 @@ def generate_roadmap_with_ai(skill_to_learn):
     **CRITICAL INSTRUCTIONS:**
     1.  **Project-Based Learning:** The roadmap MUST be centered around practical projects. Every stage MUST include a "project_idea" and the roadmap MUST conclude with a final "capstone_project". For each project, include a "core_features" list.
     2.  **Autonomous Structure:** You MUST independently determine the most logical number of stages.
-    3.  **Resource Rules:** For free resources, provide a "youtube_search_query" to find a relevant YouTube Playlist. At the end of each stage, include a "Paid Course" resource.
+    3.  **Resource Rules:** For free resources, provide a "youtube_search_query" to find a relevant YouTube Playlist. Every stage MUST ALSO include a "paid_course_resource" object (see structure below) — this is not optional, every single stage needs one.
     4.  **VALID JSON OUTPUT ONLY:** Your entire response MUST be a single, perfectly structured JSON object. Do NOT wrap it in markdown code fences. Do NOT include any text before or after the JSON. Every key MUST be in double quotes. Every string value MUST be in double quotes. No trailing commas. No single quotes anywhere.
     5.  **JSON Structure Requirements:**
         {{
@@ -144,6 +152,7 @@ def generate_roadmap_with_ai(skill_to_learn):
               "learning_modules": [
                 {{ "name": "Module 1", "concepts": ["Concept A", "Concept B"], "resources": [{{"type": "Free YouTube Playlist", "title": "Playlist for this module", "youtube_search_query": "The perfect YouTube search query"}}] }}
               ],
+              "paid_course_resource": {{ "title": "Name of a real, well-known paid course relevant to this stage", "provider": "e.g. Coursera, Udemy, CFI, a specific university, etc.", "note": "One short sentence on why this course fits this stage" }},
               "project_idea": {{ "title": "Project Title for Stage 1", "description": "A detailed description...", "core_features": ["Feature 1", "Feature 2"] }}
             }}
           ],

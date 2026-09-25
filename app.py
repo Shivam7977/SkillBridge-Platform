@@ -32,6 +32,8 @@ load_dotenv(override=True)
 try:
     if not os.getenv('GROQ_API_KEY_1'):
      print("WARNING: GROQ_API_KEY_1 not found in .env file. AI features will likely fail.")
+    if not os.getenv('GROQ_API_KEY_2'):
+     print("NOTE: GROQ_API_KEY_2 not set — running on a single key with no automatic fallback if it hits a rate limit.")
     configure_ai()
     print("AI configured successfully.")
 except ValueError as e:
@@ -2483,14 +2485,15 @@ def resume_pdf():
 @limiter.limit("30 per hour", key_func=get_user_key)
 def chatbot():
     try:
-        # Groq API key rotation
+        # Shared rotation pool with roadmap generation AND interview — key 1
+        # tried first, automatically falls back to key 2 on failure.
         keys = [
             os.getenv("GROQ_API_KEY_1"),
             os.getenv("GROQ_API_KEY_2"),
         ]
         keys = [k for k in keys if k]
         if not keys:
-            return jsonify({"reply": "AI not configured. Please set GROQ_API_KEY in your .env file."}), 500
+            return jsonify({"reply": "AI not configured. Please set GROQ_API_KEY_1 in your .env file."}), 500
 
         data = request.get_json()
         user_message = data.get('message', '').strip()
@@ -2565,7 +2568,10 @@ Assistant:"""
                         "model": GROQ_MODEL_FAST,
                         "messages": [{"role": "user", "content": full_prompt}],
                         "max_tokens": 1024,
-                        "temperature": 0.7
+                        "temperature": 0.7,
+                        # qwen3.8-27b's non-thinking mode — direct answer,
+                        # no invisible reasoning tokens eating the budget.
+                        "reasoning_effort": "none"
                     },
                     timeout=30
                 )
@@ -2580,7 +2586,7 @@ Assistant:"""
                     continue
                 reply = (choices[0].get("message", {}) or {}).get("content", "").strip()
                 if not reply:
-                    print(f"⚠️ Groq key {i+1} returned empty text — trying next key...")
+                    print(f"⚠️ Groq key {i+1} returned empty text (finish_reason={choices[0].get('finish_reason')}) — trying next key...")
                     continue
                 print(f"✅ Chatbot response received using Groq key {i+1}.")
                 break
@@ -2668,13 +2674,12 @@ def compute_adaptive_difficulty(base_difficulty, history):
     return INTERVIEW_DIFF_LADDER[idx]
 
 
-def call_interview_ai(prompt, max_tokens=350):
-    """Same key-rotation pattern as the chatbot. Uses dedicated
-    GROQ_INTERVIEW_KEY_1/2 if set (so a busy interview session can't eat
-    the chatbot/roadmap quota), falling back to the shared keys otherwise."""
+def call_interview_ai(prompt, max_tokens=400):
+    """Same shared rotation pool as the chatbot/roadmap generator — key 1
+    tried first, automatically falls back to key 2 on failure."""
     keys = [
-        os.getenv("GROQ_INTERVIEW_KEY_1") or os.getenv("GROQ_API_KEY_1"),
-        os.getenv("GROQ_INTERVIEW_KEY_2") or os.getenv("GROQ_API_KEY_2"),
+        os.getenv("GROQ_API_KEY_1"),
+        os.getenv("GROQ_API_KEY_2"),
     ]
     keys = [k for k in keys if k]
     if not keys:
@@ -2689,7 +2694,11 @@ def call_interview_ai(prompt, max_tokens=350):
                     "model": GROQ_MODEL_FAST,
                     "messages": [{"role": "user", "content": prompt}],
                     "max_tokens": max_tokens,
-                    "temperature": 0.7
+                    "temperature": 0.7,
+                    # qwen3.8-27b's non-thinking mode — direct answer, no
+                    # invisible reasoning tokens eating the max_tokens budget
+                    # (this is what gpt-oss couldn't do — "low" was its floor).
+                    "reasoning_effort": "none"
                 },
                 timeout=30
             )
@@ -2909,12 +2918,14 @@ def interview_ask():
             allow_followup = (not is_final) and (not is_followup_answer)
             system_prompt = build_interview_eval_prompt(mode, role, difficulty, is_final, personalization_ctx, allow_followup=allow_followup)
             full_prompt = f"{system_prompt}\n\nCONVERSATION SO FAR:\n{history_text}\nCandidate's answer to evaluate: {user_answer}\n\nYour evaluation:"
-            max_tokens = 550 if is_final else (430 if allow_followup else 380)
+            # qwen3.8-27b non-thinking mode doesn't need the inflated
+            # gpt-oss-era headroom — back to Mistral-scale budgets.
+            max_tokens = 450 if is_final else (330 if allow_followup else 280)
         else:
             # Generating the next (or first) question
             system_prompt = build_interview_question_prompt(mode, role, difficulty, q_number, total_q, is_first_question, personalization_ctx)
             full_prompt = f"{system_prompt}\n\nCONVERSATION SO FAR:\n{history_text}\nYour next question:"
-            max_tokens = 300
+            max_tokens = 220
 
         reply = call_interview_ai(full_prompt, max_tokens=max_tokens)
         if not reply:
