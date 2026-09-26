@@ -641,6 +641,40 @@ body { font-family: 'DM Sans', sans-serif; }
               {% endif %}
             </div>
 
+            <div class="border-t border-cream-100 dark:border-ink-800"></div>
+
+            <!-- INTERVIEW PRACTICE CREDITS TRACK -->
+            <div class="space-y-3" id="ai-interview-row">
+              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div class="flex items-center gap-3">
+                  <span class="w-8 h-8 rounded-lg flex items-center justify-center bg-cream-100 border border-cream-200 text-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-gold text-xs"><i class="fas fa-comment-dots"></i></span>
+                  <div>
+                    <div class="font-bold text-ink-900 dark:text-cream-50">AI Interview</div>
+                    <div class="text-[11px] text-ink-400 dark:text-ink-500">Mock technical &amp; behavioral interview practice</div>
+                  </div>
+                </div>
+                <div class="font-black text-base text-ink-500 tracking-tight" id="interview-count-display">
+                  <span class="text-xl text-ink-900 dark:text-gold" id="interview-used">{{ ai_usage.interview_used }}</span> / <span class="text-ink-900 dark:text-cream-100">{{ ai_usage.interview_limit }}</span> <span class="text-[10px] font-bold text-ink-400 uppercase tracking-widest ml-1">used</span>
+                </div>
+              </div>
+              <div class="space-y-1.5">
+                {% set interview_pct = ((ai_usage.interview_used / ai_usage.interview_limit) * 100) | int %}
+                <div class="w-full h-2 bg-cream-200 dark:bg-ink-800 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-700 {% if interview_pct >= 100 %} bg-rose-600 {% elif interview_pct >= 70 %} bg-amber-500 {% else %} bg-ink-900 dark:bg-gold {% endif %}"
+                       style="width: {{ [interview_pct, 100] | min }}%" id="interview-bar"></div>
+                </div>
+                <div class="flex justify-between text-[11px] font-bold text-ink-400 dark:text-ink-500">
+                  <span>{{ ai_usage.interview_limit - ai_usage.interview_used }} remaining</span>
+                  <span>{{ interview_pct }}%</span>
+                </div>
+              </div>
+              {% if ai_usage.interview_used >= ai_usage.interview_limit %}
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-50 border border-rose-200 text-xs font-bold text-rose-700 dark:bg-rose-950/20 dark:border-rose-900/40 dark:text-rose-400"><i class="fas fa-ban"></i> Daily limit reached &mdash; resets at your local midnight</div>
+              {% elif interview_pct >= 70 %}
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50 border border-amber-200 text-xs font-bold text-amber-700 dark:bg-amber-950/20 dark:border-rose-900/40 dark:text-amber-400"><i class="fas fa-exclamation-triangle"></i> Running low on interview credits</div>
+              {% endif %}
+            </div>
+
             <!-- INFO FOOTER DATA CONTAINER MODULE -->
             <div class="p-4 bg-cream-100/60 border border-cream-200 dark:bg-ink-900/40 dark:border-ink-800 rounded-xl text-xs text-ink-500 dark:text-ink-400 flex gap-3 line-relaxed">
               <i class="fas fa-info-circle text-ink-900 dark:text-gold mt-0.5 flex-shrink-0"></i>

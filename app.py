@@ -300,10 +300,34 @@ def load_user(user_id):
         print(f"Error loading user {user_id}: {e}")
     return None
 
+def time_until_reset(user_id):
+    """Human-readable countdown to this user's own local midnight (when
+    their daily AI limits reset), computed from THEIR stored IANA timezone
+    — not a hardcoded region. Works correctly no matter where the user is:
+    someone in Tokyo, Lagos, or New York each get their own accurate
+    countdown to their own midnight, not India's."""
+    try:
+        user = users_collection.find_one({'_id': ObjectId(user_id)}, {'timezone': 1})
+        user_tz = get_timezone((user or {}).get('timezone') or DEFAULT_USER_TZ)
+        now = datetime.now(user_tz)
+        next_midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        remaining = next_midnight - now
+        total_minutes = int(remaining.total_seconds() // 60)
+        hours, minutes = divmod(total_minutes, 60)
+        if hours > 0 and minutes > 0:
+            return f"{hours}h {minutes}m"
+        if hours > 0:
+            return f"{hours}h"
+        return f"{max(minutes, 1)}m"
+    except Exception as e:
+        print(f"time_until_reset error: {e}")
+        return "at your local midnight"
+
+
 def check_ai_daily_limit(user_id, action='chat', limit=50):
     """
     Check and increment AI usage for a user per day in their browser timezone.
-    action: 'chat' (limit=50) or 'roadmap' (limit=10)
+    action: 'chat' (limit=50), 'roadmap' (limit=10), or 'interview' (limit=5)
     Returns True if allowed, False if limit hit.
     Auto-cleans usage entries older than 7 days.
     """
@@ -351,7 +375,7 @@ def get_ai_usage_today(user_id):
     try:
         user = users_collection.find_one({'_id': ObjectId(user_id)}, {'ai_usage': 1, 'timezone': 1})
         if not user:
-            return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10, 'interview_used': 0, 'interview_limit': 100}
+            return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10, 'interview_used': 0, 'interview_limit': 5}
         today_key = user_today_key(user_id, user)
         ai_usage = user.get('ai_usage', {})
         return {
@@ -360,11 +384,11 @@ def get_ai_usage_today(user_id):
             'roadmap_used':   ai_usage.get(f'roadmap_{today_key}', 0),
             'roadmap_limit':  10,
             'interview_used': ai_usage.get(f'interview_{today_key}', 0),
-            'interview_limit': 100,
+            'interview_limit': 5,
         }
     except Exception as e:
         print(f"get_ai_usage_today error: {e}")
-        return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10, 'interview_used': 0, 'interview_limit': 100}
+        return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10, 'interview_used': 0, 'interview_limit': 5}
 
 def flatten_data(y):
     out = {}
@@ -1412,7 +1436,7 @@ def roadmap_generator():
         # ── AI DAILY CAP CHECK (browser timezone) ─────────────
         allowed, used, limit = check_ai_daily_limit(current_user.id, 'roadmap', limit=10)
         if not allowed:
-            flash(f'⚠️ You have used all {limit} roadmap generations for today. Resets at your local midnight.', 'error')
+            flash(f'⚠️ You have used all {limit} roadmap generations for today. Resets in {time_until_reset(current_user.id)} (your local midnight). Come back tomorrow!', 'error')
             return render_template('roadmap_generator.html', goal=goal, **_sidebar)
 
     else:
@@ -2515,7 +2539,7 @@ def chatbot():
         # ── AI DAILY CAP CHECK (browser timezone) ─────────────
         allowed, used, limit = check_ai_daily_limit(current_user.id, 'chat')
         if not allowed:
-            return jsonify({'reply': f'⚠️ You have used all {limit} AI messages for today. Your limit resets at your local midnight. Come back tomorrow!'}), 429
+            return jsonify({'reply': f'⚠️ You have used all {limit} AI messages for today. Resets in {time_until_reset(current_user.id)} (your local midnight). Come back tomorrow!'}), 429
 
         uid = ObjectId(current_user.id)
         chat_doc = chat_history_collection.find_one({'user_id': uid})
@@ -2910,9 +2934,9 @@ def interview_ask():
         is_followup_answer = bool(data.get('is_followup_answer'))
 
         # ── AI DAILY CAP CHECK (browser timezone) — token-based budgeting (see convo: 100/day) ──
-        allowed, used, limit = check_ai_daily_limit(current_user.id, 'interview', limit=100)
+        allowed, used, limit = check_ai_daily_limit(current_user.id, 'interview', limit=5)
         if not allowed:
-            return jsonify({'reply': f'⚠️ You have used all {limit} interview AI calls for today. Your limit resets at your local midnight. Come back tomorrow!'}), 429
+            return jsonify({'reply': f'⚠️ You have used all {limit} interview AI calls for today. Resets in {time_until_reset(current_user.id)} (your local midnight). Come back tomorrow!'}), 429
 
         personalization_ctx = get_interview_profile_context(current_user.id) if personalization == 'profile' else ''
         difficulty = compute_adaptive_difficulty(base_difficulty, history)
