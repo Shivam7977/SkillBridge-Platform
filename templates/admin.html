@@ -1099,7 +1099,7 @@ function deleteRoadmap(id,goal){if(!confirm('Delete roadmap "'+goal+'"?'))return
 function deleteCommunity(id,title){if(!confirm('Delete community "'+title+'"?'))return;fetch('/admin/delete_community/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success){document.getElementById('cm-'+id).remove();showToast('Community deleted.');}else showToast(d.error,true);});}
 
 // ── COMMENTS MODAL ────────────────────────────────
-function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escapeHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function formatUtc(iso, format='datetime', fallback=''){
   if(!iso)return fallback||'';
   const d=new Date(iso);
@@ -1153,7 +1153,7 @@ function peopleRow(u){
   return `<div class="people-row">
     <img src="${u.profile_pic_url}" class="people-avatar" onerror="this.src='/static/profile_pics/default.jpg'">
     <a href="/admin/user/${u.id}" style="flex:1;text-decoration:none;">
-      <div class="people-name">${u.name}</div>${u.username?`<div class="people-handle">@${u.username}</div>`:''}
+      <div class="people-name">${escapeHtml(u.name)}</div>${u.username?`<div class="people-handle">@${escapeHtml(u.username)}</div>`:''}
     </a>
   </div>`;
 }
@@ -1170,7 +1170,7 @@ async function openProjectDetail(id){
   }catch(e){setModalScreen('Error','',errorHtml(),false);}
 }
 function renderProjectDetail(p){
-  const creatorHtml=p.creator?`<a href="/admin/user/${p.creator.id}" style="color:#c4973a;text-decoration:none;">${p.creator.name}</a>${p.creator.username?` <span style="color:#9c9488;">@${p.creator.username}</span>`:''}`:'Unknown';
+  const creatorHtml=p.creator?`<a href="/admin/user/${p.creator.id}" style="color:#c4973a;text-decoration:none;">${escapeHtml(p.creator.name)}</a>${p.creator.username?` <span style="color:#9c9488;">@${escapeHtml(p.creator.username)}</span>`:''}`:'Unknown';
   const communityHtml=p.community?`<div class="info-row"><span class="info-label">Community</span><span class="info-value"><a href="#" onclick="openCommunityDetail('${p.community.id}');return false;" style="color:#c4973a;text-decoration:none;">${escapeHtml(p.community.title)}</a></span></div>`:'';
   const likersHtml=p.likers.length?p.likers.map(u=>peopleRow(u)).join(''):'<div class="empty">No likes yet.</div>';
   const saversHtml=p.savers.length?p.savers.map(u=>peopleRow(u)).join(''):'<div class="empty">No saves yet.</div>';
@@ -1226,7 +1226,7 @@ async function openRoadmapDetail(id){
   }catch(e){setModalScreen('Error','',errorHtml(),false);}
 }
 function renderRoadmapDetail(r){
-  const creatorHtml=r.creator?`<a href="/admin/user/${r.creator.id}" style="color:#c4973a;text-decoration:none;">${r.creator.name}</a>${r.creator.username?` <span style="color:#9c9488;">@${r.creator.username}</span>`:''}`:'Unknown';
+  const creatorHtml=r.creator?`<a href="/admin/user/${r.creator.id}" style="color:#c4973a;text-decoration:none;">${escapeHtml(r.creator.name)}</a>${r.creator.username?` <span style="color:#9c9488;">@${escapeHtml(r.creator.username)}</span>`:''}`:'Unknown';
   const pct=r.stage_count?Math.round(r.completed_stages/r.stage_count*100):0;
   const stagesHtml=r.stages.length?r.stages.map((s,i)=>`
     <div class="stage-row">
@@ -1273,7 +1273,7 @@ function renderCommunityDetail(c){
     <div class="people-row">
       <img src="${m.profile_pic_url}" class="people-avatar" onerror="this.src='/static/profile_pics/default.jpg'">
       <a href="/admin/user/${m.id}" style="flex:1;text-decoration:none;">
-        <div class="people-name">${m.name}</div>${m.username?`<div class="people-handle">@${m.username}</div>`:''}
+        <div class="people-name">${escapeHtml(m.name)}</div>${m.username?`<div class="people-handle">@${escapeHtml(m.username)}</div>`:''}
       </a>
       <span class="role-tag ${m.role.toLowerCase()}">${m.role}</span>
     </div>`).join(''):'<div class="empty">No members.</div>';
@@ -1303,8 +1303,8 @@ function buildComment(c){
   return`<div id="acmt-${c._id}" style="${indent}${c.is_deleted?'opacity:.5;':''}background:#fdfcf8;border:1px solid #f0e9d8;border-radius:9px;padding:10px 12px;">
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap;">
       <img src="/static/profile_pics/${c.profile_pic||'default.jpg'}" onerror="this.src='/static/profile_pics/default.jpg'" style="width:22px;height:22px;border-radius:6px;object-fit:cover;border:1px solid #e5d9c0;">
-      <span style="font-size:11px;font-weight:800;color:#1a1714;">${c.user_name}</span>
-      ${c.username?`<span style="font-size:10px;font-weight:700;color:#c4973a;">@${c.username}</span>`:''}
+      <span style="font-size:11px;font-weight:800;color:#1a1714;">${escapeHtml(c.user_name)}</span>
+      ${c.username?`<span style="font-size:10px;font-weight:700;color:#c4973a;">@${escapeHtml(c.username)}</span>`:''}
       ${typePill}
       <span style="font-size:9px;color:#9c9488;margin-left:auto;">${formatUtc(c.created_at_iso,'datetime',c.created_at_str)}</span>
     </div>

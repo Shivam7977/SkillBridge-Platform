@@ -2,11 +2,12 @@
 import re
 import random
 import json
+from urllib.parse import urlparse
 from recommendation_engine import get_recommended_projects
 import secrets
 from datetime import datetime, timezone, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
-from pymongo import MongoClient
+from pymongo import MongoClient, ReturnDocument
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from bson.objectid import ObjectId
@@ -324,11 +325,38 @@ def time_until_reset(user_id):
         return "at your local midnight"
 
 
+def increment_interview_session_count(user_id):
+    """Separate, display-only counter: +1 each time a NEW interview session
+    starts (the very first question of a session) — NOT per AI call. This is
+    what settings.html shows as 'X / 5 interviews', kept independent from the
+    raw-call counter (interview_used/70) that actually gates access. Because
+    they're tracked separately, it's possible in rare cases (a session that
+    uses far more follow-ups than average) to hit the 70-call safety cap
+    before reaching 5 sessions shown here — that's intentional: 70 calls is
+    the real limit, 5 sessions is a friendly estimate of what that buys you."""
+    try:
+        user = users_collection.find_one({'_id': ObjectId(user_id)}, {'timezone': 1})
+        today_key = user_today_key(user_id, user)
+        users_collection.update_one(
+            {'_id': ObjectId(user_id)},
+            {'$inc': {f'ai_usage.interview_sessions_{today_key}': 1}}
+        )
+    except Exception as e:
+        print(f"increment_interview_session_count error: {e}")
+
+
 def check_ai_daily_limit(user_id, action='chat', limit=50):
     """
-    Check and increment AI usage for a user per day in their browser timezone.
-    action: 'chat' (limit=50), 'roadmap' (limit=10), or 'interview' (limit=5)
-    Returns True if allowed, False if limit hit.
+    Atomically check-and-increment AI usage for a user per day in their
+    browser timezone, using MongoDB's find_one_and_update so concurrent
+    requests (two tabs, a double-click, multiple gunicorn workers) can't
+    both read the same stale count and both slip through — the limit check
+    and the increment happen in ONE atomic DB operation, not a separate
+    read-then-write (which had a race window before this fix).
+    action: 'chat' (limit=50), 'roadmap' (limit=10), or 'interview' (limit=70 —
+    counts individual AI calls, ~12-17 per full interview, so this covers
+    ~5 interviews/day)
+    Returns (allowed: bool, today_count: int, limit: int).
     Auto-cleans usage entries older than 7 days.
     """
     try:
@@ -341,30 +369,46 @@ def check_ai_daily_limit(user_id, action='chat', limit=50):
 
         user_tz = get_timezone(user.get('timezone') or DEFAULT_USER_TZ)
         today_key = datetime.now(user_tz).strftime('%Y-%m-%d')
-        key = f"{action}_{today_key}"
+        usage_key = f"{action}_{today_key}"
+        mongo_key = f"ai_usage.{usage_key}"
 
-        ai_usage = user.get('ai_usage', {})
-        today_count = ai_usage.get(key, 0)
-
-        if today_count >= limit:
-            return False, today_count, limit # limit hit
-
-        # Increment today's count
-        users_collection.update_one(
-            {'_id': ObjectId(user_id)},
-            {'$inc': {f'ai_usage.{key}': 1}}
+        # Atomic: only increments if today's count is still under the limit
+        # (or doesn't exist yet) — the check-and-write is a single DB op, so
+        # two simultaneous requests can never both pass past the limit.
+        result = users_collection.find_one_and_update(
+            {
+                '_id': ObjectId(user_id),
+                '$or': [
+                    {mongo_key: {'$exists': False}},
+                    {mongo_key: {'$lt': limit}}
+                ]
+            },
+            {'$inc': {mongo_key: 1}},
+            projection={'ai_usage': 1},
+            return_document=ReturnDocument.AFTER
         )
 
-        # Auto-cleanup: remove entries older than 7 days (runs silently)
-        cutoff = (datetime.now(user_tz) - timedelta(days=7)).strftime('%Y-%m-%d')
-        cleaned = {k: v for k, v in ai_usage.items() if k.split('_')[-1] >= cutoff}
-        if len(cleaned) < len(ai_usage):
-            users_collection.update_one(
-                {'_id': ObjectId(user_id)},
-                {'$set': {'ai_usage': cleaned}}
-            )
+        if result is not None:
+            ai_usage = result.get('ai_usage', {})
+            new_count = ai_usage.get(usage_key, 1)
 
-        return True, today_count + 1, limit
+            # Auto-cleanup: remove entries older than 7 days (best-effort,
+            # runs silently, not part of the atomic op above)
+            cutoff = (datetime.now(user_tz) - timedelta(days=7)).strftime('%Y-%m-%d')
+            cleaned = {k: v for k, v in ai_usage.items() if k.split('_')[-1] >= cutoff}
+            if len(cleaned) < len(ai_usage):
+                users_collection.update_one(
+                    {'_id': ObjectId(user_id)},
+                    {'$set': {'ai_usage': cleaned}}
+                )
+
+            return True, new_count, limit
+
+        # Not allowed — limit already reached (or hit exactly this instant by
+        # a concurrent request). Read current count just for the message.
+        current = users_collection.find_one({'_id': ObjectId(user_id)}, {'ai_usage': 1}) or {}
+        today_count = current.get('ai_usage', {}).get(usage_key, limit)
+        return False, today_count, limit
 
     except Exception as e:
         print(f"AI limit check error: {e}")
@@ -375,7 +419,7 @@ def get_ai_usage_today(user_id):
     try:
         user = users_collection.find_one({'_id': ObjectId(user_id)}, {'ai_usage': 1, 'timezone': 1})
         if not user:
-            return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10, 'interview_used': 0, 'interview_limit': 5}
+            return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10, 'interview_used': 0, 'interview_limit': 70, 'interview_sessions_used': 0, 'interview_sessions_limit': 5}
         today_key = user_today_key(user_id, user)
         ai_usage = user.get('ai_usage', {})
         return {
@@ -383,12 +427,17 @@ def get_ai_usage_today(user_id):
             'chat_limit':     50,
             'roadmap_used':   ai_usage.get(f'roadmap_{today_key}', 0),
             'roadmap_limit':  10,
+            # Raw AI-call counter (actual safety gate, see check_ai_daily_limit)
             'interview_used': ai_usage.get(f'interview_{today_key}', 0),
-            'interview_limit': 5,
+            'interview_limit': 70,
+            # Session-level counter (what settings.html displays as "X / 5")
+            'interview_sessions_used': ai_usage.get(f'interview_sessions_{today_key}', 0),
+            'interview_sessions_limit': 5,
         }
     except Exception as e:
         print(f"get_ai_usage_today error: {e}")
-        return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10, 'interview_used': 0, 'interview_limit': 5}
+        return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10, 'interview_used': 0, 'interview_limit': 70, 'interview_sessions_used': 0, 'interview_sessions_limit': 5}
+
 
 def flatten_data(y):
     out = {}
@@ -1432,18 +1481,25 @@ def roadmap_generator():
         if not goal:
             flash("Please enter a goal for your roadmap.", "error")
             return render_template('roadmap_generator.html', goal=goal, **_sidebar)
+        check_limit_now = True
 
-        # ── AI DAILY CAP CHECK (browser timezone) ─────────────
+    else:
+        goal_from_url = request.args.get('goal', '').strip()
+        check_limit_now = bool(goal_from_url)
+        if goal_from_url:
+            goal = goal_from_url
+            flash(f"Generating roadmap for '{goal}'...", 'info')
+
+    if goal and check_limit_now:
+        # ── AI DAILY CAP CHECK (browser timezone) ───────────── applies to
+        # BOTH POST (form submit) and GET-with-?goal= (e.g. a dashboard
+        # shortcut link) — previously this only ran for POST, so repeatedly
+        # visiting /roadmap_generator?goal=X bypassed the daily cap entirely.
         allowed, used, limit = check_ai_daily_limit(current_user.id, 'roadmap', limit=10)
         if not allowed:
             flash(f'⚠️ You have used all {limit} roadmap generations for today. Resets in {time_until_reset(current_user.id)} (your local midnight). Come back tomorrow!', 'error')
             return render_template('roadmap_generator.html', goal=goal, **_sidebar)
 
-    else:
-        goal_from_url = request.args.get('goal', '').strip()
-        if goal_from_url:
-            goal = goal_from_url
-            flash(f"Generating roadmap for '{goal}'...", 'info')
     if goal:
         try:
             print(f"Calling Groq AI with FINAL prompt for '{goal}'...")
@@ -1481,9 +1537,52 @@ def roadmap_generator():
                 flash("Sorry, the AI response was incomplete or in an unexpected format. Please try again.", "error")
         except Exception as e_ai:
             print(f"Error during roadmap generation or processing for '{goal}': {e_ai}")
-            flash(f"An error occurred while communicating with the AI: {e_ai}", "error")
+            flash("Sorry, something went wrong while generating your roadmap. Please try again in a moment.", "error")
         return render_template('roadmap_generator.html', goal=goal, **_sidebar)
     return render_template('roadmap_generator.html', **_sidebar)
+
+_ALLOWED_RESOURCE_DOMAINS = {
+    'youtube.com', 'www.youtube.com',
+    'udemy.com', 'www.udemy.com',
+    'coursera.org', 'www.coursera.org',
+    'edx.org', 'www.edx.org',
+    'linkedin.com', 'www.linkedin.com',
+    'pluralsight.com', 'www.pluralsight.com',
+    'google.com', 'www.google.com',
+}
+
+def _is_safe_resource_url(url):
+    if not url or not isinstance(url, str):
+        return False
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return False
+    return parsed.scheme == 'https' and parsed.netloc in _ALLOWED_RESOURCE_DOMAINS
+
+def sanitize_roadmap_urls(roadmap_data):
+    """Defense-in-depth for /save_roadmap: roadmap_content arrives as a raw
+    JSON blob from a hidden form field, so a tampered request could smuggle a
+    non-http(s) or unexpected-domain URL (e.g. javascript:...) into a
+    resource/paid_course_resource 'url' field — which later renders inside an
+    <a href="..."> in view_roadmap.html. Strips any URL that isn't https://
+    on one of our known resource domains, replacing it with '#'."""
+    if not isinstance(roadmap_data, dict):
+        return roadmap_data
+    for stage in roadmap_data.get('stages', []) or []:
+        if not isinstance(stage, dict):
+            continue
+        for module in stage.get('learning_modules', []) or []:
+            if not isinstance(module, dict):
+                continue
+            for resource in module.get('resources', []) or []:
+                if isinstance(resource, dict) and not _is_safe_resource_url(resource.get('url')):
+                    resource['url'] = '#'
+        paid_course = stage.get('paid_course_resource')
+        if isinstance(paid_course, dict) and not _is_safe_resource_url(paid_course.get('url')):
+            paid_course['url'] = '#'
+    return roadmap_data
+
 
 @app.route('/save_roadmap', methods=['POST'])
 @login_required
@@ -1494,6 +1593,7 @@ def save_roadmap():
         try:
             roadmap_data = json.loads(roadmap_content_str)
             if isinstance(roadmap_data, dict) and 'stages' in roadmap_data:
+                roadmap_data = sanitize_roadmap_urls(roadmap_data)
                 roadmaps_collection.insert_one({
                     'user_id': ObjectId(current_user.id),
                     'goal': goal,
@@ -2919,13 +3019,15 @@ def interview_ask():
         history = history[-20:]  # cap, same spirit as the chatbot's recent_history
         user_answer = (data.get('user_answer') or '').strip()
         try:
-            q_number = int(data.get('q_number') or 1)
-        except (TypeError, ValueError):
-            q_number = 1
-        try:
             total_q = int(data.get('total_q') or 6)
         except (TypeError, ValueError):
             total_q = 6
+        total_q = max(3, min(total_q, 15))  # clamp: no runaway/degenerate session lengths
+        try:
+            q_number = int(data.get('q_number') or 1)
+        except (TypeError, ValueError):
+            q_number = 1
+        q_number = max(1, min(q_number, total_q))
         personalization = data.get('personalization', 'generic')
         is_first_question = bool(data.get('is_first_question'))
         # True only when this call is evaluating the candidate's answer to a
@@ -2934,9 +3036,15 @@ def interview_ask():
         is_followup_answer = bool(data.get('is_followup_answer'))
 
         # ── AI DAILY CAP CHECK (browser timezone) — token-based budgeting (see convo: 100/day) ──
-        allowed, used, limit = check_ai_daily_limit(current_user.id, 'interview', limit=5)
+        allowed, used, limit = check_ai_daily_limit(current_user.id, 'interview', limit=70)
         if not allowed:
-            return jsonify({'reply': f'⚠️ You have used all {limit} interview AI calls for today. Resets in {time_until_reset(current_user.id)} (your local midnight). Come back tomorrow!'}), 429
+            return jsonify({'reply': f'⚠️ You have used all your interview AI credits for today ({limit}). Resets in {time_until_reset(current_user.id)} (your local midnight). Come back tomorrow!'}), 429
+
+        # Separate display-only counter: a NEW SESSION starts here (first
+        # question), independent of the raw-call cap above — this is what
+        # settings.html shows as "X / 5 interviews".
+        if is_first_question:
+            increment_interview_session_count(current_user.id)
 
         personalization_ctx = get_interview_profile_context(current_user.id) if personalization == 'profile' else ''
         difficulty = compute_adaptive_difficulty(base_difficulty, history)

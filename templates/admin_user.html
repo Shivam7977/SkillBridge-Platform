@@ -746,7 +746,7 @@ function dPeopleRow(u){
   return `<div class="dpeople-row">
     <img src="${u.profile_pic_url}" class="dpeople-avatar" onerror="this.src='/static/profile_pics/default.jpg'">
     <a href="/admin/user/${u.id}" style="flex:1;text-decoration:none;">
-      <div style="font-size:.78rem;font-weight:700;color:#1a1714;">${u.name}</div>${u.username?`<div style="font-size:.68rem;color:#c4973a;font-weight:600;">@${u.username}</div>`:''}
+      <div style="font-size:.78rem;font-weight:700;color:#1a1714;">${escapeHtml(u.name)}</div>${u.username?`<div style="font-size:.68rem;color:#c4973a;font-weight:600;">@${escapeHtml(u.username)}</div>`:''}
     </a>
   </div>`;
 }
@@ -763,7 +763,7 @@ async function openProjectDetail(id){
   }catch(e){setDModalScreen('Error','',errorHtml(),false);}
 }
 function renderProjectDetail(p){
-  const creatorHtml=p.creator?`<a href="/admin/user/${p.creator.id}" style="color:#c4973a;text-decoration:none;">${p.creator.name}</a>${p.creator.username?` <span style="color:#9c9488;">@${p.creator.username}</span>`:''}`:'Unknown';
+  const creatorHtml=p.creator?`<a href="/admin/user/${p.creator.id}" style="color:#c4973a;text-decoration:none;">${escapeHtml(p.creator.name)}</a>${p.creator.username?` <span style="color:#9c9488;">@${escapeHtml(p.creator.username)}</span>`:''}`:'Unknown';
   const communityHtml=p.community?`<div class="drow"><span class="drow-label">Community</span><span class="drow-value"><a href="#" onclick="openCommunityDetail('${p.community.id}');return false;" style="color:#c4973a;text-decoration:none;">${escapeHtml(p.community.title)}</a></span></div>`:'';
   const likersHtml=p.likers.length?p.likers.map(u=>dPeopleRow(u)).join(''):'<div class="dempty">No likes yet.</div>';
   const saversHtml=p.savers.length?p.savers.map(u=>dPeopleRow(u)).join(''):'<div class="dempty">No saves yet.</div>';
@@ -810,8 +810,8 @@ function dBuildComment(c){
   const delBtn=!c.is_deleted?`<button onclick="dDeleteComment('${c._id}')" class="btn btn-danger" style="font-size:9px;padding:3px 8px;"><i class="fas fa-trash" style="font-size:8px;"></i> Delete</button>`:'<span style="font-size:9px;color:#9c9488;">Deleted</span>';
   return`<div id="ducmt-${c._id}" style="${c.is_deleted?'opacity:.5;':''}background:#fdfcf8;border:1px solid #f0e9d8;border-radius:9px;padding:10px 12px;">
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap;">
-      <span style="font-size:11px;font-weight:800;color:#1a1714;">${c.user_name}</span>
-      ${c.username?`<span style="font-size:10px;font-weight:700;color:#c4973a;">@${c.username}</span>`:''}
+      <span style="font-size:11px;font-weight:800;color:#1a1714;">${escapeHtml(c.user_name)}</span>
+      ${c.username?`<span style="font-size:10px;font-weight:700;color:#c4973a;">@${escapeHtml(c.username)}</span>`:''}
       <span style="font-size:9px;color:#9c9488;margin-left:auto;">${formatUtc(c.created_at_iso,'datetime',c.created_at_str)}</span>
     </div>
     <div style="font-size:11px;color:#2c2820;line-height:1.5;margin-bottom:6px;word-break:break-word;">${c.is_deleted?'<em style="color:#9c9488">[deleted]</em>':escapeHtml(c.content)}</div>
@@ -837,7 +837,7 @@ async function openRoadmapDetail(id){
   }catch(e){setDModalScreen('Error','',errorHtml(),false);}
 }
 function renderRoadmapDetail(r){
-  const creatorHtml=r.creator?`<a href="/admin/user/${r.creator.id}" style="color:#c4973a;text-decoration:none;">${r.creator.name}</a>${r.creator.username?` <span style="color:#9c9488;">@${r.creator.username}</span>`:''}`:'Unknown';
+  const creatorHtml=r.creator?`<a href="/admin/user/${r.creator.id}" style="color:#c4973a;text-decoration:none;">${escapeHtml(r.creator.name)}</a>${r.creator.username?` <span style="color:#9c9488;">@${escapeHtml(r.creator.username)}</span>`:''}`:'Unknown';
   const pct=r.stage_count?Math.round(r.completed_stages/r.stage_count*100):0;
   const stagesHtml=r.stages.length?r.stages.map((s,i)=>`
     <div class="dstage-row">
@@ -884,7 +884,7 @@ function renderCommunityDetail(c){
     <div class="dpeople-row">
       <img src="${m.profile_pic_url}" class="dpeople-avatar" onerror="this.src='/static/profile_pics/default.jpg'">
       <a href="/admin/user/${m.id}" style="flex:1;text-decoration:none;">
-        <div style="font-size:.78rem;font-weight:700;color:#1a1714;">${m.name}</div>${m.username?`<div style="font-size:.68rem;color:#c4973a;font-weight:600;">@${m.username}</div>`:''}
+        <div style="font-size:.78rem;font-weight:700;color:#1a1714;">${escapeHtml(m.name)}</div>${m.username?`<div style="font-size:.68rem;color:#c4973a;font-weight:600;">@${escapeHtml(m.username)}</div>`:''}
       </a>
       <span class="drole-tag ${m.role.toLowerCase()}">${m.role}</span>
     </div>`).join(''):'<div class="dempty">No members.</div>';
