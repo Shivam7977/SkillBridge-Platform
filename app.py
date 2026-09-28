@@ -301,6 +301,15 @@ def load_user(user_id):
         print(f"Error loading user {user_id}: {e}")
     return None
 
+# Interviews are limited PER INTERVIEW (session), not per AI call: a session
+# starts on the first question. Individual question/evaluation calls inside a
+# session are not counted against the user. INTERVIEW_CALL_SAFETY_CAP is a
+# hidden abuse backstop only (someone skipping the "first question" flag to
+# dodge the session limit) — 5 sessions x max ~44 calls each, never shown in UI.
+INTERVIEW_SESSIONS_PER_DAY = 5
+INTERVIEW_CALL_SAFETY_CAP = 250
+
+
 def time_until_reset(user_id):
     """Human-readable countdown to this user's own local midnight (when
     their daily AI limits reset), computed from THEIR stored IANA timezone
@@ -325,26 +334,6 @@ def time_until_reset(user_id):
         return "at your local midnight"
 
 
-def increment_interview_session_count(user_id):
-    """Separate, display-only counter: +1 each time a NEW interview session
-    starts (the very first question of a session) — NOT per AI call. This is
-    what settings.html shows as 'X / 5 interviews', kept independent from the
-    raw-call counter (interview_used/70) that actually gates access. Because
-    they're tracked separately, it's possible in rare cases (a session that
-    uses far more follow-ups than average) to hit the 70-call safety cap
-    before reaching 5 sessions shown here — that's intentional: 70 calls is
-    the real limit, 5 sessions is a friendly estimate of what that buys you."""
-    try:
-        user = users_collection.find_one({'_id': ObjectId(user_id)}, {'timezone': 1})
-        today_key = user_today_key(user_id, user)
-        users_collection.update_one(
-            {'_id': ObjectId(user_id)},
-            {'$inc': {f'ai_usage.interview_sessions_{today_key}': 1}}
-        )
-    except Exception as e:
-        print(f"increment_interview_session_count error: {e}")
-
-
 def check_ai_daily_limit(user_id, action='chat', limit=50):
     """
     Atomically check-and-increment AI usage for a user per day in their
@@ -353,9 +342,9 @@ def check_ai_daily_limit(user_id, action='chat', limit=50):
     both read the same stale count and both slip through — the limit check
     and the increment happen in ONE atomic DB operation, not a separate
     read-then-write (which had a race window before this fix).
-    action: 'chat' (limit=50), 'roadmap' (limit=10), or 'interview' (limit=70 —
-    counts individual AI calls, ~12-17 per full interview, so this covers
-    ~5 interviews/day)
+    action: 'chat' (limit=50), 'roadmap' (limit=10), 'interview_sessions'
+    (limit=5 interviews/day; counted when a new interview starts), or
+    'interview' (hidden per-call abuse backstop, not shown to users).
     Returns (allowed: bool, today_count: int, limit: int).
     Auto-cleans usage entries older than 7 days.
     """
@@ -419,7 +408,7 @@ def get_ai_usage_today(user_id):
     try:
         user = users_collection.find_one({'_id': ObjectId(user_id)}, {'ai_usage': 1, 'timezone': 1})
         if not user:
-            return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10, 'interview_used': 0, 'interview_limit': 70, 'interview_sessions_used': 0, 'interview_sessions_limit': 5}
+            return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10, 'interview_sessions_used': 0, 'interview_sessions_limit': INTERVIEW_SESSIONS_PER_DAY}
         today_key = user_today_key(user_id, user)
         ai_usage = user.get('ai_usage', {})
         return {
@@ -427,16 +416,13 @@ def get_ai_usage_today(user_id):
             'chat_limit':     50,
             'roadmap_used':   ai_usage.get(f'roadmap_{today_key}', 0),
             'roadmap_limit':  10,
-            # Raw AI-call counter (actual safety gate, see check_ai_daily_limit)
-            'interview_used': ai_usage.get(f'interview_{today_key}', 0),
-            'interview_limit': 70,
             # Session-level counter (what settings.html displays as "X / 5")
             'interview_sessions_used': ai_usage.get(f'interview_sessions_{today_key}', 0),
-            'interview_sessions_limit': 5,
+            'interview_sessions_limit': INTERVIEW_SESSIONS_PER_DAY,
         }
     except Exception as e:
         print(f"get_ai_usage_today error: {e}")
-        return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10, 'interview_used': 0, 'interview_limit': 70, 'interview_sessions_used': 0, 'interview_sessions_limit': 5}
+        return {'chat_used': 0, 'chat_limit': 50, 'roadmap_used': 0, 'roadmap_limit': 10, 'interview_sessions_used': 0, 'interview_sessions_limit': INTERVIEW_SESSIONS_PER_DAY}
 
 
 def flatten_data(y):
@@ -3035,16 +3021,18 @@ def interview_ask():
         # question by telling the eval prompt not to offer another one.
         is_followup_answer = bool(data.get('is_followup_answer'))
 
-        # ── AI DAILY CAP CHECK (browser timezone) — token-based budgeting (see convo: 100/day) ──
-        allowed, used, limit = check_ai_daily_limit(current_user.id, 'interview', limit=70)
-        if not allowed:
-            return jsonify({'reply': f'⚠️ You have used all your interview AI credits for today ({limit}). Resets in {time_until_reset(current_user.id)} (your local midnight). Come back tomorrow!'}), 429
-
-        # Separate display-only counter: a NEW SESSION starts here (first
-        # question), independent of the raw-call cap above — this is what
-        # settings.html shows as "X / 5 interviews".
+        # ── PER-INTERVIEW DAILY CAP (browser timezone) ─────────────
+        # A NEW interview (first question) consumes 1 of the daily interviews.
+        # Follow-up questions/evaluations inside that interview are free.
         if is_first_question:
-            increment_interview_session_count(current_user.id)
+            allowed, used, limit = check_ai_daily_limit(current_user.id, 'interview_sessions', limit=INTERVIEW_SESSIONS_PER_DAY)
+            if not allowed:
+                return jsonify({'reply': f'⚠️ You have used all {limit} interviews for today. Resets in {time_until_reset(current_user.id)} (your local midnight). Come back tomorrow!'}), 429
+
+        # Hidden abuse backstop (not user-facing, see INTERVIEW_CALL_SAFETY_CAP)
+        safe_ok, _, _ = check_ai_daily_limit(current_user.id, 'interview', limit=INTERVIEW_CALL_SAFETY_CAP)
+        if not safe_ok:
+            return jsonify({'reply': f'⚠️ Too many interview requests today. Resets in {time_until_reset(current_user.id)} (your local midnight).'}), 429
 
         personalization_ctx = get_interview_profile_context(current_user.id) if personalization == 'profile' else ''
         difficulty = compute_adaptive_difficulty(base_difficulty, history)
