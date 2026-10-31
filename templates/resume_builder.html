@@ -1289,7 +1289,7 @@ body { font-family:'DM Sans',sans-serif; overflow-x:hidden; }
     <div class="stats">
       <div class="sb2"><div class="sn">{{user.known_skills|length if user.known_skills else 0}}</div><div class="sl">Skills</div></div>
       <div class="sb2"><div class="sn">{{projects|length if projects else 0}}</div><div class="sl">Projects</div></div>
-      <div class="sb2"><div class="sn">{{user.experience_years or '0'}}</div><div class="sl">Yrs Exp</div></div>
+      <div class="sb2"><div class="sn" data-ep-years>{{user.experience_years or '0'}}</div><div class="sl">Yrs Exp</div></div>
     </div>
   </div>
   <div class="contacts">
@@ -1355,7 +1355,7 @@ body { font-family:'DM Sans',sans-serif; overflow-x:hidden; }
       </div>
     </div>
     <div class="kpis">
-      <span class="kpi">{{user.experience_years or '0'}} Yrs Exp</span>
+      <span class="kpi"><span data-ep-years>{{user.experience_years or '0'}}</span> Yrs Exp</span>
       <span class="kpi">{{projects|length if projects else 0}} Products</span>
       {% if user.certificates %}<span class="kpi">{{user.certificates|length}} Certs</span>{% endif %}
     </div>
@@ -1416,7 +1416,7 @@ body { font-family:'DM Sans',sans-serif; overflow-x:hidden; }
         <div class="nm">{{ user.name or 'Your Name' }}</div>
         <div class="role">{{ user.title or 'Marketing Professional' }}</div>
       </div>
-      {% if user.experience_years %}<div class="badge"><div class="bn">{{user.experience_years}}</div><div class="bl">Yrs Exp</div></div>{% endif %}
+      {% if user.experience_years %}<div class="badge"><div class="bn" data-ep-years>{{user.experience_years}}</div><div class="bl">Yrs Exp</div></div>{% endif %}
     </div>
     <div class="row">
       {% if user.email %}<a class="ci" href="https://mail.google.com/mail/?view=cm&to={{user.email}}" target="_blank" rel="noopener"><i class="fas fa-envelope"></i>{{user.email}}</a>{% endif %}
@@ -1651,7 +1651,7 @@ body { font-family:'DM Sans',sans-serif; overflow-x:hidden; }
     </div>
   </div>
   <div class="metrics">
-    <div class="met"><div class="mn">{{user.experience_years or '0'}}</div><div class="ml">Years Exp</div></div>
+    <div class="met"><div class="mn" data-ep-years>{{user.experience_years or '0'}}</div><div class="ml">Years Exp</div></div>
     <div class="met"><div class="mn">{{projects|length if projects else 0}}</div><div class="ml">Projects</div></div>
     <div class="met"><div class="mn">{{user.known_skills|length if user.known_skills else 0}}</div><div class="ml">Core Skills</div></div>
     <div class="met"><div class="mn">{{user.certificates|length if user.certificates else 0}}</div><div class="ml">Certs</div></div>
@@ -1978,180 +1978,272 @@ function liveUpdate() {
   const goal     = document.getElementById('ep-goal').value.trim();
   const skills   = document.getElementById('ep-skills').value.split(',').map(s=>s.trim()).filter(Boolean);
   const learning = document.getElementById('ep-learning').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const years    = document.getElementById('ep-exp').value.trim();
 
   const t = document.getElementById('t' + cur);
   if (!t) return;
+  const safeUpdate = (section, update) => {
+    try {
+      update();
+    } catch (error) {
+      console.warn(`[Resume edit] ${section} update failed`, error);
+    }
+  };
 
-  // ── Name ──
-  t.querySelectorAll('.nm,.h-name').forEach(el => { el.textContent = name; });
-
-  // ── Role/Title ──
-  t.querySelectorAll('.role,.h-role').forEach(el => {
-    if(!el.closest('.kpis') && !el.closest('.metrics') && !el.closest('.sb2')) {
-      el.textContent = title;
+  safeUpdate('name', () => {
+    t.querySelectorAll('.nm,.h-name').forEach(el => { el.textContent = name; });
+    if (cur === 2) {
+      const nameEl = t.querySelector('.t19-name');
+      if (nameEl && name) nameEl.textContent = name;
     }
   });
 
-  // ── About: update existing p.about elements ──
-  t.querySelectorAll('p.about').forEach(el => { el.textContent = about; });
-
-  // ── About: section-label based update ──
-  t.querySelectorAll('.sec').forEach(sec => {
-    const st = sec.querySelector('.st');
-    if (!st) return;
-    const label = st.textContent.toLowerCase().replace(/[^a-z]/g,'');
-
-    const isAbout = ['aboutme','about','summary','professionalsummary','philosophy','story','profile','thestory'].includes(label);
-    const isGoal  = ['goal','vision','mission','careerobjective'].includes(label);
-    const isSkills = ['skills','techstack','corecompetencies','salesskills','subjectareas','coreskills','stack','capabilities','designtools','clinicalskills'].includes(label);
-    const isLearning = label.includes('learning') || label.includes('exploring');
-
-    if (isAbout) {
-      // Update existing p tags or highlighted (.hl) boxes; if none exist, create one
-      let ps = sec.querySelectorAll('p, .hl');
-      if (ps.length === 0) {
-        const p = document.createElement('p');
-        p.className = 'about';
-        sec.appendChild(p);
-        ps = [p];
-      }
-      ps.forEach(p => { p.textContent = about; });
-    }
-    if (isGoal && goal) {
-      sec.querySelectorAll('p').forEach(p => { p.textContent = goal; });
-    }
-    if (isSkills && skills.length) rebuildTags(sec, skills);
-    if (isLearning && learning.length) rebuildTags(sec, learning);
-  });
-
-  // ── Contact links ──
-  t.querySelectorAll('a').forEach(a => {
-    if (a.querySelector('.fa-envelope') && email) {
-      a.href = 'https://mail.google.com/mail/?view=cm&to=' + encodeURIComponent(email);
-      const nodes = Array.from(a.childNodes).filter(n => n.nodeType === 3);
-      if (nodes.length) nodes[nodes.length-1].textContent = email;
-    }
-    if (a.querySelector('.fa-linkedin') && linkedin) a.href = linkedin;
-    if (a.querySelector('.fa-github')   && github)   a.href = github;
-  });
-  // Location spans
-  t.querySelectorAll('span.ci,span.hc,.contact-item,.hc').forEach(el => {
-    if (el.querySelector('.fa-map-marker-alt') && location) {
-      const nodes = Array.from(el.childNodes).filter(n => n.nodeType === 3);
-      if (nodes.length) nodes[nodes.length-1].textContent = location;
-    }
-  });
-
-
-  // ── T2 Clean ATS — update unique class names ──
-  if (cur === 2) {
-    const nameEl = t.querySelector('.t19-name');
-    if (nameEl && name) nameEl.textContent = name;
-    // Summary
-    const summaryEl = t.querySelector('.t19-summary');
-    if (summaryEl) summaryEl.textContent = about;
-    // Contact: location
-    t.querySelectorAll('.t19-contact span').forEach(el => {
-      if (el.querySelector && el.querySelector('.fa-map-marker-alt') && location) {
-        const nodes = Array.from(el.childNodes).filter(n => n.nodeType === 3);
-        if (nodes.length) nodes[nodes.length-1].textContent = location;
-      }
-      if (el.querySelector && el.querySelector('.fa-phone')) {
-        // phone not editable in panel, skip
+  safeUpdate('role', () => {
+    t.querySelectorAll('.role,.h-role').forEach(el => {
+      if(!el.closest('.kpis') && !el.closest('.metrics') && !el.closest('.sb2')) {
+        el.textContent = title;
       }
     });
-    // Contact: email
-    t.querySelectorAll('.t19-contact a').forEach(a => {
-      if (a.querySelector && a.querySelector('.fa-envelope') && email) {
+  });
+
+  safeUpdate('summary/goal', () => {
+    const isGoalLabel = label => ['goal','vision','mission','careerobjective','whatiseek','designvision'].includes(label);
+    t.querySelectorAll('p.about').forEach(el => {
+      const section = el.closest('.sec');
+      const st = section && section.querySelector('.st');
+      const label = st ? st.textContent.toLowerCase().replace(/[^a-z]/g,'') : '';
+      if (!isGoalLabel(label)) el.textContent = about;
+    });
+    t.querySelectorAll('.sec').forEach(sec => {
+      const st = sec.querySelector('.st');
+      if (!st) return;
+      const label = st.textContent.toLowerCase().replace(/[^a-z]/g,'');
+      const isAbout = ['aboutme','about','summary','professionalsummary','philosophy','story','profile','thestory'].includes(label);
+      const isGoal = isGoalLabel(label);
+      if (isAbout && !isGoal) {
+        const ps = sec.querySelectorAll('p, .hl');
+        ps.forEach(p => { p.textContent = about; });
+      }
+      if (isGoal && goal) sec.querySelectorAll('p, .hl').forEach(p => { p.textContent = goal; });
+    });
+    if (cur === 2) {
+      const summaryEl = t.querySelector('.t19-summary');
+      if (summaryEl) summaryEl.textContent = about;
+    }
+  });
+
+  safeUpdate('skills', () => {
+    const isSkillsLabel = label => ['skills','techstack','corecompetencies','competencies','salesskills','subjectareas','coreskills','stack','capabilities','designtools','clinicalskills','disciplines'].includes(label);
+    t.querySelectorAll('.sec').forEach(sec => {
+      const st = sec.querySelector('.st');
+      const label = st ? st.textContent.toLowerCase().replace(/[^a-z]/g,'') : '';
+      if (!isSkillsLabel(label)) return;
+      if (cur === 6) {
+        const rows = Array.from(sec.querySelectorAll('.bar-row'));
+        if (!rows.length) return;
+        const sample = rows[0].cloneNode(true);
+        rows.slice(skills.length).forEach(row => row.remove());
+        skills.forEach((skill, index) => {
+          const row = rows[index] || sample.cloneNode(true);
+          const labelEl = row.querySelector('.bar-lbl');
+          if (!labelEl) return;
+          labelEl.textContent = skill;
+          if (!rows[index]) sec.appendChild(row);
+        });
+      } else if (cur !== 2) {
+        rebuildTags(sec, skills);
+      }
+    });
+    if (cur === 2) {
+      const techRow = t.querySelector('.t19-tech-row');
+      if (techRow) {
+        let row = Array.from(techRow.children).find(item => {
+          const label = item.querySelector('.t19-tech-label');
+          return label && label.textContent.toLowerCase().includes('languages');
+        });
+        if (!row && skills.length) {
+          row = document.createElement('div');
+          row.innerHTML = '<span class="t19-tech-label">Languages &amp; Skills:</span><span class="t19-tech-val"></span>';
+          techRow.appendChild(row);
+        }
+        const value = row && row.querySelector('.t19-tech-val');
+        if (value) value.textContent = skills.join(', ');
+      }
+    }
+  });
+
+  safeUpdate('learning', () => {
+    t.querySelectorAll('.sec').forEach(sec => {
+      const st = sec.querySelector('.st');
+      const label = st ? st.textContent.toLowerCase().replace(/[^a-z]/g,'') : '';
+      if (label.includes('learning') || label.includes('exploring')) rebuildTags(sec, learning);
+    });
+    if (cur === 2) {
+      const techRow = t.querySelector('.t19-tech-row');
+      if (techRow) {
+        let row = Array.from(techRow.children).find(item => {
+          const label = item.querySelector('.t19-tech-label');
+          return label && label.textContent.toLowerCase().includes('learning');
+        });
+        if (!row && learning.length) {
+          row = document.createElement('div');
+          row.innerHTML = '<span class="t19-tech-label">Currently Learning:</span><span class="t19-tech-val"></span>';
+          techRow.appendChild(row);
+        }
+        const value = row && row.querySelector('.t19-tech-val');
+        if (value) value.textContent = learning.join(', ');
+      }
+    }
+  });
+
+  safeUpdate('contact', () => {
+    t.querySelectorAll('a').forEach(a => {
+      if (a.querySelector('.fa-envelope') && email) {
         a.href = 'https://mail.google.com/mail/?view=cm&to=' + encodeURIComponent(email);
         const nodes = Array.from(a.childNodes).filter(n => n.nodeType === 3);
         if (nodes.length) nodes[nodes.length-1].textContent = email;
       }
-      if (a.querySelector && a.querySelector('.fa-linkedin') && linkedin) a.href = linkedin;
-      if (a.querySelector && a.querySelector('.fa-github') && github) a.href = github;
+      if (a.querySelector('.fa-linkedin') && linkedin) a.href = linkedin;
+      if (a.querySelector('.fa-github')   && github)   a.href = github;
     });
-    // Technologies: known skills
-    const techKnownEl = t.querySelector('.t19-tech-val');
-    if (techKnownEl && skills.length) techKnownEl.textContent = skills.join(', ');
-    // Education rebuild
-    const eduSecs = Array.from(t.querySelectorAll('.t19-sec')).filter(s => s.querySelector('.t19-sec-title') && s.querySelector('.t19-sec-title').textContent.trim() === 'Education');
-    eduSecs.forEach(sec => {
-      sec.querySelectorAll('.t19-edu-item').forEach(e => e.remove());
-      epEduEntries.forEach(e => {
-        if (!e.institution && !e.degree) return;
-        const gradeStr = e.grade_value ? (e.grade_value + (e.grade_type === 'Percentage' ? '%' : ' CGPA')) : '';
-        const yearsStr = e.from_year ? (e.from_year + ' – ' + (e.is_current ? 'Present' : (e.to_year||''))) : '';
-        const div = document.createElement('div');
-        div.className = 't19-edu-item'; div.setAttribute('data-ep','1');
-        div.innerHTML = `<div class="t19-edu-top"><div class="t19-edu-name">${e.institution||''}</div><div class="t19-edu-right">${yearsStr}</div></div><div class="t19-edu-sub">${e.degree||''}${e.field?' in '+e.field:''}${gradeStr?' · '+gradeStr:''}</div>`;
-        sec.appendChild(div);
+    t.querySelectorAll('span.ci,span.hc,.contact-item,.hc').forEach(el => {
+      if (el.querySelector('.fa-map-marker-alt') && location) {
+        const nodes = Array.from(el.childNodes).filter(n => n.nodeType === 3);
+        if (nodes.length) nodes[nodes.length-1].textContent = location;
+      }
+    });
+    if (cur === 2) {
+      t.querySelectorAll('.t19-contact span').forEach(el => {
+        if (el.querySelector('.fa-map-marker-alt') && location) {
+          const nodes = Array.from(el.childNodes).filter(n => n.nodeType === 3);
+          if (nodes.length) nodes[nodes.length-1].textContent = location;
+        }
       });
-    });
-    // Experience rebuild
-    const expSecs = Array.from(t.querySelectorAll('.t19-sec')).filter(s => s.querySelector('.t19-sec-title') && s.querySelector('.t19-sec-title').textContent.trim() === 'Experience');
-    expSecs.forEach(sec => {
-      sec.querySelectorAll('.t19-exp-item').forEach(e => e.remove());
-      epExpEntries.forEach(e => {
-        if (!e.role && !e.company) return;
-        const bulletsHtml = (e.bullets||[]).length ? `<ul class="t19-bullets">${e.bullets.map(b=>`<li>${b}</li>`).join('')}</ul>` : '';
-        const div = document.createElement('div');
-        div.className = 't19-exp-item'; div.setAttribute('data-ep','1');
-        div.innerHTML = `<div class="t19-exp-top"><div class="t19-exp-role">${e.role||''}</div><div class="t19-exp-dates">${e.from_year||''}${e.from_year?' – ':''}${e.is_current?'Present':e.to_year||''}</div></div><div class="t19-exp-co">${e.company||''}</div>${bulletsHtml}`;
-        sec.appendChild(div);
+      t.querySelectorAll('.t19-contact a').forEach(a => {
+        if (a.querySelector('.fa-envelope') && email) {
+          a.href = 'https://mail.google.com/mail/?view=cm&to=' + encodeURIComponent(email);
+          const nodes = Array.from(a.childNodes).filter(n => n.nodeType === 3);
+          if (nodes.length) nodes[nodes.length-1].textContent = email;
+        }
+        if (a.querySelector('.fa-linkedin') && linkedin) a.href = linkedin;
+        if (a.querySelector('.fa-github') && github) a.href = github;
       });
-    });
-  }
-
-  // ── Projects — update title (.pt) and description (.pd) per card ──
-  const projCards = t.querySelectorAll('.pj');
-  projCards.forEach((card, i) => {
-    const titleEl = card.querySelector('.pt');
-    const descEl  = card.querySelector('.pd');
-    const titleInp = document.getElementById('ep-proj-title-' + i);
-    const descInp  = document.getElementById('ep-proj-desc-' + i);
-    if (titleInp && titleInp.value && titleEl) titleEl.textContent = titleInp.value;
-    if (descInp  && descInp.value  && descEl)  descEl.textContent  = descInp.value;
+    }
   });
 
-  // ── Work Experience — rebuild all exp sections in active template ──
-  if (epExpEntries) {
-    t.querySelectorAll('.sec').forEach(sec => {
-      const st = sec.querySelector('.st');
-      if (!st || st.textContent.trim().toLowerCase() !== 'experience') return;
-      // Remove existing exp-items and ep-exp-temp items
-      sec.querySelectorAll('.exp-item,[data-ep-exp]').forEach(e => e.remove());
-      epExpEntries.forEach(e => {
-        if (!e.role && !e.company) return;
-        const div = document.createElement('div');
-        div.className = 'exp-item';
-        div.setAttribute('data-ep-exp','1');
-        const bulletsHtml = (e.bullets||[]).length ? `<ul class="exp-bullets">${e.bullets.map(b=>`<li>${b}</li>`).join('')}</ul>` : '';
-        div.innerHTML = `<div class="exp-role">${e.role||''}</div><div class="exp-co">${e.company||''}</div><div class="exp-dates">${e.from_year||''}${e.from_year?' – ':''}${e.is_current?'Present':e.to_year||''}</div>${bulletsHtml}`;
-        sec.appendChild(div);
+  safeUpdate('projects', () => {
+    if (cur === 2) {
+      t.querySelectorAll('.t19-proj-item').forEach((card, i) => {
+        const titleEl = card.querySelector('.t19-proj-name');
+        const titleInp = document.getElementById('ep-proj-title-' + i);
+        const descInp = document.getElementById('ep-proj-desc-' + i);
+        if (titleEl && titleInp) titleEl.textContent = titleInp.value;
+        if (descInp) {
+          const lines = descInp.value.split(/\r?\n|\./).map(line => line.trim()).filter(Boolean);
+          let list = card.querySelector('.t19-bullets');
+          if (lines.length && !list) {
+            list = document.createElement('ul');
+            list.className = 't19-bullets';
+            card.appendChild(list);
+          }
+          if (list) {
+            list.replaceChildren(...lines.map(line => {
+              const item = document.createElement('li');
+              item.textContent = line;
+              return item;
+            }));
+            if (!lines.length) list.remove();
+          }
+        }
       });
-    });
-  }
+    } else {
+      t.querySelectorAll('.pj').forEach((card, i) => {
+        const titleEl = card.querySelector('.pt');
+        const descEl  = card.querySelector('.pd');
+        const titleInp = document.getElementById('ep-proj-title-' + i);
+        const descInp  = document.getElementById('ep-proj-desc-' + i);
+        if (titleInp && titleEl) titleEl.textContent = titleInp.value;
+        if (descInp && descEl) descEl.textContent = descInp.value;
+      });
+    }
+  });
 
-  // ── Education — rebuild all education sections in active template ──
-  if (epEduEntries) {
-    t.querySelectorAll('.sec').forEach(sec => {
-      const st = sec.querySelector('.st');
-      if (!st || st.textContent.trim().toLowerCase() !== 'education') return;
-      // Remove existing edu-items and ep-edu-temp items
-      sec.querySelectorAll('.edu-item,[data-ep-edu]').forEach(e => e.remove());
-      epEduEntries.forEach(e => {
-        if (!e.institution && !e.degree) return;
-        const gradeStr = e.grade_value ? (e.grade_value + (e.grade_type === 'Percentage' ? '%' : ' CGPA')) : '';
-        const yearsStr = e.from_year ? (e.from_year + ' – ' + (e.is_current ? 'Present' : (e.to_year||''))) : '';
-        const metaStr  = [gradeStr, yearsStr].filter(Boolean).join(' · ');
-        const div = document.createElement('div');
-        div.className = 'edu-item';
-        div.setAttribute('data-ep-edu','1');
-        div.innerHTML = `<div class="edu-degree">${e.degree||''}${e.field?' — '+e.field:''}</div><div class="edu-inst">${e.institution||''}</div>${metaStr?`<div class="edu-meta">${metaStr}</div>`:''}`;
-        sec.appendChild(div);
+  safeUpdate('experience', () => {
+    if (cur === 2) {
+      const expSecs = Array.from(t.querySelectorAll('.t19-sec')).filter(sec => {
+        const st = sec.querySelector('.t19-sec-title');
+        return st && st.textContent.trim() === 'Experience';
       });
-    });
-  }
+      expSecs.forEach(sec => {
+        sec.querySelectorAll('.t19-exp-item').forEach(item => item.remove());
+        epExpEntries.forEach(e => {
+          if (!e.role && !e.company) return;
+          const bulletsHtml = (e.bullets||[]).length ? `<ul class="t19-bullets">${e.bullets.map(b=>`<li>${b}</li>`).join('')}</ul>` : '';
+          const div = document.createElement('div');
+          div.className = 't19-exp-item'; div.setAttribute('data-ep','1');
+          div.innerHTML = `<div class="t19-exp-top"><div class="t19-exp-role">${e.role||''}</div><div class="t19-exp-dates">${e.from_year||''}${e.from_year?' – ':''}${e.is_current?'Present':e.to_year||''}</div></div><div class="t19-exp-co">${e.company||''}</div>${bulletsHtml}`;
+          sec.appendChild(div);
+        });
+      });
+    } else {
+      t.querySelectorAll('.sec').forEach(sec => {
+        const st = sec.querySelector('.st');
+        if (!st || st.textContent.trim().toLowerCase() !== 'experience') return;
+        sec.querySelectorAll('.exp-item,[data-ep-exp]').forEach(e => e.remove());
+        epExpEntries.forEach(e => {
+          if (!e.role && !e.company) return;
+          const div = document.createElement('div');
+          div.className = 'exp-item';
+          div.setAttribute('data-ep-exp','1');
+          const bulletsHtml = (e.bullets||[]).length ? `<ul class="exp-bullets">${e.bullets.map(b=>`<li>${b}</li>`).join('')}</ul>` : '';
+          div.innerHTML = `<div class="exp-role">${e.role||''}</div><div class="exp-co">${e.company||''}</div><div class="exp-dates">${e.from_year||''}${e.from_year?' – ':''}${e.is_current?'Present':e.to_year||''}</div>${bulletsHtml}`;
+          sec.appendChild(div);
+        });
+      });
+    }
+  });
+
+  safeUpdate('education', () => {
+    if (cur === 2) {
+      const eduSecs = Array.from(t.querySelectorAll('.t19-sec')).filter(sec => {
+        const st = sec.querySelector('.t19-sec-title');
+        return st && st.textContent.trim() === 'Education';
+      });
+      eduSecs.forEach(sec => {
+        sec.querySelectorAll('.t19-edu-item').forEach(item => item.remove());
+        epEduEntries.forEach(e => {
+          if (!e.institution && !e.degree) return;
+          const gradeStr = e.grade_value ? (e.grade_value + (e.grade_type === 'Percentage' ? '%' : ' CGPA')) : '';
+          const yearsStr = e.from_year ? (e.from_year + ' – ' + (e.is_current ? 'Present' : (e.to_year||''))) : '';
+          const div = document.createElement('div');
+          div.className = 't19-edu-item'; div.setAttribute('data-ep','1');
+          div.innerHTML = `<div class="t19-edu-top"><div class="t19-edu-name">${e.institution||''}</div><div class="t19-edu-right">${yearsStr}</div></div><div class="t19-edu-sub">${e.degree||''}${e.field?' in '+e.field:''}${gradeStr?' · '+gradeStr:''}</div>`;
+          sec.appendChild(div);
+        });
+      });
+    } else {
+      t.querySelectorAll('.sec').forEach(sec => {
+        const st = sec.querySelector('.st');
+        if (!st || st.textContent.trim().toLowerCase() !== 'education') return;
+        sec.querySelectorAll('.edu-item,[data-ep-edu]').forEach(e => e.remove());
+        epEduEntries.forEach(e => {
+          if (!e.institution && !e.degree) return;
+          const gradeStr = e.grade_value ? (e.grade_value + (e.grade_type === 'Percentage' ? '%' : ' CGPA')) : '';
+          const yearsStr = e.from_year ? (e.from_year + ' – ' + (e.is_current ? 'Present' : (e.to_year||''))) : '';
+          const metaStr  = [gradeStr, yearsStr].filter(Boolean).join(' · ');
+          const div = document.createElement('div');
+          div.className = 'edu-item';
+          div.setAttribute('data-ep-edu','1');
+          div.innerHTML = `<div class="edu-degree">${e.degree||''}${e.field?' — '+e.field:''}</div><div class="edu-inst">${e.institution||''}</div>${metaStr?`<div class="edu-meta">${metaStr}</div>`:''}`;
+          sec.appendChild(div);
+        });
+      });
+    }
+  });
+
+  safeUpdate('years', () => {
+    t.querySelectorAll('[data-ep-years]').forEach(el => { el.textContent = years; });
+  });
 }
 
 function rebuildTags(secEl, arr) {

@@ -163,7 +163,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
 
       <div class="form-group">
         <label for="project_file">Project File (.zip only) <span style="color:#dc3545;">*</span></label>
-        <input type="file" id="project_file" name="project_file" accept=".zip" required>
+        <input type="file" id="project_file" name="project_file" accept=".zip" data-max-mb="15" required>
         <small>Select the .zip archive containing your project files.</small>
       </div>
 
@@ -184,5 +184,6 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
 <script>
 (function(){ var t=localStorage.getItem('sb-theme')||'light'; t==='dark'?document.body.classList.add('dark'):document.body.classList.remove('dark'); })();
 </script>
+<script src="{{ url_for('static', filename='upload_guard.js') }}" defer></script>
 </body>
 </html>

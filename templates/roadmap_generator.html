@@ -159,10 +159,20 @@ nav.sidebar, .dashboard-container > aside.sidebar, body > aside.sidebar { displa
         <p class="text-xs text-ink-500 dark:text-ink-400 font-body">Enter a role, skill, or topic to generate an AI-powered, project-based learning plan.</p>
     </div>
 
-    <form id="roadmap-gen-form" action="{{ url_for('roadmap_generator') }}" method="POST" class="flex flex-col sm:flex-row gap-3 font-body">
+    <form id="roadmap-gen-form" action="{{ url_for('roadmap_generator') }}" method="POST" class="flex flex-col gap-3 font-body">
+      <div class="flex flex-col sm:flex-row gap-3">
         <input type="text" name="goal" value="{{ goal or '' }}" placeholder="e.g., 'Become a Full Stack Developer' or 'Master React'" required
                class="flex-1 px-4 py-3 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm placeholder-ink-400 focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200">
         <button id="roadmap-gen-btn" type="submit" class="px-6 py-3 bg-ink-900 text-cream-100 dark:bg-cream-100 dark:text-ink-900 font-bold text-xs rounded-xl tracking-wider uppercase transition-all hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0 shadow-sm flex-shrink-0">Generate Matrix</button>
+      </div>
+      <fieldset class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-ink-600 dark:text-ink-400">
+        <legend class="sr-only">Personalise with my data</legend>
+        <span class="font-bold uppercase tracking-wider text-[11px] text-ink-500">✨ Personalise with my</span>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="use_profile" value="1" class="accent-ink-900" {{ 'checked' if use_profile is not defined or use_profile else '' }}> Profile</label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="use_resume" value="1" class="accent-ink-900" {{ 'checked' if use_resume is not defined or use_resume else '' }}> Resume details</label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="use_projects" value="1" class="accent-ink-900" {{ 'checked' if use_projects is not defined or use_projects else '' }}> Projects</label>
+        <span class="basis-full text-[11px] text-ink-400">Only skills, experience, education and project summaries go to the AI. Your name, email, links and saved roadmaps are never sent.</span>
+      </fieldset>
     </form>
 
     <!-- In-page loading card: shown right in the results area the instant the
@@ -207,6 +217,18 @@ nav.sidebar, .dashboard-container > aside.sidebar, body > aside.sidebar { displa
                 <button type="submit" class="w-full sm:w-auto px-4 py-2.5 bg-emerald-700 text-white font-body font-bold text-xs rounded-xl tracking-wider uppercase transition-all hover:bg-emerald-600 active:scale-98 shadow-sm">Save to My Roadmaps</button>
             </form>
         </div>
+
+        {% set pz = roadmap_data.get('personalization') %}
+        {% if pz and pz.get('summary') %}
+        <div class="rounded-2xl border border-gold/40 bg-amber-50/60 dark:bg-ink-900/40 dark:border-gold/30 p-4 space-y-1.5 text-xs font-body text-ink-700 dark:text-cream-200">
+            <div class="font-bold uppercase tracking-wider text-[11px] text-amber-700 dark:text-gold">✨ Personalised for you{% if personalization_used %} · used your {% set parts = [] %}{% if personalization_used.get('profile') %}{% set _ = parts.append('profile') %}{% endif %}{% if personalization_used.get('resume') %}{% set _ = parts.append('resume details') %}{% endif %}{% if personalization_used.get('projects') %}{% set _ = parts.append(personalization_used.projects ~ (' project' if personalization_used.projects == 1 else ' projects')) %}{% endif %}{{ parts|join(', ') }}{% endif %}</div>
+            <p>{{ pz.summary }}</p>
+            {% if pz.get('skipped_or_shortened') %}<p><strong>Shortened (you already know):</strong> {{ pz.skipped_or_shortened|join(', ') }}</p>{% endif %}
+            {% if pz.get('builds_on') %}<p><strong>Builds on:</strong> {{ pz.builds_on|join(', ') }}</p>{% endif %}
+        </div>
+        {% elif personalization_used and personalization_used.get('empty') %}
+        <div class="rounded-2xl border border-cream-300 dark:border-ink-700 p-3 text-xs text-ink-500 dark:text-ink-400">No profile, resume or project details were found to personalise with, so this is a general roadmap. Fill in your profile to get a tailored one.</div>
+        {% endif %}
 
         {% set stages = roadmap_data.get('stages', []) %}
         {% if stages is iterable and stages is not string %}

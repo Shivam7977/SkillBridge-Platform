@@ -163,7 +163,7 @@ body { font-family: 'DM Sans', sans-serif; }
 
           <div class="w-full text-left font-body text-xs border-t border-cream-200 dark:border-ink-700 pt-4 space-y-2.5">
             <div class="flex justify-between"><label class="font-bold tracking-wider text-ink-400 uppercase">Status</label><span class="font-semibold text-ink-900 dark:text-cream-100" id="p-status">{{ user.current_status or "Not Set" }}</span></div>
-            <div class="flex justify-between"><label class="font-bold tracking-wider text-ink-400 uppercase">Experience</label><span class="font-semibold text-ink-900 dark:text-cream-100" id="p-exp">{{ user.experience_years or "0" }} Years</span></div>
+            <div class="flex justify-between"><label class="font-bold tracking-wider text-ink-400 uppercase">Experience</label><span class="font-semibold text-ink-900 dark:text-cream-100" id="p-exp">{{ user.experience_years or "0" }} {{ "Year" if (user.experience_years|string) == "1" else "Years" }}</span></div>
             <div class="flex justify-between"><label class="font-bold tracking-wider text-ink-400 uppercase">Location</label><span class="font-semibold text-ink-900 dark:text-cream-100" id="p-loc">{{ user.location or "Remote" }}</span></div>
           </div>
 
@@ -200,8 +200,8 @@ body { font-family: 'DM Sans', sans-serif; }
               </div>
             </div>
             <div class="grid grid-cols-3 gap-2 text-center bg-cream-50/60 dark:bg-ink-900/30 p-2.5 rounded-xl border border-cream-200/50 dark:border-ink-800">
-              <div><div class="text-sm font-black text-ink-900 dark:text-gold">{{ user.github_public_repos }}</div><div class="text-[9px] font-bold text-ink-400 uppercase">Repos</div></div>
-              <div><div class="text-sm font-black text-ink-900 dark:text-gold">{{ user.github_followers }}</div><div class="text-[9px] font-bold text-ink-400 uppercase">Followers</div></div>
+              <div><div class="text-sm font-black text-ink-900 dark:text-gold">{{ user.github_public_repos|default(0, true) }}</div><div class="text-[9px] font-bold text-ink-400 uppercase">Repos</div></div>
+              <div><div class="text-sm font-black text-ink-900 dark:text-gold">{{ user.github_followers|default(0, true) }}</div><div class="text-[9px] font-bold text-ink-400 uppercase">Followers</div></div>
               <div><div class="text-sm font-black text-ink-900 dark:text-gold">{{ user.github_langs|length }}</div><div class="text-[9px] font-bold text-ink-400 uppercase">Langs</div></div>
             </div>
           </div>
@@ -272,7 +272,7 @@ body { font-family: 'DM Sans', sans-serif; }
                     <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Job Title <span class="text-rose-500">*</span></label><input type="text" name="title" id="in-title" value="{{ user.title }}" onkeyup="sync(); clearFieldError(this)" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
                     <div class="sm:col-span-2 space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Bio</label><textarea name="about_me" id="in-bio" rows="2" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200 custom-scroll resize-none">{{ user.about_me }}</textarea></div>
                     <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Location <span class="text-rose-500">*</span></label><input type="text" name="location" id="in-loc" value="{{ user.location }}" onkeyup="sync(); clearFieldError(this)" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
-                    <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Profile Image</label><input type="file" name="profile_pic" id="in-profile-pic" class="w-full px-4 py-2 rounded-xl border border-cream-300 bg-white text-ink-500 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-cream-200 file:text-ink-900 hover:file:opacity-90 file:cursor-pointer transition-all duration-200"></div>
+                    <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Profile Image</label><input type="file" data-max-mb="2" accept="image/png,image/jpeg,image/gif,image/webp" name="profile_pic" id="in-profile-pic" class="w-full px-4 py-2 rounded-xl border border-cream-300 bg-white text-ink-500 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-cream-200 file:text-ink-900 hover:file:opacity-90 file:cursor-pointer transition-all duration-200"></div>
                   </div>
                   <div class="flex items-center justify-end gap-2 pt-2 border-t border-cream-200 dark:border-ink-800">
                     <button type="button" onclick="cancelIdentityEdit()" class="px-4 py-2 text-ink-500 dark:text-ink-400 text-xs font-bold rounded-lg hover:bg-cream-100 dark:hover:bg-ink-800 transition-all">Cancel</button>
@@ -332,14 +332,14 @@ body { font-family: 'DM Sans', sans-serif; }
                 <div class="flex items-start justify-between gap-4" id="career-view">
                   <div class="min-w-0 space-y-1">
                     <div class="text-xs"><span class="text-ink-400 font-semibold">Status:</span> <span class="font-bold text-ink-900 dark:text-cream-50 view-status">{{ user.current_status or 'Not set' }}</span></div>
-                    <div class="text-xs"><span class="text-ink-400 font-semibold">Experience:</span> <span class="font-bold text-ink-900 dark:text-cream-50 view-exp">{{ user.experience_years or '0' }} Years</span></div>
+                    <div class="text-xs"><span class="text-ink-400 font-semibold">Experience:</span> <span class="font-bold text-ink-900 dark:text-cream-50 view-exp">{{ user.experience_years or '0' }} {{ 'Year' if (user.experience_years|string) == '1' else 'Years' }}</span></div>
                   </div>
                   <button type="button" onclick="openCareerEdit()" class="px-3 py-1.5 rounded-lg border border-ink-300 dark:border-ink-700 hover:bg-cream-100 dark:hover:bg-ink-800 text-ink-700 dark:text-cream-300 text-xs font-semibold transition-all whitespace-nowrap shrink-0">✏️ Edit</button>
                 </div>
                 <!-- EDIT MODE (hidden until "Edit" is clicked) -->
                 <div class="space-y-4 hidden" id="career-edit">
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Exp (Years)</label><input type="number" name="experience_years" id="in-exp" value="{{ user.experience_years }}" min="0" max="50" onkeyup="sync()" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
+                    <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Exp (Years)</label><input type="number" name="experience_years" id="in-exp" value="{{ user.experience_years }}" min="0" max="50" step="1" inputmode="numeric" oninput="sync()" onkeydown="return blockBadExpKeys(event)" onpaste="return cleanExpPaste(event)" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 placeholder-ink-400 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200"></div>
                     <div class="sm:col-span-2 space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Current Status <span class="text-rose-500">*</span></label>
                       <select name="current_status" id="in-status" onchange="sync(); toggleExpSection(); clearFieldError(this)" class="w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all duration-200 cursor-pointer">
                         <option value="" {% if not user.current_status %}selected{% endif %} disabled>Select status…</option>
@@ -397,13 +397,13 @@ body { font-family: 'DM Sans', sans-serif; }
                           </div>
                           <div class="space-y-1.5">
                             <label class="text-xs font-bold text-ink-600 dark:text-cream-400">Grade Value <span class="text-rose-500">*</span></label>
-                            <input type="number" step="0.01" min="0" max="{% if edu.grade_type == 'Percentage' %}100{% else %}10{% endif %}" class="edu-grade-value w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.grade_value }}" placeholder="e.g. 8.7" oninput="if(this.value<0)this.value=0;serializeEdu();clearFieldError(this)">
+                            <input type="number" step="0.01" min="0" max="{% if edu.grade_type == 'Percentage' %}100{% else %}10{% endif %}" class="edu-grade-value w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.grade_value }}" placeholder="e.g. 8.7" inputmode="decimal" onkeydown="return blockBadGradeKeys(event)" oninput="serializeEdu();clearFieldError(this)">
                           </div>
                         </div>
-                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year <span class="text-rose-500">*</span></label><input type="number" class="edu-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.from_year }}" placeholder="2022" min="1980" max="2030" oninput="serializeEdu(); clearFieldError(this)"></div>
+                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year <span class="text-rose-500">*</span></label><input type="number" class="edu-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.from_year }}" placeholder="2022" min="1980" max="{{ (now().year + 0) if now else 2026 }}" step="1" inputmode="numeric" onkeydown="return blockBadExpKeys(event)" oninput="serializeEdu(); clearFieldError(this)"></div>
                         <div class="space-y-1.5">
                           <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year <span class="text-rose-500">*</span> <span class="font-normal text-ink-400">(unless studying)</span></label>
-                          <input type="number" class="edu-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.to_year if not edu.is_current else '' }}" placeholder="{{ now().year if now else 2026 }}" min="1980" max="2030" oninput="serializeEdu(); clearFieldError(this)" {% if edu.is_current %}disabled{% endif %}>
+                          <input type="number" class="edu-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ edu.to_year if not edu.is_current else '' }}" placeholder="{{ now().year if now else 2026 }}" min="1980" max="{{ (now().year + 8) if now else 2034 }}" step="1" inputmode="numeric" onkeydown="return blockBadExpKeys(event)" oninput="serializeEdu(); clearFieldError(this)" {% if edu.is_current %}disabled{% endif %}>
                           <label class="text-[11px] font-bold text-ink-500 flex items-center gap-1.5 mt-2 cursor-pointer select-none">
                             <input type="checkbox" class="edu-current rounded text-ink-900 focus:ring-0 accent-ink-900 w-3.5 h-3.5" onchange="handleEduCurrentToggle(this)" {% if edu.is_current %}checked{% endif %}> Currently studying here
                           </label>
@@ -453,10 +453,10 @@ body { font-family: 'DM Sans', sans-serif; }
                       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Company <span class="text-rose-500">*</span></label><input type="text" class="exp-company w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.company }}" placeholder="e.g. Google" oninput="serializeExp(); clearFieldError(this)"></div>
                         <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Role / Position <span class="text-rose-500">*</span></label><input type="text" class="exp-role w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.role }}" placeholder="e.g. Software Engineer" oninput="serializeExp(); clearFieldError(this)"></div>
-                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year <span class="text-rose-500">*</span></label><input type="number" class="exp-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.from_year }}" placeholder="2020" min="1980" max="2030" oninput="serializeExp(); autoCalcYears(); clearFieldError(this)"></div>
+                        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year <span class="text-rose-500">*</span></label><input type="number" class="exp-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.from_year }}" placeholder="2020" min="1980" max="{{ (now().year + 0) if now else 2026 }}" step="1" inputmode="numeric" onkeydown="return blockBadExpKeys(event)" oninput="serializeExp(); autoCalcYears(); clearFieldError(this)"></div>
                         <div class="space-y-1.5">
                           <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year <span class="text-rose-500">*</span> <span class="font-normal text-ink-400">(unless working)</span></label>
-                          <input type="number" class="exp-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.to_year if not exp.is_current else '' }}" placeholder="{{ now().year if now else 2025 }}" min="1980" max="2030" oninput="serializeExp(); autoCalcYears(); clearFieldError(this)" {% if exp.is_current %}disabled{% endif %}>
+                          <input type="number" class="exp-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" value="{{ exp.to_year if not exp.is_current else '' }}" placeholder="{{ now().year if now else 2025 }}" min="1980" max="{{ (now().year + 0) if now else 2026 }}" step="1" inputmode="numeric" onkeydown="return blockBadExpKeys(event)" oninput="serializeExp(); autoCalcYears(); clearFieldError(this)" {% if exp.is_current %}disabled{% endif %}>
                           <label class="text-[11px] font-bold text-ink-500 flex items-center gap-1.5 mt-2 cursor-pointer select-none">
                             <input type="checkbox" class="exp-current rounded text-ink-900 focus:ring-0 accent-ink-900 w-3.5 h-3.5" onchange="handleCurrentToggle(this)" {% if exp.is_current %}checked{% endif %}> Currently working here
                           </label>
@@ -564,8 +564,8 @@ body { font-family: 'DM Sans', sans-serif; }
                 </div>
                 <div class="p-5 space-y-4">
                   <div class="grid grid-cols-3 gap-4 text-center border border-cream-200 dark:border-ink-800 p-3 rounded-xl bg-white dark:bg-ink-900/20 shadow-inner">
-                    <div><div class="text-base font-black text-ink-900 dark:text-gold">{{ user.github_public_repos }}</div><div class="text-[10px] font-bold text-ink-400 uppercase mt-0.5">Repos</div></div>
-                    <div><div class="text-base font-black text-ink-900 dark:text-gold">{{ user.github_followers }}</div><div class="text-[10px] font-bold text-ink-400 uppercase mt-0.5">Followers</div></div>
+                    <div><div class="text-base font-black text-ink-900 dark:text-gold">{{ user.github_public_repos|default(0, true) }}</div><div class="text-[10px] font-bold text-ink-400 uppercase mt-0.5">Repos</div></div>
+                    <div><div class="text-base font-black text-ink-900 dark:text-gold">{{ user.github_followers|default(0, true) }}</div><div class="text-[10px] font-bold text-ink-400 uppercase mt-0.5">Followers</div></div>
                     <div><div class="text-base font-black text-ink-900 dark:text-gold">{{ user.github_langs|length }}</div><div class="text-[10px] font-bold text-ink-400 uppercase mt-0.5">Languages</div></div>
                   </div>
                   <div class="flex flex-wrap gap-1.5">
@@ -686,17 +686,67 @@ function toggleSidebarMenu() {
   }
 }
 
+// ───────── Validation rules (keep in sync with routes/profile.py) ─────────
+const RULES = {
+  expYears: { min: 0, max: 50 },
+  minYear: 1980,
+  eduGradYearsAhead: 8,                        // expected graduation can be up to 8 years ahead
+  edu:  { institution: [2, 120], degree: [2, 80], field: [2, 80], maxEntries: 10, grade: { CGPA: 10, Percentage: 100 } },
+  work: { company: [2, 100], role: [2, 80], maxEntries: 15, maxBullets: 10, bulletLen: 300 }
+};
+function textProblem(el, label, lo, hi) {
+  const v = (el?.value || '').trim();
+  if (!v) return label + ' is required.';
+  if (v.length < lo) return label + ' must be at least ' + lo + ' characters (you typed ' + v.length + ').';
+  if (v.length > hi) return label + ' must be at most ' + hi + ' characters (you typed ' + v.length + ').';
+  return '';
+}
+function yearProblem(el, label, lo, hi) {
+  const v = (el?.value || '').trim();
+  if (!v) return label + ' is required.';
+  if (!/^\d{4}$/.test(v)) return label + ' must be a 4-digit year between ' + lo + ' and ' + hi + ' (you entered "' + v.slice(0, 10) + '").';
+  const y = Number(v);
+  if (y < lo || y > hi) return label + ' must be between ' + lo + ' and ' + hi + ' (you entered ' + y + ').';
+  return '';
+}
+function revealEntryFields(entry, editSel, viewSel) {
+  const editFields = entry.querySelector(editSel);
+  const viewCard = entry.querySelector(viewSel);
+  if (editFields && editFields.style.display === 'none') {
+    if (viewCard) viewCard.style.display = 'none';
+    editFields.style.display = 'block';
+  }
+}
+
+function blockBadGradeKeys(e) {
+  // grades may have a decimal point, but never a sign or exponent
+  return !['-', '+', 'e', 'E', ','].includes(e.key);
+}
+function yearsLabel(n) { return n + (Number(n) === 1 ? ' Year' : ' Years'); }
+function blockBadExpKeys(e) {
+  // type=number allows '-', '+', 'e', '.' — none are valid for whole years
+  return !['-', '+', 'e', 'E', '.', ','].includes(e.key);
+}
+function cleanExpPaste(e) {
+  const txt = (e.clipboardData || window.clipboardData).getData('text').trim();
+  return /^\d{1,2}$/.test(txt) && Number(txt) <= 50;
+}
+function escapeHtml(v) {
+  return String(v ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
 function sync() {
   document.getElementById('p-name').innerText   = document.getElementById('in-name').value  || 'Your Name';
   document.getElementById('p-title').innerText  = document.getElementById('in-title').value || 'Professional Title';
   document.getElementById('p-status').innerText = document.getElementById('in-status').value;
-  document.getElementById('p-exp').innerText    = (document.getElementById('in-exp').value || '0') + ' Years';
+  const experienceYears = Number(document.getElementById('in-exp').value);
+  document.getElementById('p-exp').innerText = yearsLabel(Number.isInteger(experienceYears) && experienceYears >= 0 && experienceYears <= 50 ? experienceYears : 0);
   document.getElementById('p-loc').innerText    = document.getElementById('in-loc').value    || 'Remote';
   ['linkedin','github','instagram','facebook'].forEach(s => {
     const val  = document.getElementById('in-' + s).value.trim();
     const icon = document.getElementById('ic-' + s);
     const link = document.getElementById('link-' + s);
-    if (val) { link.href = val; link.classList.add('active-link'); icon.classList.add('active'); }
+    if (val && /^https?:\/\//i.test(val)) { link.href = val; link.classList.add('active-link'); icon.classList.add('active'); }
     else     { link.href = 'javascript:void(0)'; link.classList.remove('active-link'); icon.classList.remove('active'); }
   });
   updateTags('p-known',    document.getElementById('in-known').value,    false);
@@ -754,6 +804,24 @@ function validateRequired(ids) {
     }
   });
   return valid;
+}
+
+function validateCalendarRange(entry, fromSelector, toSelector, isCurrent) {
+  const fromInput = entry.querySelector(fromSelector);
+  const toInput = entry.querySelector(toSelector);
+  const currentYear = new Date().getFullYear();
+  const fromValue = fromInput?.value.trim() || '';
+  const toValue = toInput?.value.trim() || '';
+  const validFrom = /^\d{4}$/.test(fromValue) && Number(fromValue) >= 1980 && Number(fromValue) <= currentYear;
+  const endValue = isCurrent ? String(currentYear) : toValue;
+  const validTo = isCurrent || (/^\d{4}$/.test(toValue) && Number(toValue) >= 1980 && Number(toValue) <= currentYear);
+  const validOrder = validFrom && validTo && Number(endValue) >= Number(fromValue);
+  if (fromInput) validFrom && validOrder ? clearFieldError(fromInput) : markFieldError(fromInput);
+  if (toInput) {
+    if (isCurrent) clearFieldError(toInput);
+    else validTo && validOrder ? clearFieldError(toInput) : markFieldError(toInput);
+  }
+  return Boolean(validFrom && validTo && validOrder);
 }
 
 async function postCard(url, formData, btn) {
@@ -911,8 +979,26 @@ function cancelCareerEdit() {
 }
 
 async function saveCareerCard() {
-  const status   = document.getElementById('in-status').value;
-  const expYears = document.getElementById('in-exp').value || '0';
+  const status = document.getElementById('in-status').value;
+  const expInput = document.getElementById('in-exp');
+  const rawExp = expInput.value.trim();
+  const expNum = rawExp === '' ? 0 : Number(rawExp);
+  let expMsg = '';
+  if (rawExp !== '' && !/^-?\d+(\.\d+)?$/.test(rawExp)) {
+    expMsg = 'Experience must be a number of years between ' + RULES.expYears.min + ' and ' + RULES.expYears.max + ' (you entered "' + rawExp.slice(0, 10) + '").';
+  } else if (!Number.isInteger(expNum)) {
+    expMsg = 'Experience must be a whole number of years (you entered ' + rawExp + '). Use 0 if you have less than a year.';
+  } else if (expNum < RULES.expYears.min || expNum > RULES.expYears.max) {
+    expMsg = 'Experience must be between ' + RULES.expYears.min + ' and ' + RULES.expYears.max + ' years (you entered ' + expNum + ').';
+  }
+  if (expMsg) {
+    markFieldError(expInput);
+    showToast(expMsg, 'error');
+    expInput.focus();
+    return;
+  }
+  const expYears = String(expNum);
+  clearFieldError(expInput);
   // Blank career card is allowed — user can clear it entirely.
   // If status is set that's the only real anchor; years default to 0.
 
@@ -925,7 +1011,7 @@ async function saveCareerCard() {
     CARD_ORIG.career = { current_status: status, experience_years: expYears };
     const view = document.getElementById('career-view');
     view.querySelector('.view-status').textContent = status || 'Not set';
-    view.querySelector('.view-exp').textContent = expYears + ' Years';
+    view.querySelector('.view-exp').textContent = yearsLabel(expYears);
     document.getElementById('career-edit').classList.add('hidden');
     document.getElementById('career-view').classList.remove('hidden');
   }
@@ -933,40 +1019,56 @@ async function saveCareerCard() {
 
 // ── Education (multi-entry) ──
 function validateEduEntries() {
-  const entries = document.querySelectorAll('.edu-entry');
+  const entries = [...document.querySelectorAll('.edu-entry')];
   // 0 entries = blank card = allowed
   if (!entries.length) return true;
-  let valid = true;
-  entries.forEach(entry => {
-    const fields = {
-      institution: entry.querySelector('.edu-institution'),
-      degree: entry.querySelector('.edu-degree'),
-      field: entry.querySelector('.edu-field'),
-      gradeValue: entry.querySelector('.edu-grade-value'),
-      from: entry.querySelector('.edu-from'),
-      to: entry.querySelector('.edu-to'),
-    };
-    const isCurrent = entry.querySelector('.edu-current')?.checked || false;
-    let entryValid = true;
-    Object.entries(fields).forEach(([key, el]) => {
-      if (!el) return;
-      if (key === 'to' && isCurrent) { clearFieldError(el); return; }
-      if (!el.value.trim()) { markFieldError(el); entryValid = false; }
-      else { clearFieldError(el); }
-    });
-    if (!entryValid) {
-      valid = false;
-      // Make sure the offending entry is visible in edit mode so the user can see the red fields
-      const editFields = entry.querySelector('.edu-edit-fields');
-      const viewCard = entry.querySelector('.edu-view-card');
-      if (editFields && editFields.style.display === 'none') {
-        viewCard.style.display = 'none';
-        editFields.style.display = 'block';
-      }
+  if (entries.length > RULES.edu.maxEntries) {
+    showToast('You can add at most ' + RULES.edu.maxEntries + ' education entries (you have ' + entries.length + ').', 'error');
+    return false;
+  }
+  const currentYear = new Date().getFullYear();
+  let firstMsg = '', firstEl = null;
+  entries.forEach((entry, i) => {
+    const q = s => entry.querySelector(s);
+    const isCurrent = q('.edu-current')?.checked || false;
+    const gradeType = q('.edu-grade-type')?.value || 'CGPA';
+    const gradeMax = RULES.edu.grade[gradeType] || 10;
+    const problems = [];
+    const add = (el, msg) => { if (el && msg) problems.push({ el, msg }); };
+    const allFields = ['.edu-institution', '.edu-degree', '.edu-field', '.edu-grade-value', '.edu-from', '.edu-to'].map(q).filter(Boolean);
+
+    add(q('.edu-institution'), textProblem(q('.edu-institution'), 'Institution', ...RULES.edu.institution));
+    add(q('.edu-degree'), textProblem(q('.edu-degree'), 'Degree', ...RULES.edu.degree));
+    add(q('.edu-field'), textProblem(q('.edu-field'), 'Field of study', ...RULES.edu.field));
+
+    const g = (q('.edu-grade-value')?.value || '').trim();
+    let gradeMsg = '';
+    if (!g) gradeMsg = 'Grade is required.';
+    else if (/^-/.test(g)) gradeMsg = 'Grade cannot be negative (you entered ' + g.slice(0, 10) + '). ' + gradeType + ' must be between 0 and ' + gradeMax + '.';
+    else if (!/^\d+(\.\d{1,2})?$/.test(g)) gradeMsg = 'Grade must be a number like 8.7 or 85.25 (max 2 decimal places); you entered "' + g.slice(0, 10) + '".';
+    else if (Number(g) > gradeMax) gradeMsg = gradeType + ' must be between 0 and ' + gradeMax + ' (you entered ' + g + ').';
+    add(q('.edu-grade-value'), gradeMsg);
+
+    const fromMsg = yearProblem(q('.edu-from'), 'From Year', RULES.minYear, currentYear);
+    add(q('.edu-from'), fromMsg);
+    if (!isCurrent) {
+      const lo = fromMsg ? RULES.minYear : Number(q('.edu-from').value);
+      add(q('.edu-to'), yearProblem(q('.edu-to'), 'To Year', lo, currentYear + RULES.eduGradYearsAhead));
+    }
+
+    allFields.forEach(clearFieldError);
+    problems.forEach(p => markFieldError(p.el));
+    if (problems.length) {
+      revealEntryFields(entry, '.edu-edit-fields', '.edu-view-card');
+      if (!firstMsg) { firstMsg = 'Education #' + (i + 1) + ': ' + problems[0].msg; firstEl = problems[0].el; }
     }
   });
-  if (!valid) showToast('Every field is required on every education entry.', 'error');
-  return valid;
+  if (firstMsg) {
+    showToast(firstMsg, 'error');
+    if (firstEl) firstEl.focus();
+    return false;
+  }
+  return true;
 }
 
 function refreshEduEntryView(entry) {
@@ -1009,37 +1111,51 @@ async function saveEducationCard(btn) {
 
 // ── Work Experience (multi-entry) ──
 function validateExpEntries() {
-  const entries = document.querySelectorAll('.exp-entry');
+  const entries = [...document.querySelectorAll('.exp-entry')];
   // 0 entries = blank card = allowed for everyone
   if (!entries.length) return true;
-  let valid = true;
-  entries.forEach(entry => {
-    const fields = {
-      company: entry.querySelector('.exp-company'),
-      role: entry.querySelector('.exp-role'),
-      from: entry.querySelector('.exp-from'),
-      to: entry.querySelector('.exp-to'),
-    };
-    const isCurrent = entry.querySelector('.exp-current')?.checked || false;
-    let entryValid = true;
-    Object.entries(fields).forEach(([key, el]) => {
-      if (!el) return;
-      if (key === 'to' && isCurrent) { clearFieldError(el); return; }
-      if (!el.value.trim()) { markFieldError(el); entryValid = false; }
-      else { clearFieldError(el); }
-    });
-    if (!entryValid) {
-      valid = false;
-      const editFields = entry.querySelector('.exp-edit-fields');
-      const viewCard = entry.querySelector('.exp-view-card');
-      if (editFields && editFields.style.display === 'none') {
-        viewCard.style.display = 'none';
-        editFields.style.display = 'block';
-      }
+  if (entries.length > RULES.work.maxEntries) {
+    showToast('You can add at most ' + RULES.work.maxEntries + ' experience entries (you have ' + entries.length + ').', 'error');
+    return false;
+  }
+  const currentYear = new Date().getFullYear();
+  let firstMsg = '', firstEl = null;
+  entries.forEach((entry, i) => {
+    const q = s => entry.querySelector(s);
+    const isCurrent = q('.exp-current')?.checked || false;
+    const problems = [];
+    const add = (el, msg) => { if (el && msg) problems.push({ el, msg }); };
+    const allFields = ['.exp-company', '.exp-role', '.exp-from', '.exp-to', '.exp-bullets'].map(q).filter(Boolean);
+
+    add(q('.exp-company'), textProblem(q('.exp-company'), 'Company', ...RULES.work.company));
+    add(q('.exp-role'), textProblem(q('.exp-role'), 'Role', ...RULES.work.role));
+    const fromMsg = yearProblem(q('.exp-from'), 'From Year', RULES.minYear, currentYear);
+    add(q('.exp-from'), fromMsg);
+    if (!isCurrent) {
+      const lo = fromMsg ? RULES.minYear : Number(q('.exp-from').value);
+      add(q('.exp-to'), yearProblem(q('.exp-to'), 'To Year', lo, currentYear));
+    }
+    const bullets = (q('.exp-bullets')?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
+    if (bullets.length > RULES.work.maxBullets) {
+      add(q('.exp-bullets'), 'At most ' + RULES.work.maxBullets + ' achievements are allowed (you added ' + bullets.length + ').');
+    } else {
+      const longIdx = bullets.findIndex(x => x.length > RULES.work.bulletLen);
+      if (longIdx >= 0) add(q('.exp-bullets'), 'Achievement #' + (longIdx + 1) + ' must be at most ' + RULES.work.bulletLen + ' characters (you typed ' + bullets[longIdx].length + ').');
+    }
+
+    allFields.forEach(clearFieldError);
+    problems.forEach(p => markFieldError(p.el));
+    if (problems.length) {
+      revealEntryFields(entry, '.exp-edit-fields', '.exp-view-card');
+      if (!firstMsg) { firstMsg = 'Experience #' + (i + 1) + ': ' + problems[0].msg; firstEl = problems[0].el; }
     }
   });
-  if (!valid) showToast('Company, Role, and Years are required on every experience entry.', 'error');
-  return valid;
+  if (firstMsg) {
+    showToast(firstMsg, 'error');
+    if (firstEl) firstEl.focus();
+    return false;
+  }
+  return true;
 }
 
 function refreshExpEntryView(entry) {
@@ -1178,12 +1294,13 @@ async function saveCert() {
   const d = await r.json();
   if (!d.success) { showToast(d.error || 'Something went wrong', 'error'); return; }
   closeCertModal();
-  showToast(isEdit ? '✓ Certificate updated!' : '✓ Certificate added!');
+  showToast(isEdit ? '✓ Certificate updated!' : '✓ Certificate added! +15 XP');
+  if (!isEdit) setTimeout(() => location.reload(), 900);
   if (isEdit) {
     const card = document.querySelector(`.cert-card[data-id="${editId}"]`);
     if (card) {
       card.querySelector('.cert-name span').textContent = name;
-      card.querySelector('.cert-issuer').innerHTML = `<i class="fas fa-building" style="margin-right:5px;opacity:0.6"></i>${issuer}`;
+      card.querySelector('.cert-issuer').innerHTML = `<i class="fas fa-building" style="margin-right:5px;opacity:0.6"></i>${escapeHtml(issuer)}`;
       let meta = '';
       if (payload.issue_date)    meta += `Issued: ${payload.issue_date}`;
       if (payload.expiry_date)   meta += ` · Expires: ${payload.expiry_date}`;
@@ -1199,8 +1316,8 @@ async function saveCert() {
     card.dataset.id = cert._id;
     card.innerHTML = `
       <div class="cert-info min-w-0 flex-1 space-y-1">
-        <div class="cert-name font-bold text-sm text-ink-900 dark:text-cream-50 flex items-center flex-wrap gap-2"><span>${cert.name}</span>${cert.cert_url ? `<a href="${cert.cert_url}" target="_blank" class="text-gold text-xs hover:underline"><i class="fas fa-external-link-alt text-[10px]"></i></a><span class="text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 px-1.5 py-0.5 rounded uppercase">Verified</span>` : ''}</div>
-        <div class="cert-issuer text-xs text-ink-500 font-semibold"><i class="fas fa-building mr-1.5 opacity-60"></i>${cert.issuer}</div>
+        <div class="cert-name font-bold text-sm text-ink-900 dark:text-cream-50 flex items-center flex-wrap gap-2"><span>${escapeHtml(cert.name)}</span>${cert.cert_url ? `<a href="${cert.cert_url}" target="_blank" class="text-gold text-xs hover:underline"><i class="fas fa-external-link-alt text-[10px]"></i></a><span class="text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 px-1.5 py-0.5 rounded uppercase">Verified</span>` : ''}</div>
+        <div class="cert-issuer text-xs text-ink-500 font-semibold"><i class="fas fa-building mr-1.5 opacity-60"></i>${escapeHtml(cert.issuer)}</div>
         <div class="cert-meta text-[11px] text-ink-400 font-medium">${cert.issue_date?'Issued: '+cert.issue_date:''}${cert.expiry_date?' · Expires: '+cert.expiry_date:''}${cert.credential_id?' · ID: '+cert.credential_id:''}</div>
       </div>
       <div class="cert-actions flex gap-1.5 flex-shrink-0">
@@ -1218,11 +1335,12 @@ async function deleteCert(certId, btn) {
   const d = await r.json();
   if (d.success) {
     btn.closest('.cert-card').remove();
-    showToast('Certificate deleted');
+    showToast(d.xp_deducted ? 'Certificate deleted (−15 XP)' : 'Certificate deleted');
+    setTimeout(() => location.reload(), 900);
     updateCertPreview();
     if (!document.querySelector('.cert-card'))
       document.getElementById('cert-list').innerHTML = `<div class="no-certs-msg text-center py-8 text-ink-400 text-xs font-semibold" id="no-certs"><i class="fas fa-certificate text-2xl opacity-30 block mx-auto mb-2"></i>No certificates added yet. Add your first one!</div>`;
-  } else { showToast('Delete failed', 'error'); }
+  } else { showToast(d.error || 'Delete failed', 'error'); }
 }
 
 function updateCertPreview() {
@@ -1371,10 +1489,10 @@ function addExpEntry() {
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Company <span class="text-rose-500">*</span></label><input type="text" class="exp-company w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. Google" oninput="serializeExp(); clearFieldError(this)"></div>
         <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">Role / Position <span class="text-rose-500">*</span></label><input type="text" class="exp-role w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. Software Engineer" oninput="serializeExp(); clearFieldError(this)"></div>
-        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year <span class="text-rose-500">*</span></label><input type="number" class="exp-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="2020" min="1980" max="2030" oninput="serializeExp(); autoCalcYears(); clearFieldError(this)"></div>
+        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year <span class="text-rose-500">*</span></label><input type="number" class="exp-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="2020" min="1980" max="${new Date().getFullYear()}" step="1" inputmode="numeric" onkeydown="return blockBadExpKeys(event)" oninput="serializeExp(); autoCalcYears(); clearFieldError(this)"></div>
         <div class="space-y-1.5">
           <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year <span class="text-rose-500">*</span> <span class="font-normal text-ink-400">(unless working)</span></label>
-          <input type="number" class="exp-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="${new Date().getFullYear()}" min="1980" max="2030" oninput="serializeExp(); autoCalcYears(); clearFieldError(this)">
+          <input type="number" class="exp-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="${new Date().getFullYear()}" min="1980" max="${new Date().getFullYear()}" step="1" inputmode="numeric" onkeydown="return blockBadExpKeys(event)" oninput="serializeExp(); autoCalcYears(); clearFieldError(this)">
           <label class="text-[11px] font-bold text-ink-500 flex items-center gap-1.5 mt-2 cursor-pointer select-none">
             <input type="checkbox" class="exp-current rounded text-ink-900 focus:ring-0 accent-ink-900 w-3.5 h-3.5" onchange="handleCurrentToggle(this)"> Currently working here
           </label>
@@ -1427,18 +1545,30 @@ function handleCurrentToggle(checkbox) {
 
 function autoCalcYears() {
   const currentYear = new Date().getFullYear();
-  let totalMonths = 0;
+  const intervals = [];
   document.querySelectorAll('.exp-entry').forEach(entry => {
-    const from = parseInt(entry.querySelector('.exp-from')?.value) || 0;
+    const fromRaw = entry.querySelector('.exp-from')?.value || '';
     const isCurrent = entry.querySelector('.exp-current')?.checked || false;
-    const to = isCurrent ? currentYear : (parseInt(entry.querySelector('.exp-to')?.value) || 0);
-    if (from > 0 && to >= from) {
-      totalMonths += (to - from) * 12;
-    }
+    const toRaw = isCurrent ? String(currentYear) : (entry.querySelector('.exp-to')?.value || '');
+    if (!/^\d{4}$/.test(fromRaw) || !/^\d{4}$/.test(toRaw)) return;
+    const from = Number(fromRaw);
+    const to = Number(toRaw);
+    if (from >= 1980 && to <= currentYear && to >= from) intervals.push([from, to]);
   });
-  const totalYears = Math.round(totalMonths / 12);
+  if (!intervals.length) return;          // nothing valid to calculate from — keep the user's own number
+  intervals.sort((a, b) => a[0] - b[0]);
+  const merged = [];
+  intervals.forEach(([from, to]) => {
+    const last = merged[merged.length - 1];
+    if (last && from <= last[1]) last[1] = Math.max(last[1], to);
+    else merged.push([from, to]);
+  });
+  const totalYears = Math.min(50, Math.round(merged.reduce((total, [from, to]) => total + to - from, 0)));
   const expInput = document.getElementById('in-exp');
-  if (expInput && totalYears > 0) expInput.value = totalYears;
+  if (expInput) {
+    expInput.value = String(totalYears);
+    sync();
+  }
 }
 
 function serializeExp() {
@@ -1522,13 +1652,13 @@ function addEduEntry() {
           </div>
           <div class="space-y-1.5">
             <label class="text-xs font-bold text-ink-600 dark:text-cream-400">Grade Value <span class="text-rose-500">*</span></label>
-            <input type="number" step="0.01" min="0" max="10" class="edu-grade-value w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. 8.7" oninput="if(this.value<0)this.value=0;serializeEdu();clearFieldError(this)">
+            <input type="number" step="0.01" min="0" max="10" class="edu-grade-value w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="e.g. 8.7" inputmode="decimal" onkeydown="return blockBadGradeKeys(event)" oninput="serializeEdu();clearFieldError(this)">
           </div>
         </div>
-        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year <span class="text-rose-500">*</span></label><input type="number" class="edu-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="2022" min="1980" max="2030" oninput="serializeEdu(); clearFieldError(this)"></div>
+        <div class="space-y-1.5"><label class="text-xs font-bold text-ink-600 dark:text-cream-400">From Year <span class="text-rose-500">*</span></label><input type="number" class="edu-from w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="2022" min="1980" max="${new Date().getFullYear()}" step="1" inputmode="numeric" onkeydown="return blockBadExpKeys(event)" oninput="serializeEdu(); clearFieldError(this)"></div>
         <div class="space-y-1.5">
           <label class="text-xs font-bold text-ink-600 dark:text-cream-400">To Year <span class="text-rose-500">*</span> <span class="font-normal text-ink-400">(unless studying)</span></label>
-          <input type="number" class="edu-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="${new Date().getFullYear()}" min="1980" max="2030" oninput="serializeEdu(); clearFieldError(this)">
+          <input type="number" class="edu-to w-full px-4 py-2.5 rounded-xl border border-cream-300 bg-white text-ink-900 text-sm focus:outline-none focus:ring-4 focus:ring-ink-900/5 focus:border-ink-900 dark:focus:ring-gold/10 dark:focus:border-gold transition-all" placeholder="${new Date().getFullYear()}" min="1980" max="${new Date().getFullYear() + 8}" step="1" inputmode="numeric" onkeydown="return blockBadExpKeys(event)" oninput="serializeEdu(); clearFieldError(this)">
           <label class="text-[11px] font-bold text-ink-500 flex items-center gap-1.5 mt-2 cursor-pointer select-none">
             <input type="checkbox" class="edu-current rounded text-ink-900 focus:ring-0 accent-ink-900 w-3.5 h-3.5" onchange="handleEduCurrentToggle(this)"> Currently studying here
           </label>
@@ -1589,10 +1719,17 @@ function serializeEdu() {
 function updateGradeMax(select) {
   const input = select.closest('.grid').querySelector('.edu-grade-value');
   if (!input) return;
-  input.max = (select.value === 'Percentage') ? '100' : '10';
+  const limit = (select.value === 'Percentage') ? 100 : 10;
+  input.max = String(limit);
   input.min = '0';
-  if (input.value !== '' && parseFloat(input.value) > parseFloat(input.max)) input.value = input.max;
-  if (input.value !== '' && parseFloat(input.value) < 0) input.value = '0';
+  const typed = input.value.trim();
+  if (typed !== '' && Number(typed) > limit) {
+    // Do NOT change the number behind the user's back — tell them instead.
+    markFieldError(input);
+    showToast(select.value + ' must be between 0 and ' + limit + ' — you have ' + typed + '. Change the grade or switch the type.', 'error');
+  } else {
+    clearFieldError(input);
+  }
   serializeEdu();
 }
 
@@ -1629,6 +1766,11 @@ function toggleEduMode(btn) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  const currentYear = new Date().getFullYear();
+  document.querySelectorAll('.exp-from, .exp-to, .edu-from, .edu-to').forEach(input => {
+    input.min = '1980';
+    input.max = String(currentYear);
+  });
   serializeExp();
   serializeEdu();
   toggleExpSection();
@@ -1645,5 +1787,6 @@ document.addEventListener('DOMContentLoaded', function() {
 applyTheme(localStorage.getItem('sb-theme') || 'light');
 function applyTheme(t){ t==='dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark'); }
 </script>
+<script src="{{ url_for('static', filename='upload_guard.js') }}" defer></script>
 </body>
 </html>

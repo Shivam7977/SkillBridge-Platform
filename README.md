@@ -1,557 +1,386 @@
-# 🚀 SkillBridge-Platform
+# SkillBridge
 
-### AI-Powered Career OS for Developers
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white) ![Flask](https://img.shields.io/badge/Flask-000000?logo=flask&logoColor=white) ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white) ![Groq](https://img.shields.io/badge/Groq-LLM-F55036) ![APScheduler](https://img.shields.io/badge/APScheduler-background_jobs-5A6B7D) ![Gunicorn](https://img.shields.io/badge/Gunicorn-WSGI-499848) ![Render](https://img.shields.io/badge/Render-deployed-46E3B7?logo=render&logoColor=white)
 
-![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python)
-![Flask](https://img.shields.io/badge/Flask-Framework-black?logo=flask)
-![MongoDB](https://img.shields.io/badge/MongoDB-Database-green?logo=mongodb)
-![JavaScript](https://img.shields.io/badge/JavaScript-Frontend-yellow?logo=javascript)
-![Render](https://img.shields.io/badge/Render-Deployed-blue?logo=render)
-![AI](https://img.shields.io/badge/AI-Mistral-purple)
+**Turn a career goal into a personalised learning roadmap, real projects, and a resume and portfolio that build themselves.**
 
-SkillBridge is a comprehensive platform designed to bridge the gap between learning and professional success. It leverages AI to provide personalized guidance, project-based learning, and professional identity building.
+SkillBridge is a full-stack career platform for students and self-taught developers. You enter your skills and goal, an LLM generates a stage-by-stage roadmap, and the work you do along the way (projects, certificates, GitHub repos) feeds your resume, portfolio, XP and leaderboard rank.
 
----
+**Live demo:** https://skillbridge-platform-bszo.onrender.com/
 
-## 🎯 Why SkillBridge?
+| | |
+|---|---|
+| **Stack** | Flask, MongoDB, Jinja templates + JavaScript, Flask-Login, Flask-Limiter, APScheduler, Gunicorn |
+| **AI** | Groq-hosted LLM for roadmaps, the chatbot and mock interviews. YouTube Data API for learning resources |
+| **Personalisation** | Roadmaps can use your profile, resume details and projects. Saved roadmaps are never sent to the AI |
+| **Gamification** | XP, 5 levels, daily streaks, weekly leaderboard, admin-approved project versions |
+| **Engineering** | Atomic XP ledger, per-account AI limits, exact-range validation on client and server, 30-day account trash |
 
-Most developers — especially students and self-taught learners — know what to learn but have no structured path to get there. They spend hours jumping between tutorials, building generic CRUD projects, and ending up with a resume that looks identical to everyone else's. SkillBridge fixes this. It takes your current skills and career goal, generates a personalized, stage-by-stage roadmap with real-world projects, and automatically builds your portfolio and resume as you progress — so by the time you're job-ready, you already have proof.
+## Demo
 
----
-
-## 🌐 Live Demo
-
-🔗 https://skillbridge-platform-bszo.onrender.com/
-
----
-
-## 🏠 Platform Preview/Dashboard
+**Dashboard**  : The home page after login, with progress, streak and recommended projects.
 
 ![Dashboard](README_img/dashboard.png)
 
----
+**AI roadmap generator**  : Enter a goal and get a staged roadmap with resources and project ideas. Tick Profile, Resume details or Projects to personalise it.
 
-## ✨ Key Features
+![AI roadmap generator](README_img/roadmap-generator.png)
 
-- 🤖 AI-Powered Roadmap Generator
-- 📄 ATS-Friendly Resume Builder
-- 🌐 Portfolio Generator
-- 🤝 Community & Collaboration Hub
-- 🎯 AI Project Recommendation Engine
-- 🏆 XP, Streaks & Leaderboards
-- ⚙️ Personalized Dashboard
-- 🛡️ Admin Management System
+**Personalised dashboard**  : XP, streak and activity in one place.
 
----
+![Personalised dashboard](README_img/Personalized_Dashboard.png)
 
-## ⚙️ How It Works
+**Communities**  : Join communities, chat, and see recommendations based on your skills.
 
-1. Enter your skills, interests, or career goal
-2. AI generates a personalized roadmap
-3. Get real-world project recommendations
-4. Build your portfolio and resume automatically
+![Communities](README_img/community.png)
+![Community recommendations](README_img/community_recommendation.png)
 
----
+**Resume builder**  : 18 templates built from your profile, completed projects and certificates.
 
-## 🤖 AI Roadmap Generator
+![Resume builder](README_img/resume-builder.png)
 
-Generate structured, project-based learning paths using AI.
-The system breaks down your goal into stages with real-world tasks.
+**Portfolio builder**  : Generate a developer portfolio from your profile and projects.
 
-![AI Roadmap](README_img/roadmap-generator.png)
+![Portfolio builder](README_img/portfolio-builder.png)
 
----
+**Interview**  : Can practise mock interview based on your own profile or role based interview.
 
-## 🤝 Community & Smart Recommendations
+![Interview](README_img/interview.png)
 
-Discover projects and collaborators based on your skills and interests using intelligent matching.
-
-![Community](README_img/community.png)
-![Community Recommendations](README_img/community_recommendation.png)
-
----
-
-## 📊 Personalized Dashboard
-
-Track your progress, XP, streaks, and activity in one place.
-
-![Dashboard](README_img/Personalized_Dashboard.png)
-
----
-
-## ⚙️ Settings & Progress Tracking
-
-Monitor your XP, streaks, rank progression, and personalize your SkillBridge experience through an integrated settings system.
+**Settings and progress**  : XP, rank progression and account preferences.
 
 ![Settings](README_img/settings.png)
 
----
+**Admin panel**  : Approvals, users, projects, roadmaps and communities in one place.
 
-## 📄 Resume Builder
+![Admin panel](README_img/admin.png)
 
-Create ATS-friendly resumes automatically using your profile and project data.
+## Features
 
-![Resume](README_img/resume-builder.png)
+- **AI roadmap generator.** Stage-by-stage plan with learning modules, free and paid resources, a project idea for every stage and a final capstone project. Optional personalisation from your profile, resume details and projects.
+- **AI chatbot and mock interviews.** The interview adapts its difficulty to your scores and keeps a history.
+- **Resume builder.** 18 templates, live editing, and a print-ready PDF view.
+- **Portfolio builder.** Template-based portfolio generation.
+- **Projects.** Create projects, upload versions as `.zip`, like, bookmark, and comment with replies. Import repositories from GitHub.
+- **Communities and messages.** Join requests, member roles, message reactions and direct messages.
+- **Gamification.** XP, levels, streaks and a weekly leaderboard.
+- **Notifications and reminders.** In-app notifications and email reminders for inactive roadmaps, with unsubscribe links.
+- **Accounts.** Email verification, password reset, timezone, and account deletion with a 30-day trash.
+- **Admin system.** Approve or reject project versions, ban or restore users, adjust XP, and moderate projects, roadmaps and communities.
 
----
+## Architecture
 
-## 🌐 Portfolio Builder
+```mermaid
+flowchart LR
+    subgraph Client[" "]
+        UI["Browser<br/>Jinja templates, JavaScript"]
+    end
 
-Generate stunning developer portfolios with customizable templates.
+    subgraph Backend["Flask app"]
+        AUTH["Auth<br/>signup, login, reset"]
+        PROF["Profile, resume, portfolio"]
+        RM["Roadmaps"]
+        AI["Chatbot and interviews"]
+        PRJ["Projects and versions"]
+        COM["Communities and messages"]
+        GAM["XP, streaks, leaderboard"]
+        ADM["Admin"]
+        JOBS["Scheduled jobs<br/>APScheduler"]
+    end
 
-![Portfolio](README_img/portfolio-builder.png)
+    DB[("MongoDB<br/>users, projects, commits,<br/>roadmaps, XP history")]
 
----
+    subgraph Ext["External services"]
+        GROQ["Groq LLM"]
+        YT["YouTube Data API"]
+        GH["GitHub API"]
+        MAIL["Resend email"]
+    end
 
-## 🛡️ Admin Control Center
+    UI --> AUTH
+    UI --> PROF
+    UI --> RM
+    UI --> AI
+    UI --> PRJ
+    UI --> COM
+    UI --> ADM
+    RM --> GROQ
+    RM --> YT
+    AI --> GROQ
+    PRJ --> GH
+    AUTH --> MAIL
+    JOBS --> MAIL
+    AUTH --> DB
+    PROF --> DB
+    RM --> DB
+    AI --> DB
+    PRJ --> DB
+    COM --> DB
+    GAM --> DB
+    ADM --> DB
+    JOBS --> DB
+    PRJ --> GAM
+    RM --> GAM
+    ADM --> GAM
 
-A powerful administration dashboard enables platform-wide management, including user moderation, project oversight, roadmap tracking, community management, approvals, XP control, and detailed user profile inspection.
-
-![Admin Dashboard](README_img/admin.png)
-
----
-
-## 🛠️ Tech Stack
-
-| Layer | Technology |
-|---|---|
-| **Backend** | Python (Flask) |
-| **Database** | MongoDB |
-| **AI Engine** | Mistral AI |
-| **Frontend** | HTML, CSS, JavaScript |
-| **Authentication** | Flask-Login, Flask-Bcrypt |
-| **Deployment** | Render |
-
----
-
-## 📂 Project Structure
-
+    classDef node fill:#eef3f8,stroke:#4a6fa5,color:#1b2a3a
+    classDef store fill:#fff4e0,stroke:#b7791f,color:#3b2a0a
+    classDef ext fill:#f3f0fa,stroke:#6b5b95,color:#2a2440
+    class UI,AUTH,PROF,RM,AI,PRJ,COM,GAM,ADM,JOBS node
+    class DB store
+    class GROQ,YT,GH,MAIL ext
+    style Client fill:none,stroke:none
+    style Backend fill:none,stroke:#8a9bb0,stroke-dasharray:4 3,color:#5a6b7d
+    style Ext fill:none,stroke:#8a9bb0,stroke-dasharray:4 3,color:#5a6b7d
 ```
-SkillBridge-Platform/
-├── app.py                        # Main Flask application
-├── ai_roadmap_generator.py       # Mistral AI roadmap logic
-├── recommendation_engine.py      # Skill-based recommendation engine
-├── gunicorn.conf.py              # Gunicorn server configuration
-├── wsgi.py                       # WSGI entry point
-├── Procfile                      # Render deployment config
-├── requirements.txt              # Python dependencies
-├── templates/
-│   ├── mainpage.html             # Dashboard
-│   ├── community_chat.html       # Real-time community chat
-│   ├── resume_builder.html       # ATS resume builder
-│   ├── portfolio_builder.html    # Portfolio generator
-│   ├── admin.html                # Admin control panel
-│   ├── view_roadmap.html         # Roadmap viewer
-│   ├── find_communities.html     # Community discovery
-│   └── ...                      # 20+ more templates
-├── static/
-│   ├── css/
-│   └── js/
-└── .gitignore
+
+## How it works
+
+### Roadmap generation, with optional personalisation
+
+```mermaid
+flowchart TD
+    G["User enters a goal"] --> LIM{"Daily roadmap limit reached?<br/>10 per day"}
+    LIM -- "Yes" --> STOP["Show limit message"]
+    LIM -- "No" --> OPT{"Personalise with<br/>Profile, Resume, Projects?"}
+    OPT -- "None ticked" --> P["Build prompt from the goal only"]
+    OPT -- "Some ticked" --> CTX["Build learner context<br/>allow-listed fields only"]
+    CTX --> F["Strip links and emails<br/>cap length, no names or saved roadmaps"]
+    F --> P2["Prompt with the context as data"]
+    P --> LLM["Groq LLM<br/>rotates API keys on quota errors"]
+    P2 --> LLM
+    LLM --> V["Parse JSON, check structure,<br/>clean the personalisation block"]
+    V --> YT["Find learning links<br/>YouTube, with search fallback"]
+    YT --> OUT["Roadmap shown, user can save it"]
 ```
 
----
+### From a project upload to XP
 
-## ⚙️ Installation & Setup
+```mermaid
+flowchart TD
+    U["User uploads a project version<br/>.zip, max 16 MB"] --> CHK["Client size check, then server check"]
+    CHK --> PEND["Saved as a pending version"]
+    PEND --> ADM["Admin approvals list"]
+    ADM -- "Approve" --> CLAIM{"Atomic claim<br/>pending to approved"}
+    CLAIM -- "First request" --> XP["+50 XP, atomic increment"]
+    CLAIM -- "Any later request" --> DUP["Rejected: already approved"]
+    ADM -- "Reject" --> REJ["Marked rejected, no XP"]
+    XP --> LVL["Level and badge updated"]
+    XP --> NOTE["User notification"]
+```
 
-1. **Clone the repository**
+## XP and levels
+
+| Action | XP |
+|---|---:|
+| Project version approved by an admin | +50 |
+| Mock interview completed | +50 |
+| 7-day streak / 30-day streak | +35 / +100 |
+| Profile 100% complete (once) | +30 |
+| Connected GitHub profile | +25 |
+| Added a certificate | +15 |
+| Created a project, imported a project, joined a community | +10 each |
+| Completed a roadmap stage | +5 |
+
+Deleting a certificate (−15), a project (−10 plus −50 for each approved version) takes the XP back. XP never goes below zero.
+
+| Level | Badge | XP |
+|---:|---|---|
+| 1 | Bronze Builder | 0 to 199 |
+| 2 | Silver Coder | 200 to 499 |
+| 3 | Gold Developer | 500 to 999 |
+| 4 | Platinum Architect | 1000 to 1999 |
+| 5 | Diamond Founder | 2000+ |
+
+The weekly leaderboard resets every Monday at 12:00 AM UTC.
+
+## Key engineering decisions
+
+| Decision | Why | Evidence |
+|---|---|---|
+| Atomic XP updates (`$inc`) and an atomic pending-to-approved claim | Two events at the same moment could overwrite each other or pay twice | Checked with an in-memory simulation: double approve pays once, weekly XP accumulates |
+| XP is taken back when a certificate or project is deleted, floored at 0 | Stops add, delete, repeat XP farming | Delete handlers call `deduct_xp` |
+| AI personalisation reads only an allow-list of profile fields | Name, email, location, links, company names and saved roadmaps never reach the AI | `services/roadmap_context.py` reads 10 named fields; links and emails are stripped from free text |
+| Personal data goes to the AI as quoted data, not instructions | Text a user typed in a project description cannot steer the prompt | Context is wrapped in tags with an instruction to ignore commands inside it |
+| Rate limits keyed per account for AI features, IP plus email for login | A VPN or shared IP should not bypass or unfairly block users | `get_user_key` and `get_login_key` in `services/utils.py` |
+| Per-feature daily AI limits | Keeps Groq usage predictable | 50 chat messages, 10 roadmaps, 5 interviews per day |
+| Same validation rules on the client and the server, with exact ranges in the error message | The browser can be bypassed, and users need to know the allowed range | Experience 0 to 50 years, CGPA 0 to 10, percentage 0 to 100, years 1980 to current year |
+| Accounts go to a 30-day trash before they are purged | Gives users and admins a way to undo a deletion | Daily purge job at midnight IST |
+| One 5,313-line `app.py` split into 17 route modules and a services layer | Easier to read, test and change | Endpoint check and baseline comparison scripts in `tools/` |
+
+## Testing and verification
+
+There is **no automated test suite in the repository yet**. What exists:
+
+- `tools/check_endpoints.py` checks that every `url_for` endpoint used in templates and code is registered.
+- `tools/dump_baseline.py` and `tools/compare_baseline.py` compare the app's routes and behaviour before and after the refactor.
+- `edit_test_checklist.md` is a manual checklist for the resume builder.
+- `audit_report.md` and `structure_report.txt` record the refactor audit.
+
+Roadmap quality is **not evaluated**. The AI output is only checked for valid structure.
+
+## Security
+
+**Implemented:**
+
+- Passwords are hashed with bcrypt.
+- Email verification and password reset use signed, time-limited tokens.
+- Rate limits on login, signup, password reset, uploads and AI calls. Default limits are 200 per day and 50 per hour.
+- Free-text profile fields are sanitised with bleach.
+- Admin routes require an admin account. Users can only edit or delete their own projects.
+- Uploads: project versions are `.zip` only and capped at 16 MB, checked in the browser and on the server. Profile photos must be PNG, JPG, GIF or WEBP, up to 2 MB, and the file header is checked.
+- Social links must be `http(s)` links on the platform's own domain.
+- XP changes are atomic, and approvals cannot be paid twice.
+
+**Not implemented yet:**
+
+- No CSRF tokens. Flask-WTF is installed but not enabled.
+- No Content-Security-Policy or other security headers, and session cookie flags are not set explicitly.
+- No automated tests.
+- Uploaded project zips are stored on the server's disk (see Limits).
+
+**Secrets.** Settings come from environment variables or a git-ignored `.env` file. If `FLASK_SECRET_KEY` is missing, a random key is generated at each start, which logs everyone out and breaks sessions across several workers. Always set it.
+
+**What leaves your server.**
+
+| Feature | Provider | What is sent |
+|---|---|---|
+| Roadmap generation | Groq | The goal. If personalisation is on, the allowed profile, resume and project summaries |
+| Chatbot and mock interviews | Groq | Your messages, interview answers and recent history |
+| Learning resources | YouTube Data API | Search queries built from the roadmap topics |
+| GitHub import and sync | GitHub | The GitHub username and API requests |
+| Verification, reset and reminder emails | Resend | Email address and the link |
+| All app data | MongoDB | Stored in the database you configure |
+
+## Quick start
+
+Requirements: Python 3.12, a MongoDB database (local or Atlas), and API keys for Groq, YouTube and Resend.
 
 ```bash
 git clone https://github.com/Shivam7977/SkillBridge-Platform.git
 cd SkillBridge-Platform
-```
-
-2. **Install dependencies**
-
-```bash
-pip install -r requirements.txt
-```
-
-3. **Create a `.env` file** and add your keys:
-
-```env
-MISTRAL_API_KEY=your_mistral_api_key
-MONGO_URI=your_mongodb_connection_string
-RESEND_API_KEY=your_resend_api_key
-SECRET_KEY=your_flask_secret_key
-YOUTUBE_API_KEY=your_youtube_api_key
-```
-
-4. **Run the app**
-
-```bash
+python -m venv venv && source venv/bin/activate    # Windows: .\venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+cp .env.example .env     # then fill in the values, see Configuration
 python app.py
 ```
 
----
+Open [http://127.0.0.1:5000](http://127.0.0.1:5000). A health check is at `/health`.
 
-## 🤝 Contributing
+> Run `python app.py` inside the activated virtual environment. A `No module named 'flask_limiter'` error means the packages are not installed for the Python you are using.
 
-Pull requests are welcome! For major changes, please open an issue first to discuss what you'd like to change.
+<details>
+<summary>Configuration</summary>
 
-1. Fork the repository
-2. Create your feature branch
+| Variable | Default | Purpose |
+|---|---|---|
+| `MONGO_URI` | `mongodb://127.0.0.1:27017/skillbridge_db` | MongoDB connection string. |
+| `FLASK_SECRET_KEY` | random per start | Signs sessions and email tokens. Set it. |
+| `GROQ_API_KEY_1`, `GROQ_API_KEY_2` | none | Groq keys. The app rotates to the second key on quota errors. |
+| `YOUTUBE_API_KEY` | none | Finds learning playlists for roadmap stages. |
+| `GITHUB_TOKEN` | none | Used for GitHub API requests. |
+| `RESEND_API_KEY` | none | Sends verification, reset and reminder emails. |
+| `APP_BASE_URL`, `PUBLIC_BASE_URL` | none | Base URL used in links inside emails. |
 
-```bash
-git checkout -b feature/your-feature-name
+</details>
+
+<details>
+<summary>Deployment</summary>
+
+The `Procfile` runs `gunicorn -w 4 -b 0.0.0.0:5000 --timeout 120 wsgi:app`, so the app runs on hosts such as Render. The longer timeout leaves room for AI, email and YouTube calls. Set every variable above in the host's environment settings, and allow the host's IP in your MongoDB Atlas network access.
+
+</details>
+
+<details>
+<summary>Main routes</summary>
+
+| Area | Routes |
+|---|---|
+| Accounts | `/signup`, `/verify`, `/login`, `/forgot_password`, `/reset_password/<token>`, `/settings`, `/delete_account` |
+| Profile | `/profile`, `/profile/save/<card>`, `/certificates/add`, `/user/<id>` |
+| Roadmaps | `/roadmap_generator`, `/save_roadmap`, `/my_roadmaps`, `/roadmap/<id>` |
+| AI | `/api/chatbot`, `/interview`, `/interview/ask`, `/interview/complete` |
+| Projects | `/projects`, `/create_project`, `/project/<id>`, `/project/<id>/upload`, `/project/<id>/like` |
+| Communities | `/communities`, `/community/<id>`, `/api/community/<id>/messages` |
+| Gamification | `/leaderboard`, `/api/xp_history`, `/api/xp_status`, `/api/ai_usage` |
+| Resume and portfolio | `/resume_builder`, `/resume_pdf`, `/portfolio_builder` |
+| GitHub | `/api/github/fetch`, `/api/github/sync`, `/api/github/disconnect` |
+| Admin | `/admin`, `/admin/approve_commit/<id>`, `/admin/reject_commit/<id>`, `/admin/adjust_xp/<user_id>` |
+
+</details>
+
+<details>
+<summary>Troubleshooting</summary>
+
+- **`No module named 'flask_limiter'`:** activate the virtual environment and run `python -m pip install -r requirements.txt`.
+- **`MongoDB connection` fails:** check `MONGO_URI`, and in Atlas add your IP under Network Access.
+- **Roadmap or chatbot does not answer:** check the Groq keys, and check the daily limits (50 chats, 10 roadmaps, 5 interviews).
+- **Upload shows "File is too large":** the limit is 16 MB. Remove `node_modules`, `venv`, `.git` or build folders from the zip.
+- **Everyone is logged out after a restart:** `FLASK_SECRET_KEY` is not set.
+
+</details>
+
+<details>
+<summary>Limits and known gaps</summary>
+
+- Project zips are stored on the server's disk. On Render the disk is not persistent, so uploaded files can disappear after a restart or redeploy while their database records stay.
+- Scheduled jobs (weekly XP reset, inactivity reminders, trash purge) start inside each worker process, and the default `Procfile` runs 4 workers. Jobs can therefore run more than once.
+- Project recommendations rank projects by the number of skills they share with you. This is a simple overlap count, not a learned model.
+- `/api/recalculate_xp` is a repair tool. It can only lower XP and ignores some XP sources.
+- AI limits per day: 50 chat messages, 10 roadmaps and 5 interviews. Uploads are capped at 16 MB.
+
+</details>
+
+## Project Structure
+
+```
+SkillBridge-Platform/
+├── app.py                         # Entry point
+├── wsgi.py                        # Gunicorn entry
+├── extensions.py                  # Flask app, MongoDB, limiter, bcrypt, scheduler
+├── models.py                      # User model for Flask-Login
+├── ai_roadmap_generator.py        # Groq calls, JSON parsing, YouTube lookups
+├── recommendation_engine.py       # Skill-overlap project recommendations
+├── routes/
+│   ├── auth.py                    # Signup, verify, login, password reset
+│   ├── account.py                 # Settings, password change, delete account
+│   ├── profile.py                 # Profile cards, certificates, validation
+│   ├── roadmap.py                 # Roadmap generator and saved roadmaps
+│   ├── chatbot.py                 # AI chatbot
+│   ├── interview.py               # Mock interviews, adaptive difficulty
+│   ├── projects.py                # Projects and version uploads
+│   ├── project_social.py          # Likes, bookmarks, comments
+│   ├── communities.py             # Communities and chat
+│   ├── messaging.py               # Direct messages
+│   ├── resume_portfolio.py        # Resume and portfolio builders
+│   ├── github_sync.py             # GitHub import and sync
+│   ├── gamification.py            # Leaderboard, XP history, AI usage
+│   ├── admin_users.py             # Admin panel, approvals, XP adjust
+│   ├── admin_content.py           # Admin moderation of projects, roadmaps, communities
+│   ├── misc.py                    # Search, notifications, onboarding, health
+│   └── errors_hooks.py            # Error pages and request hooks
+├── services/
+│   ├── xp.py                      # XP, levels, streaks
+│   ├── ai_limits.py               # Daily AI limits
+│   ├── roadmap_context.py         # Privacy-filtered context for personalised roadmaps
+│   ├── notifications.py           # In-app notifications
+│   ├── email_service.py           # Email sending
+│   ├── account_service.py         # Account trash and purge
+│   ├── jobs.py                    # Scheduled jobs
+│   ├── time_utils.py              # Timezones
+│   └── utils.py                   # Validation helpers, rate-limit keys
+├── templates/                     # Jinja pages, 18 resume templates
+├── static/
+│   ├── upload_guard.js            # Client-side upload size and type check
+│   ├── dark.css, mobile.css
+│   └── portfolio_img/, portfolio_assets/, profile_pics/, project_uploads/
+├── tools/                         # Endpoint check, baseline comparison
+├── README_img/                    # Screenshots
+├── Procfile, gunicorn.conf.py
+├── requirements.txt
+└── README.md
 ```
 
-3. Commit your changes
+## License
 
-```bash
-git commit -m 'Add your feature description'
-```
-
-4. Push to the branch
-
-```bash
-git push origin feature/your-feature-name
-```
-
-5. Open a Pull Request
-
----
-
-## 👨‍💻 Developer
-
-Developed with ❤️ by **Shivam Pandey**
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?logo=linkedin)](https://www.linkedin.com/in/shivam-pandey-0336ba336/)
-[![Portfolio](https://img.shields.io/badge/Portfolio-Visit-green?logo=vercel)](https://shivam-ai-portfolio.netlify.app/)
-[![GitHub](https://img.shields.io/badge/GitHub-Follow-black?logo=github)](https://github.com/Shivam7977)
-
-""" # Brutally honest GitHub review: Shivam7977
-
-Reviewed on October 11, 2026 · Public profile and repository-level inspection
-
-[GitHub Vs. Bitbucket: Which Code Hosting Platform is Best? - Hatica](https://images.openai.com/static-rsc-4/h6nY0yf7JsEycY0Sx4mRb8nNKCcIcOBcXiDBB5zoyQB53kJfJ3b9fumZfym32-9QtI9bMIOfte8A4pxGn5j31kvTkB5L6rFXiUBQgJque7-Zjv7CR_c2oXmVt6Bh1m44flmqva6djfbFywIxlr_rYABjp8Znp5gQnvWf0wXwtYs?purpose=inline)
-
-# Shivam Rajesh Pandey
-
-Final-year CSE (AI/ML) student · Flask · ML · Data Science
-
-[Open GitHub profile](https://github.com/Shivam7977)
-
-I'm not going to rate this account based on a fancy README, GitHub contribution squares, or the number of projects alone. I've inspected the public profile, repository layouts, visible project documentation, commit-history counts, and parts of the actual `SkillBridge-Platform/app.py` source. I also checked the structure and claims of the fraud-detection and PDF RAG projects.&#x20;
-
-[image](https://www.google.com/s2/favicons?domain=https://github.com\&sz=32)
-
-GitHub
-
-+4
-
-
-
-One limitation: I could not reliably inspect every source file in all seven repositories, execute the applications, or independently reproduce the reported model metrics. I'll distinguish visible problems from things that still need verification.
-
-MY OVERALL RATING
-
-# 6.0/10
-
-for a student / entry-level AI-ML profile
-
-The verdict: Ambitious project selection, decent breadth, and evidence of building substantial applications. But the public evidence of engineering depth, testing discipline, and reliable ML evaluation doesn't yet match the ambition of the project descriptions.
-
-Project ambition
-
-## 8/10
-
-Visible architecture
-
-## 6/10
-
-Proof of ML quality
-
-## 5/10
-
-Production confidence
-
-## 4/10
-
-These are my qualitative judgments from the accessible public evidence, not automated test results.
-
-## 1. The roast 🔥
-
-This GitHub profile is trying to sell the recruiter the final product before fully proving the engineering underneath it.
-
-The projects have strong names: an AI-powered career platform, fund-flow fraud detection, and a retrieval-augmented PDF assistant. Those are much better portfolio ideas than another calculator or basic to-do app.
-
-But there's a gap between saying "I built a production-oriented AI system" and demonstrating that the system is tested, reproducible, secure, and robust.
-
-The biggest concern isn't a lack of projects. It's that the strongest projects make substantial technical claims that need stronger, independently verifiable evidence.
-
-My harshest one-line roast:
-
-> The product pitches sound like a startup demo day; the next step is making the engineering evidence strong enough to survive a skeptical technical interview.
-
-Now let's get into the actual repositories.
-
-## 2. Repository-by-repository review
-
-[SkillSync AI – Career Intelligence Platform | Devpost](https://images.openai.com/static-rsc-4/tOlMJUKrQGP4tR7BWGFaB9Mjf17Pwofk3hok4GB-iogz9rp3q2JAhwfigPsT1GmjXDqzLsC8zeIKjUMVobBVb2udL6KQEhI1GP5kQs6-bhp82JA-jCnOV_12u8_oy60qDukMmWhHVX-TCl62wUpdIECZG1qTTuYEtHl4QevFnZc?purpose=inline)
-
-## 1. SkillBridge-Platform
-
-Strongest product ambition
-
-6.5/10
-
-[Inspect repository](https://github.com/Shivam7977/SkillBridge-Platform)
-
-A career platform with AI roadmaps, resume generation, portfolio building, community features, recommendations, and gamification. The visible structure includes Flask, templates, static assets, AI modules, and deployment configuration. The repository shows roughly 100 commits in its accessible history.&#x20;
-
-[image](https://www.google.com/s2/favicons?domain=https://github.com\&sz=32)
-
-GitHub
-
-+1
-
-
-
-What's good
-
-- This goes beyond a basic CRUD project. There are multiple connected product features.
-- `ai_roadmap_generator.py` and `recommendation_engine.py` separate at least some functionality from the main application.
-- Deployment configuration and a live-demo link make the project easier to evaluate than a code-only repository.
-
-The roast: your `app.py` is the elephant in the room.
-
-The inspected source file runs to approximately 3,800 lines and contains authentication, rate limiting, email operations, scheduling, database operations, user management, gamification, and route-related logic.&#x20;
-
-[image](https://www.google.com/s2/favicons?domain=https://github.com\&sz=32)
-
-GitHub
-
-+1
-
-
-
-That's a lot of responsibility concentrated in one module.
-
-- Separation of concerns: Separate modules for authentication, users, roadmaps, projects, and community functionality would make the system easier to test and maintain.
-- Testing evidence: A `test.py` file exists, but its presence alone does not establish meaningful automated test coverage. I couldn't verify coverage or whether the tests run in CI.
-- Dependency management: I would want to see a clean, reproducible environment and explicit handling of dependency updates.
-- Operational reliability: The rate limiter uses `memory://`. That means its counters are process-local rather than shared across multiple workers, which can make limits inconsistent in a multi-worker deployment.&#x20;
-
-  [image](https://www.google.com/s2/favicons?domain=https://github.com\&sz=32)
-
-  GitHub
-
-  +1
-
-
-
-Another detail: the secret key falls back to a randomly generated value when the environment variable is missing. That is safer than hardcoding a known secret, but sessions and signed tokens can become invalid after a restart. A production deployment should require a stable configured secret.
-
-Verdict: This is potentially the strongest full-stack project, but the architecture needs to catch up with the feature count. Refactoring and automated tests would improve its credibility more than adding another dashboard feature.
-
-[Empowering Fast Graph Visualizations for Fraud Detection (or Why We Built Our Own Graph Database) | by Francisco Santos | Feedzai Techblog | Medium](https://images.openai.com/static-rsc-4/iB7ClYtOKRAFh1gKPc1nrm8kApdpwRghB9RyRl11V1M9--07sRg6elg-O0mLRvjwy69nD8Wx7_OQyl6HoCSZR84SKHcQbwdI3vEEqEvHgLNN1tn4M5NNhYWsqO-R6yWNzq3hbigt_AMmpOkFm4Ry6YpEbzKqQPyZ0L6Ycg5Ju0I?purpose=inline)
-
-## 2. fund-flow-fraud
-
-Highest technical scrutiny
-
-5.5/10
-
-[Inspect repository](https://github.com/Shivam7977/fund-flow-fraud)
-
-The project combines XGBoost, Isolation Forest, graph-based fraud-pattern analysis, SHAP explanations, and a Flask dashboard. Its structure includes `src/`, `notebooks/`, `models/`, `scripts/`, `data/`, and `docs/`. The repository history shows roughly 40 commits.&#x20;
-
-[image](https://www.google.com/s2/favicons?domain=https://github.com\&sz=32)
-
-GitHub
-
-+1
-
-
-
-What's good
-
-- Fraud detection is a relevant, domain-specific ML problem.
-- Combining transaction-level signals with account relationships is a sensible direction.
-- Including explainability and investigator-facing workflows shows awareness of how ML outputs might be used.
-
-The roast: impressive metrics are not the same as proven fraud detection.
-
-The README reports an AUC of 0.9998 for one model and 0.9105 for another. It also says the project uses PaySim data adapted to Indian payment-rail terminology and thresholds.&#x20;
-
-[image](https://www.google.com/s2/favicons?domain=https://github.com\&sz=32)
-
-GitHub
-
-+1
-
-
-
-An AUC of 0.9998 is extraordinary enough to demand careful scrutiny, not automatic applause.
-
-Here's what I'd ask in an interview:
-
-- Was the train/test split performed by time or randomly? Could transactions from the same simulated accounts or patterns leak across the split?
-- Were feature engineering and resampling performed only on training data? Applying them before splitting can inflate results.
-- What are precision, recall, PR-AUC, false-positive rates, and recall at a realistic alert volume?
-- How does the system perform on entirely unseen accounts or different fraud patterns?
-- Are the graph analytics and claimed real-time workflow fully implemented, and what automated tests prove that?
-
-These are questions requiring verification, not accusations that leakage exists.
-
-There is also a documentation problem. The repository has multiple layers of folders, which is promising, but it includes a committed `repo.zip`. Maintaining a separate archive of the source alongside the repository can create duplicate copies that become inconsistent.&#x20;
-
-[image](https://www.google.com/s2/favicons?domain=https://github.com\&sz=32)
-
-GitHub
-
-+1
-
-
-
-I'd also tighten the distinction between simulated fraud patterns and real Indian banking data. PaySim is a synthetic mobile-money dataset; adapting its labels and thresholds does not independently validate the model on real UPI, NEFT, RTGS, or IMPS fraud.
-
-Verdict: This could become the standout project, but only if the evaluation is rigorous, reproducible, and honest about the limits of its dataset. The next improvement should be evidence, not more features.
-
-[GitHub - gautamnaik1994/GenAI_DocumentQA_Bot: AI-Powered Document Q&A is an AI-powered document question-answering application built with Streamlit, LangChain, HuggingFace, and FAISS. It allows users to upload multiple PDF documents and interactively ask questions, receiving concise answers along with relevant source citations.](https://images.openai.com/static-rsc-4/84Y3CEaTREiAJnNg0QIjTgcGsn6ueCnMYiiJOJbTpnnc7a9ci8pKleuzX5NhRLx82yzMXOLZekXMamFv2trSPxnx4Nb_SKH4FQWkzVFwvjsDOBZsWVPvnzFiQyEl3ToHpu6hHsRmpmWl1GtvQ5Gf6vtLV0C17lgYtnLTdJrFou0?purpose=inline)
-
-## 3. pdf-rag-chatbot
-
-Best research direction
-
-6.5/10
-
-[Inspect repository](https://github.com/Shivam7977/pdf-rag-chatbot)
-
-This repository describes a PDF research assistant using dense retrieval, BM25, reciprocal rank fusion, cross-encoder reranking, source attribution, and retrieval evaluation. Its layout separates `app/`, `data/`, `evaluation/`, and `frontend/`.&#x20;
-
-[image](https://www.google.com/s2/favicons?domain=https://github.com\&sz=32)
-
-Shivam7977/pdf-rag-chatbot · GitHub
-
-+1
-
-
-
-What's good
-
-- Hybrid retrieval and reranking are more substantial engineering choices than simply sending an entire PDF to a language model.
-- The README reports retrieval metrics rather than relying only on screenshots.
-- The project includes evaluation-related structure and a Dockerfile, both useful foundations.
-
-The roast: the evaluation is a start, not a research result.
-
-The published evaluation uses 30 questions. The README reports that hybrid retrieval plus reranking achieves 90% Recall\@5 and 96.7% Recall\@10 on that set.&#x20;
-
-[image](https://www.google.com/s2/favicons?domain=https://github.com\&sz=32)
-
-Shivam7977/pdf-rag-chatbot · GitHub
-
-+1
-
-
-
-That is encouraging preliminary evidence, but 30 questions are too few to support broad claims about retrieval reliability across different PDFs, document layouts, languages, and query types.
-
-I would want to see:
-
-- A larger, documented evaluation set with a clear train/development/test distinction where applicable.
-- Repeatable evaluation scripts and the exact configuration used to produce the reported numbers.
-- Tests for scanned PDFs, tables, multi-column layouts, missing pages, and documents with conflicting information.
-- Citation correctness and answer faithfulness measured separately from retrieval recall.
-- A clear explanation of what happens when retrieval finds irrelevant content or no relevant evidence at all.
-
-One easy cleanup: `desktop.ini` is visible in the repository root. It is a minor Windows-specific artifact, not a serious technical defect, but it signals that the repository could use a more deliberate cleanup pass. The GitHub About section also lacks a short description and topics.&#x20;
-
-[image](https://www.google.com/s2/favicons?domain=https://github.com\&sz=32)
-
-Shivam7977/pdf-rag-chatbot · GitHub
-
-+1
-
-
-
-Verdict: Potentially the most focused technical project of the three. Stop expanding it long enough to make the evaluation independently reproducible.
-
-## 3. The profile itself: where it loses points
-
-The public profile displays seven repositories, eight followers, eleven following, and a bio describing a final-year AI/ML student open to internships. The pinned projects include the three projects reviewed above.&#x20;
-
-[image](https://www.google.com/s2/favicons?domain=https://github.com\&sz=32)
-
-GitHub
-
-+3
-
-
-
-| Area                      | Rating | Brutally honest assessment                                         |
-| ------------------------- | ------ | ------------------------------------------------------------------ |
-| Project selection         | 8/10   | Relevant, ambitious, and varied                                    |
-| Technical breadth         | 7/10   | Full-stack, ML, and RAG exposure                                   |
-| Architecture              | 6/10   | Some separation, but the large Flask module is a concern           |
-| ML evaluation             | 5/10   | Promising reported results; stronger validation needed             |
-| Testing & reliability     | 4/10   | Public evidence isn't strong enough to establish confidence        |
-| Repository hygiene        | 6/10   | Generally recognizable layouts, with some cleanup needed           |
-| Professional presentation | 7/10   | Clear positioning and useful project descriptions                  |
-| Overall                   | 6/10   | Promising student portfolio, not yet proven engineering excellence |
-
-### Three profile-level weaknesses
-
-1\. Too many big claims, not enough independent proof.
-
-When a repository claims fraud detection, explainability, real-time scoring, and investigation reports, a technical reviewer will look for tests, evaluation methodology, reproducible results, and failure cases. A well-written README gets them to look; the implementation has to convince them.
-
-2\. The public presentation is ahead of the engineering evidence.
-
-A live demo is valuable, but a demo working once doesn't establish reliability, security, or maintainability. The most important missing signal is not another badge. It's a documented set of tests and reproducible results.
-
-3\. The projects compete for attention.
-
-Three substantial applications can be an advantage, but they can also leave a recruiter wondering which technology the developer understands deeply. A clearer primary specialization and one exceptionally well-tested flagship project would create a stronger signal.
-
-These are judgments about the public portfolio, not proof that the author lacks the underlying skills.
-
-## 4. What I would fix first
-
-Here's the priority order I'd recommend if the goal is to improve the account for AI/ML or full-stack internships.
-
-## Engineering improvement checklist
-
-0/6
-
-Audit fraud-model leakageCriticalDocument the split strategy, preprocessing boundaries, class imbalance, baselines, PR-AUC, precision/recall, and reproducible evaluation.Build meaningful automated testsCriticalAdd unit tests for core logic and integration tests for authentication, API routes, error handling, and key application flows.Refactor SkillBridgeHighMove route groups and business logic out of app.py into blueprints, services, and data-access modules.Expand RAG evaluationHighIncrease test-set diversity, publish the evaluation script and dataset methodology, and test source attribution and answer faithfulness.Clean repository presentationMediumRemove unnecessary artifacts and duplicate archives; add accurate descriptions, setup instructions, configuration examples, and CI status.Show proof of ownershipMediumAdd concise architecture diagrams, design decisions, known limitations, test commands, and a short demo walkthrough for each flagship project. Copy checklist
-
-## 5. What a tough interviewer might ask
-
-These questions are where the portfolio either becomes credible or starts to fall apart.
-
-For fund-flow fraud detection
-
-Why is your reported AUC so high? Show me your split code, your baseline, and your precision-recall curve. What happens when the test set contains entirely unseen accounts?
-
-For SkillBridge
-
-Why is so much application logic inside `app.py`? How would you separate business logic from HTTP routes, and how would you test it without launching the entire application?
-
-For the PDF RAG assistant
-
-How did you build the 30-question evaluation set? How do you know your citations support the generated answer rather than merely pointing to a retrieved page?
-
-For all three projects
-
-Show me a test that fails before a bug fix and passes after it. Which design decision would you reverse today, and why?
-
-If the developer can answer those questions with working code, evidence, and clear reasoning, the portfolio becomes much stronger than its public presentation alone suggests.
-
-## Final verdict
-
-What deserves credit
-
-Choosing real problems, attempting complete applications, exploring ML beyond basic classification, and incorporating retrieval evaluation are all positive signs. The project selection is more ambitious than a typical beginner portfolio.
-
-What holds the account back
-
-The public evidence doesn't yet establish consistent testing discipline, reproducible ML performance, clean separation of concerns, or production-level reliability.
-
-My rating is 6/10 today, with potential for 8/10 or better if the developer turns the existing work into verifiable engineering.
-
-The single best next move is to make `fund-flow-fraud` scientifically defensible: reproducible evaluation, careful leakage checks, realistic metrics, and a clear explanation of limitations. Then refactor SkillBridge and strengthen tests across all three.
-
-Final roast: Don't build a fourth impressive-sounding project yet. Make the first three so technically defensible that a skeptical engineer can't dismiss them after opening the source code."""
+MIT. See [LICENSE](LICENSE).

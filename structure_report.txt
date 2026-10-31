@@ -1,0 +1,127 @@
+Files on disk (excl. venv/.git/caches): 122 | tracked by git: 79
+Legend: T = tracked by git, - = not tracked
+
+=== 1. FOLDERS: files / size / tracked count ===
+(root files)                              18 files        114 KB  tracked 11
+.github                                    1 files          0 KB  tracked 1
+README_img                                 9 files      4,043 KB  tracked 9
+routes                                    18 files        248 KB  tracked 0
+services                                   9 files         37 KB  tracked 0
+static                                     2 files         52 KB  tracked 2
+static/portfolio_img                       5 files      1,460 KB  tracked 5
+static/profile_pics                        8 files      1,828 KB  tracked 8
+static/project_uploads                     6 files     75,362 KB  tracked 6
+templates                                 37 files      1,303 KB  tracked 37
+tools                                      9 files         39 KB  tracked 0
+
+=== 2. ROOT FILES ===
+-       1.0 KB  .env
+T       0.3 KB  .gitignore
+T      12.4 KB  ai_roadmap_generator.py
+T       3.3 KB  app.py
+-      18.9 KB  audit_report.md
+-      18.4 KB  baseline.json
+-       0.2 KB  baseline_new.json
+-      26.5 KB  edit_test_checklist.md
+-       3.1 KB  extensions.py
+T       1.6 KB  gunicorn.conf.py
+T       1.1 KB  LICENSE
+-       0.9 KB  models.py
+T       0.1 KB  Procfile
+T      23.8 KB  README.md
+T       1.1 KB  recommendation_engine.py
+T       0.5 KB  requirements.txt
+T       0.9 KB  test.py
+T       0.1 KB  wsgi.py
+
+=== 3. UNTRACKED (not ignored): these show up in git status ===
+audit_report.md
+baseline.json
+baseline_new.json
+edit_test_checklist.md
+extensions.py
+models.py
+routes/__init__.py
+routes/account.py
+routes/admin_content.py
+routes/admin_users.py
+routes/auth.py
+routes/chatbot.py
+routes/communities.py
+routes/errors_hooks.py
+routes/gamification.py
+routes/github_sync.py
+routes/interview.py
+routes/messaging.py
+routes/misc.py
+routes/profile.py
+routes/project_social.py
+routes/projects.py
+routes/resume_portfolio.py
+routes/roadmap.py
+services/__init__.py
+services/account_service.py
+services/ai_limits.py
+services/email_service.py
+services/jobs.py
+services/notifications.py
+services/time_utils.py
+services/utils.py
+services/xp.py
+tools/_extract_batch_b.py
+tools/_extract_batch_c.py
+tools/_fix_s_import.py
+tools/audit_resume_templates.py
+tools/check_endpoints.py
+tools/compare_baseline.py
+tools/dump_baseline.py
+tools/structure_audit.py
+tools/verify.ps1
+
+=== 4. TRACKED BUT MATCHES .gitignore (needs git rm --cached) ===
+test.py
+
+=== 5. IGNORED FILES ON DISK (grouped) ===
+(root files)                           1 files
+
+=== 6. SUSPICIOUS NAMES (test / tmp / backup / copy / scratch / check) ===
+-      26.5 KB  edit_test_checklist.md
+T       0.9 KB  test.py
+-       1.4 KB  tools/check_endpoints.py
+
+=== 7. BIGGEST 15 FILES ===
+T     43,054 KB  static/project_uploads/5bee01d34aebed0d.zip
+T     15,611 KB  static/project_uploads/803b29aad25bfbac.zip
+T     15,611 KB  static/project_uploads/db5f4bf6808a9a6b.zip
+T        817 KB  static/portfolio_img/Template1_thumb.png
+T        609 KB  README_img/community.png
+T        551 KB  README_img/resume-builder.png
+T        501 KB  README_img/settings.png
+T        446 KB  README_img/Personalized_Dashboard.png
+T        445 KB  static/profile_pics/4ff62da8d1d5eacb.png
+T        445 KB  static/profile_pics/bad31f2bc6a13883.png
+T        426 KB  README_img/community_recommendation.png
+T        419 KB  README_img/dashboard.png
+T        408 KB  README_img/roadmap-generator.png
+T        371 KB  README_img/portfolio-builder.png
+T        362 KB  static/project_uploads/0a97527d59880f99.zip
+
+=== 8. DUPLICATE CONTENT (identical files) ===
+static/profile_pics/36156347f186b492.png == static/profile_pics/7e917ef1295a407f.png == static/profile_pics/d589723343ae7254.png
+static/profile_pics/4ff62da8d1d5eacb.png == static/profile_pics/bad31f2bc6a13883.png
+static/profile_pics/6345e190721d39d0.jpg == static/profile_pics/936fb2900091ea9c.jpg
+static/project_uploads/0a97527d59880f99.zip == static/project_uploads/569fe328e67e9165.zip == static/project_uploads/61d54316143040f8.zip
+static/project_uploads/803b29aad25bfbac.zip == static/project_uploads/db5f4bf6808a9a6b.zip
+
+=== 9. PYTHON MODULES NOT REFERENCED BY ANY OTHER FILE (tools/ and tests/ are expected here) ===
+T gunicorn.conf.py
+- tools/_extract_batch_b.py
+- tools/_extract_batch_c.py
+- tools/_fix_s_import.py
+- tools/audit_resume_templates.py
+- tools/check_endpoints.py
+- tools/compare_baseline.py
+- tools/dump_baseline.py
+- tools/structure_audit.py
+
+=== 10. TEMPLATES NOT REFERENCED ANYWHERE (verify manually; portfolio_templates are loaded dynamically) ===
