@@ -14,3 +14,6 @@ __pycache__/
 
 # Ignore the file test.py (as it just use for checkinh the suitable google api currently)
 test.py
+
+static/project_uploads/*.zip
+static/profile_pics/*
