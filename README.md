@@ -43,10 +43,6 @@ SkillBridge is a full-stack career platform for students and self-taught develop
 
 ![Portfolio builder](README_img/portfolio-builder.png)
 
-**Interview**  : Can practise mock interview based on your own profile or role based interview.
-
-![Interview](README_img/interview.png)
-
 **Settings and progress**  : XP, rank progression and account preferences.
 
 ![Settings](README_img/settings.png)
@@ -198,26 +194,42 @@ The weekly leaderboard resets every Monday at 12:00 AM UTC.
 
 | Decision | Why | Evidence |
 |---|---|---|
-| Atomic XP updates (`$inc`) and an atomic pending-to-approved claim | Two events at the same moment could overwrite each other or pay twice | Checked with an in-memory simulation: double approve pays once, weekly XP accumulates |
-| XP is taken back when a certificate or project is deleted, floored at 0 | Stops add, delete, repeat XP farming | Delete handlers call `deduct_xp` |
+| Atomic XP updates (`$inc`) and an atomic pending-to-approved claim | Two events at the same moment could overwrite each other or pay twice | Checked by hand. The automated tests do **not** cover XP or approvals (see Testing and verification) |
+| XP is taken back when a certificate or project is deleted, floored at 0 | Stops add, delete, repeat XP farming | Delete handlers call `deduct_xp`. Checked by hand, not by the automated tests |
 | AI personalisation reads only an allow-list of profile fields | Name, email, location, links, company names and saved roadmaps never reach the AI | `services/roadmap_context.py` reads 10 named fields; links and emails are stripped from free text |
 | Personal data goes to the AI as quoted data, not instructions | Text a user typed in a project description cannot steer the prompt | Context is wrapped in tags with an instruction to ignore commands inside it |
 | Rate limits keyed per account for AI features, IP plus email for login | A VPN or shared IP should not bypass or unfairly block users | `get_user_key` and `get_login_key` in `services/utils.py` |
 | Per-feature daily AI limits | Keeps Groq usage predictable | 50 chat messages, 10 roadmaps, 5 interviews per day |
 | Same validation rules on the client and the server, with exact ranges in the error message | The browser can be bypassed, and users need to know the allowed range | Experience 0 to 50 years, CGPA 0 to 10, percentage 0 to 100, years 1980 to current year |
 | Accounts go to a 30-day trash before they are purged | Gives users and admins a way to undo a deletion | Daily purge job at midnight IST |
-| One 5,313-line `app.py` split into 17 route modules and a services layer | Easier to read, test and change | Endpoint check and baseline comparison scripts in `tools/` |
+| One 5,313-line `app.py` split into 17 route modules and a services layer | Easier to read, test and change | Endpoint check and baseline comparison scripts in `tools/`, and 67 automated checks in `tests/` |
 
 ## Testing and verification
 
-There is **no automated test suite in the repository yet**. What exists:
+```bash
+python -m unittest discover -s tests -t . -v     # 34 Python tests
+node tests/js/profile_validators.test.js         # 33 browser-side checks
+```
 
-- `tools/check_endpoints.py` checks that every `url_for` endpoint used in templates and code is registered.
-- `tools/dump_baseline.py` and `tools/compare_baseline.py` compare the app's routes and behaviour before and after the refactor.
-- `edit_test_checklist.md` is a manual checklist for the resume builder.
-- `audit_report.md` and `structure_report.txt` record the refactor audit.
+The tests need no database, API keys or `.env`, and finish in well under a second. They pass on Python 3.12 on Windows, and a GitHub Actions workflow runs them on every push.
 
-Roadmap quality is **not evaluated**. The AI output is only checked for valid structure.
+| Area | What is checked |
+|---|---|
+| Profile rules | Experience 0 to 50, CGPA 0 to 10, percentage 0 to 100, year ranges, work experience limits, social links, and the profile page with junk stored for the user |
+| AI personalisation | No name, email, links or saved roadmaps in the prompt, each switch shares only its own section, the model's answer is trimmed and type-checked |
+| Uploads | A file over 16 MB shows a message, redirects stay on the site |
+| Browser validators | The same ranges and error messages, read directly from `templates/profile.html` |
+
+<details>
+<summary>How the tests work</summary>
+
+`tests/support.py` replaces `extensions.py` (which connects to MongoDB as soon as it is imported) with a stub, and loads individual route functions straight from the source files, so the real code is tested, not a copy. Where a test needs a database answer, it uses a simple mock that returns a prepared user.
+
+</details>
+
+**Not covered by the automated tests:** XP awards and deductions, admin approval of project versions, certificate add and delete, real AI calls and pages in a real browser. These need a real database or a browser, so they are checked by hand before a release (approve a version once and the user gets +50 XP, approving it again is refused; add a certificate for +15 XP and delete it for -15 XP). Roadmap quality is **not evaluated**; the model's output is only checked for valid structure.
+
+Refactor checks from earlier work are still in `tools/` (`check_endpoints.py` for registered endpoints, `dump_baseline.py` and `compare_baseline.py` to compare routes before and after a change), plus `edit_test_checklist.md` for the resume builder and `audit_report.md` for the refactor audit.
 
 ## Security
 
@@ -236,7 +248,7 @@ Roadmap quality is **not evaluated**. The AI output is only checked for valid st
 
 - No CSRF tokens. Flask-WTF is installed but not enabled.
 - No Content-Security-Policy or other security headers, and session cookie flags are not set explicitly.
-- No automated tests.
+- The automated tests cover profile validation, AI privacy, upload limits and the browser validators. They do not cover XP, admin approvals, certificate add and delete, or real AI calls.
 - Uploaded project zips are stored on the server's disk (see Limits).
 
 **Secrets.** Settings come from environment variables or a git-ignored `.env` file. If `FLASK_SECRET_KEY` is missing, a random key is generated at each start, which logs everyone out and breaks sessions across several workers. Always set it.
@@ -374,7 +386,11 @@ SkillBridge-Platform/
 │   ├── upload_guard.js            # Client-side upload size and type check
 │   ├── dark.css, mobile.css
 │   └── portfolio_img/, portfolio_assets/, profile_pics/, project_uploads/
+├── tests/                         # 34 Python tests + 33 browser checks, no database needed
+│   ├── test_*.py, support.py
+│   └── js/profile_validators.test.js
 ├── tools/                         # Endpoint check, baseline comparison
+├── .github/workflows/tests.yml    # Runs the tests on every push
 ├── README_img/                    # Screenshots
 ├── Procfile, gunicorn.conf.py
 ├── requirements.txt
