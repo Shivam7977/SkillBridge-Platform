@@ -35,7 +35,7 @@ SkillBridge is a full-stack career platform for students and self-taught develop
 ![Communities](README_img/community.png)
 ![Community recommendations](README_img/community_recommendation.png)
 
-**Resume builder**  : 18 templates built from your profile, completed projects and certificates.
+**Resume builder**  : 19 templates built from your profile, completed projects and certificates.
 
 ![Resume builder](README_img/resume-builder.png)
 
@@ -55,7 +55,7 @@ SkillBridge is a full-stack career platform for students and self-taught develop
 
 - **AI roadmap generator.** Stage-by-stage plan with learning modules, free and paid resources, a project idea for every stage and a final capstone project. Optional personalisation from your profile, resume details and projects.
 - **AI chatbot and mock interviews.** The interview adapts its difficulty to your scores and keeps a history.
-- **Resume builder.** 18 templates, live editing, and a print-ready PDF view.
+- **Resume builder.** 19 templates, live editing, and a print-ready PDF view.
 - **Portfolio builder.** Template-based portfolio generation.
 - **Projects.** Create projects, upload versions as `.zip`, like, bookmark, and comment with replies. Import repositories from GitHub.
 - **Communities and messages.** Join requests, member roles, message reactions and direct messages.
@@ -381,7 +381,7 @@ SkillBridge-Platform/
 │   ├── jobs.py                    # Scheduled jobs
 │   ├── time_utils.py              # Timezones
 │   └── utils.py                   # Validation helpers, rate-limit keys
-├── templates/                     # Jinja pages, 18 resume templates
+├── templates/                     # Jinja pages, 19 resume templates
 ├── static/
 │   ├── upload_guard.js            # Client-side upload size and type check
 │   ├── dark.css, mobile.css
